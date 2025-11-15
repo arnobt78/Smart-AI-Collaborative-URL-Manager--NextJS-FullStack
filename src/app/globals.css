@@ -14,22 +14,32 @@
 
 @layer base {
   html {
-    @apply antialiased;
+    @apply antialiased bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950;
   }
 
   body {
-    @apply bg-gray-50 text-gray-900;
+    @apply bg-transparent text-gray-900;
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     @apply font-joti;
   }
 
-  button, a, [role="button"] {
+  button,
+  a,
+  [role="button"] {
     @apply cursor-pointer transition-all duration-200;
   }
 
-  p, span, input, textarea {
+  p,
+  span,
+  input,
+  textarea {
     @apply font-delicious;
   }
 }
@@ -37,6 +47,40 @@
 @layer components {
   .container {
     @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  /* Custom scrollbar for modal content */
+  .custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.4) rgba(0, 0, 0, 0.1);
+  }
+
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 10px;
+    display: block;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 5px;
+    margin: 4px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.4);
+    border-radius: 5px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.6);
+    background-clip: padding-box;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:active {
+    background: rgba(255, 255, 255, 0.7);
+    background-clip: padding-box;
   }
 
   .btn {
@@ -60,7 +104,7 @@
   .text-balance {
     text-wrap: balance;
   }
-  
+
   .clickable {
     @apply cursor-pointer hover:scale-105 active:scale-95 transition-transform duration-200;
   }
@@ -91,23 +135,107 @@
 }
 
 @keyframes fadeIn {
-  from {
+  0% {
     opacity: 0;
   }
-  to {
+  100% {
     opacity: 1;
   }
 }
 
 @keyframes slideUp {
   from {
-    transform: translateY(10px);
     opacity: 0;
+    transform: translateY(20px);
   }
   to {
+    opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-30px) rotate(5deg);
+  }
+}
+
+@keyframes gradientPulse {
+  0%,
+  100% {
+    color: #f42f5f;
+    transform: scale(1);
+    opacity: 0.6;
+    filter: drop-shadow(0 0 2rem rgba(244, 47, 95, 0.4));
+  }
+  50% {
+    color: #fe8d5c;
+    transform: scale(1.15);
+    opacity: 1;
+    filter: drop-shadow(0 0 4rem rgba(254, 141, 92, 0.6));
+  }
+}
+
+@keyframes cursorBlink {
+  0%,
+  49% {
     opacity: 1;
   }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes easeInOut {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.animate-float {
+  animation: float 8s ease-in-out infinite;
+}
+
+.animate-gradient-pulse {
+  animation: gradientPulse 3s ease-in-out infinite;
+}
+
+.animate-cursor-blink {
+  animation: cursorBlink 1s step-end infinite;
+}
+
+.animate-ease-in-out {
+  animation: easeInOut 0.5s ease-in-out 1.6s both;
+  contain: layout style;
+}
+
+.typewriter-cursor {
+  display: inline-block;
+  margin-left: 4px;
+  animation: cursorBlink 1s step-end infinite;
+  vertical-align: baseline;
+}
+
+.typewriter-cursor::after {
+  content: "█";
+  background: linear-gradient(to right, #60a5fa, #a78bfa, #818cf8);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-size: 0.75em;
+  font-weight: 100;
+}
+
+.gradient-color {
+  @apply bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-indigo-400;
 }
 
 /* Custom Scrollbar */
@@ -149,4 +277,35 @@
 /* Tooltip */
 .tooltip {
   @apply absolute z-50 px-2 py-1 text-sm text-white bg-gray-900 rounded shadow-lg;
+}
+
+/* Drag and Drop Styles */
+.drag-handle {
+  @apply cursor-grab active:cursor-grabbing;
+}
+
+.drag-handle:hover {
+  @apply scale-110;
+}
+
+.dragging {
+  @apply opacity-50 rotate-2 scale-105;
+}
+
+.drag-over {
+  @apply bg-blue-500/10 border-blue-400/50;
+}
+
+/* Icon Button Animations */
+@keyframes iconHoverUp {
+  0% {
+    transform: translate(0, 0);
+  }
+  100% {
+    transform: translate(2px, -2px);
+  }
+}
+
+.icon-button-primary:hover {
+  animation: iconHoverUp 0.2s ease-out forwards;
 }

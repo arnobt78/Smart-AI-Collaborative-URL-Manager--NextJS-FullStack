@@ -28,6 +28,9 @@ module.exports = {
       animation: {
         'fade-in': 'fadeIn 0.5s ease-in-out',
         'slide-up': 'slideUp 0.5s ease-out',
+        'float': 'float 8s ease-in-out infinite',
+        'gradient-pulse': 'gradientPulse 3s ease-in-out infinite',
+        'cursor-blink': 'cursorBlink 1s step-end infinite',
       },
       keyframes: {
         fadeIn: {
@@ -37,6 +40,26 @@ module.exports = {
         slideUp: {
           '0%': { transform: 'translateY(10px)', opacity: '0' },
           '100%': { transform: 'translateY(0)', opacity: '1' },
+        },
+        float: {
+          '0%, 100%': { transform: 'translateY(0px) rotate(0deg)' },
+          '50%': { transform: 'translateY(-30px) rotate(5deg)' },
+        },
+        gradientPulse: {
+          '0%, 100%': { 
+            color: '#f42f5f',
+            transform: 'scale(1)',
+            opacity: '0.6',
+          },
+          '50%': { 
+            color: '#fe8d5c',
+            transform: 'scale(1.15)',
+            opacity: '1',
+          },
+        },
+        cursorBlink: {
+          '0%, 49%': { opacity: '1' },
+          '50%, 100%': { opacity: '0' },
         },
       },
     },

@@ -1,6 +1,6 @@
 export default function PrivacyPage() {
   return (
-    <div className="container mx-auto px-4 sm:px-6 py-8 sm:py-12">
+    <div className="container mx-auto px-2 sm:px-0">
       <div className="max-w-3xl mx-auto">
         <h1 className="text-2xl sm:text-4xl font-bold text-gray-900 mb-6 sm:mb-8">
           Privacy Policy

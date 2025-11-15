@@ -1,3 +1,5 @@
+"use client";
+
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import React from "react";
@@ -61,7 +63,7 @@ export function UrlFilterBar({
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search URLs, titles, or descriptions..."
-          className="flex-1 text-lg shadow-sm font-delicious"
+          className="flex-1 text-lg shadow-sm font-delicious bg-transparent"
         />
         <div className="flex gap-2 flex-wrap">
           <Button

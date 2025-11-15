@@ -1,0 +1,99 @@
+// Prisma schema for The Daily Urlist
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// User model for authentication
+model User {
+  id            String   @id @default(uuid())
+  email         String   @unique
+  password      String
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+  lists         List[]
+  sessions      Session[]
+  comments      Comment[]
+  activities    Activity[]
+
+  @@map("users")
+}
+
+// Session model for authentication
+model Session {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  token     String   @unique
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@map("sessions")
+}
+
+// List model - main entity
+model List {
+  id            String   @id @default(uuid())
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+  title         String
+  description   String?
+  slug          String   @unique
+  urls          Json     @default("[]") // Array of URL objects
+  archivedUrls  Json     @default("[]") // Array of archived URL objects
+  userId        String   @map("user_id")
+  isPublic      Boolean  @default(false) @map("is_public")
+  collaborators String[] @default([]) // Array of email addresses
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comments Comment[] // Comments on URLs in this list
+  activities Activity[] // Activity logs for this list
+
+  @@index([userId])
+  @@index([slug])
+  @@map("lists")
+}
+
+// Comment model for URL comments
+model Comment {
+  id        String   @id @default(uuid())
+  listId    String   @map("list_id")
+  urlId     String   @map("url_id") // The ID of the URL item this comment is on
+  userId    String   @map("user_id")
+  content   String   @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  list List @relation(fields: [listId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([listId])
+  @@index([urlId])
+  @@index([userId])
+  @@map("comments")
+}
+
+// Activity model for tracking list changes
+model Activity {
+  id        String   @id @default(uuid())
+  listId    String   @map("list_id")
+  userId    String   @map("user_id")
+  action    String   // e.g., "url_added", "url_deleted", "url_updated", "comment_added"
+  details   Json?    // Additional details about the action
+  createdAt DateTime @default(now()) @map("created_at")
+
+  list List @relation(fields: [listId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([listId])
+  @@index([userId])
+  @@index([createdAt])
+  @@map("activities")
+}

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { uploadExternalImage } from "@/lib/cloudinary-server";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -40,37 +41,102 @@ export async function GET(request: Request) {
 
     const html = await response.text();
 
-    // Simple regex-based metadata extraction
+    // Helper function to decode HTML entities
+    const decodeHtmlEntities = (text: string): string => {
+      const entityMap: Record<string, string> = {
+        "&amp;": "&",
+        "&lt;": "<",
+        "&gt;": ">",
+        "&quot;": '"',
+        "&#39;": "'",
+        "&apos;": "'",
+        "&nbsp;": " ",
+      };
+      return text.replace(/&[#\w]+;/g, (entity) => {
+        if (entity.startsWith("&#")) {
+          const code = entity.startsWith("&#x")
+            ? parseInt(entity.slice(3, -1), 16)
+            : parseInt(entity.slice(2, -1), 10);
+          return String.fromCharCode(code);
+        }
+        return entityMap[entity] || entity;
+      });
+    };
+
+    // Simple regex-based metadata extraction with improved pattern matching
     const getMetaContent = (name: string): string | null => {
-      const match =
-        html.match(
-          new RegExp(
-            `<meta[^>]*(?:name|property)=["']${name}["'][^>]*content=["']([^"']+)["']`,
-            "i"
-          )
-        ) ||
-        html.match(
-          new RegExp(
-            `<meta[^>]*content=["']([^"']+)["'][^>]*(?:name|property)=["']${name}["']`,
-            "i"
-          )
-        );
-      return match ? match[1] : null;
+      // Try various patterns to catch different meta tag formats
+      const patterns = [
+        // Standard: <meta property="og:title" content="...">
+        new RegExp(
+          `<meta[^>]*(?:name|property)=["']${name.replace(
+            /[.*+?^${}()|[\]\\]/g,
+            "\\$&"
+          )}["'][^>]*content=["']([^"']+)["']`,
+          "i"
+        ),
+        // Reversed: <meta content="..." property="og:title">
+        new RegExp(
+          `<meta[^>]*content=["']([^"']+)["'][^>]*(?:name|property)=["']${name.replace(
+            /[.*+?^${}()|[\]\\]/g,
+            "\\$&"
+          )}["']`,
+          "i"
+        ),
+        // With spaces/newlines
+        new RegExp(
+          `<meta[^>]*(?:name|property)=["']${name.replace(
+            /[.*+?^${}()|[\]\\]/g,
+            "\\$&"
+          )}["'][^>]*\\s+content=["']([^"']+)["']`,
+          "is"
+        ),
+      ];
+
+      for (const pattern of patterns) {
+        const match = html.match(pattern);
+        if (match && match[1]) {
+          const decoded = decodeHtmlEntities(match[1]);
+          if (decoded.trim().length > 0) {
+            return decoded.trim();
+          }
+        }
+      }
+
+      return null;
     };
 
     const getTitle = (): string => {
+      // Try Open Graph title
       const ogTitle = getMetaContent("og:title");
-      const twitterTitle = getMetaContent("twitter:title");
-      const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);
-      const h1Match = html.match(/<h1[^>]*>([^<]+)<\/h1>/i);
+      if (ogTitle) return ogTitle.trim();
 
-      return (
-        ogTitle ||
-        twitterTitle ||
-        (titleMatch && titleMatch[1]) ||
-        (h1Match && h1Match[1]) ||
-        new URL(url).hostname
+      // Try Twitter title
+      const twitterTitle = getMetaContent("twitter:title");
+      if (twitterTitle) return twitterTitle.trim();
+
+      // Try standard meta description tag
+      const metaTitle = getMetaContent("title");
+      if (metaTitle) return metaTitle.trim();
+
+      // Try <title> tag (handle various formats including multiline)
+      const titleMatch = html.match(
+        /<title[^>]*>[\s\S]*?([^<]+)[\s\S]*?<\/title>/i
       );
+      if (titleMatch && titleMatch[1]) {
+        const cleanTitle = titleMatch[1].trim().replace(/\s+/g, " ");
+        if (cleanTitle) return cleanTitle;
+      }
+
+      // Try <h1> tag (first main heading)
+      const h1Match = html.match(/<h1[^>]*>[\s\S]*?([^<]+)[\s\S]*?<\/h1>/i);
+      if (h1Match && h1Match[1]) {
+        const cleanH1 = h1Match[1].trim().replace(/\s+/g, " ");
+        if (cleanH1) return cleanH1;
+      }
+
+      // Fallback to hostname
+      return new URL(url).hostname;
     };
 
     const getFavicon = (): string | null => {
@@ -94,14 +160,193 @@ export async function GET(request: Request) {
       return favicon;
     };
 
+    // Helper function to resolve relative URLs to absolute URLs
+    const resolveImageUrl = (imageUrl: string | null): string | null => {
+      if (!imageUrl) return null;
+      const urlObj = new URL(url);
+
+      // Already absolute URL
+      if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) {
+        return imageUrl;
+      }
+
+      // Protocol-relative URL (//example.com/image.jpg)
+      if (imageUrl.startsWith("//")) {
+        return `${urlObj.protocol}${imageUrl}`;
+      }
+
+      // Absolute path (/images/image.jpg)
+      if (imageUrl.startsWith("/")) {
+        return `${urlObj.protocol}//${urlObj.host}${imageUrl}`;
+      }
+
+      // Relative path (images/image.jpg or ./images/image.jpg)
+      // Resolve relative to the current URL path
+      const basePath = urlObj.pathname.substring(
+        0,
+        urlObj.pathname.lastIndexOf("/") + 1
+      );
+      return `${urlObj.protocol}//${urlObj.host}${basePath}${imageUrl.replace(
+        /^\.\//,
+        ""
+      )}`;
+    };
+
+    // Helper function to check if an image URL is accessible
+    const checkImageExists = async (imageUrl: string): Promise<boolean> => {
+      try {
+        const response = await fetch(imageUrl, {
+          method: "HEAD",
+          headers: {
+            "User-Agent":
+              "Mozilla/5.0 (compatible; UrllistBot/1.0; +https://urlist.com)",
+          },
+        });
+        return (
+          response.ok &&
+          response.headers.get("content-type")?.startsWith("image/") === true
+        );
+      } catch {
+        return false;
+      }
+    };
+
+    // Get primary image from meta tags
+    const rawImage =
+      getMetaContent("og:image") || getMetaContent("twitter:image");
+    let resolvedImage = resolveImageUrl(rawImage);
+
+    // If no image found in meta tags, try common image paths
+    if (!resolvedImage) {
+      const urlObj = new URL(url);
+      const baseUrl = `${urlObj.protocol}//${urlObj.host}`;
+
+      // Common image paths to try
+      const commonImagePaths = [
+        "/images/og-image.jpg",
+        "/images/og-image.png",
+        "/images/og-image.webp",
+        "/images/image.jpg",
+        "/images/image.png",
+        "/images/thumbnail.jpg",
+        "/images/thumbnail.png",
+        "/images/preview.jpg",
+        "/images/preview.png",
+        "/public/images/og-image.jpg",
+        "/public/images/og-image.png",
+        "/public/og-image.jpg",
+        "/public/og-image.png",
+        "/icon.png",
+        "/icon.jpg",
+        "/logo.png",
+        "/logo.jpg",
+        "/og-image.png",
+        "/og-image.jpg",
+        "/thumbnail.png",
+        "/thumbnail.jpg",
+        "/favicon.png",
+        "/favicon.jpg",
+        "/images/favicon.png",
+        "/images/logo.png",
+        "/images/logo.jpg",
+        "/assets/images/og-image.png",
+        "/assets/images/og-image.jpg",
+        "/assets/og-image.png",
+        "/assets/og-image.jpg",
+      ];
+
+      // Try to find an existing image by checking common paths
+      for (const path of commonImagePaths) {
+        const testUrl = `${baseUrl}${path}`;
+        if (await checkImageExists(testUrl)) {
+          resolvedImage = testUrl;
+          break;
+        }
+      }
+    }
+
+    // Improved description extraction
+    const getDescription = (): string | null => {
+      // Try Open Graph description
+      const ogDesc = getMetaContent("og:description");
+      if (ogDesc) {
+        const clean = ogDesc.trim();
+        if (clean && clean.length > 0) return clean;
+      }
+
+      // Try Twitter description
+      const twitterDesc = getMetaContent("twitter:description");
+      if (twitterDesc) {
+        const clean = twitterDesc.trim();
+        if (clean && clean.length > 0) return clean;
+      }
+
+      // Try standard meta description
+      const metaDesc = getMetaContent("description");
+      if (metaDesc) {
+        const clean = metaDesc.trim();
+        if (clean && clean.length > 0) return clean;
+      }
+
+      // Try meta name="description"
+      const nameDescMatch =
+        html.match(
+          /<meta[^>]*name=["']description["'][^>]*content=["']([^"']+)["']/i
+        ) ||
+        html.match(
+          /<meta[^>]*content=["']([^"']+)["'][^>]*name=["']description["']/i
+        );
+      if (nameDescMatch && nameDescMatch[1]) {
+        const clean = nameDescMatch[1].trim();
+        if (clean && clean.length > 0) return clean;
+      }
+
+      // Try to find first meaningful paragraph (<p> tag)
+      const pMatch = html.match(/<p[^>]*>[\s\S]*?([^<]{50,300})[\s\S]*?<\/p>/i);
+      if (pMatch && pMatch[1]) {
+        const clean = pMatch[1]
+          .trim()
+          .replace(/\s+/g, " ")
+          .replace(/&nbsp;/g, " ");
+        if (clean && clean.length > 50) {
+          // Return first 200 characters
+          return clean.substring(0, 200) + (clean.length > 200 ? "..." : "");
+        }
+      }
+
+      return null;
+    };
+
+    // Optimize images using Cloudinary
+    // Use upload method (like hotel-booking) instead of fetch URLs
+    // This works even if Cloudinary Fetch is disabled
+    const optimizedImage = resolvedImage
+      ? await uploadExternalImage(resolvedImage, {
+          width: 1200,
+          height: 630,
+          quality: "auto",
+        })
+      : null;
+
+    const faviconUrl = getFavicon();
+    const optimizedFavicon = faviconUrl
+      ? await uploadExternalImage(faviconUrl, {
+          width: 32,
+          height: 32,
+          quality: "auto",
+        })
+      : null;
+
     const metadata = {
       title: getTitle(),
-      description:
-        getMetaContent("og:description") ||
-        getMetaContent("twitter:description") ||
-        getMetaContent("description"),
-      image: getMetaContent("og:image") || getMetaContent("twitter:image"),
-      favicon: getFavicon(),
+      description: getDescription(),
+      // Only use optimized image if upload was successful
+      // If uploadExternalImage returns null, it means the image is broken/404 - return null instead of broken URL
+      // If optimizedImage is undefined, it means resolvedImage was null/empty - return null
+      image:
+        optimizedImage !== undefined ? optimizedImage : resolvedImage || null,
+      favicon:
+        optimizedFavicon !== undefined ? optimizedFavicon : faviconUrl || null,
       siteName:
         getMetaContent("og:site_name") ||
         getMetaContent("application-name") ||

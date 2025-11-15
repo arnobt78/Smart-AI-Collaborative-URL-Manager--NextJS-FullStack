@@ -1,6 +1,6 @@
 export default function TermsPage() {
   return (
-    <div className="container mx-auto px-4 sm:px-6 py-8 sm:py-12">
+    <div className="container mx-auto px-2 sm:px-0">
       <div className="max-w-3xl mx-auto">
         <h1 className="text-2xl sm:text-4xl font-bold text-gray-900 mb-6 sm:mb-8">
           Terms of Service
@@ -46,9 +46,9 @@ export default function TermsPage() {
             Limitation of Liability
           </h2>
           <p className="text-base sm:text-lg text-gray-600 mb-4 sm:mb-6">
-            The Urlist is provided "as is" without any warranties. We are not
-            responsible for any damages that may occur through the use of our
-            service.
+            The Urlist is provided &quot;as is&quot; without any warranties. We
+            are not responsible for any damages that may occur through the use
+            of our service.
           </p>
 
           <h2 className="text-lg sm:text-2xl font-semibold text-gray-900 mt-6 sm:mt-8 mb-2 sm:mb-4">

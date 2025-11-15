@@ -1,3 +1,5 @@
+"use client";
+
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import React from "react";
@@ -37,28 +39,28 @@ export function UrlAddForm({
         onChange={(e) => setNewUrl(e.target.value)}
         placeholder="Enter a URL to add to your list..."
         error={error}
-        className="flex-1 text-lg shadow-sm font-delicious"
+        className="flex-1 text-lg shadow-sm font-delicious bg-transparent"
       />
       <Input
         type="text"
         value={newTags}
         onChange={(e) => setNewTags(e.target.value)}
         placeholder="Tags (comma separated)"
-        className="flex-1 text-lg shadow-sm font-delicious"
+        className="flex-1 text-lg shadow-sm font-delicious bg-transparent"
       />
       <Input
         type="text"
         value={newNotes}
         onChange={(e) => setNewNotes(e.target.value)}
         placeholder="Notes (optional)"
-        className="flex-1 text-lg shadow-sm font-delicious"
+        className="flex-1 text-lg shadow-sm font-delicious bg-transparent"
       />
       <Input
         type="date"
         value={newReminder}
         onChange={(e) => setNewReminder(e.target.value)}
         placeholder="Reminder (optional)"
-        className="flex-1 text-lg shadow-sm font-delicious"
+        className="flex-1 text-lg shadow-sm font-delicious bg-transparent"
       />
       <Button
         type="submit"

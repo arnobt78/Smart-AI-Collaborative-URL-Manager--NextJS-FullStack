@@ -1,18 +1,30 @@
+"use client";
+
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { PencilIcon } from "@heroicons/react/24/outline";
 import React from "react";
+import type { UrlItem } from "@/stores/urlListStore";
+import { UrlEnhancer } from "@/components/ai/UrlEnhancer";
 
 interface UrlEditModalProps {
-  editingUrl: any;
-  setEditingUrl: (v: any) => void;
+  editingUrl: UrlItem | null;
+  setEditingUrl: (v: UrlItem | null) => void;
   editingTags: string;
   setEditingTags: (v: string) => void;
   editingNotes: string;
   setEditingNotes: (v: string) => void;
   editingReminder: string;
   setEditingReminder: (v: string) => void;
-  handleEditUrl: (id: string, title: string, url: string) => void;
+  isEditing?: boolean;
+  handleEditUrl: (
+    id: string,
+    title: string,
+    url: string,
+    tags?: string[],
+    notes?: string,
+    reminder?: string
+  ) => void;
 }
 
 export function UrlEditModal({
@@ -24,25 +36,37 @@ export function UrlEditModal({
   setEditingNotes,
   editingReminder,
   setEditingReminder,
+  isEditing = false,
   handleEditUrl,
 }: UrlEditModalProps) {
   if (!editingUrl) return null;
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4 backdrop-blur-sm">
-      <div className="w-full max-w-xl rounded-2xl bg-white p-8 shadow-2xl">
-        <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-          <PencilIcon className="h-6 w-6 text-blue-600" />
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4 backdrop-blur-sm overflow-y-auto">
+      <div className="w-full max-w-xl max-h-[90vh] my-8 rounded-2xl bg-gradient-to-br from-zinc-900 to-zinc-800 p-8 shadow-2xl border border-white/20 overflow-y-auto">
+        <h2 className="text-2xl font-bold text-white flex items-center gap-2">
+          <PencilIcon className="h-6 w-6 text-blue-400" />
           Edit URL
         </h2>
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            handleEditUrl(editingUrl.id, editingUrl.title, editingUrl.url);
+            const tagsArray = editingTags
+              .split(",")
+              .map((tag) => tag.trim())
+              .filter((tag) => tag.length > 0);
+            handleEditUrl(
+              editingUrl.id,
+              editingUrl.title || "",
+              editingUrl.url,
+              tagsArray.length > 0 ? tagsArray : undefined,
+              editingNotes || undefined,
+              editingReminder || undefined
+            );
           }}
           className="mt-8 space-y-6"
         >
           <div>
-            <label className="block text-base font-medium text-gray-900">
+            <label className="block text-base font-medium text-white">
               Title
             </label>
             <Input
@@ -56,7 +80,7 @@ export function UrlEditModal({
             />
           </div>
           <div>
-            <label className="block text-base font-medium text-gray-900">
+            <label className="block text-base font-medium text-white">
               URL
             </label>
             <Input
@@ -70,7 +94,7 @@ export function UrlEditModal({
             />
           </div>
           <div>
-            <label className="block text-base font-medium text-gray-900">
+            <label className="block text-base font-medium text-white">
               Tags (comma separated)
             </label>
             <Input
@@ -80,9 +104,35 @@ export function UrlEditModal({
               placeholder="e.g. work, reading, ai"
               className="mt-2 text-lg shadow-sm"
             />
+            {editingUrl?.url && (
+              <div className="mt-3">
+                <UrlEnhancer
+                  url={editingUrl.url}
+                  title={editingUrl.title}
+                  description={editingUrl.description}
+                  onEnhance={(result) => {
+                    // Apply AI suggestions
+                    if (result.tags && result.tags.length > 0) {
+                      const existingTags = editingTags
+                        .split(",")
+                        .map((t) => t.trim())
+                        .filter((t) => t.length > 0);
+                      const newTags = [...existingTags, ...result.tags].filter(
+                        (tag, index, self) => self.indexOf(tag) === index
+                      );
+                      setEditingTags(newTags.join(", "));
+                    }
+                    if (result.summary) {
+                      setEditingNotes(result.summary);
+                    }
+                  }}
+                  compact={true}
+                />
+              </div>
+            )}
           </div>
           <div>
-            <label className="block text-base font-medium text-gray-900">
+            <label className="block text-base font-medium text-white">
               Notes (optional)
             </label>
             <Input
@@ -94,7 +144,7 @@ export function UrlEditModal({
             />
           </div>
           <div>
-            <label className="block text-base font-medium text-gray-900">
+            <label className="block text-base font-medium text-white">
               Reminder (optional)
             </label>
             <Input
@@ -109,15 +159,16 @@ export function UrlEditModal({
               type="button"
               variant="outline"
               onClick={() => setEditingUrl(null)}
-              className="text-gray-900 border-gray-300 hover:bg-gray-50 text-lg px-6 py-2.5 rounded-xl"
+              className="text-white border-white/30 hover:bg-white/10 text-lg px-6 py-2.5 rounded-xl"
             >
               Cancel
             </Button>
             <Button
               type="submit"
-              className="bg-blue-600 hover:bg-blue-700 text-white text-lg font-semibold px-6 py-2.5 rounded-xl shadow-md hover:shadow-xl transition-all duration-200"
+              disabled={isEditing}
+              className="bg-blue-600 hover:bg-blue-700 text-white text-lg font-semibold px-6 py-2.5 rounded-xl shadow-md hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Save Changes
+              {isEditing ? "Saving..." : "Save Changes"}
             </Button>
           </div>
         </form>
