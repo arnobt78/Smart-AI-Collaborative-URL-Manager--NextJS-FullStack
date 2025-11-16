@@ -238,10 +238,19 @@ export const UrlCard: React.FC<UrlCardProps> = ({
   const title = metadata?.title || url.title || url.url;
   const description = metadata?.description;
 
-  // Check if we should show skeleton - either loading or metadata hasn't been fetched yet
-  // Show skeleton initially if metadata is not available and we're either loading or haven't checked yet
-  const shouldShowSkeleton =
-    imageLoading || isLoadingMetadata || (!metadata && !url.title);
+  // Check if we should show skeleton
+  // Only show skeleton if we truly don't have ANY data to display
+  // Don't show skeleton if we have cached metadata, URL title, or image URL (for instant display)
+  const hasCachedData = metadata !== undefined && metadata !== null;
+  const hasTitle = !!url.title;
+  const hasPrimaryImage = !!primaryImage;
+  const hasAnyData = hasCachedData || hasTitle || hasPrimaryImage;
+
+  // Only show skeleton if:
+  // 1. We're actively loading AND don't have any data at all
+  // 2. No metadata, no title, no image, AND still loading
+  // This ensures cards display instantly when cached data exists
+  const shouldShowSkeleton = isLoadingMetadata && !hasAnyData && imageLoading;
 
   // Check if we have an actual image to display
   // For own URLs, logoPath is valid. For external URLs, only metadata?.image counts

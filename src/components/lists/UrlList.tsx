@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect, useRef } from "react";
+import { useState, useMemo, useEffect, useLayoutEffect, useRef } from "react";
 import { flushSync } from "react-dom";
 import {
   DragDropContext,
@@ -24,7 +24,7 @@ import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
 import { useUrlMetadata } from "@/hooks/useUrlMetadata";
 import { useQueryClient } from "@tanstack/react-query";
-import { fetchUrlMetadata } from "@/utils/urlMetadata";
+import { fetchUrlMetadata, type UrlMetadata } from "@/utils/urlMetadata";
 import { UrlCard } from "./UrlCard";
 import { UrlEditModal } from "./UrlEditModal";
 import {
@@ -53,6 +53,7 @@ function UrlCardWrapper({
   onArchive,
   onPin,
   shareTooltip,
+  isMetadataReady,
 }: {
   url: UrlItem;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -75,12 +76,40 @@ function UrlCardWrapper({
   onArchive?: (id: string) => void;
   onPin?: (id: string) => void;
   shareTooltip: string | null;
+  isMetadataReady: boolean;
 }) {
+  const queryClient = useQueryClient();
+  
+  // Check if metadata is already in cache (from batch fetch)
+  // IMPORTANT: Check cache on every render to catch hydration that happens after mount
+  const queryKey = ["url-metadata", url.url] as const;
+  const cachedMetadata = queryClient.getQueryData<UrlMetadata>(queryKey);
+  const hasCache = !!cachedMetadata;
+  
+  // Only enable individual fetch if:
+  // 1. Batch metadata is ready (has run)
+  // 2. AND metadata is NOT in cache (truly missing)
+  // This prevents individual API calls when batch fetch has populated cache
+  const shouldFetch = isMetadataReady && !hasCache;
+  
+  // Log cache check for this URL (only log once to reduce noise)
+  if (hasCache) {
+    console.log(`💾 [CARD ${url.url.slice(0, 30)}...] Using cached metadata from batch fetch`);
+  } else if (!isMetadataReady) {
+    console.log(`⏳ [CARD ${url.url.slice(0, 30)}...] Waiting for batch fetch to complete (shouldFetch=false)`);
+  } else {
+    console.log(`🔄 [CARD ${url.url.slice(0, 30)}...] No cache found after batch, will fetch individually (shouldFetch: ${shouldFetch})`);
+  }
+  
   // Use React Query hook to fetch and cache metadata
+  // Disabled until batch fetch completes to prevent duplicate calls
   const { data: metadata, isLoading: isLoadingMetadata } = useUrlMetadata(
     url.url,
-    true
+    shouldFetch // Only fetch if batch is ready AND data not in cache
   );
+  
+  // Use cached data if available, otherwise use hook data
+  const finalMetadata = cachedMetadata || metadata;
 
   return (
     <div
@@ -95,8 +124,8 @@ function UrlCardWrapper({
       >
         <UrlCard
           url={url}
-          metadata={metadata}
-          isLoadingMetadata={isLoadingMetadata}
+          metadata={finalMetadata}
+          isLoadingMetadata={isLoadingMetadata && !cachedMetadata}
           onEdit={onEdit}
           onDelete={onDelete}
           onToggleFavorite={onToggleFavorite}
@@ -168,6 +197,204 @@ export function UrlList() {
 
   // Real-time updates subscription
   useRealtimeList(list?.id || null);
+
+  // Fetch all metadata from unified API endpoint when list loads
+  // This acts as a middleware/proxy layer that returns all metadata instantly
+  // IMPORTANT: This must run BEFORE cards render to prevent individual API calls
+  const prefetchedMetadataRef = useRef<string | null>(null);
+  const batchFetchCompleteRef = useRef<string | null>(null); // Track completed batch fetches
+  
+  // CRITICAL: Compute isMetadataReady SYNCHRONOUSLY during render (not from state)
+  // This prevents race condition where hooks run before useLayoutEffect
+  const currentListHash = list?.id && list?.urls 
+    ? `${list.id}:${(list.urls as unknown as UrlItem[]).map((u) => u.url).join("|")}`
+    : "";
+  
+  // Compute isMetadataReady directly from refs and cache (synchronous, no state delay)
+  const isMetadataReady = useMemo(() => {
+    if (!list?.id || !list?.urls || list.urls.length === 0) {
+      return true; // No list = ready (nothing to fetch)
+    }
+    
+    // Check if this exact list+URLs combo has been prefetched AND completed
+    const urls = list.urls as unknown as UrlItem[];
+    const urlsHash = urls.map((u) => u.url).join("|");
+    const listId = list.id;
+    const prefetchKey = `${listId}:${urlsHash}`;
+    
+    // If batch hasn't completed for this list, we're not ready
+    if (batchFetchCompleteRef.current !== prefetchKey) {
+      return false;
+    }
+    
+    // If batch completed, check if all URLs are cached
+    const uniqueUrls = Array.from(new Set(urls.map((u) => u.url)));
+    const allCached = uniqueUrls.every((url) => {
+      const queryKey = ["url-metadata", url] as const;
+      return !!queryClient.getQueryData<UrlMetadata>(queryKey);
+    });
+    
+    return allCached;
+  }, [list?.id, list?.urls, queryClient, currentListHash]);
+  
+  useEffect(() => {
+    const current = currentList.get();
+    if (!current?.id || !current?.urls || current.urls.length === 0) {
+      batchFetchCompleteRef.current = null;
+      return;
+    }
+
+    const listId = current.id;
+    const urls = current.urls as unknown as UrlItem[];
+    const urlsHash = urls.map((u) => u.url).join("|");
+    const urlCount = new Set(urls.map((u) => u.url)).size;
+    const prefetchKey = `${listId}:${urlsHash}`;
+    
+    // Skip if already prefetched AND completed
+    if (batchFetchCompleteRef.current === prefetchKey) {
+      const uniqueUrls = Array.from(new Set(urls.map((u) => u.url)));
+      const allCached = uniqueUrls.every((url) => {
+        const queryKey = ["url-metadata", url] as const;
+        return !!queryClient.getQueryData<UrlMetadata>(queryKey);
+      });
+      if (allCached) {
+        console.log(`⏭️ [BATCH] Already prefetched and cached for this list state (${urlCount} unique URLs)`);
+        return; // Already done
+      }
+      // Cache incomplete, need to re-fetch
+      batchFetchCompleteRef.current = null;
+    }
+    
+    // Skip if currently prefetching (wait for it to complete)
+    if (prefetchedMetadataRef.current === prefetchKey) {
+      console.log(`⏳ [BATCH] Batch fetch already in progress for this list...`);
+      return;
+    }
+    
+    const fetchAllMetadata = async () => {
+      // Mark as prefetching
+      prefetchedMetadataRef.current = prefetchKey;
+      console.log(`🚀 [BATCH] Starting batch metadata fetch for ${urlCount} unique URLs (list: ${listId})`);
+
+      try {
+        const startTime = performance.now();
+        // Fetch all metadata from unified endpoint (cached in Redis)
+        // This is the SINGLE API call that replaces 9 individual calls
+        console.log(`🔄 [BATCH] Calling unified endpoint: /api/lists/${listId}/metadata`);
+        const response = await fetch(`/api/lists/${listId}/metadata`);
+        const fetchTime = performance.now() - startTime;
+        
+        if (response.ok) {
+          const { metadata, cached } = await response.json();
+          
+          if (cached) {
+            console.log(`⚡ [BATCH CACHE HIT] All metadata loaded instantly from Redis cache (${fetchTime.toFixed(2)}ms)`);
+          } else {
+            console.log(`🔄 [BATCH CACHE MISS] Fetched all metadata from web (${fetchTime.toFixed(2)}ms), now cached for future requests`);
+          }
+          
+          const metadataCount = Object.keys(metadata).length;
+          console.log(`📦 [BATCH] Received ${metadataCount} metadata entries, hydrating React Query cache...`);
+          
+          // Hydrate React Query cache and localStorage with all metadata instantly
+          // CRITICAL: This happens synchronously, so cards will see cache immediately
+          let hydratedCount = 0;
+          Object.entries(metadata).forEach(([url, metaData]) => {
+            const queryKey = ["url-metadata", url] as const;
+            const meta = metaData as UrlMetadata;
+            
+            // Check if already in cache
+            const existingCache = queryClient.getQueryData<UrlMetadata>(queryKey);
+            if (!existingCache) {
+              // Set in React Query cache (instant, synchronous)
+              queryClient.setQueryData(queryKey, meta);
+              hydratedCount++;
+              console.log(`  💧 [BATCH] Hydrated cache for: ${url.slice(0, 40)}...`);
+            }
+            
+            // Also save to localStorage for persistence
+            try {
+              const key = `react-query:${queryKey.join(":")}`;
+              localStorage.setItem(key, JSON.stringify({ 
+                data: meta, 
+                timestamp: Date.now() 
+              }));
+            } catch {
+              // Ignore localStorage errors
+            }
+          });
+          
+          console.log(`✅ [BATCH] Hydrated ${hydratedCount} new entries into React Query cache (${metadataCount - hydratedCount} already cached)`);
+          
+          // CRITICAL: Mark batch as complete AFTER cache hydration
+          // This makes isMetadataReady=true on next render (computed synchronously)
+          batchFetchCompleteRef.current = prefetchKey;
+          
+          // Force a React Query cache update notification to trigger re-renders
+          // This ensures cards see the newly hydrated cache immediately
+          queryClient.invalidateQueries({ queryKey: ["url-metadata"], exact: false, refetchType: "none" });
+          
+          console.log(`🎯 [BATCH] Batch fetch complete, isMetadataReady=true (will be computed on next render)`);
+        } else {
+          console.error(`❌ [BATCH] API error: ${response.status} ${response.statusText}`);
+          prefetchedMetadataRef.current = null; // Reset on error
+        }
+      } catch (error) {
+        console.error(`❌ [BATCH] Failed to fetch batch metadata:`, error);
+        prefetchedMetadataRef.current = null; // Reset on error
+        
+        // Fallback to individual prefetching if batch endpoint fails
+        const uniqueUrls = Array.from(new Set(urls.map((u) => u.url)));
+        
+        // Load from localStorage first (instant)
+        uniqueUrls.forEach((url) => {
+          const queryKey = ["url-metadata", url] as const;
+          const localStorageKey = `react-query:${queryKey.join(":")}`;
+          try {
+            const item = localStorage.getItem(localStorageKey);
+            if (item) {
+              const parsed = JSON.parse(item);
+              const age = Date.now() - parsed.timestamp;
+              if (age < 1000 * 60 * 60 * 24 * 7 && parsed.data) {
+                queryClient.setQueryData(queryKey, parsed.data);
+              }
+            }
+          } catch {
+            // Ignore localStorage errors
+          }
+        });
+
+        // Prefetch missing ones individually (fallback only)
+        const urlsToFetch = uniqueUrls.filter((url) => {
+          const queryKey = ["url-metadata", url] as const;
+          return !queryClient.getQueryData(queryKey);
+        });
+
+        // Fetch in batches
+        const concurrency = 5;
+        for (let i = 0; i < urlsToFetch.length; i += concurrency) {
+          const batch = urlsToFetch.slice(i, i + concurrency);
+          await Promise.allSettled(
+            batch.map((url) =>
+              queryClient.prefetchQuery({
+                queryKey: ["url-metadata", url] as const,
+                queryFn: () => fetchUrlMetadata(url),
+                staleTime: 1000 * 60 * 60 * 24,
+              }).catch(() => {
+                // Silently fail
+              })
+            )
+          );
+        }
+        
+        // Mark as complete after fallback fetch
+        batchFetchCompleteRef.current = prefetchKey;
+      }
+    };
+
+    // Fetch metadata IMMEDIATELY when list loads (no delay to prevent individual calls)
+    fetchAllMetadata();
+  }, [list?.id, list?.urls, queryClient]);
 
   // Track if we're currently performing a local operation to prevent refresh loops
   const isLocalOperationRef = useRef(false);
@@ -431,6 +658,16 @@ export function UrlList() {
       );
       // Pre-populate the query cache so it's available immediately
       queryClient.setQueryData(["url-metadata", url.toString()], metadata);
+      
+      // Also save to localStorage for persistence
+      const queryKey = ["url-metadata", url.toString()] as const;
+      try {
+        const key = `react-query:${queryKey.join(":")}`;
+        localStorage.setItem(key, JSON.stringify({ data: metadata, timestamp: Date.now() }));
+      } catch {
+        // Ignore localStorage errors
+      }
+      
       setNewUrl("");
       setNewNote("");
       setNewTags("");
@@ -1457,6 +1694,7 @@ export function UrlList() {
                         onArchive={handleArchive}
                         onPin={handlePin}
                         shareTooltip={shareTooltip}
+                        isMetadataReady={isMetadataReady}
                       />
                     )}
                   </Draggable>

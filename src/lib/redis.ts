@@ -22,6 +22,8 @@ export const cacheKeys = {
   similarUrls: (listId: string, urlId: string) => `similar:${listId}:${urlId}`,
   urlEmbedding: (listId: string, urlId: string) =>
     `embedding:${listId}:${urlId}`,
+  listMetadata: (listId: string) => `list-metadata:${listId}`,
+  urlMetadata: (url: string) => `url-metadata:${url}`,
 };
 
 // Cache TTL (Time To Live) in seconds

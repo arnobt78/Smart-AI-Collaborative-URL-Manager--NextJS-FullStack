@@ -244,6 +244,15 @@ export async function addUrlToList(
           detail: { listId: current.id },
         })
       );
+      
+      // Invalidate metadata cache when URL is added
+      fetch(`/api/lists/${current.id}/metadata`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ refresh: false }),
+      }).catch(() => {
+        // Silently fail - cache invalidation is non-critical
+      });
     }
 
     // Merge server response (server might have added metadata)
@@ -319,6 +328,15 @@ export async function updateUrlInList(
           detail: { listId: current.id },
         })
       );
+      
+      // Invalidate metadata cache when URL is updated
+      fetch(`/api/lists/${current.id}/metadata`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ refresh: false }),
+      }).catch(() => {
+        // Silently fail - cache invalidation is non-critical
+      });
     }
 
     // Merge server response with optimistic state
@@ -393,6 +411,15 @@ export async function removeUrlFromList(urlId: string) {
           detail: { listId: current.id },
         })
       );
+      
+      // Invalidate metadata cache when URL is removed
+      fetch(`/api/lists/${current.id}/metadata`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ refresh: false }),
+      }).catch(() => {
+        // Silently fail - cache invalidation is non-critical
+      });
     }
   } catch (err) {
     // Revert on error
@@ -515,6 +542,15 @@ export async function archiveUrlFromList(urlId: string) {
           detail: { listId: current.id },
         })
       );
+      
+      // Invalidate metadata cache when URL is archived
+      fetch(`/api/lists/${current.id}/metadata`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ refresh: false }),
+      }).catch(() => {
+        // Silently fail - cache invalidation is non-critical
+      });
     }
 
     return list;
@@ -568,6 +604,18 @@ export async function restoreArchivedUrl(urlId: string) {
 
     const { list } = await response.json();
     currentList.set(list);
+    
+    // Invalidate metadata cache when URL is restored
+    if (typeof window !== "undefined") {
+      fetch(`/api/lists/${current.id}/metadata`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ refresh: false }),
+      }).catch(() => {
+        // Silently fail - cache invalidation is non-critical
+      });
+    }
+    
     return list;
   } catch (err) {
     error.set(
