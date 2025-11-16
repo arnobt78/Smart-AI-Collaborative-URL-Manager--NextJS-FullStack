@@ -13,18 +13,39 @@ export async function GET(request: Request) {
     const response = await fetch(url, {
       headers: {
         "User-Agent":
-          "Mozilla/5.0 (compatible; UrllistBot/1.0; +https://urlist.com)",
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        Accept:
+          "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Accept-Encoding": "gzip, deflate, br",
+        DNT: "1",
+        Connection: "keep-alive",
+        "Upgrade-Insecure-Requests": "1",
       },
+      redirect: "follow",
+      signal: AbortSignal.timeout(15000), // 15 second timeout
     });
 
-    // if (!response.ok) {
-    //   throw new Error(
-    //     `Failed to fetch URL: ${response.status} ${response.statusText}`
-    //   );
-    // }
+    // Check content type - if it's not HTML, return fallback
+    const contentType = response.headers.get("content-type") || "";
+    if (
+      !contentType.includes("text/html") &&
+      !contentType.includes("application/xhtml")
+    ) {
+      // Not HTML content (could be plain text, JSON, etc.)
+      return NextResponse.json({
+        title: new URL(url).hostname,
+        description: null,
+        image: null,
+        favicon: null,
+        siteName: new URL(url).hostname,
+        error: `Content type is ${contentType}, not HTML`,
+      });
+    }
+
     if (!response.ok) {
       // If forbidden or error, return minimal fallback metadata
-      if ([400, 403, 500].includes(response.status)) {
+      if ([400, 403, 404, 500, 502, 503].includes(response.status)) {
         return NextResponse.json({
           title: new URL(url).hostname,
           description: null,
@@ -107,57 +128,131 @@ export async function GET(request: Request) {
     };
 
     const getTitle = (): string => {
+      // Try JSON-LD structured data first (Schema.org)
+      const jsonLd = getJsonLdData();
+      if (jsonLd.title) {
+        const clean = decodeHtmlEntities(jsonLd.title).trim();
+        if (clean && clean.length > 0) return clean;
+      }
+
       // Try Open Graph title
       const ogTitle = getMetaContent("og:title");
-      if (ogTitle) return ogTitle.trim();
+      if (ogTitle) {
+        const clean = decodeHtmlEntities(ogTitle).trim();
+        if (clean && clean.length > 0) return clean;
+      }
 
       // Try Twitter title
       const twitterTitle = getMetaContent("twitter:title");
-      if (twitterTitle) return twitterTitle.trim();
+      if (twitterTitle) {
+        const clean = decodeHtmlEntities(twitterTitle).trim();
+        if (clean && clean.length > 0) return clean;
+      }
 
-      // Try standard meta description tag
+      // Try standard meta title tag
       const metaTitle = getMetaContent("title");
-      if (metaTitle) return metaTitle.trim();
+      if (metaTitle) {
+        const clean = decodeHtmlEntities(metaTitle).trim();
+        if (clean && clean.length > 0) return clean;
+      }
 
-      // Try <title> tag (handle various formats including multiline)
-      const titleMatch = html.match(
-        /<title[^>]*>[\s\S]*?([^<]+)[\s\S]*?<\/title>/i
-      );
-      if (titleMatch && titleMatch[1]) {
-        const cleanTitle = titleMatch[1].trim().replace(/\s+/g, " ");
-        if (cleanTitle) return cleanTitle;
+      // Try <title> tag (handle various formats including multiline and encoded entities)
+      const titlePatterns = [
+        /<title[^>]*>[\s\S]*?([^<]+)[\s\S]*?<\/title>/i,
+        /<title[^>]*>([^<]+)<\/title>/i,
+        /<title>([^<]+)<\/title>/i,
+      ];
+
+      for (const pattern of titlePatterns) {
+        const titleMatch = html.match(pattern);
+        if (titleMatch && titleMatch[1]) {
+          let cleanTitle = titleMatch[1]
+            .replace(/\s+/g, " ")
+            .replace(/&nbsp;/g, " ")
+            .trim();
+          cleanTitle = decodeHtmlEntities(cleanTitle);
+          if (cleanTitle && cleanTitle.length > 0) {
+            // Limit title length (truncate if too long)
+            if (cleanTitle.length > 200) {
+              cleanTitle = cleanTitle.substring(0, 197) + "...";
+            }
+            return cleanTitle;
+          }
+        }
       }
 
       // Try <h1> tag (first main heading)
-      const h1Match = html.match(/<h1[^>]*>[\s\S]*?([^<]+)[\s\S]*?<\/h1>/i);
-      if (h1Match && h1Match[1]) {
-        const cleanH1 = h1Match[1].trim().replace(/\s+/g, " ");
-        if (cleanH1) return cleanH1;
+      const h1Patterns = [
+        /<h1[^>]*>[\s\S]*?([^<]{10,200})[\s\S]*?<\/h1>/i,
+        /<h1[^>]*>([^<]+)<\/h1>/i,
+      ];
+
+      for (const pattern of h1Patterns) {
+        const h1Match = html.match(pattern);
+        if (h1Match && h1Match[1]) {
+          let cleanH1 = h1Match[1]
+            .replace(/\s+/g, " ")
+            .replace(/&nbsp;/g, " ")
+            .trim();
+          cleanH1 = decodeHtmlEntities(cleanH1);
+          if (cleanH1 && cleanH1.length > 0 && cleanH1.length < 200) {
+            return cleanH1;
+          }
+        }
       }
 
-      // Fallback to hostname
-      return new URL(url).hostname;
+      // Fallback to hostname (clean it up)
+      const hostname = new URL(url).hostname;
+      return hostname.replace(/^www\./, ""); // Remove www. prefix
     };
 
     const getFavicon = (): string | null => {
-      const iconMatch =
-        html.match(
-          /<link[^>]*rel=["'](?:icon|shortcut icon)["'][^>]*href=["']([^"']+)["']/i
-        ) ||
-        html.match(
-          /<link[^>]*href=["']([^"']+)["'][^>]*rel=["'](?:icon|shortcut icon)["']/i
-        );
-      if (!iconMatch) return null;
-      let favicon = iconMatch[1];
       const urlObj = new URL(url);
-      if (favicon.startsWith("//")) {
-        favicon = `${urlObj.protocol}${favicon}`;
-      } else if (favicon.startsWith("/")) {
-        favicon = `${urlObj.protocol}//${urlObj.host}${favicon}`;
-      } else if (!favicon.startsWith("http")) {
-        favicon = `${urlObj.protocol}//${urlObj.host}/${favicon}`;
+      const baseUrl = `${urlObj.protocol}//${urlObj.host}`;
+
+      // Try various favicon patterns (more comprehensive)
+      const faviconPatterns = [
+        // Standard favicon link
+        /<link[^>]*rel=["'](?:icon|shortcut icon|apple-touch-icon)["'][^>]*href=["']([^"']+)["']/i,
+        /<link[^>]*href=["']([^"']+)["'][^>]*rel=["'](?:icon|shortcut icon|apple-touch-icon)["']/i,
+        // Meta tags
+        /<meta[^>]*property=["']og:image["'][^>]*content=["']([^"']+)["']/i,
+        /<meta[^>]*content=["']([^"']+)["'][^>]*property=["']og:image["']/i,
+      ];
+
+      for (const pattern of faviconPatterns) {
+        const match = html.match(pattern);
+        if (match && match[1]) {
+          let favicon = match[1];
+
+          // Resolve relative URLs
+          if (favicon.startsWith("//")) {
+            favicon = `${urlObj.protocol}${favicon}`;
+          } else if (favicon.startsWith("/")) {
+            favicon = `${baseUrl}${favicon}`;
+          } else if (!favicon.startsWith("http")) {
+            favicon = `${baseUrl}/${favicon}`;
+          }
+
+          return favicon;
+        }
       }
-      return favicon;
+
+      // Fallback: try common favicon paths
+      const commonFaviconPaths = [
+        "/favicon.ico",
+        "/favicon.png",
+        "/favicon.svg",
+        "/images/favicon.ico",
+        "/images/favicon.png",
+        "/assets/favicon.ico",
+        "/icon.png",
+        "/apple-touch-icon.png",
+      ];
+
+      // Note: We'll check these paths asynchronously if needed
+      // For now, return the most common path
+      return `${baseUrl}/favicon.ico`;
     };
 
     // Helper function to resolve relative URLs to absolute URLs
@@ -211,62 +306,153 @@ export async function GET(request: Request) {
       }
     };
 
-    // Get primary image from meta tags
+    // Extract JSON-LD structured data (Schema.org)
+    const getJsonLdData = (): {
+      title?: string;
+      description?: string;
+      image?: string;
+    } => {
+      try {
+        const jsonLdMatches = html.matchAll(
+          /<script[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi
+        );
+
+        for (const match of jsonLdMatches) {
+          try {
+            const jsonData = JSON.parse(match[1]);
+            const data = Array.isArray(jsonData) ? jsonData[0] : jsonData;
+
+            if (data["@type"]) {
+              // Extract from various Schema.org types
+              const title = data.name || data.headline || data.title;
+              const description = data.description || data.about;
+              let image = data.image;
+
+              // Handle image as object or string
+              if (image && typeof image === "object") {
+                image = image.url || image.contentUrl || image;
+              }
+
+              if (image && typeof image === "string") {
+                image = resolveImageUrl(image);
+              }
+
+              return {
+                title: title || undefined,
+                description: description || undefined,
+                image: image || undefined,
+              };
+            }
+          } catch {
+            // Invalid JSON-LD, skip
+            continue;
+          }
+        }
+      } catch {
+        // No JSON-LD found
+      }
+
+      return {};
+    };
+
+    // Get primary image from meta tags (improved extraction)
+    // First try JSON-LD structured data
+    const jsonLd = getJsonLdData();
     const rawImage =
-      getMetaContent("og:image") || getMetaContent("twitter:image");
+      jsonLd.image ||
+      getMetaContent("og:image") ||
+      getMetaContent("twitter:image") ||
+      getMetaContent("twitter:image:src") ||
+      getMetaContent("image");
     let resolvedImage = resolveImageUrl(rawImage);
 
-    // If no image found in meta tags, try common image paths
+    // If no image found in meta tags, try extracting from various sources
     if (!resolvedImage) {
       const urlObj = new URL(url);
       const baseUrl = `${urlObj.protocol}//${urlObj.host}`;
 
-      // Common image paths to try
-      const commonImagePaths = [
-        "/images/og-image.jpg",
-        "/images/og-image.png",
-        "/images/og-image.webp",
-        "/images/image.jpg",
-        "/images/image.png",
-        "/images/thumbnail.jpg",
-        "/images/thumbnail.png",
-        "/images/preview.jpg",
-        "/images/preview.png",
-        "/public/images/og-image.jpg",
-        "/public/images/og-image.png",
-        "/public/og-image.jpg",
-        "/public/og-image.png",
-        "/icon.png",
-        "/icon.jpg",
-        "/logo.png",
-        "/logo.jpg",
-        "/og-image.png",
-        "/og-image.jpg",
-        "/thumbnail.png",
-        "/thumbnail.jpg",
-        "/favicon.png",
-        "/favicon.jpg",
-        "/images/favicon.png",
-        "/images/logo.png",
-        "/images/logo.jpg",
-        "/assets/images/og-image.png",
-        "/assets/images/og-image.jpg",
-        "/assets/og-image.png",
-        "/assets/og-image.jpg",
-      ];
+      // Try to extract from <img> tags in the HTML (first large image)
+      const imgMatches = html.matchAll(/<img[^>]*src=["']([^"']+)["']/gi);
+      for (const match of imgMatches) {
+        if (match[1]) {
+          const imgUrl = resolveImageUrl(match[1]);
+          if (
+            imgUrl &&
+            !imgUrl.includes("icon") &&
+            !imgUrl.includes("logo") &&
+            !imgUrl.includes("avatar")
+          ) {
+            // Prefer larger images (check width/height attributes if available)
+            const imgTag = match[0];
+            const hasWidth = imgTag.match(/width=["']?(\d+)["']?/i);
+            const hasHeight = imgTag.match(/height=["']?(\d+)["']?/i);
+            const width = hasWidth ? parseInt(hasWidth[1]) : 0;
+            const height = hasHeight ? parseInt(hasHeight[1]) : 0;
 
-      // Try to find an existing image by checking common paths
-      for (const path of commonImagePaths) {
-        const testUrl = `${baseUrl}${path}`;
-        if (await checkImageExists(testUrl)) {
-          resolvedImage = testUrl;
-          break;
+            // If image seems substantial (at least 200x200), use it
+            if (width >= 200 || height >= 200 || (!hasWidth && !hasHeight)) {
+              resolvedImage = imgUrl;
+              break;
+            }
+          }
+        }
+      }
+
+      // If still no image, try common image paths
+      if (!resolvedImage) {
+        const commonImagePaths = [
+          "/images/og-image.jpg",
+          "/images/og-image.png",
+          "/images/og-image.webp",
+          "/images/image.jpg",
+          "/images/image.png",
+          "/images/thumbnail.jpg",
+          "/images/thumbnail.png",
+          "/images/preview.jpg",
+          "/images/preview.png",
+          "/public/images/og-image.jpg",
+          "/public/images/og-image.png",
+          "/public/og-image.jpg",
+          "/public/og-image.png",
+          "/icon.png",
+          "/icon.jpg",
+          "/logo.png",
+          "/logo.jpg",
+          "/og-image.png",
+          "/og-image.jpg",
+          "/thumbnail.png",
+          "/thumbnail.jpg",
+          "/favicon.png",
+          "/favicon.jpg",
+          "/images/favicon.png",
+          "/images/logo.png",
+          "/images/logo.jpg",
+          "/assets/images/og-image.png",
+          "/assets/images/og-image.jpg",
+          "/assets/og-image.png",
+          "/assets/og-image.jpg",
+        ];
+
+        // Try to find an existing image by checking common paths
+        for (const path of commonImagePaths) {
+          const testUrl = `${baseUrl}${path}`;
+          if (await checkImageExists(testUrl)) {
+            resolvedImage = testUrl;
+            break;
+          }
         }
       }
     }
 
     // Improved description extraction
     const getDescription = (): string | null => {
+      // Try JSON-LD structured data first
+      const jsonLd = getJsonLdData();
+      if (jsonLd.description) {
+        const clean = jsonLd.description.trim();
+        if (clean && clean.length > 0) return clean;
+      }
+
       // Try Open Graph description
       const ogDesc = getMetaContent("og:description");
       if (ogDesc) {
