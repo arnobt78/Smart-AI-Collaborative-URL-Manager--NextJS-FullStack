@@ -241,22 +241,28 @@ export function UrlList() {
 
   // CRITICAL: Compute isMetadataReady SYNCHRONOUSLY during render (not from state)
   // This prevents race condition where hooks run before useLayoutEffect
+  // IMPORTANT: Use sorted unique URLs for hash to make it order-independent (pin/unpin reorder doesn't invalidate cache)
   const currentListHash =
     list?.id && list?.urls
-      ? `${list.id}:${(list.urls as unknown as UrlItem[])
-          .map((u) => u.url)
+      ? `${list.id}:${Array.from(
+          new Set((list.urls as unknown as UrlItem[]).map((u) => u.url))
+        )
+          .sort()
           .join("|")}`
       : "";
 
   // Compute isMetadataReady directly from refs and cache (synchronous, no state delay)
+  // IMPORTANT: Use sorted unique URLs so pin/unpin reordering doesn't reset isMetadataReady
   const isMetadataReady = useMemo(() => {
     if (!list?.id || !list?.urls || list.urls.length === 0) {
       return true; // No list = ready (nothing to fetch)
     }
 
     // Check if this exact list+URLs combo has been prefetched AND completed
+    // Use sorted unique URLs for hash so order changes (pin/unpin) don't invalidate cache
     const urls = list.urls as unknown as UrlItem[];
-    const urlsHash = urls.map((u) => u.url).join("|");
+    const uniqueUrls = Array.from(new Set(urls.map((u) => u.url))).sort();
+    const urlsHash = uniqueUrls.join("|");
     const listId = list.id;
     const prefetchKey = `${listId}:${urlsHash}`;
 
@@ -266,7 +272,6 @@ export function UrlList() {
     }
 
     // If batch completed, check if all URLs are cached
-    const uniqueUrls = Array.from(new Set(urls.map((u) => u.url)));
     const allCached = uniqueUrls.every((url) => {
       const queryKey = ["url-metadata", url] as const;
       return !!queryClient.getQueryData<UrlMetadata>(queryKey);
@@ -293,13 +298,15 @@ export function UrlList() {
 
     const listId = current.id;
     const urls = current.urls as unknown as UrlItem[];
-    const urlsHash = urls.map((u) => u.url).join("|");
-    const urlCount = new Set(urls.map((u) => u.url)).size;
+    // Use sorted unique URLs for hash so order changes (pin/unpin reorder) don't trigger re-fetch
+    const uniqueUrls = Array.from(new Set(urls.map((u) => u.url))).sort();
+    const urlsHash = uniqueUrls.join("|");
+    const urlCount = uniqueUrls.length;
     const prefetchKey = `${listId}:${urlsHash}`;
 
     // Skip if already prefetched AND completed
     if (batchFetchCompleteRef.current === prefetchKey) {
-      const uniqueUrls = Array.from(new Set(urls.map((u) => u.url)));
+      // Use same uniqueUrls array we computed above for consistency
       const allCached = uniqueUrls.every((url) => {
         const queryKey = ["url-metadata", url] as const;
         return !!queryClient.getQueryData<UrlMetadata>(queryKey);
@@ -363,6 +370,7 @@ export function UrlList() {
 
           // Hydrate React Query cache and localStorage with all metadata instantly
           // CRITICAL: This happens synchronously, so cards will see cache immediately
+          // Also prefetch images so they display instantly (no loading state on reorder)
           let hydratedCount = 0;
           Object.entries(metadata).forEach(([url, metaData]) => {
             const queryKey = ["url-metadata", url] as const;
@@ -378,6 +386,53 @@ export function UrlList() {
               console.log(
                 `  💧 [BATCH] Hydrated cache for: ${url.slice(0, 40)}...`
               );
+            }
+
+            // Prefetch image if available (ensures instant display on reorder)
+            if (meta.image && typeof window !== "undefined") {
+              try {
+                // Mark image as prefetched in global cache (prevents loading state on re-render)
+                const imageCacheKey = `image-loaded:${meta.image}`;
+                const imageAlreadyLoaded = sessionStorage.getItem(imageCacheKey);
+                
+                // Prefetch image using Image() constructor to warm browser cache
+                // Don't use link preload to avoid crossorigin warnings
+                if (!imageAlreadyLoaded && meta.image) {
+                  // Store image URL in const for use in closures
+                  const imageUrl = meta.image;
+                  const img = new window.Image();
+                  
+                  // Try anonymous first (for CORS images), fall back to regular load
+                  img.crossOrigin = "anonymous";
+                  img.src = imageUrl;
+                  
+                  // Mark as prefetched after successful load
+                  img.onload = () => {
+                    sessionStorage.setItem(imageCacheKey, "true");
+                    console.log(`  🖼️ [BATCH] Prefetched image: ${imageUrl.slice(0, 50)}...`);
+                  };
+                  
+                  // If CORS fails, try without crossOrigin (for same-origin images)
+                  img.onerror = () => {
+                    try {
+                      const img2 = new window.Image();
+                      img2.src = imageUrl;
+                      img2.onload = () => {
+                        sessionStorage.setItem(imageCacheKey, "true");
+                        console.log(`  🖼️ [BATCH] Prefetched image (no CORS): ${imageUrl.slice(0, 50)}...`);
+                      };
+                      img2.onerror = () => {
+                        // Silently fail - image will load normally in component
+                      };
+                    } catch {
+                      // Silently fail - image will load normally in component
+                    }
+                  };
+                }
+              } catch (error) {
+                // Ignore prefetch errors (non-critical)
+                console.warn(`  ⚠️ [BATCH] Failed to prefetch image for ${url}:`, error);
+              }
             }
 
             // Also save to localStorage for persistence
@@ -803,6 +858,23 @@ export function UrlList() {
       const currentUrl = list?.urls?.find((u) => u.id === id);
       const urlChanged = currentUrl && currentUrl.url !== url;
 
+      // Check if we have metadata in React Query cache (from prefetch while typing)
+      // This prevents redundant metadata fetch in PATCH endpoint
+      let existingMetadata: UrlMetadata | undefined;
+      if (urlChanged && url) {
+        try {
+          const queryKey = ["url-metadata", url] as const;
+          existingMetadata = queryClient.getQueryData<UrlMetadata>(queryKey);
+          if (existingMetadata) {
+            console.log(
+              `✅ [EDIT] Found cached metadata from prefetch for: ${url.slice(0, 40)}...`
+            );
+          }
+        } catch {
+          // Ignore cache check errors
+        }
+      }
+
       // Prepare updates
       const updates: Partial<UrlItem> = { title, url };
       if (tags !== undefined) updates.tags = tags;
@@ -811,18 +883,16 @@ export function UrlList() {
 
       // updateUrlInList handles optimistic updates internally
       // It will update the store immediately and sync with server
-      await updateUrlInList(id, updates);
+      // It also populates React Query cache synchronously with metadata from PATCH response
+      // if URL changed, so no need to manually fetch here
+      // Pass existingMetadata to avoid redundant fetch in PATCH endpoint
+      await updateUrlInList(id, updates, undefined, existingMetadata);
 
-      // If URL changed, invalidate old query and fetch new metadata
+      // Clean up old cache entry if URL changed (PATCH already populated new one)
       if (urlChanged && currentUrl) {
-        // Remove old query cache
         queryClient.removeQueries({
           queryKey: ["url-metadata", currentUrl.url],
         });
-
-        // Fetch new metadata and cache it
-        const metadata = await fetchUrlMetadata(url);
-        queryClient.setQueryData(["url-metadata", url], metadata);
       }
 
       // Show success toast
@@ -858,6 +928,9 @@ export function UrlList() {
     // Set flag for favorite operation
     isLocalOperationRef.current = true;
 
+    // Notify activity feed to skip fetch after local operation
+    window.dispatchEvent(new CustomEvent("local-operation"));
+
     const current = currentList.get();
     if (!current.urls || !current.id) return;
 
@@ -874,12 +947,8 @@ export function UrlList() {
       currentList.set({ ...current, urls: updatedUrls });
     });
 
-    // Trigger activity feed update immediately
-    window.dispatchEvent(
-      new CustomEvent("activity-updated", {
-        detail: { listId: current.id },
-      })
-    );
+    // Note: Activity feed will update via activity-added event from updateUrlInList
+    // No need to dispatch activity-updated here - that would trigger redundant fetch
 
     try {
       // Use updateUrlInList which will sync with server
@@ -901,59 +970,67 @@ export function UrlList() {
     // Set flag for duplicate operation
     isLocalOperationRef.current = true;
 
+    // Notify activity feed to skip fetch after local operation
+    window.dispatchEvent(new CustomEvent("local-operation"));
+
+    const current = currentList.get();
+    if (!current.urls || !current.id) return;
+
+    // Get URL title for toast
+    const urlTitle = urlToDuplicate.title || urlToDuplicate.url || "URL";
+
     try {
-      const newUrl: UrlItem = {
-        ...urlToDuplicate,
-        id: crypto.randomUUID(),
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        isFavorite: false,
-      };
+      // Check if we have metadata in React Query cache for the URL being duplicated
+      // This prevents redundant metadata fetch in POST endpoint
+      let existingMetadata: UrlMetadata | undefined;
+      if (urlToDuplicate.url) {
+        try {
+          const queryKey = ["url-metadata", urlToDuplicate.url] as const;
+          existingMetadata = queryClient.getQueryData<UrlMetadata>(queryKey);
+          if (existingMetadata) {
+            console.log(
+              `✅ [DUPLICATE] Found cached metadata from React Query for: ${urlToDuplicate.url.slice(
+                0,
+                40
+              )}...`
+            );
+          }
+        } catch {
+          // Ignore cache check errors
+        }
+      }
 
-      const current = currentList.get();
-      if (!current.urls || !current.id) return;
-
-      const currentUrls = current.urls as unknown as UrlItem[];
-      const updatedUrls = [...currentUrls, newUrl];
-
-      // Optimistic update - add immediately
-      flushSync(() => {
-        currentList.set({ ...current, urls: updatedUrls });
-      });
-
-      const response = await fetch(`/api/lists/${current.id}/reorder`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ urls: updatedUrls, action: "url_added" }),
-      });
-
-      if (!response.ok) throw new Error("Failed to duplicate URL");
-
-      const { list } = await response.json();
-
-      // Merge server response with optimistic state
-      const serverUrls = (list.urls as unknown as UrlItem[]) || [];
-      const serverUrlMap = new Map(serverUrls.map((u) => [u.id, u]));
-      const finalUrls = updatedUrls.map((url) => {
-        const serverUrl = serverUrlMap.get(url.id);
-        return serverUrl ? { ...url, ...serverUrl } : url;
-      });
-
-      currentList.set({ ...list, urls: finalUrls });
-
-      // Trigger activity feed update AFTER API call completes (activity is now in DB)
-      window.dispatchEvent(
-        new CustomEvent("activity-updated", {
-          detail: { listId: current.id },
-        })
+      // Use unified POST endpoint via addUrlToList with isDuplicate flag
+      // This handles duplicate, metadata fetching, activity, and real-time updates
+      await addUrlToList(
+        urlToDuplicate.url,
+        urlToDuplicate.title,
+        urlToDuplicate.tags || [],
+        urlToDuplicate.notes || "",
+        urlToDuplicate.reminder,
+        urlToDuplicate.category,
+        existingMetadata, // Pass cached metadata if available
+        true // isDuplicate flag - creates url_duplicated activity instead of url_added
       );
+
+      // Show success toast
+      toast({
+        title: "URL Duplicated",
+        description: `"${urlTitle}" has been duplicated and added to the list.`,
+        variant: "success",
+      });
     } catch (err) {
       console.error("Failed to duplicate URL:", err);
       // Revert on error
-      const current = currentList.get();
-      if (current?.slug) {
+      if (current.slug) {
         await getList(current.slug);
       }
+      // Show error toast
+      toast({
+        title: "Duplicate Failed",
+        description: err instanceof Error ? err.message : "Failed to duplicate URL",
+        variant: "error",
+      });
     } finally {
       // Clear the flag after a delay
       setTimeout(() => {
@@ -963,13 +1040,56 @@ export function UrlList() {
   };
 
   const handleArchive = async (id: string) => {
-    const { archiveUrlFromList } = await import("@/stores/urlListStore");
-    await archiveUrlFromList(id);
+    // Set flag for archive operation
+    isLocalOperationRef.current = true;
+
+    // Notify activity feed to skip fetch after local operation
+    window.dispatchEvent(new CustomEvent("local-operation"));
+
+    const current = currentList.get();
+    if (!current.urls || !current.id) return;
+
+    // Get URL details for toast
+    const currentUrls = current.urls as unknown as UrlItem[];
+    const urlToArchive = currentUrls.find((u) => u.id === id);
+    const urlTitle = urlToArchive?.title || urlToArchive?.url || "URL";
+
+    try {
+      const { archiveUrlFromList } = await import("@/stores/urlListStore");
+      await archiveUrlFromList(id);
+
+      // Show success toast
+      toast({
+        title: "URL Archived",
+        description: `"${urlTitle}" has been archived and removed from the list.`,
+        variant: "success",
+      });
+    } catch (err) {
+      console.error("Failed to archive URL:", err);
+      // Revert on error
+      if (current?.slug) {
+        await getList(current.slug);
+      }
+      // Show error toast
+      toast({
+        title: "Archive Failed",
+        description: err instanceof Error ? err.message : "Failed to archive URL",
+        variant: "error",
+      });
+    } finally {
+      // Clear the flag after a delay
+      setTimeout(() => {
+        isLocalOperationRef.current = false;
+      }, 1000);
+    }
   };
 
   const handlePin = async (id: string) => {
     // Set flag for pin operation
     isLocalOperationRef.current = true;
+
+    // Notify activity feed to skip fetch after local operation
+    window.dispatchEvent(new CustomEvent("local-operation"));
 
     const current = currentList.get();
     if (!current.urls || !current.id) return;
@@ -990,33 +1110,12 @@ export function UrlList() {
       currentList.set({ ...current, urls: updatedUrls });
     });
 
+    // Note: Activity feed will update via activity-added event from updateUrlInList
+    // No need to dispatch activity-updated here - that would trigger redundant fetch
+
     try {
-      const response = await fetch(`/api/lists/${current.id}/reorder`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ urls: updatedUrls, action: "url_updated" }),
-      });
-
-      if (!response.ok) throw new Error("Failed to pin URL");
-
-      const { list } = await response.json();
-
-      // Merge server response with optimistic state
-      const serverUrls = (list.urls as unknown as UrlItem[]) || [];
-      const serverUrlMap = new Map(serverUrls.map((u) => [u.id, u]));
-      const finalUrls = updatedUrls.map((url) => {
-        const serverUrl = serverUrlMap.get(url.id);
-        return serverUrl ? { ...url, ...serverUrl } : url;
-      });
-
-      currentList.set({ ...list, urls: finalUrls });
-
-      // Trigger activity feed update AFTER API call completes (activity is now in DB)
-      window.dispatchEvent(
-        new CustomEvent("activity-updated", {
-          detail: { listId: current.id },
-        })
-      );
+      // Use unified PATCH endpoint which handles pin/unpin and returns activity data
+      await updateUrlInList(id, { isPinned: updatedUrl.isPinned });
     } catch (err) {
       console.error("Failed to pin URL:", err);
       // Revert on error
@@ -1100,6 +1199,9 @@ export function UrlList() {
 
     // Set flag to prevent real-time refresh during drag operation
     isLocalOperationRef.current = true;
+    
+    // Notify activity feed to skip fetch after local operation
+    window.dispatchEvent(new CustomEvent("local-operation"));
 
     // If filtering/sorting is active, disable drag-and-drop for now
     // Or we can work with visible items only
@@ -1139,28 +1241,30 @@ export function UrlList() {
         console.log("🔄 [DRAG] Store order already correct (filtered)");
       }
 
-      // Call API immediately (no delay needed - store is already updated)
+      // Use unified PATCH endpoint for reorder (same pattern as other URL actions)
+      // CRITICAL: Preserve the reorderedUrls from the drag operation (don't read from store)
+      // This ensures the card stays in the new position even if store state changes
+      const preservedReorderUrls = [...reorderedUrls]; // Copy to preserve reference
+      
       try {
-        const response = await fetch(`/api/lists/${current.id}/reorder`, {
-          method: "POST",
+        const response = await fetch(`/api/lists/${current.id}/urls`, {
+          method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            urls: reorderedUrls,
-            action: "url_reordered",
+            urls: preservedReorderUrls,
+            action: "reorder",
           }),
         });
         if (response.ok) {
-          const { list } = await response.json();
-          // Verify the order matches our optimistic update
-          const currentState = currentList.get();
-          const currentUrls =
-            (currentState?.urls as unknown as UrlItem[]) || [];
+          const { list, activity: activityData } = await response.json();
+          // Use the preserved order from drag operation (not from store)
+          // This ensures card stays in new position even if store was updated elsewhere
+          const preservedOrder = preservedReorderUrls.map((u) => u.id).join(",");
           const serverUrls = (list.urls as unknown as UrlItem[]) || [];
-          const currentOrder = currentUrls.map((u) => u.id).join(",");
           const serverOrder = serverUrls.map((u) => u.id).join(",");
 
           // Only update if server order is different AND we're not dragging
-          if (currentOrder !== serverOrder && !isDraggingRef.current) {
+          if (preservedOrder !== serverOrder && !isDraggingRef.current) {
             console.log(
               "🔄 [DRAG] Server order differs (filtered), updating from server"
             );
@@ -1170,22 +1274,38 @@ export function UrlList() {
             console.log(
               "✅ [DRAG] Server confirmed order (filtered), keeping optimistic state"
             );
-            // Ensure our optimistic state is preserved
-            if (currentOrder === serverOrder) {
-              const mergedList = {
-                ...list,
-                urls: currentUrls, // Keep our optimistic order
-              };
+            // Ensure our optimistic state is preserved (card stays in new position)
+            // Use preservedReorderUrls (from drag) instead of reading from store
+            const mergedList = {
+              ...list,
+              urls: preservedReorderUrls, // Keep our preserved optimistic order (prevents card jumping)
+            };
+            // Use flushSync to ensure React sees the update immediately
+            flushSync(() => {
               currentList.set(mergedList);
-            }
+            });
+            console.log(
+              `✅ [DRAG] Preserved order in store (filtered): ${preservedOrder}`
+            );
           }
 
-          // Trigger activity feed update AFTER API call completes (activity is now in DB)
-          window.dispatchEvent(
-            new CustomEvent("activity-updated", {
-              detail: { listId: current.id },
-            })
-          );
+          // Dispatch activity-added event for optimistic feed update (no redundant fetch)
+          if (activityData) {
+            window.dispatchEvent(
+              new CustomEvent("activity-added", {
+                detail: {
+                  listId: current.id,
+                  activity: {
+                    id: activityData.id,
+                    action: activityData.action,
+                    details: activityData.details,
+                    createdAt: activityData.createdAt,
+                    user: activityData.user,
+                  },
+                },
+              })
+            );
+          }
         }
       } catch (err) {
         console.error("Failed to reorder URLs:", err);
@@ -1247,28 +1367,30 @@ export function UrlList() {
         reorderedUrls.map((u) => u.id).join(",")
       );
 
-      // Call API immediately (no delay needed - store is already updated)
+      // Use unified PATCH endpoint for reorder (same pattern as other URL actions)
+      // CRITICAL: Preserve the reorderedUrls from the drag operation (don't read from store)
+      // This ensures the card stays in the new position even if store state changes
+      const preservedReorderUrls = [...reorderedUrls]; // Copy to preserve reference
+      
       try {
-        const response = await fetch(`/api/lists/${current.id}/reorder`, {
-          method: "POST",
+        const response = await fetch(`/api/lists/${current.id}/urls`, {
+          method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            urls: reorderedUrls,
-            action: "url_reordered",
+            urls: preservedReorderUrls,
+            action: "reorder",
           }),
         });
         if (response.ok) {
-          const { list } = await response.json();
-          // Verify the order matches our optimistic update
-          const currentState = currentList.get();
-          const currentUrls =
-            (currentState?.urls as unknown as UrlItem[]) || [];
+          const { list, activity: activityData } = await response.json();
+          // Use the preserved order from drag operation (not from store)
+          // This ensures card stays in new position even if store was updated elsewhere
+          const preservedOrder = preservedReorderUrls.map((u) => u.id).join(",");
           const serverUrls = (list.urls as unknown as UrlItem[]) || [];
-          const currentOrder = currentUrls.map((u) => u.id).join(",");
           const serverOrder = serverUrls.map((u) => u.id).join(",");
 
           // Only update if server order is different AND we're not dragging
-          if (currentOrder !== serverOrder && !isDraggingRef.current) {
+          if (preservedOrder !== serverOrder && !isDraggingRef.current) {
             console.log("🔄 [DRAG] Server order differs, updating from server");
             currentList.set(list);
           } else {
@@ -1276,23 +1398,38 @@ export function UrlList() {
             console.log(
               "✅ [DRAG] Server confirmed order, keeping optimistic state"
             );
-            // Ensure our optimistic state is preserved (don't overwrite with server response)
-            if (currentOrder === serverOrder) {
-              // Order matches, but update other fields from server (like timestamps)
-              const mergedList = {
-                ...list,
-                urls: currentUrls, // Keep our optimistic order
-              };
+            // Ensure our optimistic state is preserved (card stays in new position)
+            // Use preservedReorderUrls (from drag) instead of reading from store
+            const mergedList = {
+              ...list,
+              urls: preservedReorderUrls, // Keep our preserved optimistic order (prevents card jumping)
+            };
+            // Use flushSync to ensure React sees the update immediately
+            flushSync(() => {
               currentList.set(mergedList);
-            }
+            });
+            console.log(
+              `✅ [DRAG] Preserved order in store: ${preservedOrder}`
+            );
           }
 
-          // Trigger activity feed update AFTER API call completes (activity is now in DB)
-          window.dispatchEvent(
-            new CustomEvent("activity-updated", {
-              detail: { listId: current.id },
-            })
-          );
+          // Dispatch activity-added event for optimistic feed update (no redundant fetch)
+          if (activityData) {
+            window.dispatchEvent(
+              new CustomEvent("activity-added", {
+                detail: {
+                  listId: current.id,
+                  activity: {
+                    id: activityData.id,
+                    action: activityData.action,
+                    details: activityData.details,
+                    createdAt: activityData.createdAt,
+                    user: activityData.user,
+                  },
+                },
+              })
+            );
+          }
         }
       } catch (err) {
         console.error("❌ [DRAG] Failed to reorder URLs:", err);
@@ -1449,8 +1586,48 @@ export function UrlList() {
   const archivedUrlsList = showArchived ? archivedUrls : [];
 
   const handleRestore = async (urlId: string) => {
-    const { restoreArchivedUrl } = await import("@/stores/urlListStore");
-    await restoreArchivedUrl(urlId);
+    // Set flag for restore operation
+    isLocalOperationRef.current = true;
+
+    // Notify activity feed to skip fetch after local operation
+    window.dispatchEvent(new CustomEvent("local-operation"));
+
+    const current = currentList.get();
+    if (!current?.archivedUrls) return;
+
+    // Get URL details for toast
+    const archivedUrlsList = current.archivedUrls as unknown as UrlItem[];
+    const urlToRestore = archivedUrlsList.find((url) => url.id === urlId);
+    const urlTitle = urlToRestore?.title || urlToRestore?.url || "URL";
+
+    try {
+      const { restoreArchivedUrl } = await import("@/stores/urlListStore");
+      await restoreArchivedUrl(urlId);
+
+      // Show success toast
+      toast({
+        title: "URL Restored",
+        description: `"${urlTitle}" has been restored and added back to the list.`,
+        variant: "success",
+      });
+    } catch (err) {
+      console.error("Failed to restore URL:", err);
+      // Revert on error
+      if (current?.slug) {
+        await getList(current.slug);
+      }
+      // Show error toast
+      toast({
+        title: "Restore Failed",
+        description: err instanceof Error ? err.message : "Failed to restore URL",
+        variant: "error",
+      });
+    } finally {
+      // Clear the flag after a delay
+      setTimeout(() => {
+        isLocalOperationRef.current = false;
+      }, 1000);
+    }
   };
 
   return (

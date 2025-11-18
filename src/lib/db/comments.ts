@@ -47,6 +47,25 @@ export async function getCommentsForList(listId: string) {
 }
 
 /**
+ * Get a comment by ID
+ */
+export async function getCommentById(commentId: string) {
+  return prisma.comment.findUnique({
+    where: {
+      id: commentId,
+    },
+    include: {
+      user: {
+        select: {
+          id: true,
+          email: true,
+        },
+      },
+    },
+  });
+}
+
+/**
  * Create a new comment
  */
 export async function createComment(

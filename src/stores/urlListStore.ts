@@ -1,4 +1,6 @@
 import { atom, map } from "nanostores";
+import { queryClient } from "@/lib/react-query";
+import type { UrlMetadata } from "@/utils/urlMetadata";
 
 export interface UrlItem {
   id: string;
@@ -178,7 +180,8 @@ export async function addUrlToList(
   notes: string = "",
   reminder?: string,
   category?: string,
-  existingMetadata?: unknown // Optional metadata from cache (to avoid re-fetching)
+  existingMetadata?: unknown, // Optional metadata from cache (to avoid re-fetching)
+  isDuplicate?: boolean // Optional flag to indicate this is a duplicate operation
 ) {
   const current = currentList.get();
   if (!current.id || !current.urls) return;
@@ -219,6 +222,7 @@ export async function addUrlToList(
         reminder,
         category,
         metadata: existingMetadata, // Pass existing metadata if available (from AI enhancement or cache)
+        isDuplicate: isDuplicate || false, // Pass duplicate flag if this is a duplicate operation
       }),
     });
 
@@ -246,22 +250,25 @@ export async function addUrlToList(
       return serverUrlData ? { ...url, ...serverUrlData } : url;
     });
 
-    // Pre-populate metadata in localStorage and dispatch event for components to populate React Query cache
+    // Pre-populate metadata in React Query cache SYNCHRONOUSLY so cards don't fetch
     if (typeof window !== "undefined" && urlMetadata && url) {
       try {
-        // Save to localStorage immediately (synchronously)
+        // Populate React Query cache SYNCHRONOUSLY before component re-renders
         const queryKey = ["url-metadata", url] as const;
-        const key = `react-query:${queryKey.join(":")}`;
-        localStorage.setItem(
-          key,
-          JSON.stringify({ data: urlMetadata, timestamp: Date.now() })
-        );
+        queryClient.setQueryData<UrlMetadata>(queryKey, urlMetadata);
 
-        // Dispatch event so components can populate React Query cache
+        // Also dispatch event for backward compatibility
         window.dispatchEvent(
           new CustomEvent("metadata-cached", {
             detail: { url, metadata: urlMetadata },
           })
+        );
+
+        // Also save to localStorage
+        const key = `react-query:${queryKey.join(":")}`;
+        localStorage.setItem(
+          key,
+          JSON.stringify({ data: urlMetadata, timestamp: Date.now() })
         );
       } catch {
         // Ignore localStorage errors
@@ -269,32 +276,50 @@ export async function addUrlToList(
     }
 
     // Dispatch activity data for optimistic feed update
-    // This provides instant feedback without waiting for real-time events
+    // Use user data from activityData if available (from API response), otherwise fetch session
     if (typeof window !== "undefined" && activityData) {
       try {
-        // Get current user email for activity
-        const sessionResponse = await fetch("/api/auth/session");
-        if (sessionResponse.ok) {
-          const { user } = await sessionResponse.json();
-          if (user?.email) {
-            // Dispatch activity with user email for optimistic update
-            window.dispatchEvent(
-              new CustomEvent("activity-added", {
-                detail: {
-                  listId: current.id,
-                  activity: {
-                    id: activityData.id,
-                    action: activityData.action,
-                    details: activityData.details,
-                    createdAt: activityData.createdAt,
-                    user: {
-                      id: user.id,
-                      email: user.email,
+        // If activityData already has user data (from API response), use it directly
+        if (activityData.user?.email) {
+          window.dispatchEvent(
+            new CustomEvent("activity-added", {
+              detail: {
+                listId: current.id,
+                activity: {
+                  id: activityData.id,
+                  action: activityData.action,
+                  details: activityData.details,
+                  createdAt: activityData.createdAt,
+                  user: activityData.user,
+                },
+              },
+            })
+          );
+        } else {
+          // Fallback: fetch session if user data not in response (backward compatibility)
+          const sessionResponse = await fetch("/api/auth/session");
+          if (sessionResponse.ok) {
+            const { user } = await sessionResponse.json();
+            if (user?.email) {
+              // Dispatch activity with user email for optimistic update
+              window.dispatchEvent(
+                new CustomEvent("activity-added", {
+                  detail: {
+                    listId: current.id,
+                    activity: {
+                      id: activityData.id,
+                      action: activityData.action,
+                      details: activityData.details,
+                      createdAt: activityData.createdAt,
+                      user: {
+                        id: user.id,
+                        email: user.email,
+                      },
                     },
                   },
-                },
-              })
-            );
+                })
+              );
+            }
           }
         }
       } catch {
@@ -322,7 +347,8 @@ export async function addUrlToList(
 export async function updateUrlInList(
   urlId: string,
   updates: Partial<UrlItem>,
-  optimisticUpdate?: (urls: UrlItem[]) => UrlItem[]
+  optimisticUpdate?: (urls: UrlItem[]) => UrlItem[],
+  existingMetadata?: UrlMetadata
 ) {
   const current = currentList.get();
   if (!current.id || !current.urls) return;
@@ -351,12 +377,14 @@ export async function updateUrlInList(
     currentList.set({ ...current, urls: updatedUrls });
 
     // Use unified PATCH endpoint that handles update, activity, and real-time updates
+    // Pass existingMetadata if available (from prefetch cache) to avoid redundant fetch
     const response = await fetch(`/api/lists/${current.id}/urls`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         urlId,
         updates,
+        metadata: existingMetadata, // Pass cached metadata if available
       }),
     });
 
@@ -401,13 +429,12 @@ export async function updateUrlInList(
     // Cache metadata if URL changed and metadata was provided
     if (typeof window !== "undefined" && urlMetadata && serverUrl?.url) {
       try {
-        // Populate React Query cache immediately so cards don't fetch
+        // Populate React Query cache SYNCHRONOUSLY so cards don't fetch
+        // This prevents race condition where component checks cache before event handler runs
         const queryKey = ["url-metadata", serverUrl.url] as const;
-        const queryClient = await import("@tanstack/react-query").then(
-          (m) => m.useQueryClient
-        );
-        // We need to use the queryClient from the component context
-        // So we dispatch an event instead (similar to addUrlToList)
+        queryClient.setQueryData<UrlMetadata>(queryKey, urlMetadata);
+
+        // Also dispatch event for components that listen to it (backward compatibility)
         window.dispatchEvent(
           new CustomEvent("metadata-cached", {
             detail: { url: serverUrl.url, metadata: urlMetadata },
@@ -426,29 +453,49 @@ export async function updateUrlInList(
     }
 
     // Dispatch activity data for optimistic feed update
+    // Use user data from activityData if available (from API response), otherwise fetch session
     if (typeof window !== "undefined" && activityData) {
       try {
-        const sessionResponse = await fetch("/api/auth/session");
-        if (sessionResponse.ok) {
-          const { user } = await sessionResponse.json();
-          if (user?.email) {
-            window.dispatchEvent(
-              new CustomEvent("activity-added", {
-                detail: {
-                  listId: current.id,
-                  activity: {
-                    id: activityData.id,
-                    action: activityData.action,
-                    details: activityData.details,
-                    createdAt: activityData.createdAt,
-                    user: {
-                      id: user.id,
-                      email: user.email,
+        // If activityData already has user data (from API response), use it directly
+        if (activityData.user?.email) {
+          window.dispatchEvent(
+            new CustomEvent("activity-added", {
+              detail: {
+                listId: current.id,
+                activity: {
+                  id: activityData.id,
+                  action: activityData.action,
+                  details: activityData.details,
+                  createdAt: activityData.createdAt,
+                  user: activityData.user,
+                },
+              },
+            })
+          );
+        } else {
+          // Fallback: fetch session if user data not in response (backward compatibility)
+          const sessionResponse = await fetch("/api/auth/session");
+          if (sessionResponse.ok) {
+            const { user } = await sessionResponse.json();
+            if (user?.email) {
+              window.dispatchEvent(
+                new CustomEvent("activity-added", {
+                  detail: {
+                    listId: current.id,
+                    activity: {
+                      id: activityData.id,
+                      action: activityData.action,
+                      details: activityData.details,
+                      createdAt: activityData.createdAt,
+                      user: {
+                        id: user.id,
+                        email: user.email,
+                      },
                     },
                   },
-                },
-              })
-            );
+                })
+              );
+            }
           }
         }
       } catch {
@@ -621,19 +668,65 @@ export async function reorderUrls(startIndex: number, endIndex: number) {
     const [removed] = urls.splice(startIndex, 1);
     urls.splice(endIndex, 0, removed);
 
-    const response = await fetch(`/api/lists/${current.id}/reorder`, {
-      method: "POST",
+    // Use unified PATCH endpoint for reorder (same as drag operation)
+    const response = await fetch(`/api/lists/${current.id}/urls`, {
+      method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ urls, action: "url_reordered" }),
+      body: JSON.stringify({
+        urls,
+        action: "reorder",
+      }),
     });
 
     if (!response.ok) throw new Error("Failed to reorder URLs");
 
-    const { list } = await response.json();
-    currentList.set(list);
-    return list;
+    const { list, activity: activityData } = await response.json();
+
+    // Preserve optimistic order (don't overwrite with server response)
+    // Server response confirms the order, but we keep our optimistic state
+    const optimisticUrls = current.urls as unknown as UrlItem[];
+    const serverUrls = (list.urls as unknown as UrlItem[]) || [];
+    const optimisticOrder = optimisticUrls.map((u) => u.id).join(",");
+    const serverOrder = serverUrls.map((u) => u.id).join(",");
+
+    if (optimisticOrder === serverOrder) {
+      // Order matches, but update other fields from server (like timestamps)
+      const mergedList = {
+        ...list,
+        urls: optimisticUrls, // Keep our optimistic order
+      };
+      currentList.set(mergedList);
+    } else {
+      // Use server order as source of truth if different
+      currentList.set(list);
+    }
+
+    // Dispatch activity-added event for optimistic feed update
+    if (typeof window !== "undefined" && activityData) {
+      try {
+        window.dispatchEvent(
+          new CustomEvent("activity-added", {
+            detail: {
+              listId: current.id,
+              activity: {
+                id: activityData.id,
+                action: activityData.action,
+                details: activityData.details,
+                createdAt: activityData.createdAt,
+                user: activityData.user,
+              },
+            },
+          })
+        );
+      } catch {
+        // Ignore event dispatch errors
+      }
+    }
+
+    return currentList.get() as UrlList;
   } catch (err) {
     error.set(err instanceof Error ? err.message : "Failed to reorder URLs");
+    return null;
   } finally {
     isLoading.set(false);
   }
@@ -670,39 +763,98 @@ export async function archiveUrlFromList(urlId: string) {
       archivedUrls: updatedArchivedUrls,
     });
 
-    // Update both urls and archivedUrls
+    // Use unified archive-url endpoint with action flag
     const response = await fetch(`/api/lists/${current.id}/archive-url`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         urls: updatedUrls,
         archivedUrls: updatedArchivedUrls,
+        action: "archive",
+        urlId: urlId,
       }),
     });
 
     if (!response.ok) throw new Error("Failed to archive URL");
 
-    const { list } = await response.json();
-    currentList.set(list);
+    const {
+      list,
+      activity: activityData,
+      metadata: urlMetadata,
+    } = await response.json();
 
-    // Trigger activity feed update AFTER API call completes (activity is now in DB)
-    if (typeof window !== "undefined") {
-      window.dispatchEvent(
-        new CustomEvent("activity-updated", {
-          detail: { listId: current.id },
-        })
-      );
+    // Cache metadata if provided (for consistency)
+    if (typeof window !== "undefined" && urlMetadata && urlToArchive.url) {
+      try {
+        const queryKey = ["url-metadata", urlToArchive.url] as const;
+        queryClient.setQueryData<UrlMetadata>(queryKey, urlMetadata);
 
-      // Invalidate metadata cache when URL is archived
-      fetch(`/api/lists/${current.id}/metadata`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ refresh: false }),
-      }).catch(() => {
-        // Silently fail - cache invalidation is non-critical
-      });
+        // Also save to localStorage
+        const key = `react-query:${queryKey.join(":")}`;
+        localStorage.setItem(
+          key,
+          JSON.stringify({ data: urlMetadata, timestamp: Date.now() })
+        );
+      } catch {
+        // Ignore localStorage errors
+      }
     }
 
+    // Dispatch activity data for optimistic feed update
+    // Use user data from activityData if available (from API response), otherwise fetch session
+    if (typeof window !== "undefined" && activityData) {
+      try {
+        // If activityData already has user data (from API response), use it directly
+        if (activityData.user?.email) {
+          window.dispatchEvent(
+            new CustomEvent("activity-added", {
+              detail: {
+                listId: current.id,
+                activity: {
+                  id: activityData.id,
+                  action: activityData.action,
+                  details: activityData.details,
+                  createdAt: activityData.createdAt,
+                  user: activityData.user,
+                },
+              },
+            })
+          );
+        } else {
+          // Fallback: fetch session if user data not in response (backward compatibility)
+          const sessionResponse = await fetch("/api/auth/session");
+          if (sessionResponse.ok) {
+            const { user } = await sessionResponse.json();
+            if (user?.email) {
+              window.dispatchEvent(
+                new CustomEvent("activity-added", {
+                  detail: {
+                    listId: current.id,
+                    activity: {
+                      id: activityData.id,
+                      action: activityData.action,
+                      details: activityData.details,
+                      createdAt: activityData.createdAt,
+                      user: {
+                        id: user.id,
+                        email: user.email,
+                      },
+                    },
+                  },
+                })
+              );
+            }
+          }
+        }
+      } catch {
+        // Ignore errors - real-time event will handle it
+      }
+    }
+
+    // Note: Activity feed will also update via real-time SSE event
+    // But optimistic update provides instant feedback
+
+    currentList.set(list);
     return list;
   } catch (err) {
     error.set(err instanceof Error ? err.message : "Failed to archive URL");
@@ -740,32 +892,112 @@ export async function restoreArchivedUrl(urlId: string) {
     };
     const updatedUrls = [...(current.urls || []), restoredUrl];
 
-    // Update both urls and archivedUrls
+    // Optimistic update - update store immediately
+    currentList.set({
+      ...current,
+      urls: updatedUrls,
+      archivedUrls: updatedArchivedUrls,
+    });
+
+    // Use unified archive-url endpoint with action flag
     const response = await fetch(`/api/lists/${current.id}/archive-url`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         urls: updatedUrls,
         archivedUrls: updatedArchivedUrls,
+        action: "restore",
+        urlId: urlId,
       }),
     });
 
     if (!response.ok) throw new Error("Failed to restore URL");
 
-    const { list } = await response.json();
-    currentList.set(list);
+    const {
+      list,
+      activity: activityData,
+      metadata: urlMetadata,
+    } = await response.json();
 
-    // Invalidate metadata cache when URL is restored
-    if (typeof window !== "undefined") {
-      fetch(`/api/lists/${current.id}/metadata`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ refresh: false }),
-      }).catch(() => {
-        // Silently fail - cache invalidation is non-critical
-      });
+    // Cache metadata if provided (restored URLs need metadata cached)
+    if (typeof window !== "undefined" && urlMetadata && restoredUrl.url) {
+      try {
+        const queryKey = ["url-metadata", restoredUrl.url] as const;
+        queryClient.setQueryData<UrlMetadata>(queryKey, urlMetadata);
+
+        // Also dispatch event for components that listen to it
+        window.dispatchEvent(
+          new CustomEvent("metadata-cached", {
+            detail: { url: restoredUrl.url, metadata: urlMetadata },
+          })
+        );
+
+        // Also save to localStorage
+        const key = `react-query:${queryKey.join(":")}`;
+        localStorage.setItem(
+          key,
+          JSON.stringify({ data: urlMetadata, timestamp: Date.now() })
+        );
+      } catch {
+        // Ignore localStorage errors
+      }
     }
 
+    // Dispatch activity data for optimistic feed update
+    // Use user data from activityData if available (from API response), otherwise fetch session
+    if (typeof window !== "undefined" && activityData) {
+      try {
+        // If activityData already has user data (from API response), use it directly
+        if (activityData.user?.email) {
+          window.dispatchEvent(
+            new CustomEvent("activity-added", {
+              detail: {
+                listId: current.id,
+                activity: {
+                  id: activityData.id,
+                  action: activityData.action,
+                  details: activityData.details,
+                  createdAt: activityData.createdAt,
+                  user: activityData.user,
+                },
+              },
+            })
+          );
+        } else {
+          // Fallback: fetch session if user data not in response (backward compatibility)
+          const sessionResponse = await fetch("/api/auth/session");
+          if (sessionResponse.ok) {
+            const { user } = await sessionResponse.json();
+            if (user?.email) {
+              window.dispatchEvent(
+                new CustomEvent("activity-added", {
+                  detail: {
+                    listId: current.id,
+                    activity: {
+                      id: activityData.id,
+                      action: activityData.action,
+                      details: activityData.details,
+                      createdAt: activityData.createdAt,
+                      user: {
+                        id: user.id,
+                        email: user.email,
+                      },
+                    },
+                  },
+                })
+              );
+            }
+          }
+        }
+      } catch {
+        // Ignore errors - real-time event will handle it
+      }
+    }
+
+    // Note: Activity feed will also update via real-time SSE event
+    // But optimistic update provides instant feedback
+
+    currentList.set(list);
     return list;
   } catch (err) {
     error.set(

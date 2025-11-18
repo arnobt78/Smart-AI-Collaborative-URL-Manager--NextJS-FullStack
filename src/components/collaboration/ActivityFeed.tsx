@@ -9,6 +9,8 @@ import {
   Edit,
   Star,
   Pin,
+  Copy,
+  Archive,
   Link as LinkIcon,
   UserPlus,
   Globe,
@@ -257,8 +259,18 @@ export function ActivityFeed({ listId, limit = 50 }: ActivityFeedProps) {
       case "url_pinned":
       case "url_unpinned":
         return <Pin className="w-4 h-4 text-purple-400" />;
+      case "url_duplicated":
+        return <Copy className="w-4 h-4 text-orange-400" />;
+      case "url_archived":
+        return <Archive className="w-4 h-4 text-gray-400" />;
+      case "url_restored":
+        return <Archive className="w-4 h-4 text-green-400" />;
       case "comment_added":
         return <MessageSquare className="w-4 h-4 text-cyan-400" />;
+      case "comment_updated":
+        return <Edit className="w-4 h-4 text-blue-400" />;
+      case "comment_deleted":
+        return <Trash2 className="w-4 h-4 text-red-400" />;
       case "collaborator_added":
         return <UserPlus className="w-4 h-4 text-green-400" />;
       case "health_check_completed":
@@ -294,14 +306,20 @@ export function ActivityFeed({ listId, limit = 50 }: ActivityFeedProps) {
         return `pinned ${urlTitle}`;
       case "url_unpinned":
         return `unpinned ${urlTitle}`;
+      case "url_duplicated":
+        return `duplicated ${urlTitle}`;
+      case "url_archived":
+        return `archived ${urlTitle}`;
+      case "url_restored":
+        return `restored ${urlTitle}`;
       case "url_reordered":
         return "reordered URLs";
       case "comment_added":
         return `commented on ${urlTitle}`;
       case "comment_updated":
-        return `updated a comment on ${urlTitle}`;
+        return `updated comment on ${urlTitle}`;
       case "comment_deleted":
-        return `deleted a comment on ${urlTitle}`;
+        return `deleted comment on ${urlTitle}`;
       case "list_updated":
         return "updated the list";
       case "list_shared":

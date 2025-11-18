@@ -24,6 +24,8 @@ export const cacheKeys = {
     `embedding:${listId}:${urlId}`,
   listMetadata: (listId: string) => `list-metadata:${listId}`,
   urlMetadata: (url: string) => `url-metadata:${url}`,
+  comments: (listId: string, urlId?: string) =>
+    urlId ? `comments:${listId}:${urlId}` : `comments:${listId}`,
 };
 
 // Cache TTL (Time To Live) in seconds

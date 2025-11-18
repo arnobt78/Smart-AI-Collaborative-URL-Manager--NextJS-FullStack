@@ -86,6 +86,22 @@ export const UrlCard: React.FC<UrlCardProps> = ({
   const [currentImageUrl, setCurrentImageUrl] = React.useState<
     string | undefined
   >(undefined);
+
+  // Check if image has been prefetched/loaded before (prevents loading state on reorder)
+  const checkImageCache = React.useCallback(
+    (imageUrl: string | undefined): boolean => {
+      if (!imageUrl || typeof window === "undefined") return false;
+
+      try {
+        // Check sessionStorage for prefetched images
+        const imageCacheKey = `image-loaded:${imageUrl}`;
+        return sessionStorage.getItem(imageCacheKey) === "true";
+      } catch {
+        return false;
+      }
+    },
+    []
+  );
   const [toastMessage, setToastMessage] = React.useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
   const [archiveDialogOpen, setArchiveDialogOpen] = React.useState(false);
@@ -198,22 +214,36 @@ export const UrlCard: React.FC<UrlCardProps> = ({
   // Determine current image URL to use
   React.useEffect(() => {
     if (isOwnUrl) {
-      setCurrentImageUrl(logoPath);
-      setImageError(false);
-      setImageLoading(true);
+      // Only reset loading state if URL actually changed (prevents flicker on reorder)
+      if (currentImageUrl !== logoPath) {
+        setCurrentImageUrl(logoPath);
+        setImageError(false);
+        // For own URLs (logo), always assume loaded (static asset)
+        setImageLoading(false);
+      }
       return;
     }
 
     if (primaryImage) {
-      setCurrentImageUrl(primaryImage);
-      setImageError(false);
-      setImageLoading(true);
+      // Only reset loading state if URL actually changed (prevents flicker on reorder)
+      if (currentImageUrl !== primaryImage) {
+        setCurrentImageUrl(primaryImage);
+        setImageError(false);
+
+        // Check if image has been prefetched/loaded before (from batch prefetch)
+        // If yes, set loading to false immediately (instant display)
+        const isCached = checkImageCache(primaryImage);
+        setImageLoading(!isCached);
+      }
     } else {
-      setCurrentImageUrl(undefined);
-      setImageError(true);
-      setImageLoading(false);
+      // Only update if we're currently showing an image (prevent unnecessary state changes)
+      if (currentImageUrl !== undefined) {
+        setCurrentImageUrl(undefined);
+        setImageError(true);
+        setImageLoading(false);
+      }
     }
-  }, [primaryImage, isOwnUrl]);
+  }, [primaryImage, isOwnUrl, currentImageUrl, checkImageCache]);
 
   // Monitor image loading state with timeout fallback to prevent infinite spinner
   React.useEffect(() => {
@@ -319,6 +349,16 @@ export const UrlCard: React.FC<UrlCardProps> = ({
                   onLoad={() => {
                     setImageLoading(false);
                     setImageError(false);
+
+                    // Mark image as loaded in global cache (for instant display on future renders)
+                    if (currentImageUrl && typeof window !== "undefined") {
+                      try {
+                        const imageCacheKey = `image-loaded:${currentImageUrl}`;
+                        sessionStorage.setItem(imageCacheKey, "true");
+                      } catch {
+                        // Ignore sessionStorage errors
+                      }
+                    }
                   }}
                 />
               </div>

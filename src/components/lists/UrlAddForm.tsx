@@ -6,7 +6,10 @@ import { Textarea } from "@/components/ui/Textarea";
 import { CirclePlus } from "lucide-react";
 import { UrlEnhancer } from "@/components/ai/UrlEnhancer";
 import type { EnhancementResult } from "@/lib/ai";
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import { queryClient } from "@/lib/react-query";
+import { saveQueryDataToLocalStorage } from "@/lib/react-query";
+import type { UrlMetadata } from "@/utils/urlMetadata";
 
 interface UrlAddFormProps {
   newUrl: string;
@@ -38,6 +41,112 @@ export function UrlAddForm({
   const [isUrlInputFocused, setIsUrlInputFocused] = useState(false);
   const [enhancementResult, setEnhancementResult] =
     useState<EnhancementResult | null>(null);
+  
+  const prefetchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const previousUrlRef = useRef<string | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  // Cancel prefetch timeout and any in-flight fetch (call this when form is submitted or cleared)
+  const cancelPrefetch = () => {
+    if (prefetchTimeoutRef.current) {
+      clearTimeout(prefetchTimeoutRef.current);
+      prefetchTimeoutRef.current = null;
+    }
+    // Abort any in-flight fetch
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+  };
+
+  // Prefetch metadata when URL changes while typing (debounced)
+  useEffect(() => {
+    if (!newUrl?.trim()) {
+      // Cancel prefetch when URL is cleared
+      cancelPrefetch();
+      previousUrlRef.current = null;
+      return;
+    }
+
+    // Skip if URL hasn't changed or is empty/invalid
+    if (newUrl === previousUrlRef.current) return;
+
+    // Validate URL format
+    try {
+      new URL(newUrl);
+    } catch {
+      return; // Invalid URL, skip prefetch
+    }
+
+    // Clear previous timeout
+    if (prefetchTimeoutRef.current) {
+      clearTimeout(prefetchTimeoutRef.current);
+    }
+
+    // Debounce: prefetch after 1 second of no changes
+    prefetchTimeoutRef.current = setTimeout(async () => {
+      const queryKey = ["url-metadata", newUrl] as const;
+
+      // Check if already cached
+      const cached = queryClient.getQueryData<UrlMetadata>(queryKey);
+      if (cached) {
+        return; // Already cached, skip
+      }
+
+      // Create AbortController for this prefetch
+      const abortController = new AbortController();
+      abortControllerRef.current = abortController;
+
+      // Prefetch metadata in background (non-blocking)
+      try {
+        // Use AbortController to cancel fetch if form is submitted/cleared
+        const baseUrl =
+          typeof window !== "undefined" ? window.location.origin : "";
+        const response = await fetch(
+          `${baseUrl}/api/metadata?url=${encodeURIComponent(newUrl)}`,
+          { signal: abortController.signal }
+        );
+
+        // Check if aborted
+        if (abortController.signal.aborted) {
+          return;
+        }
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch metadata");
+        }
+
+        const metadata = await response.json();
+
+        // Final check: if aborted while fetching, don't cache
+        if (abortController.signal.aborted) {
+          return;
+        }
+
+        // Populate React Query cache and localStorage
+        queryClient.setQueryData<UrlMetadata>(queryKey, metadata);
+        saveQueryDataToLocalStorage(queryKey, metadata);
+      } catch (error) {
+        // Silently fail if aborted or other error - prefetch is optional
+        if (error instanceof Error && error.name !== "AbortError") {
+          // Only log non-abort errors if needed for debugging
+        }
+      } finally {
+        // Clear abort controller if this fetch completed (not aborted)
+        if (abortControllerRef.current === abortController) {
+          abortControllerRef.current = null;
+        }
+      }
+    }, 1000); // 1 second debounce
+
+    previousUrlRef.current = newUrl;
+
+    return () => {
+      if (prefetchTimeoutRef.current) {
+        clearTimeout(prefetchTimeoutRef.current);
+      }
+    };
+  }, [newUrl]);
 
   const handleUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setNewUrl(e.target.value);
@@ -54,11 +163,14 @@ export function UrlAddForm({
   };
 
   const handleClear = () => {
+    // Cancel prefetch when clearing
+    cancelPrefetch();
     setNewUrl("");
     setNewNote("");
     setNewTags("");
     setEnhancementResult(null);
     setIsUrlInputFocused(false);
+    previousUrlRef.current = null;
     onClear();
   };
 
@@ -103,9 +215,15 @@ export function UrlAddForm({
     return null;
   }
 
+  const handleSubmit = (e: React.FormEvent) => {
+    // Cancel prefetch when form is submitted
+    cancelPrefetch();
+    onAdd(e);
+  };
+
   return (
     <form
-      onSubmit={onAdd}
+      onSubmit={handleSubmit}
       className={`
         flex flex-col gap-4 bg-white/5 backdrop-blur-sm rounded-xl shadow-xl border border-white/20 mx-auto
         transition-all duration-300 ease-in-out overflow-hidden

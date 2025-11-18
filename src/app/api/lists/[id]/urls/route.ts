@@ -207,6 +207,7 @@ export async function POST(req: NextRequest, context: RouteContext) {
       reminder,
       category,
       metadata,
+      isDuplicate,
     }: {
       url: string;
       title?: string;
@@ -215,6 +216,7 @@ export async function POST(req: NextRequest, context: RouteContext) {
       reminder?: string;
       category?: string;
       metadata?: UrlMetadata;
+      isDuplicate?: boolean;
     } = body;
 
     if (!url) {
@@ -311,6 +313,9 @@ export async function POST(req: NextRequest, context: RouteContext) {
       );
     }
 
+    // Determine activity action based on whether this is a duplicate
+    const activityAction = isDuplicate ? "url_duplicated" : "url_added";
+
     // Prepare activity details
     const activityDetails = {
       urlId: newUrl.id,
@@ -322,7 +327,7 @@ export async function POST(req: NextRequest, context: RouteContext) {
     const activity = await createActivity(
       listId,
       user.id,
-      "url_added",
+      activityAction,
       activityDetails
     );
 
@@ -331,14 +336,14 @@ export async function POST(req: NextRequest, context: RouteContext) {
       publishMessage(CHANNELS.listUpdate(listId), {
         type: "list_updated",
         listId: listId,
-        action: "url_added",
+        action: activityAction,
         timestamp: new Date().toISOString(),
         urlCount: updatedUrls.length,
       }),
       publishMessage(CHANNELS.listActivity(listId), {
         type: "activity_created",
         listId: listId,
-        action: "url_added",
+        action: activityAction,
         timestamp: new Date().toISOString(),
         activity,
       }),
@@ -363,7 +368,7 @@ export async function POST(req: NextRequest, context: RouteContext) {
       });
     }
 
-    console.log(`✅ [POST] URL added: ${url}`);
+    console.log(`✅ [POST] URL added: ${url}${isDuplicate ? " (duplicated)" : ""}`);
     // Return unified response
     return NextResponse.json({
       success: true,
@@ -372,9 +377,13 @@ export async function POST(req: NextRequest, context: RouteContext) {
       metadata: finalMetadata,
       activity: {
         id: activity.id,
-        action: "url_added",
+        action: activityAction,
         details: activityDetails,
         createdAt: activity.createdAt,
+        user: {
+          id: user.id,
+          email: user.email,
+        },
       },
     });
   } catch (error) {
@@ -406,16 +415,36 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
     const {
       urlId,
       updates,
+      urls: reorderedUrls, // For reorder operation
+      action: requestAction, // Optional action (e.g., "reorder")
+      metadata: providedMetadata,
     }: {
-      urlId: string;
-      updates: Partial<UrlItem>;
+      urlId?: string;
+      updates?: Partial<UrlItem>;
+      urls?: UrlItem[]; // For reorder operation
+      action?: string;
+      metadata?: UrlMetadata;
     } = body;
 
-    if (!urlId || !updates) {
-      return NextResponse.json(
-        { error: "urlId and updates are required" },
-        { status: 400 }
-      );
+    // Support both single URL update and bulk reorder
+    const isReorderOperation = requestAction === "reorder" || (reorderedUrls && Array.isArray(reorderedUrls));
+    
+    if (isReorderOperation) {
+      // Reorder operation - use reorderedUrls
+      if (!reorderedUrls || !Array.isArray(reorderedUrls)) {
+        return NextResponse.json(
+          { error: "urls array is required for reorder operation" },
+          { status: 400 }
+        );
+      }
+    } else {
+      // Single URL update - use urlId and updates
+      if (!urlId || !updates) {
+        return NextResponse.json(
+          { error: "urlId and updates are required for update operation" },
+          { status: 400 }
+        );
+      }
     }
 
     // Get current list
@@ -434,60 +463,110 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
     }
 
     const currentUrls = (currentList.urls as unknown as UrlItem[]) || [];
-    const urlToUpdate = currentUrls.find((u) => u.id === urlId);
-
-    if (!urlToUpdate) {
-      return NextResponse.json({ error: "URL not found" }, { status: 404 });
+    
+    let updated: any;
+    let updatedUrls: UrlItem[];
+    let updatedUrl: UrlItem | undefined;
+    
+    if (isReorderOperation) {
+      // Reorder operation - update entire URLs array
+      updatedUrls = reorderedUrls!;
+      updated = await updateList(listId, { urls: updatedUrls });
+      
+      // Detect if URLs were actually reordered
+      const isReordered =
+        JSON.stringify(updatedUrls.map((u) => u.id)) !==
+        JSON.stringify(currentUrls.map((u) => u.id));
+      
+      if (!isReordered) {
+        // Order unchanged, return early with success
+        return NextResponse.json({
+          success: true,
+          list: updated,
+        });
+      }
+      
+      // For reorder, we don't have a single updatedUrl, so set to undefined
+      updatedUrl = undefined;
+    } else {
+      // Single URL update operation
+      const urlToUpdate = currentUrls.find((u) => u.id === urlId);
+      
+      if (!urlToUpdate) {
+        return NextResponse.json({ error: "URL not found" }, { status: 404 });
+      }
+      
+      // Update URL
+      const updatedUrlItem: UrlItem = {
+        ...urlToUpdate,
+        ...updates!,
+        updatedAt: new Date().toISOString(),
+      };
+      
+      updatedUrl = updatedUrlItem; // Set for later use
+      updatedUrls = currentUrls.map((u) =>
+        u.id === urlId ? updatedUrlItem : u
+      );
+      updated = await updateList(listId, { urls: updatedUrls });
     }
 
-    // Update URL
-    const updatedUrl: UrlItem = {
-      ...urlToUpdate,
-      ...updates,
-      updatedAt: new Date().toISOString(),
-    };
-
-    const updatedUrls = currentUrls.map((u) =>
-      u.id === urlId ? updatedUrl : u
-    );
-    const updated = await updateList(listId, { urls: updatedUrls });
-
-    // Check if URL changed (need to fetch new metadata)
-    const urlChanged = updates.url && updates.url !== urlToUpdate.url;
+    // Check if URL changed (need to fetch new metadata) - only for single URL update
+    const urlChanged = !isReorderOperation && updates?.url && updatedUrl && currentUrls.find((u) => u.id === urlId)?.url !== updatedUrl.url;
 
     // If URL changed, fetch metadata for the new URL
     let urlMetadata: UrlMetadata | undefined;
-    if (urlChanged && updatedUrl.url) {
+    if (!isReorderOperation && urlChanged && updatedUrl?.url) {
       try {
-        // Check Redis cache first
-        if (redis) {
-          try {
-            const urlCacheKey = cacheKeys.urlMetadata(updatedUrl.url);
-            const cached = await redis.get<UrlMetadata>(urlCacheKey);
-            if (cached) {
-              urlMetadata = cached;
-              console.log(
-                `✅ [PATCH] Using cached metadata from Redis for: ${updatedUrl.url.slice(
-                  0,
-                  40
-                )}...`
-              );
-            }
-          } catch {
-            // Ignore Redis errors
-          }
-        }
+        // Priority 1: Use provided metadata from client (from prefetch cache)
+        if (providedMetadata) {
+          urlMetadata = providedMetadata;
+          console.log(
+            `✅ [PATCH] Using provided metadata (from prefetch cache) for: ${updatedUrl.url.slice(
+              0,
+              40
+            )}...`
+          );
 
-        // If not in cache, fetch from web
-        if (!urlMetadata) {
-          urlMetadata = await fetchUrlMetadata(updatedUrl.url);
-          // Cache metadata in Redis
+          // Also cache it in Redis for future requests
           if (redis) {
             try {
               const urlCacheKey = cacheKeys.urlMetadata(updatedUrl.url);
               await redis.set(urlCacheKey, urlMetadata, { ex: 86400 * 7 }); // 7 days TTL
             } catch {
               // Ignore Redis errors
+            }
+          }
+        } else {
+          // Priority 2: Check Redis cache
+          if (redis) {
+            try {
+              const urlCacheKey = cacheKeys.urlMetadata(updatedUrl.url);
+              const cached = await redis.get<UrlMetadata>(urlCacheKey);
+              if (cached) {
+                urlMetadata = cached;
+                console.log(
+                  `✅ [PATCH] Using cached metadata from Redis for: ${updatedUrl.url.slice(
+                    0,
+                    40
+                  )}...`
+                );
+              }
+            } catch {
+              // Ignore Redis errors
+            }
+          }
+
+          // Priority 3: If not in cache, fetch from web
+          if (!urlMetadata) {
+            urlMetadata = await fetchUrlMetadata(updatedUrl.url);
+            // Cache metadata in Redis
+            if (redis) {
+              try {
+                const urlCacheKey = cacheKeys.urlMetadata(updatedUrl.url);
+                await redis.set(urlCacheKey, urlMetadata, { ex: 86400 * 7 }); // 7 days TTL
+              } catch {
+                // Ignore Redis errors
+              }
             }
           }
         }
@@ -503,18 +582,51 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
       }
     }
 
-    // Prepare activity details
-    const activityDetails = {
-      urlId: updatedUrl.id,
-      url: updatedUrl.url,
-      urlTitle: updatedUrl.title || updatedUrl.url,
-    };
+    // Detect what changed to create appropriate activity
+    let activityAction = "url_updated";
+    let activityDetails: Record<string, unknown> = {};
+    
+    if (isReorderOperation) {
+      // Reorder operation - create url_reordered activity
+      activityAction = "url_reordered";
+      activityDetails = { urlCount: updatedUrls.length };
+    } else if (updatedUrl) {
+      // Single URL update operation
+      const urlToUpdate = currentUrls.find((u) => u.id === urlId)!;
+      const isFavoriteToggled =
+        "isFavorite" in updates! &&
+        urlToUpdate.isFavorite !== updatedUrl.isFavorite;
+      const isPinToggled =
+        "isPinned" in updates! && urlToUpdate.isPinned !== updatedUrl.isPinned;
+      const isOnlyFavoriteChange =
+        isFavoriteToggled &&
+        Object.keys(updates!).length === 1 &&
+        Object.keys(updates!).includes("isFavorite");
+      const isOnlyPinChange =
+        isPinToggled &&
+        Object.keys(updates!).length === 1 &&
+        Object.keys(updates!).includes("isPinned");
+
+      // Determine activity action based on what changed
+      if (isOnlyFavoriteChange) {
+        activityAction = updatedUrl.isFavorite ? "url_favorited" : "url_unfavorited";
+      } else if (isOnlyPinChange) {
+        activityAction = updatedUrl.isPinned ? "url_pinned" : "url_unpinned";
+      }
+
+      // Prepare activity details
+      activityDetails = {
+        urlId: updatedUrl.id,
+        url: updatedUrl.url,
+        urlTitle: updatedUrl.title || updatedUrl.url,
+      };
+    }
 
     // Log activity
     const activity = await createActivity(
       listId,
       user.id,
-      "url_updated",
+      activityAction,
       activityDetails
     );
 
@@ -530,7 +642,7 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
       publishMessage(CHANNELS.listActivity(listId), {
         type: "activity_created",
         listId: listId,
-        action: "url_updated",
+        action: activityAction,
         timestamp: new Date().toISOString(),
         activity,
       }),
@@ -550,25 +662,56 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
 
     // Sync vectors in background (non-blocking)
     if (vectorIndex) {
-      upsertUrlVectors([updatedUrl], listId).catch((error) => {
-        // Ignore vector sync errors
-      });
+      if (isReorderOperation) {
+        // For reorder, sync all URLs
+        upsertUrlVectors(updatedUrls, listId).catch((error) => {
+          console.error("❌ [VECTOR] Failed to sync URLs to vector DB:", error);
+        });
+      } else if (updatedUrl) {
+        // For single URL update, sync only that URL
+        upsertUrlVectors([updatedUrl], listId).catch((error) => {
+          // Ignore vector sync errors
+        });
+      }
     }
 
-    console.log(`✅ [PATCH] URL updated: ${updatedUrl.url}`);
-    // Return unified response
-    return NextResponse.json({
-      success: true,
-      list: updated,
-      url: updatedUrl,
-      metadata: urlMetadata, // Include metadata if URL changed
-      activity: {
-        id: activity.id,
-        action: "url_updated",
-        details: activityDetails,
-        createdAt: activity.createdAt,
-      },
-    });
+    if (isReorderOperation) {
+      console.log(`✅ [PATCH] URLs reordered (action: ${activityAction})`);
+      // Return unified response for reorder
+      return NextResponse.json({
+        success: true,
+        list: updated,
+        activity: {
+          id: activity.id,
+          action: activityAction,
+          details: activityDetails,
+          createdAt: activity.createdAt,
+          user: {
+            id: user.id,
+            email: user.email,
+          },
+        },
+      });
+    } else {
+      console.log(`✅ [PATCH] URL updated: ${updatedUrl?.url} (action: ${activityAction})`);
+      // Return unified response for single URL update
+      return NextResponse.json({
+        success: true,
+        list: updated,
+        url: updatedUrl,
+        metadata: urlMetadata, // Include metadata if URL changed
+        activity: {
+          id: activity.id,
+          action: activityAction,
+          details: activityDetails,
+          createdAt: activity.createdAt,
+          user: {
+            id: user.id,
+            email: user.email,
+          },
+        },
+      });
+    }
   } catch (error) {
     console.error("❌ [PATCH] Error:", error);
     const message =

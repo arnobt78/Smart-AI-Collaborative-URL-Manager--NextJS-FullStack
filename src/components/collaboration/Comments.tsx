@@ -1,9 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/Button";
 import { Textarea } from "@/components/ui/Textarea";
 import { useToast } from "@/components/ui/Toaster";
+import { AlertDialog } from "@/components/ui/AlertDialog";
 import { MessageSquare, Trash2, Edit2, X, Check } from "lucide-react";
 
 interface Comment {
@@ -24,93 +26,148 @@ interface CommentsProps {
 }
 
 export function Comments({ listId, urlId, currentUserId }: CommentsProps) {
-  const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editContent, setEditContent] = useState("");
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [commentToDelete, setCommentToDelete] = useState<string | null>(null);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
-  // Fetch comments
-  const fetchComments = async () => {
-    setIsLoading(true);
-    try {
+  // React Query key for comments
+  const queryKey = ["comments", listId, urlId];
+
+  // Fetch comments using React Query
+  const {
+    data: commentsData,
+    isLoading,
+  } = useQuery<{ comments: Comment[]; cached?: boolean }>({
+    queryKey,
+    queryFn: async () => {
       const response = await fetch(
         `/api/lists/${listId}/comments?urlId=${urlId}`
       );
-      if (response.ok) {
-        const data = await response.json();
-        setComments(data.comments || []);
+      if (!response.ok) {
+        throw new Error("Failed to fetch comments");
       }
-    } catch (error) {
-      console.error("Failed to fetch comments:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+      return response.json();
+    },
+    staleTime: 1000 * 60 * 30, // 30 minutes
+  });
 
-  useEffect(() => {
-    fetchComments();
-  }, [listId, urlId]);
+  const comments = commentsData?.comments || [];
 
-  // Listen for real-time comment updates
+  // Listen for real-time comment updates (from other clients)
   useEffect(() => {
     const handleCommentUpdate = () => {
-      fetchComments();
+      // Invalidate and refetch comments
+      queryClient.invalidateQueries({ queryKey });
     };
 
     window.addEventListener("comment-updated", handleCommentUpdate);
     return () => {
       window.removeEventListener("comment-updated", handleCommentUpdate);
     };
-  }, [listId, urlId]);
+  }, [listId, urlId, queryClient, queryKey]);
+
+  // Create comment mutation with optimistic update
+  const createMutation = useMutation({
+    mutationFn: async (content: string) => {
+      const response = await fetch(`/api/lists/${listId}/comments`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ urlId, content }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || "Failed to add comment");
+      }
+
+      return response.json();
+    },
+    onMutate: async (content) => {
+      // Cancel outgoing refetches
+      await queryClient.cancelQueries({ queryKey });
+
+      // Snapshot previous value
+      const previousData = queryClient.getQueryData<{ comments: Comment[] }>(
+        queryKey
+      );
+
+      // Optimistically update cache with temporary comment
+      const optimisticComment: Comment = {
+        id: `temp-${Date.now()}`,
+        content,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        user: {
+          id: currentUserId || "",
+          email: "You",
+        },
+      };
+
+      queryClient.setQueryData<{ comments: Comment[] }>(queryKey, (old) => ({
+        comments: [...(old?.comments || []), optimisticComment],
+      }));
+
+      return { previousData };
+    },
+    onSuccess: async (data) => {
+      // Update cache with server response
+      queryClient.setQueryData<{ comments: Comment[] }>(queryKey, (old) => {
+        if (!old) return { comments: [data.comment] };
+        // Replace optimistic comment with real one
+        const filtered = old.comments.filter(
+          (c) => !c.id.startsWith("temp-")
+        );
+        return { comments: [...filtered, data.comment] };
+      });
+
+      setNewComment("");
+      toast({
+        title: "Comment added",
+        description: "Your comment has been posted",
+        variant: "success",
+      });
+
+      // Dispatch activity-added event with activity data from server
+      if (data.activity) {
+        window.dispatchEvent(
+          new CustomEvent("activity-added", {
+            detail: {
+              listId,
+              activity: data.activity,
+            },
+          })
+        );
+      }
+
+      // Note: We don't dispatch "comment-updated" here because:
+      // 1. We've already updated the cache optimistically and with server data
+      // 2. The real-time system (SSE) will notify other clients automatically
+      // 3. Dispatching here would trigger our own listener and cause a redundant refetch
+    },
+    onError: (error, _variables, context) => {
+      // Rollback optimistic update
+      if (context?.previousData) {
+        queryClient.setQueryData(queryKey, context.previousData);
+      }
+
+      toast({
+        title: "Failed to add comment",
+        description:
+          error instanceof Error ? error.message : "Please try again",
+        variant: "error",
+      });
+    },
+  });
 
   // Submit new comment
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newComment.trim() || isSubmitting) return;
-
-    setIsSubmitting(true);
-    try {
-      const response = await fetch(`/api/lists/${listId}/comments`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ urlId, content: newComment }),
-      });
-
-      if (response.ok) {
-        setNewComment("");
-        await fetchComments();
-        toast({
-          title: "Comment added",
-          description: "Your comment has been posted",
-          variant: "success",
-        });
-        // Trigger real-time updates
-        window.dispatchEvent(new CustomEvent("comment-updated"));
-        window.dispatchEvent(
-          new CustomEvent("activity-updated", {
-            detail: { listId },
-          })
-        );
-      } else {
-        const data = await response.json();
-        toast({
-          title: "Failed to add comment",
-          description: data.error || "Please try again",
-          variant: "error",
-        });
-      }
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to add comment",
-        variant: "error",
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
+    if (!newComment.trim() || createMutation.isPending) return;
+    createMutation.mutate(newComment.trim());
   };
 
   // Start editing
@@ -125,54 +182,103 @@ export function Comments({ listId, urlId, currentUserId }: CommentsProps) {
     setEditContent("");
   };
 
-  // Save edit
-  const handleSaveEdit = async () => {
-    if (!editingId || !editContent.trim()) return;
-
-    try {
+  // Update comment mutation with optimistic update
+  const updateMutation = useMutation({
+    mutationFn: async ({ commentId, content }: { commentId: string; content: string }) => {
       const response = await fetch(`/api/lists/${listId}/comments`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ commentId: editingId, content: editContent }),
+        body: JSON.stringify({ commentId, content }),
       });
 
-      if (response.ok) {
-        setEditingId(null);
-        setEditContent("");
-        await fetchComments();
-        toast({
-          title: "Comment updated",
-          description: "Changes saved successfully",
-          variant: "success",
-        });
-        window.dispatchEvent(new CustomEvent("comment-updated"));
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || "Failed to update comment");
+      }
+
+      return response.json();
+    },
+    onMutate: async ({ commentId, content }) => {
+      await queryClient.cancelQueries({ queryKey });
+
+      const previousData = queryClient.getQueryData<{ comments: Comment[] }>(
+        queryKey
+      );
+
+      // Optimistically update comment
+      queryClient.setQueryData<{ comments: Comment[] }>(queryKey, (old) => {
+        if (!old) return old;
+        return {
+          comments: old.comments.map((c) =>
+            c.id === commentId
+              ? { ...c, content, updatedAt: new Date().toISOString() }
+              : c
+          ),
+        };
+      });
+
+      return { previousData };
+    },
+    onSuccess: (data) => {
+      // Update cache with server response
+      queryClient.setQueryData<{ comments: Comment[] }>(queryKey, (old) => {
+        if (!old) return { comments: [data.comment] };
+        return {
+          comments: old.comments.map((c) =>
+            c.id === data.comment.id ? data.comment : c
+          ),
+        };
+      });
+
+      setEditingId(null);
+      setEditContent("");
+      toast({
+        title: "Comment updated",
+        description: "Changes saved successfully",
+        variant: "success",
+      });
+
+      // Dispatch activity-added event with activity data from server
+      if (data.activity) {
         window.dispatchEvent(
-          new CustomEvent("activity-updated", {
-            detail: { listId },
+          new CustomEvent("activity-added", {
+            detail: {
+              listId,
+              activity: data.activity,
+            },
           })
         );
-      } else {
-        const data = await response.json();
-        toast({
-          title: "Failed to update comment",
-          description: data.error || "Please try again",
-          variant: "error",
-        });
       }
-    } catch (error) {
+
+      // Note: We don't dispatch "comment-updated" here because:
+      // 1. We've already updated the cache optimistically and with server data
+      // 2. The real-time system (SSE) will notify other clients automatically
+      // 3. Dispatching here would trigger our own listener and cause a redundant refetch
+    },
+    onError: (error, _variables, context) => {
+      // Rollback optimistic update
+      if (context?.previousData) {
+        queryClient.setQueryData(queryKey, context.previousData);
+      }
+
       toast({
-        title: "Error",
-        description: "Failed to update comment",
+        title: "Failed to update comment",
+        description:
+          error instanceof Error ? error.message : "Please try again",
         variant: "error",
       });
-    }
+    },
+  });
+
+  // Save edit
+  const handleSaveEdit = async () => {
+    if (!editingId || !editContent.trim() || updateMutation.isPending) return;
+    updateMutation.mutate({ commentId: editingId, content: editContent.trim() });
   };
 
-  // Delete comment
-  const handleDelete = async (commentId: string) => {
-    if (!confirm("Are you sure you want to delete this comment?")) return;
-
-    try {
+  // Delete comment mutation with optimistic update
+  const deleteMutation = useMutation({
+    mutationFn: async (commentId: string) => {
       const response = await fetch(
         `/api/lists/${listId}/comments?commentId=${commentId}`,
         {
@@ -180,33 +286,81 @@ export function Comments({ listId, urlId, currentUserId }: CommentsProps) {
         }
       );
 
-      if (response.ok) {
-        await fetchComments();
-        toast({
-          title: "Comment deleted",
-          description: "The comment has been removed",
-          variant: "success",
-        });
-        window.dispatchEvent(new CustomEvent("comment-updated"));
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || "Failed to delete comment");
+      }
+
+      return response.json();
+    },
+    onMutate: async (commentId) => {
+      await queryClient.cancelQueries({ queryKey });
+
+      const previousData = queryClient.getQueryData<{ comments: Comment[] }>(
+        queryKey
+      );
+
+      // Optimistically remove comment
+      queryClient.setQueryData<{ comments: Comment[] }>(queryKey, (old) => {
+        if (!old) return old;
+        return {
+          comments: old.comments.filter((c) => c.id !== commentId),
+        };
+      });
+
+      return { previousData };
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Comment deleted",
+        description: "The comment has been removed",
+        variant: "success",
+      });
+
+      // Dispatch activity-added event with activity data from server
+      if (data?.activity) {
         window.dispatchEvent(
-          new CustomEvent("activity-updated", {
-            detail: { listId },
+          new CustomEvent("activity-added", {
+            detail: {
+              listId,
+              activity: data.activity,
+            },
           })
         );
-      } else {
-        const data = await response.json();
-        toast({
-          title: "Failed to delete comment",
-          description: data.error || "Please try again",
-          variant: "error",
-        });
       }
-    } catch (error) {
+
+      // Note: We don't dispatch "comment-updated" here because:
+      // 1. We've already updated the cache optimistically
+      // 2. The real-time system (SSE) will notify other clients automatically
+      // 3. Dispatching here would trigger our own listener and cause a redundant refetch
+    },
+    onError: (error, _variables, context) => {
+      // Rollback optimistic update
+      if (context?.previousData) {
+        queryClient.setQueryData(queryKey, context.previousData);
+      }
+
       toast({
-        title: "Error",
-        description: "Failed to delete comment",
+        title: "Failed to delete comment",
+        description:
+          error instanceof Error ? error.message : "Please try again",
         variant: "error",
       });
+    },
+  });
+
+  // Open delete confirmation dialog
+  const handleDeleteClick = (commentId: string) => {
+    setCommentToDelete(commentId);
+    setDeleteDialogOpen(true);
+  };
+
+  // Confirm delete
+  const handleDeleteConfirm = () => {
+    if (commentToDelete) {
+      deleteMutation.mutate(commentToDelete);
+      setDeleteDialogOpen(false);
+      setCommentToDelete(null);
     }
   };
 
@@ -244,15 +398,15 @@ export function Comments({ listId, urlId, currentUserId }: CommentsProps) {
             onChange={(e) => setNewComment(e.target.value)}
             placeholder="Add a comment..."
             className="min-h-[80px] resize-none bg-white/5 border-white/10 text-white placeholder:text-white/50"
-            disabled={isSubmitting}
+            disabled={createMutation.isPending}
           />
           <div className="flex justify-end">
             <Button
               type="submit"
-              disabled={!newComment.trim() || isSubmitting}
+              disabled={!newComment.trim() || createMutation.isPending}
               className="px-4 py-1.5 text-xs"
             >
-              {isSubmitting ? "Posting..." : "Post Comment"}
+              {createMutation.isPending ? "Posting..." : "Post Comment"}
             </Button>
           </div>
         </form>
@@ -298,10 +452,11 @@ export function Comments({ listId, urlId, currentUserId }: CommentsProps) {
                       <Button
                         type="button"
                         onClick={handleSaveEdit}
+                        disabled={updateMutation.isPending}
                         className="px-3 py-1 text-xs"
                       >
                         <Check className="w-3 h-3 mr-1" />
-                        Save
+                        {updateMutation.isPending ? "Saving..." : "Save"}
                       </Button>
                     </div>
                   </div>
@@ -329,7 +484,7 @@ export function Comments({ listId, urlId, currentUserId }: CommentsProps) {
                           </button>
                           <button
                             type="button"
-                            onClick={() => handleDelete(comment.id)}
+                            onClick={() => handleDeleteClick(comment.id)}
                             className="p-1.5 rounded hover:bg-white/10 transition-colors"
                             title="Delete comment"
                           >
@@ -348,6 +503,18 @@ export function Comments({ listId, urlId, currentUserId }: CommentsProps) {
           })
         )}
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        title="Delete Comment"
+        description="Are you sure you want to delete this comment? This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+        onConfirm={handleDeleteConfirm}
+        variant="destructive"
+      />
     </div>
   );
 }

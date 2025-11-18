@@ -3,9 +3,12 @@
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { PencilIcon } from "@heroicons/react/24/outline";
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import type { UrlItem } from "@/stores/urlListStore";
 import { UrlEnhancer } from "@/components/ai/UrlEnhancer";
+import { queryClient } from "@/lib/react-query";
+import { fetchUrlMetadata, type UrlMetadata } from "@/utils/urlMetadata";
+import { saveQueryDataToLocalStorage } from "@/lib/react-query";
 
 interface UrlEditModalProps {
   editingUrl: UrlItem | null;
@@ -39,6 +42,121 @@ export function UrlEditModal({
   isEditing = false,
   handleEditUrl,
 }: UrlEditModalProps) {
+  const prefetchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const previousUrlRef = useRef<string | null>(null);
+  const isSubmittingRef = useRef<boolean>(false);
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  // Cancel prefetch timeout and any in-flight fetch (call this when form is submitted)
+  const cancelPrefetch = () => {
+    if (prefetchTimeoutRef.current) {
+      clearTimeout(prefetchTimeoutRef.current);
+      prefetchTimeoutRef.current = null;
+    }
+    // Abort any in-flight fetch
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+    isSubmittingRef.current = true;
+  };
+
+  // Prefetch metadata when URL changes while editing (debounced)
+  useEffect(() => {
+    if (!editingUrl?.url) {
+      // Cancel prefetch when modal closes
+      cancelPrefetch();
+      return;
+    }
+
+    // Reset submitting flag when URL changes (user is editing again)
+    isSubmittingRef.current = false;
+
+    // Skip if URL hasn't changed or is empty/invalid
+    if (editingUrl.url === previousUrlRef.current) return;
+
+    // Validate URL format
+    try {
+      new URL(editingUrl.url);
+    } catch {
+      return; // Invalid URL, skip prefetch
+    }
+
+    // Clear previous timeout
+    if (prefetchTimeoutRef.current) {
+      clearTimeout(prefetchTimeoutRef.current);
+    }
+
+    // Debounce: prefetch after 1 second of no changes
+    prefetchTimeoutRef.current = setTimeout(async () => {
+      // Double-check: if form was submitted, don't prefetch
+      if (isSubmittingRef.current) {
+        return;
+      }
+
+      const queryKey = ["url-metadata", editingUrl.url] as const;
+
+      // Check if already cached (might have been cached by PATCH response)
+      const cached = queryClient.getQueryData<UrlMetadata>(queryKey);
+      if (cached) {
+        return; // Already cached, skip
+      }
+
+      // Create AbortController for this prefetch
+      const abortController = new AbortController();
+      abortControllerRef.current = abortController;
+
+      // Prefetch metadata in background (non-blocking)
+      try {
+        // Use AbortController to cancel fetch if form is submitted
+        const baseUrl =
+          typeof window !== "undefined" ? window.location.origin : "";
+        const response = await fetch(
+          `${baseUrl}/api/metadata?url=${encodeURIComponent(editingUrl.url)}`,
+          { signal: abortController.signal }
+        );
+
+        // Check if aborted
+        if (abortController.signal.aborted || isSubmittingRef.current) {
+          return;
+        }
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch metadata");
+        }
+
+        const metadata = await response.json();
+
+        // Final check: if form was submitted while fetching, don't cache
+        if (isSubmittingRef.current || abortController.signal.aborted) {
+          return;
+        }
+
+        // Populate React Query cache and localStorage
+        queryClient.setQueryData<UrlMetadata>(queryKey, metadata);
+        saveQueryDataToLocalStorage(queryKey, metadata);
+      } catch (error) {
+        // Silently fail if aborted or other error - prefetch is optional
+        if (error instanceof Error && error.name !== "AbortError") {
+          // Only log non-abort errors if needed for debugging
+        }
+      } finally {
+        // Clear abort controller if this fetch completed (not aborted)
+        if (abortControllerRef.current === abortController) {
+          abortControllerRef.current = null;
+        }
+      }
+    }, 1000); // 1 second debounce
+
+    previousUrlRef.current = editingUrl.url;
+
+    return () => {
+      if (prefetchTimeoutRef.current) {
+        clearTimeout(prefetchTimeoutRef.current);
+      }
+    };
+  }, [editingUrl?.url]);
+
   if (!editingUrl) return null;
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4 backdrop-blur-sm overflow-y-auto">
@@ -50,6 +168,9 @@ export function UrlEditModal({
         <form
           onSubmit={(e) => {
             e.preventDefault();
+            // Cancel prefetch timeout immediately when form is submitted
+            cancelPrefetch();
+
             const tagsArray = editingTags
               .split(",")
               .map((tag) => tag.trim())

@@ -41,19 +41,48 @@ export default function ListPageClient() {
   useEffect(() => {
     async function fetchList() {
       if (typeof slug === "string") {
+        // Reset fetch ref if slug changed (user navigated to different list)
+        if (hasFetchedRef.current && hasFetchedRef.current !== slug) {
+          hasFetchedRef.current = null;
+          setIsLoading(true); // Show skeleton for new list
+        }
+        
         // Only fetch if slug changed (prevent duplicate fetches)
         if (hasFetchedRef.current === slug) {
-          setIsLoading(false);
+          // If already fetched, check if we have valid list data
+          if (list && list.slug === slug) {
+            setIsLoading(false);
+          }
           return;
         }
+        
         // Mark as fetched before the async call
         hasFetchedRef.current = slug;
         await getList(slug);
+        
+        // Only set loading to false if we have valid list data with matching slug
+        // This prevents showing "List: undefined" flash
+        const currentListData = currentList.get();
+        if (currentListData && currentListData.slug === slug) {
+          setIsLoading(false);
+        }
+      } else {
+        setIsLoading(false);
       }
-      setIsLoading(false);
     }
     fetchList();
-  }, [slug]);
+  }, [slug]); // Only depend on slug, not list (to avoid infinite loops)
+
+  // Watch for list updates from store and update loading state when valid data arrives
+  useEffect(() => {
+    if (typeof slug === "string" && list && list.slug === slug) {
+      // We have valid list data matching the current slug - hide loading
+      setIsLoading(false);
+    } else if (slug && list && list.slug && list.slug !== slug) {
+      // List data doesn't match current slug - keep loading or reset
+      setIsLoading(true);
+    }
+  }, [list, slug]);
 
   // Auto-sync vectors for existing URLs when list loads (background, non-blocking)
   useEffect(() => {
@@ -91,7 +120,11 @@ export default function ListPageClient() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [list?.id]); // Only run when list ID changes
 
-  if (isLoading) {
+  // Show skeleton if loading OR if list doesn't have valid slug yet
+  // This prevents "List: undefined" flash on initial load
+  const shouldShowLoading = isLoading || !list || !list.slug || (slug && typeof slug === "string" && list.slug !== slug);
+
+  if (shouldShowLoading) {
     return (
       <main className="min-h-screen">
         <div className="container mx-auto px-2 sm:px-0">
