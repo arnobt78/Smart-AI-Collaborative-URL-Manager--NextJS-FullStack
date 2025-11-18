@@ -12,7 +12,9 @@ import {
   FileText,
   FolderOpen,
 } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
 import type { AIProvider } from "@/lib/ai/providers";
+import type { UrlMetadata } from "@/utils/urlMetadata";
 
 interface EnhancementResult {
   category: string;
@@ -41,6 +43,7 @@ export function UrlEnhancer({
   provider,
   compact = false,
 }: UrlEnhancerProps) {
+  const queryClient = useQueryClient();
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<EnhancementResult | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -63,10 +66,25 @@ export function UrlEnhancer({
             `/api/metadata?url=${encodeURIComponent(url)}`
           );
           if (metadataResponse.ok) {
-            const metadata = await metadataResponse.json();
+            const metadata = await metadataResponse.json() as UrlMetadata;
             enhancedTitle = enhancedTitle || metadata.title || undefined;
             enhancedDescription =
               enhancedDescription || metadata.description || undefined;
+            
+            // Save metadata to React Query cache so it can be reused when adding URL
+            const queryKey = ["url-metadata", url] as const;
+            queryClient.setQueryData(queryKey, metadata);
+            
+            // Also save to localStorage for persistence
+            try {
+              const key = `react-query:${queryKey.join(":")}`;
+              localStorage.setItem(
+                key,
+                JSON.stringify({ data: metadata, timestamp: Date.now() })
+              );
+            } catch {
+              // Ignore localStorage errors
+            }
           }
         } catch (err) {
           // Metadata fetch failed, continue with provided values

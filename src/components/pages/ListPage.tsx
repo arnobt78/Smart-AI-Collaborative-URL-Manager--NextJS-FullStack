@@ -3,7 +3,6 @@
 import { useEffect, useState, useRef } from "react";
 import { flushSync } from "react-dom";
 import { useParams } from "next/navigation";
-import Image from "next/image";
 import { useStore } from "@nanostores/react";
 import { currentList, getList } from "@/stores/urlListStore";
 import { UrlList } from "@/components/lists/UrlList";
@@ -205,28 +204,6 @@ export default function ListPageClient() {
                 ))}
               </div>
             </div>
-
-            {/* Social Preview Card Skeleton */}
-            <div className="my-8 max-w-xl mx-auto border border-white/20 rounded-2xl shadow-lg bg-white/5 backdrop-blur-sm p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <Skeleton className="h-10 w-10 rounded-lg" />
-                <div className="space-y-2">
-                  <Skeleton className="h-6 w-48" />
-                  <Skeleton className="h-3 w-32" />
-                </div>
-              </div>
-              <Skeleton className="h-4 w-full mb-2" />
-              <Skeleton className="h-4 w-full mb-2" />
-              <Skeleton className="h-4 w-3/4 mb-4" />
-              <div className="space-y-2">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="flex items-center gap-2">
-                    <Skeleton className="h-2 w-2 rounded-full" />
-                    <Skeleton className="h-4 w-full" />
-                  </div>
-                ))}
-              </div>
-            </div>
           </div>
         </div>
       </main>
@@ -235,8 +212,8 @@ export default function ListPageClient() {
 
   if (!list) {
     return (
-      <main className="container mx-auto px-2 sm:px-0">
-        <div className="mx-auto max-w-2xl text-center">
+      <main className="">
+        <div className="mx-auto max-w-7xl text-center">
           <h1 className="text-3xl font-bold">List not found</h1>
           <p className="mt-2 text-gray-600">
             The list you&apos;re looking for doesn&apos;t exist or has been
@@ -453,11 +430,14 @@ export default function ListPageClient() {
                       if (!list.id) return;
                       setIsRefreshingMetadata(true);
                       try {
-                        const response = await fetch("/api/jobs/refresh-metadata", {
-                          method: "POST",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({ listId: list.id }),
-                        });
+                        const response = await fetch(
+                          "/api/jobs/refresh-metadata",
+                          {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ listId: list.id }),
+                          }
+                        );
 
                         const data = await response.json();
 
@@ -512,7 +492,9 @@ export default function ListPageClient() {
                       }`}
                     />
                     <span>
-                      {isRefreshingMetadata ? "Refreshing..." : "Refresh Metadata"}
+                      {isRefreshingMetadata
+                        ? "Refreshing..."
+                        : "Refresh Metadata"}
                     </span>
                   </button>
                 )}
@@ -745,50 +727,6 @@ export default function ListPageClient() {
             )}
           </div>
           <UrlList />
-          {/* Social Preview Card */}
-          <div className="my-8 max-w-xl mx-auto border border-white/20 rounded-2xl shadow-lg bg-white/5 backdrop-blur-sm p-6">
-            <div className="flex items-center gap-3 mb-4">
-              <Image
-                src="/favicon.ico"
-                alt="The Urlist Logo"
-                width={40}
-                height={40}
-                className="h-10 w-10 rounded-lg"
-              />
-              <div>
-                <h2 className="text-xl font-bold text-white">
-                  {list.title || `List: ${list.slug}`}
-                </h2>
-                <span className="text-xs text-white/60">
-                  Shared via The Urlist
-                </span>
-              </div>
-            </div>
-            <p className="text-white/70 mb-4 line-clamp-3">
-              {list.description || "A collection of useful links."}
-            </p>
-            <ul className="space-y-2">
-              {list.urls?.slice(0, 3).map((url, idx) => {
-                // Defensive: ensure key is always unique and non-empty
-                const key =
-                  url.id && typeof url.id === "string" && url.id.length > 0
-                    ? url.id
-                    : url.url || `url-${idx}`;
-                return (
-                  <li
-                    key={key}
-                    className="flex items-center gap-2 text-sm text-blue-400 truncate"
-                  >
-                    <span className="inline-block w-1.5 h-1.5 bg-blue-400 rounded-full"></span>
-                    <span className="truncate">{url.title || url.url}</span>
-                  </li>
-                );
-              })}
-              {list.urls && list.urls.length > 3 && (
-                <li className="text-xs text-white/40">...and more</li>
-              )}
-            </ul>
-          </div>
         </div>
       </div>
 

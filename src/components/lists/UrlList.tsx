@@ -27,17 +27,16 @@ import { useQueryClient } from "@tanstack/react-query";
 import { fetchUrlMetadata, type UrlMetadata } from "@/utils/urlMetadata";
 import { UrlCard } from "./UrlCard";
 import { UrlEditModal } from "./UrlEditModal";
-import {
-  PlusIcon,
-  LinkIcon,
-  ArchiveBoxIcon,
-} from "@heroicons/react/24/outline";
-import { UrlEnhancer } from "@/components/ai/UrlEnhancer";
+import { LinkIcon, ArchiveBoxIcon } from "@heroicons/react/24/outline";
+import { CirclePlus } from "lucide-react";
 import type { EnhancementResult } from "@/lib/ai";
 import { useDebounce } from "@/hooks/useDebounce";
 import type { SearchResult } from "@/lib/ai/search";
 import { useToast } from "@/components/ui/Toaster";
 import { useRealtimeList } from "@/hooks/useRealtimeList";
+import { UrlFilterBar } from "./UrlFilterBar";
+import { UrlBulkImportExport } from "./UrlBulkImportExport";
+import { UrlAddForm } from "./UrlAddForm";
 
 // Component wrapper that fetches metadata using React Query for each URL
 function UrlCardWrapper({
@@ -79,35 +78,50 @@ function UrlCardWrapper({
   isMetadataReady: boolean;
 }) {
   const queryClient = useQueryClient();
-  
+
   // Check if metadata is already in cache (from batch fetch)
   // IMPORTANT: Check cache on every render to catch hydration that happens after mount
   const queryKey = ["url-metadata", url.url] as const;
   const cachedMetadata = queryClient.getQueryData<UrlMetadata>(queryKey);
   const hasCache = !!cachedMetadata;
-  
+
   // Only enable individual fetch if:
   // 1. Batch metadata is ready (has run)
   // 2. AND metadata is NOT in cache (truly missing)
   // This prevents individual API calls when batch fetch has populated cache
   const shouldFetch = isMetadataReady && !hasCache;
-  
+
   // Log cache check for this URL (only log once to reduce noise)
   if (hasCache) {
-    console.log(`💾 [CARD ${url.url.slice(0, 30)}...] Using cached metadata from batch fetch`);
+    console.log(
+      `💾 [CARD ${url.url.slice(
+        0,
+        30
+      )}...] Using cached metadata from batch fetch`
+    );
   } else if (!isMetadataReady) {
-    console.log(`⏳ [CARD ${url.url.slice(0, 30)}...] Waiting for batch fetch to complete (shouldFetch=false)`);
+    console.log(
+      `⏳ [CARD ${url.url.slice(
+        0,
+        30
+      )}...] Waiting for batch fetch to complete (shouldFetch=false)`
+    );
   } else {
-    console.log(`🔄 [CARD ${url.url.slice(0, 30)}...] No cache found after batch, will fetch individually (shouldFetch: ${shouldFetch})`);
+    console.log(
+      `🔄 [CARD ${url.url.slice(
+        0,
+        30
+      )}...] No cache found after batch, will fetch individually (shouldFetch: ${shouldFetch})`
+    );
   }
-  
+
   // Use React Query hook to fetch and cache metadata
   // Disabled until batch fetch completes to prevent duplicate calls
   const { data: metadata, isLoading: isLoadingMetadata } = useUrlMetadata(
     url.url,
     shouldFetch // Only fetch if batch is ready AND data not in cache
   );
-  
+
   // Use cached data if available, otherwise use hook data
   const finalMetadata = cachedMetadata || metadata;
 
@@ -164,9 +178,29 @@ export function UrlList() {
       }
     };
 
+    // Listen for metadata cached events (when URL is added via unified endpoint)
+    const handleMetadataCached = (event: Event) => {
+      const customEvent = event as CustomEvent<{
+        url: string;
+        metadata: UrlMetadata;
+      }>;
+      const { url, metadata } = customEvent.detail;
+      if (url && metadata) {
+        // Populate React Query cache immediately so cards don't fetch
+        const queryKey = ["url-metadata", url] as const;
+        queryClient.setQueryData(queryKey, metadata);
+        console.log(`✅ [POST] Populated React Query cache for: ${url.slice(0, 40)}...`);
+      }
+    };
+
     window.addEventListener("metadata-refresh-complete", handleMetadataRefresh);
+    window.addEventListener("metadata-cached", handleMetadataCached);
     return () => {
-      window.removeEventListener("metadata-refresh-complete", handleMetadataRefresh);
+      window.removeEventListener(
+        "metadata-refresh-complete",
+        handleMetadataRefresh
+      );
+      window.removeEventListener("metadata-cached", handleMetadataCached);
     };
   }, [queryClient]);
   const [error, setError] = useState<string>();
@@ -192,6 +226,7 @@ export function UrlList() {
   >(null);
   const [searchCacheIndicator, setSearchCacheIndicator] = useState(false);
   const [lastSearchedQuery, setLastSearchedQuery] = useState<string>("");
+  const [isAddUrlFormExpanded, setIsAddUrlFormExpanded] = useState(false);
 
   // REMOVED optimisticUrls state - using store directly for immediate updates
 
@@ -203,44 +238,56 @@ export function UrlList() {
   // IMPORTANT: This must run BEFORE cards render to prevent individual API calls
   const prefetchedMetadataRef = useRef<string | null>(null);
   const batchFetchCompleteRef = useRef<string | null>(null); // Track completed batch fetches
-  
+
   // CRITICAL: Compute isMetadataReady SYNCHRONOUSLY during render (not from state)
   // This prevents race condition where hooks run before useLayoutEffect
-  const currentListHash = list?.id && list?.urls 
-    ? `${list.id}:${(list.urls as unknown as UrlItem[]).map((u) => u.url).join("|")}`
-    : "";
-  
+  const currentListHash =
+    list?.id && list?.urls
+      ? `${list.id}:${(list.urls as unknown as UrlItem[])
+          .map((u) => u.url)
+          .join("|")}`
+      : "";
+
   // Compute isMetadataReady directly from refs and cache (synchronous, no state delay)
   const isMetadataReady = useMemo(() => {
     if (!list?.id || !list?.urls || list.urls.length === 0) {
       return true; // No list = ready (nothing to fetch)
     }
-    
+
     // Check if this exact list+URLs combo has been prefetched AND completed
     const urls = list.urls as unknown as UrlItem[];
     const urlsHash = urls.map((u) => u.url).join("|");
     const listId = list.id;
     const prefetchKey = `${listId}:${urlsHash}`;
-    
+
     // If batch hasn't completed for this list, we're not ready
     if (batchFetchCompleteRef.current !== prefetchKey) {
       return false;
     }
-    
+
     // If batch completed, check if all URLs are cached
     const uniqueUrls = Array.from(new Set(urls.map((u) => u.url)));
     const allCached = uniqueUrls.every((url) => {
       const queryKey = ["url-metadata", url] as const;
       return !!queryClient.getQueryData<UrlMetadata>(queryKey);
     });
-    
+
     return allCached;
   }, [list?.id, list?.urls, queryClient, currentListHash]);
-  
+
   useEffect(() => {
     const current = currentList.get();
     if (!current?.id || !current?.urls || current.urls.length === 0) {
       batchFetchCompleteRef.current = null;
+      return;
+    }
+
+    // Skip batch fetch if a local operation is in progress (delete, add, etc.)
+    // This prevents unnecessary metadata fetches during optimistic updates
+    if (isLocalOperationRef.current) {
+      console.log(
+        `⏭️ [BATCH] Skipping batch fetch - local operation in progress`
+      );
       return;
     }
 
@@ -249,7 +296,7 @@ export function UrlList() {
     const urlsHash = urls.map((u) => u.url).join("|");
     const urlCount = new Set(urls.map((u) => u.url)).size;
     const prefetchKey = `${listId}:${urlsHash}`;
-    
+
     // Skip if already prefetched AND completed
     if (batchFetchCompleteRef.current === prefetchKey) {
       const uniqueUrls = Array.from(new Set(urls.map((u) => u.url)));
@@ -258,94 +305,130 @@ export function UrlList() {
         return !!queryClient.getQueryData<UrlMetadata>(queryKey);
       });
       if (allCached) {
-        console.log(`⏭️ [BATCH] Already prefetched and cached for this list state (${urlCount} unique URLs)`);
+        console.log(
+          `⏭️ [BATCH] Already prefetched and cached for this list state (${urlCount} unique URLs)`
+        );
         return; // Already done
       }
       // Cache incomplete, need to re-fetch
       batchFetchCompleteRef.current = null;
     }
-    
+
     // Skip if currently prefetching (wait for it to complete)
     if (prefetchedMetadataRef.current === prefetchKey) {
-      console.log(`⏳ [BATCH] Batch fetch already in progress for this list...`);
+      console.log(
+        `⏳ [BATCH] Batch fetch already in progress for this list...`
+      );
       return;
     }
-    
+
     const fetchAllMetadata = async () => {
       // Mark as prefetching
       prefetchedMetadataRef.current = prefetchKey;
-      console.log(`🚀 [BATCH] Starting batch metadata fetch for ${urlCount} unique URLs (list: ${listId})`);
+      console.log(
+        `🚀 [BATCH] Starting batch metadata fetch for ${urlCount} unique URLs (list: ${listId})`
+      );
 
       try {
         const startTime = performance.now();
         // Fetch all metadata from unified endpoint (cached in Redis)
         // This is the SINGLE API call that replaces 9 individual calls
-        console.log(`🔄 [BATCH] Calling unified endpoint: /api/lists/${listId}/metadata`);
+        console.log(
+          `🔄 [BATCH] Calling unified endpoint: /api/lists/${listId}/metadata`
+        );
         const response = await fetch(`/api/lists/${listId}/metadata`);
         const fetchTime = performance.now() - startTime;
-        
+
         if (response.ok) {
           const { metadata, cached } = await response.json();
-          
+
           if (cached) {
-            console.log(`⚡ [BATCH CACHE HIT] All metadata loaded instantly from Redis cache (${fetchTime.toFixed(2)}ms)`);
+            console.log(
+              `⚡ [BATCH CACHE HIT] All metadata loaded instantly from Redis cache (${fetchTime.toFixed(
+                2
+              )}ms)`
+            );
           } else {
-            console.log(`🔄 [BATCH CACHE MISS] Fetched all metadata from web (${fetchTime.toFixed(2)}ms), now cached for future requests`);
+            console.log(
+              `🔄 [BATCH CACHE MISS] Fetched all metadata from web (${fetchTime.toFixed(
+                2
+              )}ms), now cached for future requests`
+            );
           }
-          
+
           const metadataCount = Object.keys(metadata).length;
-          console.log(`📦 [BATCH] Received ${metadataCount} metadata entries, hydrating React Query cache...`);
-          
+          console.log(
+            `📦 [BATCH] Received ${metadataCount} metadata entries, hydrating React Query cache...`
+          );
+
           // Hydrate React Query cache and localStorage with all metadata instantly
           // CRITICAL: This happens synchronously, so cards will see cache immediately
           let hydratedCount = 0;
           Object.entries(metadata).forEach(([url, metaData]) => {
             const queryKey = ["url-metadata", url] as const;
             const meta = metaData as UrlMetadata;
-            
+
             // Check if already in cache
-            const existingCache = queryClient.getQueryData<UrlMetadata>(queryKey);
+            const existingCache =
+              queryClient.getQueryData<UrlMetadata>(queryKey);
             if (!existingCache) {
               // Set in React Query cache (instant, synchronous)
               queryClient.setQueryData(queryKey, meta);
               hydratedCount++;
-              console.log(`  💧 [BATCH] Hydrated cache for: ${url.slice(0, 40)}...`);
+              console.log(
+                `  💧 [BATCH] Hydrated cache for: ${url.slice(0, 40)}...`
+              );
             }
-            
+
             // Also save to localStorage for persistence
             try {
               const key = `react-query:${queryKey.join(":")}`;
-              localStorage.setItem(key, JSON.stringify({ 
-                data: meta, 
-                timestamp: Date.now() 
-              }));
+              localStorage.setItem(
+                key,
+                JSON.stringify({
+                  data: meta,
+                  timestamp: Date.now(),
+                })
+              );
             } catch {
               // Ignore localStorage errors
             }
           });
-          
-          console.log(`✅ [BATCH] Hydrated ${hydratedCount} new entries into React Query cache (${metadataCount - hydratedCount} already cached)`);
-          
+
+          console.log(
+            `✅ [BATCH] Hydrated ${hydratedCount} new entries into React Query cache (${
+              metadataCount - hydratedCount
+            } already cached)`
+          );
+
           // CRITICAL: Mark batch as complete AFTER cache hydration
           // This makes isMetadataReady=true on next render (computed synchronously)
           batchFetchCompleteRef.current = prefetchKey;
-          
+
           // Force a React Query cache update notification to trigger re-renders
           // This ensures cards see the newly hydrated cache immediately
-          queryClient.invalidateQueries({ queryKey: ["url-metadata"], exact: false, refetchType: "none" });
-          
-          console.log(`🎯 [BATCH] Batch fetch complete, isMetadataReady=true (will be computed on next render)`);
+          queryClient.invalidateQueries({
+            queryKey: ["url-metadata"],
+            exact: false,
+            refetchType: "none",
+          });
+
+          console.log(
+            `🎯 [BATCH] Batch fetch complete, isMetadataReady=true (will be computed on next render)`
+          );
         } else {
-          console.error(`❌ [BATCH] API error: ${response.status} ${response.statusText}`);
+          console.error(
+            `❌ [BATCH] API error: ${response.status} ${response.statusText}`
+          );
           prefetchedMetadataRef.current = null; // Reset on error
         }
       } catch (error) {
         console.error(`❌ [BATCH] Failed to fetch batch metadata:`, error);
         prefetchedMetadataRef.current = null; // Reset on error
-        
+
         // Fallback to individual prefetching if batch endpoint fails
         const uniqueUrls = Array.from(new Set(urls.map((u) => u.url)));
-        
+
         // Load from localStorage first (instant)
         uniqueUrls.forEach((url) => {
           const queryKey = ["url-metadata", url] as const;
@@ -376,17 +459,19 @@ export function UrlList() {
           const batch = urlsToFetch.slice(i, i + concurrency);
           await Promise.allSettled(
             batch.map((url) =>
-              queryClient.prefetchQuery({
-                queryKey: ["url-metadata", url] as const,
-                queryFn: () => fetchUrlMetadata(url),
-                staleTime: 1000 * 60 * 60 * 24,
-              }).catch(() => {
-                // Silently fail
-              })
+              queryClient
+                .prefetchQuery({
+                  queryKey: ["url-metadata", url] as const,
+                  queryFn: () => fetchUrlMetadata(url),
+                  staleTime: 1000 * 60 * 60 * 24,
+                })
+                .catch(() => {
+                  // Silently fail
+                })
             )
           );
         }
-        
+
         // Mark as complete after fallback fetch
         batchFetchCompleteRef.current = prefetchKey;
       }
@@ -394,6 +479,7 @@ export function UrlList() {
 
     // Fetch metadata IMMEDIATELY when list loads (no delay to prevent individual calls)
     fetchAllMetadata();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [list?.id, list?.urls, queryClient]);
 
   // Track if we're currently performing a local operation to prevent refresh loops
@@ -403,6 +489,7 @@ export function UrlList() {
   const lastRefreshRef = useRef<number>(0);
   const lastDragEndTimeRef = useRef<number>(0); // Track when drag ended
   const lastDragUpdateRef = useRef<string>(""); // Track last drag update to prevent excessive updates
+  const lastDeleteTimeRef = useRef<number>(0); // Track when delete happened to prevent real-time refresh
 
   // Listen for real-time update events (debounced to prevent loops)
   useEffect(() => {
@@ -421,6 +508,15 @@ export function UrlList() {
       if (now - lastDragEndTimeRef.current < 5000) {
         console.log(
           "⏭️ [REALTIME] Skipping refresh - drag operation just completed (protecting optimistic state)"
+        );
+        return;
+      }
+
+      // Prevent refreshing if we just deleted a URL (protect optimistic state)
+      // Real-time events from our own delete operation should be ignored
+      if (now - lastDeleteTimeRef.current < 5000) {
+        console.log(
+          "⏭️ [REALTIME] Skipping refresh - delete operation just completed (protecting optimistic state)"
         );
         return;
       }
@@ -463,6 +559,7 @@ export function UrlList() {
               !isLocalOperationRef.current &&
               !isDraggingRef.current &&
               now - lastDragEndTimeRef.current >= 5000 &&
+              now - lastDeleteTimeRef.current >= 5000 &&
               current.slug
             ) {
               console.log(
@@ -497,6 +594,7 @@ export function UrlList() {
             !isLocalOperationRef.current &&
             !isDraggingRef.current &&
             now - lastDragEndTimeRef.current >= 5000 &&
+            now - lastDeleteTimeRef.current >= 5000 &&
             current.slug
           ) {
             console.log("🔄 [REALTIME] Refreshing list from real-time update");
@@ -636,11 +734,16 @@ export function UrlList() {
 
     // Set flag to prevent real-time refresh during add operation
     isLocalOperationRef.current = true;
+    
+    // Notify activity feed to skip fetch after local operation
+    window.dispatchEvent(new CustomEvent("local-operation"));
 
     try {
       const url = new URL(newUrl);
-      // Fetch metadata - React Query will cache it automatically
-      const metadata = await fetchUrlMetadata(url.toString());
+      
+      // Check if we already have metadata in React Query cache (from AI enhancement)
+      const queryKey = ["url-metadata", url.toString()] as const;
+      const existingMetadata = queryClient.getQueryData<UrlMetadata>(queryKey);
 
       // Use enhanced tags if available, otherwise use manually entered tags
       const tagsToUse = newTags
@@ -648,30 +751,26 @@ export function UrlList() {
         .map((t) => t.trim())
         .filter((t) => t.length > 0);
 
+      // Pass existing metadata if available (from AI enhancement)
+      // The unified POST endpoint will use it if provided, otherwise fetch it
+      // This prevents duplicate metadata fetches
       await addUrlToList(
         url.toString(),
-        metadata.title,
+        existingMetadata?.title, // Use cached metadata title if available
         tagsToUse.length > 0 ? tagsToUse : undefined,
         newNote || enhancementResult?.summary || "",
         undefined, // reminder
-        enhancementResult?.category // AI-generated category
+        enhancementResult?.category, // AI-generated category
+        existingMetadata // Pass cached metadata to avoid re-fetching
       );
-      // Pre-populate the query cache so it's available immediately
-      queryClient.setQueryData(["url-metadata", url.toString()], metadata);
-      
-      // Also save to localStorage for persistence
-      const queryKey = ["url-metadata", url.toString()] as const;
-      try {
-        const key = `react-query:${queryKey.join(":")}`;
-        localStorage.setItem(key, JSON.stringify({ data: metadata, timestamp: Date.now() }));
-      } catch {
-        // Ignore localStorage errors
-      }
-      
+      // Note: Metadata is now fetched and cached by the unified POST endpoint
+      // The event listener in UrlList will populate React Query cache when metadata-cached event fires
+
       setNewUrl("");
       setNewNote("");
       setNewTags("");
       setEnhancementResult(null);
+      setIsAddUrlFormExpanded(false); // Collapse form after successful add
     } catch {
       setError("Please enter a valid URL");
     } finally {
@@ -1356,37 +1455,81 @@ export function UrlList() {
 
   return (
     <div className="space-y-8">
-      {/* Tabs for Active/Archived */}
-      <div className="flex items-center gap-3 border-b border-white/10 pb-2">
-        <Button
-          type="button"
-          onClick={() => setShowArchived(false)}
-          className={
-            !showArchived
-              ? "bg-blue-600 text-white"
-              : "bg-white/10 text-white/70 hover:bg-white/20"
-          }
-        >
-          Active URLs ({list.urls?.length || 0})
-        </Button>
-        <Button
-          type="button"
-          onClick={() => setShowArchived(true)}
-          className={
-            showArchived
-              ? "bg-blue-600 text-white"
-              : "bg-white/10 text-white/70 hover:bg-white/20"
-          }
-        >
-          <ArchiveBoxIcon className="h-4 w-4 mr-2" />
-          Archived ({archivedUrls.length})
-        </Button>
+      {/* Tabs for Active/Archived and Add URL Button */}
+      <div className="flex items-center justify-between gap-3 border-b border-white/10 pb-2">
+        <div className="flex items-center gap-3">
+          <Button
+            type="button"
+            onClick={() => setShowArchived(false)}
+            className={
+              !showArchived
+                ? "bg-blue-600 text-white"
+                : "bg-white/10 text-white/70 hover:bg-white/20"
+            }
+          >
+            Active URLs ({list.urls?.length || 0})
+          </Button>
+          <Button
+            type="button"
+            onClick={() => setShowArchived(true)}
+            className={
+              showArchived
+                ? "bg-blue-600 text-white"
+                : "bg-white/10 text-white/70 hover:bg-white/20"
+            }
+          >
+            <ArchiveBoxIcon className="h-4 w-4 mr-2" />
+            Archived ({archivedUrls.length})
+          </Button>
+        </div>
+
+        {/* Add URL Button - only show for active URLs */}
+        {!showArchived && (
+          <Button
+            type="button"
+            onClick={() => {
+              setIsAddUrlFormExpanded(!isAddUrlFormExpanded);
+              if (isAddUrlFormExpanded) {
+                // Collapse: clear form and reset states
+                setNewUrl("");
+                setNewNote("");
+                setNewTags("");
+                setEnhancementResult(null);
+                setError(undefined);
+              }
+            }}
+            className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2 transition-all duration-200"
+          >
+            <CirclePlus className="h-4 w-4" />
+            Add URL
+          </Button>
+        )}
       </div>
 
-      {/* Search and filter bar - only show for active URLs */}
+      {/* Add URL Form - Expandable - only show for active URLs */}
       {!showArchived && (
-        <div className="flex flex-col gap-2 mb-4 w-full sm:flex-row sm:items-center sm:gap-4">
-          <div className="relative w-full sm:flex-grow sm:max-w-2xl">
+        <UrlAddForm
+          newUrl={newUrl}
+          setNewUrl={setNewUrl}
+          newTags={newTags}
+          setNewTags={setNewTags}
+          newNote={newNote}
+          setNewNote={setNewNote}
+          error={error}
+          isLoading={isLoading}
+          onAdd={handleAddUrl}
+          onClear={() => {
+            setEnhancementResult(null);
+          }}
+          isExpanded={isAddUrlFormExpanded}
+        />
+      )}
+
+      {/* Search, Filter, and Import/Export bar - Same Row, Responsive */}
+      {!showArchived && (
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-3 mb-4 w-full">
+          {/* Search Input */}
+          <div className="relative flex-1 min-w-0">
             <Input
               type="text"
               value={search}
@@ -1415,211 +1558,22 @@ export function UrlList() {
               </div>
             )}
           </div>
-          <div className="flex flex-row flex-wrap gap-2 sm:flex-nowrap sm:gap-2">
-            <Button
-              type="button"
-              className={
-                (sortOption === "latest"
-                  ? "bg-blue-600 text-white"
-                  : "bg-white/10 backdrop-blur-sm border border-white/20 text-white") +
-                " px-6 py-3 text-base min-w-[120px] text-center whitespace-nowrap"
-              }
-              onClick={() => setSortOption("latest")}
-            >
-              Recently Added
-            </Button>
-            <Button
-              type="button"
-              className={
-                sortOption === "oldest"
-                  ? "bg-blue-600 text-white"
-                  : "bg-white/10 backdrop-blur-sm border border-white/20 text-white" +
-                    " px-6 py-3 text-base min-w-[80px] text-center whitespace-nowrap"
-              }
-              onClick={() => setSortOption("oldest")}
-            >
-              Oldest
-            </Button>
-            <Button
-              type="button"
-              className={
-                (sortOption === "az"
-                  ? "bg-blue-600 text-white"
-                  : "bg-white/10 backdrop-blur-sm border border-white/20 text-white") +
-                " px-6 py-3 text-base min-w-[80px] text-center whitespace-nowrap"
-              }
-              onClick={() => setSortOption("az")}
-            >
-              A-Z
-            </Button>
-            <Button
-              type="button"
-              className={
-                (sortOption === "za"
-                  ? "bg-blue-600 text-white"
-                  : "bg-white/10 backdrop-blur-sm border border-white/20 text-white") +
-                " px-6 py-3 text-base min-w-[80px] text-center whitespace-nowrap"
-              }
-              onClick={() => setSortOption("za")}
-            >
-              Z-A
-            </Button>
-            <Button
-              type="button"
-              className={
-                sortOption === "favourite"
-                  ? "bg-yellow-400 text-white"
-                  : "bg-white/10 backdrop-blur-sm border border-white/20 text-white" +
-                    " px-6 py-3 text-base min-w-[80px] text-center whitespace-nowrap"
-              }
-              onClick={() => setSortOption("favourite")}
-            >
-              Favourites
-            </Button>
-            <Button
-              type="button"
-              className={
-                sortOption === "reminders"
-                  ? "bg-orange-500 text-white"
-                  : "bg-white/10 backdrop-blur-sm border border-white/20 text-white" +
-                    " px-6 py-3 text-base min-w-[100px] text-center whitespace-nowrap"
-              }
-              onClick={() => setSortOption("reminders")}
-            >
-              🔔 Reminders
-            </Button>
-          </div>
-        </div>
-      )}
 
-      {/* Add URL Form - only show for active URLs */}
-      {!showArchived && (
-        <form
-          onSubmit={handleAddUrl}
-          className="flex flex-col gap-4 bg-white/5 backdrop-blur-sm p-8 rounded-xl shadow-xl border border-white/20 mx-auto"
-        >
-          <div className="space-y-3">
-            <Input
-              type="url"
-              value={newUrl}
-              onChange={(e) => {
-                setNewUrl(e.target.value);
-                setEnhancementResult(null); // Reset enhancement when URL changes
-              }}
-              placeholder="Enter a URL to add to your list..."
-              error={error}
-              className="text-lg shadow-md font-delicious bg-transparent"
-            />
+          {/* Filter Dropdown */}
+          <UrlFilterBar sortOption={sortOption} setSortOption={setSortOption} />
 
-            {/* AI Enhancement - Compact mode for inline use */}
-            {newUrl && (
-              <div className="flex items-start gap-3">
-                <div className="flex-1">
-                  <UrlEnhancer
-                    url={newUrl}
-                    onEnhance={(result) => {
-                      setEnhancementResult(result);
-                      console.log("AI Enhancement Result:", result); // Debug log
-
-                      // Auto-fill tags if enhancement succeeded
-                      if (
-                        result.success &&
-                        result.tags &&
-                        result.tags.length > 0
-                      ) {
-                        const existingTags = newTags
-                          .split(",")
-                          .map((t) => t.trim())
-                          .filter((t) => t.length > 0);
-                        const allTags = [
-                          ...existingTags,
-                          ...result.tags,
-                        ].filter(
-                          (tag, index, self) => self.indexOf(tag) === index
-                        );
-                        setNewTags(allTags.join(", "));
-                        console.log("Auto-filled tags:", allTags); // Debug log
-                      }
-
-                      // Auto-fill notes with summary if enhancement succeeded
-                      // Always fill if empty, or append if not empty but different
-                      if (
-                        result.success &&
-                        result.summary &&
-                        result.summary.trim().length > 0
-                      ) {
-                        if (!newNote || newNote.trim().length === 0) {
-                          // Only auto-fill if empty to avoid overwriting user input
-                          setNewNote(result.summary);
-                          console.log(
-                            "Auto-filled notes with summary:",
-                            result.summary
-                          ); // Debug log
-                        } else {
-                          // If notes exist, append summary with a separator
-                          setNewNote((prev) =>
-                            prev.includes(result.summary)
-                              ? prev
-                              : `${prev}\n\nAI Summary: ${result.summary}`
-                          );
-                        }
-                      } else {
-                        console.log(
-                          "No summary generated by AI or summary is empty"
-                        ); // Debug log
-                      }
-                    }}
-                    compact={true}
-                  />
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Tags input - visible when URL is entered or enhancement provides tags */}
-          {(newUrl || newTags) && (
-            <Input
-              type="text"
-              value={newTags}
-              onChange={(e) => setNewTags(e.target.value)}
-              placeholder="Tags (comma separated) - AI will suggest some!"
-              className="text-lg shadow-md font-delicious bg-transparent"
-            />
-          )}
-
-          <Textarea
-            value={newNote}
-            onChange={(e) => setNewNote(e.target.value)}
-            placeholder="Note (optional) - AI will suggest a summary!"
-            className="text-lg shadow-md font-delicious rounded-xl min-h-[40px]"
-            rows={2}
+          {/* Import/Export Bar */}
+          <UrlBulkImportExport
+            urls={(list.urls as unknown as UrlItem[]) || []}
+            listTitle={list.title}
+            onBulkOperationStart={() => {
+              isLocalOperationRef.current = true;
+            }}
+            onBulkOperationEnd={() => {
+              isLocalOperationRef.current = false;
+            }}
           />
-
-          <div className="flex justify-end gap-3">
-            {newUrl && (
-              <Button
-                type="button"
-                onClick={() => {
-                  setNewUrl("");
-                  setNewNote("");
-                  setNewTags("");
-                  setEnhancementResult(null);
-                }}
-                className="bg-gray-600 hover:bg-gray-700 text-white text-sm font-semibold px-4 py-2 rounded-lg shadow-md hover:shadow-xl transition-all duration-200"
-              >
-                Clear
-              </Button>
-            )}
-            <Button
-              type="submit"
-              isLoading={isLoading}
-              className="bg-blue-600 hover:bg-blue-700 text-white text-lg font-semibold px-8 py-2.5 rounded-xl shadow-md hover:shadow-xl transition-all duration-200 whitespace-nowrap flex items-center justify-center gap-2 cursor-pointer font-delicious"
-            >
-              <PlusIcon className="h-5 w-5" />
-              Add URL
-            </Button>
-          </div>
-        </form>
+        </div>
       )}
 
       {/* Active URLs List */}
@@ -1686,7 +1640,42 @@ export function UrlList() {
                           setEditingNotes(urlObj.notes || "");
                           setEditingReminder(urlObj.reminder || "");
                         }}
-                        onDelete={removeUrlFromList}
+                        onDelete={(urlId) => {
+                          // Set flag to prevent real-time refresh and metadata batch fetch during delete
+                          isLocalOperationRef.current = true;
+                          lastDeleteTimeRef.current = Date.now(); // Track delete time to prevent real-time refresh
+
+                          // Clean up React Query cache for deleted URL before delete
+                          const current = currentList.get();
+                          if (current?.urls) {
+                            const currentUrls =
+                              current.urls as unknown as UrlItem[];
+                            const deletedUrl = currentUrls.find(
+                              (url) => url.id === urlId
+                            );
+                            if (deletedUrl) {
+                              queryClient.removeQueries({
+                                queryKey: ["url-metadata", deletedUrl.url],
+                              });
+                            }
+                          }
+
+                          // Perform delete (it does optimistic update internally)
+                          removeUrlFromList(urlId)
+                            .catch((err) => {
+                              console.error("Failed to delete URL:", err);
+                              // Revert on error - fetch fresh data
+                              if (current?.slug) {
+                                getList(current.slug);
+                              }
+                            })
+                            .finally(() => {
+                              // Clear flag after operation completes
+                              setTimeout(() => {
+                                isLocalOperationRef.current = false;
+                              }, 2000);
+                            });
+                        }}
                         onToggleFavorite={handleToggleFavorite}
                         onShare={handleShare}
                         onUrlClick={handleUrlClick}

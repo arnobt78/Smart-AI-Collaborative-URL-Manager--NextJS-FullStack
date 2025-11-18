@@ -356,7 +356,7 @@ export default function ApiDocsPage() {
   return (
     <main className="min-h-screen">
       <div className="container mx-auto px-2 sm:px-0">
-        <div className="max-w-5xl mx-auto">
+        <div className="max-w-7xl mx-auto">
           {/* Header */}
           <div className="mb-8">
             <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2 flex items-center gap-3">

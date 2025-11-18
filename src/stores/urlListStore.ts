@@ -29,6 +29,7 @@ export interface UrlList {
   urls: UrlItem[];
   archivedUrls?: UrlItem[]; // Array of archived URLs
   createdAt: string;
+  updatedAt?: string;
   isPublic?: boolean;
   collaborators?: string[]; // user emails or ids
 }
@@ -49,7 +50,6 @@ export function setDragInProgress(value: boolean) {
 export async function getList(slug: string, skipIfDragInProgress = false) {
   // Skip if drag is in progress and we're asked to respect it
   if (skipIfDragInProgress && isDragInProgress) {
-    console.log("⏭️ [GETLIST] Skipping getList - drag in progress");
     const current = currentList.get();
     return current as UrlList | null;
   }
@@ -86,13 +86,6 @@ export async function getList(slug: string, skipIfDragInProgress = false) {
       descriptionChanged ||
       isPublicChanged ||
       collaboratorsChanged;
-
-    // Debug logging for metadata changes
-    if (isPublicChanged) {
-      console.log(
-        `🔍 [GETLIST] isPublic changed: ${current?.isPublic} → ${list?.isPublic}`
-      );
-    }
 
     // Check for changes in URLs (length, order, or content)
     const urlsLengthChanged = currentUrls.length !== newUrls.length;
@@ -157,9 +150,6 @@ export async function getList(slug: string, skipIfDragInProgress = false) {
         currentUrls.length > 0
       ) {
         // This is ONLY a reorder - preserve the current (optimistic) order
-        console.log(
-          "⏭️ [GETLIST] Reorder detected, preserving user's current order (not overwriting drag)"
-        );
         const mergedList = {
           ...list,
           urls: currentUrls, // Keep optimistic order - user's action takes precedence
@@ -169,18 +159,8 @@ export async function getList(slug: string, skipIfDragInProgress = false) {
       } else {
         // Normal update - URLs were added/removed/changed OR metadata changed
         // Always update from server for content/metadata changes (especially for cross-window updates)
-        console.log(
-          "✅ [GETLIST] Update detected (content/metadata changed), updating from server"
-        );
-        console.log(`   - Metadata changed: ${metadataChanged}`);
-        console.log(`   - URLs length changed: ${urlsLengthChanged}`);
-        console.log(`   - URLs order changed: ${urlsOrderChanged}`);
-        console.log(`   - URLs content changed: ${urlsContentChanged}`);
         currentList.set(list);
       }
-    } else {
-      // No change detected - don't update
-      console.log("⏭️ [GETLIST] No changes detected, skipping update");
     }
     return (currentList.get() as UrlList) || list;
   } catch (err) {
@@ -197,7 +177,8 @@ export async function addUrlToList(
   tags: string[] = [],
   notes: string = "",
   reminder?: string,
-  category?: string
+  category?: string,
+  existingMetadata?: unknown // Optional metadata from cache (to avoid re-fetching)
 ) {
   const current = currentList.get();
   if (!current.id || !current.urls) return;
@@ -226,44 +207,103 @@ export async function addUrlToList(
     // Optimistic update - add immediately
     currentList.set({ ...current, urls: updatedUrls });
 
-    // Then sync with server
-    const response = await fetch(`/api/lists/${current.id}/reorder`, {
+    // Use unified POST endpoint that handles add, metadata fetching, activity, and real-time updates
+    const response = await fetch(`/api/lists/${current.id}/urls`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ urls: updatedUrls, action: "url_added" }),
+      body: JSON.stringify({
+        url,
+        title,
+        tags,
+        notes,
+        reminder,
+        category,
+        metadata: existingMetadata, // Pass existing metadata if available (from AI enhancement or cache)
+      }),
     });
 
     if (!response.ok) throw new Error("Failed to add URL");
 
-    const { list } = await response.json();
+    const {
+      list,
+      url: serverUrl,
+      metadata: urlMetadata,
+      activity: activityData,
+    } = await response.json();
 
-    // Trigger activity feed update AFTER API call completes (activity is now in DB)
-    if (typeof window !== "undefined") {
-      window.dispatchEvent(
-        new CustomEvent("activity-updated", {
-          detail: { listId: current.id },
-        })
-      );
-      
-      // Invalidate metadata cache when URL is added
-      fetch(`/api/lists/${current.id}/metadata`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ refresh: false }),
-      }).catch(() => {
-        // Silently fail - cache invalidation is non-critical
-      });
-    }
-
-    // Merge server response (server might have added metadata)
+    // Merge server response with optimistic state
+    // Server response is the source of truth, but preserve optimistic order
     const serverUrls = (list.urls as unknown as UrlItem[]) || [];
     const serverUrlMap = new Map(serverUrls.map((u) => [u.id, u]));
 
-    // Update optimistic URLs with server data
+    // Update optimistic URLs with server data (serverUrl has the final data)
     const finalUrls = updatedUrls.map((url) => {
-      const serverUrl = serverUrlMap.get(url.id);
-      return serverUrl ? { ...url, ...serverUrl } : url;
+      if (url.id === newUrl.id && serverUrl) {
+        // Use server URL data (it has metadata, etc.)
+        return serverUrl as UrlItem;
+      }
+      const serverUrlData = serverUrlMap.get(url.id);
+      return serverUrlData ? { ...url, ...serverUrlData } : url;
     });
+
+    // Pre-populate metadata in localStorage and dispatch event for components to populate React Query cache
+    if (typeof window !== "undefined" && urlMetadata && url) {
+      try {
+        // Save to localStorage immediately (synchronously)
+        const queryKey = ["url-metadata", url] as const;
+        const key = `react-query:${queryKey.join(":")}`;
+        localStorage.setItem(
+          key,
+          JSON.stringify({ data: urlMetadata, timestamp: Date.now() })
+        );
+
+        // Dispatch event so components can populate React Query cache
+        window.dispatchEvent(
+          new CustomEvent("metadata-cached", {
+            detail: { url, metadata: urlMetadata },
+          })
+        );
+      } catch {
+        // Ignore localStorage errors
+      }
+    }
+
+    // Dispatch activity data for optimistic feed update
+    // This provides instant feedback without waiting for real-time events
+    if (typeof window !== "undefined" && activityData) {
+      try {
+        // Get current user email for activity
+        const sessionResponse = await fetch("/api/auth/session");
+        if (sessionResponse.ok) {
+          const { user } = await sessionResponse.json();
+          if (user?.email) {
+            // Dispatch activity with user email for optimistic update
+            window.dispatchEvent(
+              new CustomEvent("activity-added", {
+                detail: {
+                  listId: current.id,
+                  activity: {
+                    id: activityData.id,
+                    action: activityData.action,
+                    details: activityData.details,
+                    createdAt: activityData.createdAt,
+                    user: {
+                      id: user.id,
+                      email: user.email,
+                    },
+                  },
+                },
+              })
+            );
+          }
+        }
+      } catch {
+        // Ignore errors - real-time event will handle it
+      }
+    }
+
+    // Note: Activity feed will also update via real-time SSE event
+    // But optimistic update provides instant feedback
 
     currentList.set({ ...list, urls: finalUrls });
     return { ...list, urls: finalUrls };
@@ -310,59 +350,114 @@ export async function updateUrlInList(
     // Update store immediately (optimistic)
     currentList.set({ ...current, urls: updatedUrls });
 
-    // Then sync with server
-    const response = await fetch(`/api/lists/${current.id}/reorder`, {
-      method: "POST",
+    // Use unified PATCH endpoint that handles update, activity, and real-time updates
+    const response = await fetch(`/api/lists/${current.id}/urls`, {
+      method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ urls: updatedUrls, action: "url_updated" }),
+      body: JSON.stringify({
+        urlId,
+        updates,
+      }),
     });
 
     if (!response.ok) throw new Error("Failed to update URL");
 
-    const { list } = await response.json();
-
-    // Trigger activity feed update AFTER API call completes (activity is now in DB)
-    if (typeof window !== "undefined") {
-      window.dispatchEvent(
-        new CustomEvent("activity-updated", {
-          detail: { listId: current.id },
-        })
-      );
-      
-      // Invalidate metadata cache when URL is updated
-      fetch(`/api/lists/${current.id}/metadata`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ refresh: false }),
-      }).catch(() => {
-        // Silently fail - cache invalidation is non-critical
-      });
-    }
+    const {
+      list,
+      url: serverUrl,
+      metadata: urlMetadata,
+      activity: activityData,
+    } = await response.json();
 
     // Merge server response with optimistic state
-    // Server response is the source of truth, but preserve optimistic order if it's just a reorder
+    // Server response is the source of truth, but preserve optimistic order
     const serverUrls = (list.urls as unknown as UrlItem[]) || [];
     const serverUrlMap = new Map(serverUrls.map((u) => [u.id, u]));
 
-    // For updates (not reorders), use server data as source of truth for content
+    // For updates, use server data as source of truth for content
     // But preserve optimistic order (order of updatedUrls)
     const finalUrls = updatedUrls.map((url) => {
-      const serverUrl = serverUrlMap.get(url.id);
-      if (serverUrl) {
+      if (url.id === urlId && serverUrl) {
+        // Use server URL data (it has the latest content)
+        return serverUrl as UrlItem;
+      }
+      const serverUrlData = serverUrlMap.get(url.id);
+      if (serverUrlData) {
         // Server has the URL - use server data as source of truth for content
         // But preserve the optimistic order by mapping in the order of updatedUrls
-        return serverUrl; // Use server data directly (it has the latest content)
+        return serverUrlData;
       }
       return url; // Fallback (shouldn't happen)
     });
 
     // Also check for any URLs in server that aren't in optimistic (shouldn't happen, but safety check)
     const optimisticUrlIds = new Set(updatedUrls.map((u) => u.id));
-    for (const serverUrl of serverUrls) {
-      if (!optimisticUrlIds.has(serverUrl.id)) {
-        finalUrls.push(serverUrl);
+    for (const serverUrlData of serverUrls) {
+      if (!optimisticUrlIds.has(serverUrlData.id)) {
+        finalUrls.push(serverUrlData);
       }
     }
+
+    // Cache metadata if URL changed and metadata was provided
+    if (typeof window !== "undefined" && urlMetadata && serverUrl?.url) {
+      try {
+        // Populate React Query cache immediately so cards don't fetch
+        const queryKey = ["url-metadata", serverUrl.url] as const;
+        const queryClient = await import("@tanstack/react-query").then(
+          (m) => m.useQueryClient
+        );
+        // We need to use the queryClient from the component context
+        // So we dispatch an event instead (similar to addUrlToList)
+        window.dispatchEvent(
+          new CustomEvent("metadata-cached", {
+            detail: { url: serverUrl.url, metadata: urlMetadata },
+          })
+        );
+
+        // Also save to localStorage
+        const key = `react-query:${queryKey.join(":")}`;
+        localStorage.setItem(
+          key,
+          JSON.stringify({ data: urlMetadata, timestamp: Date.now() })
+        );
+      } catch {
+        // Ignore localStorage errors
+      }
+    }
+
+    // Dispatch activity data for optimistic feed update
+    if (typeof window !== "undefined" && activityData) {
+      try {
+        const sessionResponse = await fetch("/api/auth/session");
+        if (sessionResponse.ok) {
+          const { user } = await sessionResponse.json();
+          if (user?.email) {
+            window.dispatchEvent(
+              new CustomEvent("activity-added", {
+                detail: {
+                  listId: current.id,
+                  activity: {
+                    id: activityData.id,
+                    action: activityData.action,
+                    details: activityData.details,
+                    createdAt: activityData.createdAt,
+                    user: {
+                      id: user.id,
+                      email: user.email,
+                    },
+                  },
+                },
+              })
+            );
+          }
+        }
+      } catch {
+        // Ignore errors - real-time event will handle it
+      }
+    }
+
+    // Note: Activity feed will also update via real-time SSE event
+    // But optimistic update provides instant feedback
 
     currentList.set({ ...list, urls: finalUrls });
     return { ...list, urls: finalUrls };
@@ -389,38 +484,95 @@ export async function removeUrlFromList(urlId: string) {
     const currentUrls = current.urls as unknown as UrlItem[];
     const updatedUrls = currentUrls.filter((url) => url.id !== urlId);
 
-    // Optimistic update - remove immediately
+    // Optimistic update - remove immediately (no need to re-fetch metadata on delete)
+    // We keep the existing URLs with their metadata, just remove the deleted one
+    const deletedUrl = currentUrls.find((url) => url.id === urlId);
+
+    // Update store immediately (optimistic)
     currentList.set({ ...current, urls: updatedUrls });
 
-    // Then sync with server
-    const response = await fetch(`/api/lists/${current.id}/reorder`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ urls: updatedUrls, action: "url_deleted" }),
+    // Use unified DELETE endpoint that handles delete, order update, activity, and real-time updates
+    // Support both /urls/[urlId] and /urls?urlId= for backward compatibility
+    const response = await fetch(
+      `/api/lists/${current.id}/urls?urlId=${encodeURIComponent(urlId)}`,
+      {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+      }
+    ).catch(() => {
+      // Fallback to existing [urlId] endpoint if unified endpoint fails
+      return fetch(`/api/lists/${current.id}/urls/${urlId}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+      });
     });
 
     if (!response.ok) throw new Error("Failed to remove URL");
 
-    const { list } = await response.json();
-    currentList.set(list);
+    const { list, activity } = await response.json();
 
-    // Trigger activity feed update AFTER API call completes (activity is now in DB)
-    if (typeof window !== "undefined") {
-      window.dispatchEvent(
-        new CustomEvent("activity-updated", {
-          detail: { listId: current.id },
-        })
-      );
-      
-      // Invalidate metadata cache when URL is removed
-      fetch(`/api/lists/${current.id}/metadata`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ refresh: false }),
-      }).catch(() => {
-        // Silently fail - cache invalidation is non-critical
+    // Merge server response but preserve optimistic order (urls order is already correct)
+    // Preserve current list metadata to avoid triggering unnecessary getList calls
+    // Only update URLs from server response to prevent false change detection
+    const serverUrls = (list.urls as unknown as UrlItem[]) || [];
+    const currentListData = currentList.get();
+
+    if (serverUrls.length === updatedUrls.length) {
+      // Same count, just confirm with server data (merge any server-side updates)
+      const serverUrlMap = new Map(serverUrls.map((u) => [u.id, u]));
+      const mergedUrls = updatedUrls.map((url) => {
+        const serverUrl = serverUrlMap.get(url.id);
+        return serverUrl ? { ...url, ...serverUrl } : url; // Merge server data but keep order
+      });
+      // Preserve ALL current list metadata to avoid false change detection in getList
+      // Only update URLs and timestamp to prevent triggering unnecessary getList calls
+      currentList.set({
+        ...currentListData, // Preserve existing metadata (id, title, description, isPublic, collaborators, etc.)
+        urls: mergedUrls, // Update URLs only
+        updatedAt: list.updatedAt, // Update timestamp from server
+      });
+    } else {
+      // Different count (unexpected), use server URLs but preserve all other metadata
+      currentList.set({
+        ...currentListData, // Preserve ALL existing metadata
+        urls: serverUrls, // Use server URLs (unexpected scenario)
+        updatedAt: list.updatedAt, // Update timestamp
       });
     }
+
+    // Dispatch activity data for optimistic feed update
+    if (typeof window !== "undefined" && activity) {
+      try {
+        const sessionResponse = await fetch("/api/auth/session");
+        if (sessionResponse.ok) {
+          const { user } = await sessionResponse.json();
+          if (user?.email) {
+            window.dispatchEvent(
+              new CustomEvent("activity-added", {
+                detail: {
+                  listId: current.id,
+                  activity: {
+                    id: activity.id,
+                    action: activity.action,
+                    details: activity.details,
+                    createdAt: activity.createdAt,
+                    user: {
+                      id: user.id,
+                      email: user.email,
+                    },
+                  },
+                },
+              })
+            );
+          }
+        }
+      } catch {
+        // Ignore errors - real-time event will handle it
+      }
+    }
+
+    // Note: Activity feed will also update via real-time SSE event
+    // But optimistic update provides instant feedback
   } catch (err) {
     // Revert on error
     error.set(err instanceof Error ? err.message : "Failed to update list");
@@ -438,14 +590,12 @@ export async function toggleUrlFavorite(id: string) {
 
   // Early return if list or urls don't exist
   if (!list?.id || !list?.urls) {
-    console.warn("No list or URLs found");
     return;
   }
 
   // Find the URL with type safety
   const urlIndex = list.urls.findIndex((url: UrlItem) => url.id === id);
   if (urlIndex === -1) {
-    console.warn("URL not found");
     return;
   }
 
@@ -455,7 +605,7 @@ export async function toggleUrlFavorite(id: string) {
   try {
     await updateUrlInList(id, { isFavorite: !url.isFavorite });
   } catch (err) {
-    console.error("Error toggling favorite:", err);
+    // Ignore errors
   }
 }
 
@@ -542,7 +692,7 @@ export async function archiveUrlFromList(urlId: string) {
           detail: { listId: current.id },
         })
       );
-      
+
       // Invalidate metadata cache when URL is archived
       fetch(`/api/lists/${current.id}/metadata`, {
         method: "POST",
@@ -604,7 +754,7 @@ export async function restoreArchivedUrl(urlId: string) {
 
     const { list } = await response.json();
     currentList.set(list);
-    
+
     // Invalidate metadata cache when URL is restored
     if (typeof window !== "undefined") {
       fetch(`/api/lists/${current.id}/metadata`, {
@@ -615,7 +765,7 @@ export async function restoreArchivedUrl(urlId: string) {
         // Silently fail - cache invalidation is non-critical
       });
     }
-    
+
     return list;
   } catch (err) {
     error.set(
