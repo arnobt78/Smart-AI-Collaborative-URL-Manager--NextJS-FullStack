@@ -2310,7 +2310,7 @@ export function UrlList() {
                 setError(undefined);
               }
             }}
-            className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2 transition-all duration-200"
+            className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white flex items-center gap-2 transition-all duration-200 shadow-md hover:shadow-lg"
           >
             <CirclePlus className="h-4 w-4" />
             Add URL

@@ -154,104 +154,148 @@ export default function BusinessInsightsPage(
     }
   };
 
-  return (
-    <main className="min-h-screen">
-      <div className="container mx-auto px-2 sm:px-0">
-        <div className="max-w-7xl mx-auto">
-          {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2 flex items-center gap-3">
-              <BarChart3 className="h-8 w-8 text-blue-400" />
-              Business Insights
-            </h1>
-            <p className="text-white/60 text-sm sm:text-base">
-              Track your URLs, lists, and engagement metrics
-            </p>
+  if (isLoading) {
+    return (
+      <div className="min-h-screen w-full">
+        {/* Header Skeleton */}
+        <div className="mb-8">
+          <div className="h-10 bg-white/10 rounded w-64 mb-2 animate-pulse flex items-center gap-3">
+            <div className="h-8 w-8 bg-white/10 rounded" />
+            <div className="h-6 bg-white/10 rounded flex-1" />
           </div>
+          <div className="h-5 bg-white/10 rounded w-96 animate-pulse" />
+        </div>
 
-          {/* Tabs */}
-          <Tabs
-            value={activeTab}
-            onValueChange={setActiveTab}
-            className="w-full"
-          >
-            <TabsList className="grid w-full grid-cols-5 mb-6">
-              <TabsTrigger value="overview" className="flex items-center gap-2">
-                <TrendingUp className="h-4 w-4" />
-                Overview
-              </TabsTrigger>
-              <TabsTrigger value="activity" className="flex items-center gap-2">
-                <BarChart3 className="h-4 w-4" />
-                Activity
-              </TabsTrigger>
-              <TabsTrigger value="popular" className="flex items-center gap-2">
-                <Star className="h-4 w-4" />
-                Popular
-              </TabsTrigger>
-              <TabsTrigger
-                value="performance"
-                className="flex items-center gap-2"
-              >
-                <Zap className="h-4 w-4" />
-                Performance
-              </TabsTrigger>
-              <TabsTrigger value="global" className="flex items-center gap-2">
-                <Globe className="h-4 w-4" />
-                Global
-              </TabsTrigger>
-            </TabsList>
+        {/* Tabs Skeleton */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-5 mb-6">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="h-10 bg-white/10 rounded animate-pulse" />
+            ))}
+          </TabsList>
 
-            {/* Overview Tab */}
-            <TabsContent value="overview" className="space-y-6">
-              {overviewData && (
-                <>
-                  <OverviewCards data={overviewData} isLoading={isLoading} />
-                  <ActivityChart
-                    initialData={activityData}
-                    initialLoading={isLoading}
-                  />
-                </>
-              )}
-            </TabsContent>
+          {/* Overview Tab Content Skeleton */}
+          <TabsContent value="overview" className="space-y-6">
+            {/* OverviewCards Skeleton */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {[...Array(6)].map((_, i) => (
+                <Card key={i} className="animate-pulse">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <div className="h-4 bg-white/10 rounded w-24" />
+                    <div className="h-8 w-8 bg-white/10 rounded-lg" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="h-8 bg-white/10 rounded w-16 mb-1" />
+                    <div className="h-3 bg-white/10 rounded w-20" />
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
 
-            {/* Activity Tab */}
-            <TabsContent value="activity" className="space-y-6">
+            {/* ActivityChart Skeleton */}
+            <Card className="animate-pulse">
+              <CardHeader>
+                <div className="h-6 bg-white/10 rounded w-32" />
+              </CardHeader>
+              <CardContent>
+                <div className="mb-4 flex gap-2">
+                  {[...Array(3)].map((_, i) => (
+                    <div key={i} className="h-10 bg-white/10 rounded w-20" />
+                  ))}
+                </div>
+                <div className="h-64 bg-white/10 rounded" />
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen w-full">
+      {/* Header */}
+      <div className="mb-8">
+        <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2 flex items-center gap-3">
+          <BarChart3 className="h-8 w-8 text-blue-400" />
+          Business Insights
+        </h1>
+        <p className="text-white/60 text-sm sm:text-base">
+          Track your URLs, lists, and engagement metrics
+        </p>
+      </div>
+
+      {/* Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-5 mb-6">
+          <TabsTrigger value="overview" className="flex items-center gap-2">
+            <TrendingUp className="h-4 w-4" />
+            Overview
+          </TabsTrigger>
+          <TabsTrigger value="activity" className="flex items-center gap-2">
+            <BarChart3 className="h-4 w-4" />
+            Activity
+          </TabsTrigger>
+          <TabsTrigger value="popular" className="flex items-center gap-2">
+            <Star className="h-4 w-4" />
+            Popular
+          </TabsTrigger>
+          <TabsTrigger value="performance" className="flex items-center gap-2">
+            <Zap className="h-4 w-4" />
+            Performance
+          </TabsTrigger>
+          <TabsTrigger value="global" className="flex items-center gap-2">
+            <Globe className="h-4 w-4" />
+            Global
+          </TabsTrigger>
+        </TabsList>
+
+        {/* Overview Tab */}
+        <TabsContent value="overview" className="space-y-6">
+          {overviewData && (
+            <>
+              <OverviewCards data={overviewData} isLoading={isLoading} />
               <ActivityChart
                 initialData={activityData}
                 initialLoading={isLoading}
               />
-            </TabsContent>
+            </>
+          )}
+        </TabsContent>
 
-            {/* Popular Tab */}
-            <TabsContent value="popular" className="space-y-6">
-              {popularData && (
-                <PopularContent
-                  popularUrls={popularData.popularUrls}
-                  activeLists={popularData.activeLists}
-                  isLoading={isLoading}
-                />
-              )}
-            </TabsContent>
+        {/* Activity Tab */}
+        <TabsContent value="activity" className="space-y-6">
+          <ActivityChart
+            initialData={activityData}
+            initialLoading={isLoading}
+          />
+        </TabsContent>
 
-            {/* Performance Tab */}
-            <TabsContent value="performance" className="space-y-6">
-              {performanceData && (
-                <PerformanceMetrics
-                  data={performanceData}
-                  isLoading={isLoading}
-                />
-              )}
-            </TabsContent>
+        {/* Popular Tab */}
+        <TabsContent value="popular" className="space-y-6">
+          {popularData && (
+            <PopularContent
+              popularUrls={popularData.popularUrls}
+              activeLists={popularData.activeLists}
+              isLoading={isLoading}
+            />
+          )}
+        </TabsContent>
 
-            {/* Global Tab */}
-            <TabsContent value="global" className="space-y-6">
-              {globalData && (
-                <GlobalStats data={globalData} isLoading={isLoading} />
-              )}
-            </TabsContent>
-          </Tabs>
-        </div>
-      </div>
-    </main>
+        {/* Performance Tab */}
+        <TabsContent value="performance" className="space-y-6">
+          {performanceData && (
+            <PerformanceMetrics data={performanceData} isLoading={isLoading} />
+          )}
+        </TabsContent>
+
+        {/* Global Tab */}
+        <TabsContent value="global" className="space-y-6">
+          {globalData && (
+            <GlobalStats data={globalData} isLoading={isLoading} />
+          )}
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 }

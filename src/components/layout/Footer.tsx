@@ -3,7 +3,7 @@
 export default function Footer() {
   return (
     <footer className="bg-transparent backdrop-blur-md mt-auto">
-      <div className="container mx-auto px-6 pb-4">
+      <div className="mx-auto max-w-7xl px-2 sm:px-0 py-8">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             {/* <div className="bg-gradient-to-r from-blue-100 to-purple-100 rounded-lg p-2">

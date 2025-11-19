@@ -354,168 +354,160 @@ const allEndpoints: Record<string, ApiEndpoint[]> = {
 
 export default function ApiDocsPage() {
   return (
-    <main className="min-h-screen">
-      <div className="container mx-auto px-2 sm:px-0">
-        <div className="max-w-7xl mx-auto">
-          {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2 flex items-center gap-3">
-              <BookOpen className="h-8 w-8 text-blue-400" />
-              API Documentation
-            </h1>
-            <p className="text-white/60 text-sm sm:text-base">
-              Complete API reference for The Daily Urlist
-            </p>
-          </div>
-
-          {/* Authentication Info */}
-          <Card className="mb-6 border-blue-400/30">
-            <CardHeader>
-              <div className="flex items-center gap-2">
-                <Lock className="h-5 w-5 text-blue-400" />
-                <CardTitle>Authentication</CardTitle>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <p className="text-white/80 text-sm mb-2">
-                Most API endpoints require authentication via session cookie.
-                Make sure you&apos;re logged in before making requests.
-              </p>
-              <code className="text-xs text-white/60 bg-white/5 px-2 py-1 rounded">
-                Cookie: session_token
-              </code>
-              <p className="text-white/60 text-xs mt-2">
-                Note: Some endpoints like{" "}
-                <code className="text-blue-400">/api/lists/public</code> and{" "}
-                <code className="text-blue-400">/api/metadata</code> are
-                publicly accessible.
-              </p>
-            </CardContent>
-          </Card>
-
-          {/* API Endpoints by Category */}
-          <Tabs defaultValue="Authentication" className="w-full">
-            <TabsList className="grid w-full grid-cols-4 mb-6">
-              <TabsTrigger
-                value="Authentication"
-                className="flex items-center gap-2"
-              >
-                <Lock className="h-4 w-4" />
-                Auth
-              </TabsTrigger>
-              <TabsTrigger value="Lists" className="flex items-center gap-2">
-                <Link2 className="h-4 w-4" />
-                Lists
-              </TabsTrigger>
-              <TabsTrigger value="Utility" className="flex items-center gap-2">
-                <Code className="h-4 w-4" />
-                Utility
-              </TabsTrigger>
-              <TabsTrigger
-                value="Business Insights"
-                className="flex items-center gap-2"
-              >
-                <Globe className="h-4 w-4" />
-                Insights
-              </TabsTrigger>
-            </TabsList>
-
-            {Object.entries(allEndpoints).map(([category, endpoints]) => (
-              <TabsContent
-                key={category}
-                value={category}
-                className="space-y-4"
-              >
-                {endpoints.map((endpoint, index) => (
-                  <Card key={index}>
-                    <CardHeader>
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-3 mb-2 flex-wrap">
-                            <Badge
-                              variant={
-                                endpoint.method === "GET"
-                                  ? "success"
-                                  : endpoint.method === "POST"
-                                  ? "default"
-                                  : endpoint.method === "PATCH"
-                                  ? "secondary"
-                                  : "destructive"
-                              }
-                              className="font-mono"
-                            >
-                              {endpoint.method}
-                            </Badge>
-                            <code className="text-white font-mono text-sm">
-                              {endpoint.path}
-                            </code>
-                            {endpoint.auth && (
-                              <Badge variant="secondary" className="text-xs">
-                                <Lock className="h-3 w-3 mr-1" />
-                                Auth Required
-                              </Badge>
-                            )}
-                            {!endpoint.auth && (
-                              <Badge variant="outline" className="text-xs">
-                                <Globe className="h-3 w-3 mr-1" />
-                                Public
-                              </Badge>
-                            )}
-                          </div>
-                          <p className="text-white/70 text-sm">
-                            {endpoint.description}
-                          </p>
-                        </div>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <Tabs defaultValue="response" className="w-full">
-                        <TabsList>
-                          {endpoint.params !== undefined && (
-                            <TabsTrigger value="params">Parameters</TabsTrigger>
-                          )}
-                          {endpoint.body !== undefined && (
-                            <TabsTrigger value="body">Request Body</TabsTrigger>
-                          )}
-                          <TabsTrigger value="response">Response</TabsTrigger>
-                        </TabsList>
-
-                        {endpoint.params !== undefined && (
-                          <TabsContent value="params" className="mt-4">
-                            <div className="bg-white/5 rounded-lg p-4 border border-white/10">
-                              <pre className="text-sm text-white/80 font-mono overflow-x-auto">
-                                {JSON.stringify(endpoint.params, null, 2)}
-                              </pre>
-                            </div>
-                          </TabsContent>
-                        )}
-
-                        {endpoint.body !== undefined && (
-                          <TabsContent value="body" className="mt-4">
-                            <div className="bg-white/5 rounded-lg p-4 border border-white/10">
-                              <pre className="text-sm text-white/80 font-mono overflow-x-auto">
-                                {JSON.stringify(endpoint.body, null, 2)}
-                              </pre>
-                            </div>
-                          </TabsContent>
-                        )}
-
-                        <TabsContent value="response" className="mt-4">
-                          <div className="bg-white/5 rounded-lg p-4 border border-white/10">
-                            <pre className="text-sm text-white/80 font-mono overflow-x-auto">
-                              {JSON.stringify(endpoint.response, null, 2)}
-                            </pre>
-                          </div>
-                        </TabsContent>
-                      </Tabs>
-                    </CardContent>
-                  </Card>
-                ))}
-              </TabsContent>
-            ))}
-          </Tabs>
-        </div>
+    <div className="min-h-screen w-full">
+      {/* Header */}
+      <div className="mb-8">
+        <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2 flex items-center gap-3">
+          <BookOpen className="h-8 w-8 text-blue-400" />
+          API Documentation
+        </h1>
+        <p className="text-white/60 text-sm sm:text-base">
+          Complete API reference for The Daily Urlist
+        </p>
       </div>
-    </main>
+
+      {/* Authentication Info */}
+      <Card className="mb-6 border-blue-400/30">
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <Lock className="h-5 w-5 text-blue-400" />
+            <CardTitle>Authentication</CardTitle>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <p className="text-white/80 text-sm mb-2">
+            Most API endpoints require authentication via session cookie. Make
+            sure you&apos;re logged in before making requests.
+          </p>
+          <code className="text-xs text-white/60 bg-white/5 px-2 py-1 rounded">
+            Cookie: session_token
+          </code>
+          <p className="text-white/60 text-xs mt-2">
+            Note: Some endpoints like{" "}
+            <code className="text-blue-400">/api/lists/public</code> and{" "}
+            <code className="text-blue-400">/api/metadata</code> are publicly
+            accessible.
+          </p>
+        </CardContent>
+      </Card>
+
+      {/* API Endpoints by Category */}
+      <Tabs defaultValue="Authentication" className="w-full">
+        <TabsList className="grid w-full grid-cols-4 mb-6">
+          <TabsTrigger
+            value="Authentication"
+            className="flex items-center gap-2"
+          >
+            <Lock className="h-4 w-4" />
+            Auth
+          </TabsTrigger>
+          <TabsTrigger value="Lists" className="flex items-center gap-2">
+            <Link2 className="h-4 w-4" />
+            Lists
+          </TabsTrigger>
+          <TabsTrigger value="Utility" className="flex items-center gap-2">
+            <Code className="h-4 w-4" />
+            Utility
+          </TabsTrigger>
+          <TabsTrigger
+            value="Business Insights"
+            className="flex items-center gap-2"
+          >
+            <Globe className="h-4 w-4" />
+            Insights
+          </TabsTrigger>
+        </TabsList>
+
+        {Object.entries(allEndpoints).map(([category, endpoints]) => (
+          <TabsContent key={category} value={category} className="space-y-4">
+            {endpoints.map((endpoint, index) => (
+              <Card key={index}>
+                <CardHeader>
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2 flex-wrap">
+                        <Badge
+                          variant={
+                            endpoint.method === "GET"
+                              ? "success"
+                              : endpoint.method === "POST"
+                              ? "default"
+                              : endpoint.method === "PATCH"
+                              ? "secondary"
+                              : "destructive"
+                          }
+                          className="font-mono"
+                        >
+                          {endpoint.method}
+                        </Badge>
+                        <code className="text-white font-mono text-sm">
+                          {endpoint.path}
+                        </code>
+                        {endpoint.auth && (
+                          <Badge variant="secondary" className="text-xs">
+                            <Lock className="h-3 w-3 mr-1" />
+                            Auth Required
+                          </Badge>
+                        )}
+                        {!endpoint.auth && (
+                          <Badge variant="outline" className="text-xs">
+                            <Globe className="h-3 w-3 mr-1" />
+                            Public
+                          </Badge>
+                        )}
+                      </div>
+                      <p className="text-white/70 text-sm">
+                        {endpoint.description}
+                      </p>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <Tabs defaultValue="response" className="w-full">
+                    <TabsList>
+                      {endpoint.params !== undefined && (
+                        <TabsTrigger value="params">Parameters</TabsTrigger>
+                      )}
+                      {endpoint.body !== undefined && (
+                        <TabsTrigger value="body">Request Body</TabsTrigger>
+                      )}
+                      <TabsTrigger value="response">Response</TabsTrigger>
+                    </TabsList>
+
+                    {endpoint.params !== undefined && (
+                      <TabsContent value="params" className="mt-4">
+                        <div className="bg-white/5 rounded-lg p-4 border border-white/10">
+                          <pre className="text-sm text-white/80 font-mono overflow-x-auto">
+                            {JSON.stringify(endpoint.params, null, 2)}
+                          </pre>
+                        </div>
+                      </TabsContent>
+                    )}
+
+                    {endpoint.body !== undefined && (
+                      <TabsContent value="body" className="mt-4">
+                        <div className="bg-white/5 rounded-lg p-4 border border-white/10">
+                          <pre className="text-sm text-white/80 font-mono overflow-x-auto">
+                            {JSON.stringify(endpoint.body, null, 2)}
+                          </pre>
+                        </div>
+                      </TabsContent>
+                    )}
+
+                    <TabsContent value="response" className="mt-4">
+                      <div className="bg-white/5 rounded-lg p-4 border border-white/10">
+                        <pre className="text-sm text-white/80 font-mono overflow-x-auto">
+                          {JSON.stringify(endpoint.response, null, 2)}
+                        </pre>
+                      </div>
+                    </TabsContent>
+                  </Tabs>
+                </CardContent>
+              </Card>
+            ))}
+          </TabsContent>
+        ))}
+      </Tabs>
+    </div>
   );
 }
