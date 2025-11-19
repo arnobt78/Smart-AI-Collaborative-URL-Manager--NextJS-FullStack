@@ -56,9 +56,51 @@ export default function ListPageClient() {
           return;
         }
         
+        // CRITICAL: Before calling getList, check localStorage for preserved drag order
+        // This must happen FIRST to restore order before getList can overwrite it
+        // This is especially important after Fast Refresh in dev mode
+        // NOTE: In production, Fast Refresh doesn't exist, so this issue won't occur
+        if (typeof window !== "undefined") {
+          try {
+            // First, we need to get the list to know the ID, but we can check after a small delay
+            // to see if localStorage has a preserved order for any list
+            const currentStoreData = currentList.get();
+            if (currentStoreData && currentStoreData.id) {
+              const storageKey = `drag-order:${currentStoreData.id}`;
+              const stored = localStorage.getItem(storageKey);
+              const globalCache = (window as any).__dragOrderCache;
+              const cachedOrder = globalCache?.[storageKey];
+              
+              if ((stored || cachedOrder) && currentStoreData.slug === slug) {
+                // We have a preserved order for this list - restore it immediately
+                try {
+                  const preservedOrder = cachedOrder || JSON.parse(stored!);
+                  if (preservedOrder && Array.isArray(preservedOrder) && preservedOrder.length > 0) {
+                    // Restore to store immediately before getList runs
+                    flushSync(() => {
+                      currentList.set({ ...currentStoreData, urls: preservedOrder });
+                    });
+                    console.log("✅ [PAGE] Restored drag order from localStorage before getList", {
+                      hasLocalStorage: !!stored,
+                      hasGlobalCache: !!cachedOrder,
+                      order: preservedOrder.map((u: any) => u.id),
+                      slug,
+                      note: "Order restored to prevent getList overwrite",
+                    });
+                  }
+                } catch (parseErr) {
+                  console.error("❌ [PAGE] Failed to parse preserved order", parseErr);
+                }
+              }
+            }
+          } catch (err) {
+            console.error("❌ [PAGE] Error checking localStorage", err);
+          }
+        }
+        
         // Mark as fetched before the async call
         hasFetchedRef.current = slug;
-        await getList(slug);
+        await getList(slug, true); // Pass true to skip if drag in progress
         
         // Only set loading to false if we have valid list data with matching slug
         // This prevents showing "List: undefined" flash

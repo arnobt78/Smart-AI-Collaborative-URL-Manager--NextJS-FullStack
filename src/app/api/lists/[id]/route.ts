@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
-import { getListBySlug, updateList, deleteList } from "@/lib/db";
+import { getListBySlug, updateList, deleteList, type UrlItem } from "@/lib/db";
 import { createActivity } from "@/lib/db/activities";
 import { publishMessage, CHANNELS } from "@/lib/realtime/redis";
 
@@ -32,6 +32,35 @@ export async function GET(
     if (!hasAccess) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+
+    // Initialize positions for URLs that don't have them (backward compatibility)
+    const urls = (list.urls as unknown as UrlItem[]) || [];
+    let needsPositionInit = false;
+    
+    const urlsWithPositions: UrlItem[] = urls.map((url, idx) => {
+      if (url.position === undefined) {
+        needsPositionInit = true;
+        return { ...url, position: idx };
+      }
+      return url;
+    });
+    
+    // If positions were initialized, save them back to database
+    if (needsPositionInit && urlsWithPositions.length > 0) {
+      // Sort by position and update
+      urlsWithPositions.sort((a, b) => (a.position ?? 999) - (b.position ?? 999));
+      await updateList(list.id, { urls: urlsWithPositions });
+      list.urls = urlsWithPositions as any;
+      console.log(`✅ [GET] Initialized positions for ${list.id}`);
+    }
+
+    const urlOrder = urlsWithPositions.map((u) => u.id).join(",");
+    console.log(`📋 [GET /api/lists/${id}] Returning list from database`, {
+      listId: list.id,
+      slug: list.slug,
+      urlCount: urlsWithPositions.length,
+      urlOrder: urlOrder,
+    });
 
     return NextResponse.json({ list });
   } catch (error) {

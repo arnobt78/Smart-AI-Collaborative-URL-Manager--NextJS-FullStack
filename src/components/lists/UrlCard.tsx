@@ -309,10 +309,14 @@ export const UrlCard: React.FC<UrlCardProps> = ({
       {dragHandleProps && (
         <div
           {...dragHandleProps}
-          className="absolute top-2 right-2 cursor-grab active:cursor-grabbing p-2 hover:bg-white/10 rounded-lg transition-all duration-200 drag-handle opacity-0 group-hover:opacity-100 z-20"
+          className="absolute top-2 right-2 cursor-grab active:cursor-grabbing p-2 hover:bg-white/10 rounded-lg transition-all duration-200 drag-handle opacity-30 group-hover:opacity-100 z-20 touch-none"
           title="Drag to reorder"
+          role="button"
+          tabIndex={0}
+          aria-label="Drag to reorder"
+          style={{ userSelect: "none" }}
         >
-          <Grip className="h-5 w-5 text-white/40 hover:text-blue-400 transition-colors" />
+          <Grip className="h-5 w-5 text-white/40 hover:text-blue-400 transition-colors pointer-events-none" />
         </div>
       )}
       <div className="flex flex-col sm:flex-row p-4 gap-4">

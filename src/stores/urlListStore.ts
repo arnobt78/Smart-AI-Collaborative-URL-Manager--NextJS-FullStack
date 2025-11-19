@@ -16,6 +16,7 @@ export interface UrlItem {
   notes?: string;
   reminder?: string; // ISO date string
   clickCount?: number; // Track how many times this URL has been clicked
+  position?: number; // Position in the list (used for ordering) - simpler than array reordering
   // URL Health Monitoring fields
   healthStatus?: "healthy" | "warning" | "broken" | "unknown"; // Health status
   healthCheckedAt?: string; // ISO date string - when health was last checked
@@ -142,6 +143,102 @@ export async function getList(slug: string, skipIfDragInProgress = false) {
       urlsContentChanged;
 
     if (hasChanged) {
+      // CRITICAL: Check localStorage AND global cache for preserved drag order BEFORE deciding to update
+      // This prevents getList from overwriting drag order even after Fast Refresh
+      // Using localStorage AND global variable because Fast Refresh might clear localStorage
+      // Use list.id from server (always available) instead of current?.id (might be empty after Fast Refresh)
+      let preservedOrder: UrlItem[] | null = null;
+      if (typeof window !== "undefined" && list?.id) {
+        try {
+          const storageKey = `drag-order:${list.id}`;
+
+          // FIRST: Check global cache (survives Fast Refresh better)
+          const globalCache = (window as any).__dragOrderCache;
+          if (globalCache && globalCache[storageKey]) {
+            preservedOrder = globalCache[storageKey];
+            if (preservedOrder) {
+              console.log("✅ [STORE] Found preserved order in global cache", {
+                listId: list.id,
+                order: preservedOrder.map((u) => u.id),
+              });
+            }
+          }
+
+          // THEN: Check localStorage (backup if global cache missing)
+          const stored = localStorage.getItem(storageKey);
+
+          // CRITICAL: Also verify by reading again to ensure it's not a stale read
+          const verifyStored = localStorage.getItem(storageKey);
+
+          console.log("🔍 [STORE] getList checking localStorage", {
+            listId: list.id,
+            hasGlobalCache: !!preservedOrder,
+            hasStored: !!stored,
+            hasVerifyStored: !!verifyStored,
+            storedMatchesVerify: stored === verifyStored,
+            storedLength: stored?.length,
+            verifyLength: verifyStored?.length,
+            currentEmpty: !current,
+            currentId: current?.id,
+          });
+
+          // Use localStorage if global cache didn't have it
+          if (!preservedOrder && stored) {
+            const parsed = JSON.parse(stored) as UrlItem[];
+            // Use newUrls from server response for comparison (they're the latest)
+            if (parsed.length === newUrls.length) {
+              const storedIds = new Set(parsed.map((u) => u.id));
+              const serverIds = new Set(newUrls.map((u) => u.id));
+              const sameIds =
+                storedIds.size === serverIds.size &&
+                [...storedIds].every((id) => serverIds.has(id));
+
+              if (sameIds) {
+                preservedOrder = parsed;
+                console.log(
+                  "✅ [STORE] Found preserved order in localStorage",
+                  {
+                    preserved: parsed.map((u) => u.id),
+                    server: newUrls.map((u) => u.id),
+                  }
+                );
+              } else {
+                console.log(
+                  "⚠️ [STORE] Preserved order has different URLs, ignoring",
+                  {
+                    preserved: parsed.map((u) => u.id),
+                    server: newUrls.map((u) => u.id),
+                  }
+                );
+              }
+            } else {
+              console.log(
+                "⚠️ [STORE] Preserved order has different length, ignoring",
+                {
+                  preservedLength: parsed.length,
+                  serverLength: newUrls.length,
+                }
+              );
+            }
+          } else {
+            console.log("⏭️ [STORE] No preserved order in localStorage");
+          }
+        } catch (err) {
+          console.error(
+            "❌ [STORE] Failed to read localStorage in getList",
+            err
+          );
+        }
+      } else {
+        console.log(
+          "⏭️ [STORE] Cannot check localStorage - missing list.id or window",
+          {
+            hasListId: !!list?.id,
+            hasWindow: typeof window !== "undefined",
+          }
+        );
+      }
+
       // If ONLY order changed (same URLs, same content, just reordered), preserve optimistic order
       // This prevents server refreshes from overwriting drag operations
       if (
@@ -151,16 +248,73 @@ export async function getList(slug: string, skipIfDragInProgress = false) {
         !metadataChanged &&
         currentUrls.length > 0
       ) {
-        // This is ONLY a reorder - preserve the current (optimistic) order
+        // This is ONLY a reorder - preserve the current (optimistic) order OR sessionStorage order
+        const orderToUse = preservedOrder || currentUrls;
         const mergedList = {
           ...list,
-          urls: currentUrls, // Keep optimistic order - user's action takes precedence
+          urls: orderToUse, // Keep optimistic/sessionStorage order - user's action takes precedence
         };
+        console.log("🔄 [STORE] Preserving drag order (only order changed)", {
+          preserved: orderToUse.map((u) => u.id),
+          server: newUrls.map((u) => u.id),
+        });
         currentList.set(mergedList);
         return currentList.get() as UrlList; // Return the preserved state
+      } else if (preservedOrder) {
+        // Even if URLs changed, if we have preserved order, use it (drag in progress)
+        const mergedList = {
+          ...list,
+          urls: preservedOrder,
+        };
+        console.log("🔄 [STORE] Preserving drag order (drag in progress)", {
+          preserved: preservedOrder.map((u) => u.id),
+          server: newUrls.map((u) => u.id),
+        });
+        currentList.set(mergedList);
+        return currentList.get() as UrlList;
       } else {
         // Normal update - URLs were added/removed/changed OR metadata changed
+        // BUT: Check if current store has a different order than server (possible drag in progress)
+        // If so, preserve current order if it's a reorder (same URLs, just different order)
+        if (
+          !urlsLengthChanged &&
+          !urlsContentChanged &&
+          urlsOrderChanged &&
+          currentUrls.length > 0 &&
+          newUrls.length > 0
+        ) {
+          // This is a reorder - preserve current order (user's action) over server order
+          const currentIds = new Set(currentUrls.map((u) => u.id));
+          const serverIds = new Set(newUrls.map((u) => u.id));
+          const sameIds =
+            currentIds.size === serverIds.size &&
+            [...currentIds].every((id) => serverIds.has(id));
+
+          if (sameIds) {
+            // Same URLs, just different order - preserve current (user's drag order)
+            const mergedList = {
+              ...list,
+              urls: currentUrls, // Keep current order - user's action takes precedence
+            };
+            console.log(
+              "🔄 [STORE] Preserving current order (reorder detected)",
+              {
+                current: currentUrls.map((u) => u.id),
+                server: newUrls.map((u) => u.id),
+                note: "User's drag order preserved over server order",
+              }
+            );
+            currentList.set(mergedList);
+            return currentList.get() as UrlList;
+          }
+        }
+
+        // Normal update - URLs were added/removed/changed OR metadata changed
         // Always update from server for content/metadata changes (especially for cross-window updates)
+        console.log("🔄 [STORE] Using server order (normal update)", {
+          server: newUrls.map((u) => u.id),
+          current: currentUrls.map((u) => u.id),
+        });
         currentList.set(list);
       }
     }

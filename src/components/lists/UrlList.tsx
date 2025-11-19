@@ -3,11 +3,23 @@
 import { useState, useMemo, useEffect, useLayoutEffect, useRef } from "react";
 import { flushSync } from "react-dom";
 import {
-  DragDropContext,
-  Droppable,
-  Draggable,
-  DropResult,
-} from "@hello-pangea/dnd";
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+  DragOverEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+  useSortable,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import { useStore } from "@nanostores/react";
 import {
   currentList,
@@ -41,8 +53,6 @@ import { UrlAddForm } from "./UrlAddForm";
 // Component wrapper that fetches metadata using React Query for each URL
 function UrlCardWrapper({
   url,
-  provided,
-  snapshot,
   onEdit,
   onDelete,
   onToggleFavorite,
@@ -55,17 +65,6 @@ function UrlCardWrapper({
   isMetadataReady,
 }: {
   url: UrlItem;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  provided: {
-    innerRef: (element: HTMLElement | null) => void;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    draggableProps: any;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    dragHandleProps: any;
-  };
-  snapshot: {
-    isDragging: boolean;
-  };
   onEdit: (url: UrlItem) => void;
   onDelete: (id: string) => void;
   onToggleFavorite: (id: string) => void;
@@ -77,7 +76,30 @@ function UrlCardWrapper({
   shareTooltip: string | null;
   isMetadataReady: boolean;
 }) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: url.id });
+
+  // CRITICAL: Disable transition when not dragging to prevent bounce-back animation
+  // When drag ends, dnd-kit tries to animate items back to original positions
+  // By disabling transition when not dragging, items stay in their new positions
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition: isDragging ? transition : undefined, // Only allow transitions during drag
+    opacity: isDragging ? 0.5 : 1,
+  };
+
   const queryClient = useQueryClient();
+
+  // For dnd-kit, listeners should go on the drag handle, not the container
+  // attributes can be spread on container for accessibility
+  const dragHandleListeners = listeners;
+  const containerAttributes = attributes;
 
   // Check if metadata is already in cache (from batch fetch)
   // IMPORTANT: Check cache on every render to catch hydration that happens after mount
@@ -91,29 +113,7 @@ function UrlCardWrapper({
   // This prevents individual API calls when batch fetch has populated cache
   const shouldFetch = isMetadataReady && !hasCache;
 
-  // Log cache check for this URL (only log once to reduce noise)
-  if (hasCache) {
-    console.log(
-      `💾 [CARD ${url.url.slice(
-        0,
-        30
-      )}...] Using cached metadata from batch fetch`
-    );
-  } else if (!isMetadataReady) {
-    console.log(
-      `⏳ [CARD ${url.url.slice(
-        0,
-        30
-      )}...] Waiting for batch fetch to complete (shouldFetch=false)`
-    );
-  } else {
-    console.log(
-      `🔄 [CARD ${url.url.slice(
-        0,
-        30
-      )}...] No cache found after batch, will fetch individually (shouldFetch: ${shouldFetch})`
-    );
-  }
+  // Reduced logging - removed excessive console logs for better debugging experience
 
   // Use React Query hook to fetch and cache metadata
   // Disabled until batch fetch completes to prevent duplicate calls
@@ -126,14 +126,10 @@ function UrlCardWrapper({
   const finalMetadata = cachedMetadata || metadata;
 
   return (
-    <div
-      ref={provided.innerRef}
-      {...provided.draggableProps}
-      className={snapshot.isDragging ? "opacity-50" : ""}
-    >
+    <div ref={setNodeRef} style={style} {...containerAttributes}>
       <div
         className={`flex-1 transition-all duration-200 ${
-          snapshot.isDragging ? "dragging shadow-2xl" : ""
+          isDragging ? "dragging shadow-2xl" : ""
         }`}
       >
         <UrlCard
@@ -149,7 +145,7 @@ function UrlCardWrapper({
           onArchive={onArchive}
           onPin={onPin}
           shareTooltip={shareTooltip}
-          dragHandleProps={provided.dragHandleProps}
+          dragHandleProps={dragHandleListeners}
         />
       </div>
     </div>
@@ -189,7 +185,9 @@ export function UrlList() {
         // Populate React Query cache immediately so cards don't fetch
         const queryKey = ["url-metadata", url] as const;
         queryClient.setQueryData(queryKey, metadata);
-        console.log(`✅ [POST] Populated React Query cache for: ${url.slice(0, 40)}...`);
+        console.log(
+          `✅ [POST] Populated React Query cache for: ${url.slice(0, 40)}...`
+        );
       }
     };
 
@@ -228,7 +226,23 @@ export function UrlList() {
   const [lastSearchedQuery, setLastSearchedQuery] = useState<string>("");
   const [isAddUrlFormExpanded, setIsAddUrlFormExpanded] = useState(false);
 
+  // CRITICAL: Track sortable context version to force remount after drag ends
+  // This ensures dnd-kit uses the updated order instead of reverting to cached positions
+  const [sortableContextKey, setSortableContextKey] = useState(0);
+
   // REMOVED optimisticUrls state - using store directly for immediate updates
+
+  // Configure sensors for dnd-kit (pointer for mouse/touch, keyboard for accessibility)
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8, // Require 8px movement before drag starts (prevents accidental drags)
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   // Real-time updates subscription
   useRealtimeList(list?.id || null);
@@ -323,50 +337,32 @@ export function UrlList() {
 
     // Skip if currently prefetching (wait for it to complete)
     if (prefetchedMetadataRef.current === prefetchKey) {
-      console.log(
-        `⏳ [BATCH] Batch fetch already in progress for this list...`
-      );
       return;
     }
 
     const fetchAllMetadata = async () => {
       // Mark as prefetching
       prefetchedMetadataRef.current = prefetchKey;
-      console.log(
-        `🚀 [BATCH] Starting batch metadata fetch for ${urlCount} unique URLs (list: ${listId})`
-      );
 
       try {
         const startTime = performance.now();
         // Fetch all metadata from unified endpoint (cached in Redis)
         // This is the SINGLE API call that replaces 9 individual calls
-        console.log(
-          `🔄 [BATCH] Calling unified endpoint: /api/lists/${listId}/metadata`
-        );
         const response = await fetch(`/api/lists/${listId}/metadata`);
         const fetchTime = performance.now() - startTime;
 
         if (response.ok) {
           const { metadata, cached } = await response.json();
+          const metadataCount = Object.keys(metadata).length;
 
-          if (cached) {
+          // Only log significant events (cache misses, errors)
+          if (!cached) {
             console.log(
-              `⚡ [BATCH CACHE HIT] All metadata loaded instantly from Redis cache (${fetchTime.toFixed(
+              `🔄 [BATCH] Fetched ${metadataCount} metadata entries from web (${fetchTime.toFixed(
                 2
               )}ms)`
             );
-          } else {
-            console.log(
-              `🔄 [BATCH CACHE MISS] Fetched all metadata from web (${fetchTime.toFixed(
-                2
-              )}ms), now cached for future requests`
-            );
           }
-
-          const metadataCount = Object.keys(metadata).length;
-          console.log(
-            `📦 [BATCH] Received ${metadataCount} metadata entries, hydrating React Query cache...`
-          );
 
           // Hydrate React Query cache and localStorage with all metadata instantly
           // CRITICAL: This happens synchronously, so cards will see cache immediately
@@ -383,9 +379,6 @@ export function UrlList() {
               // Set in React Query cache (instant, synchronous)
               queryClient.setQueryData(queryKey, meta);
               hydratedCount++;
-              console.log(
-                `  💧 [BATCH] Hydrated cache for: ${url.slice(0, 40)}...`
-              );
             }
 
             // Prefetch image if available (ensures instant display on reorder)
@@ -393,25 +386,25 @@ export function UrlList() {
               try {
                 // Mark image as prefetched in global cache (prevents loading state on re-render)
                 const imageCacheKey = `image-loaded:${meta.image}`;
-                const imageAlreadyLoaded = sessionStorage.getItem(imageCacheKey);
-                
+                const imageAlreadyLoaded =
+                  sessionStorage.getItem(imageCacheKey);
+
                 // Prefetch image using Image() constructor to warm browser cache
                 // Don't use link preload to avoid crossorigin warnings
                 if (!imageAlreadyLoaded && meta.image) {
                   // Store image URL in const for use in closures
                   const imageUrl = meta.image;
                   const img = new window.Image();
-                  
+
                   // Try anonymous first (for CORS images), fall back to regular load
                   img.crossOrigin = "anonymous";
                   img.src = imageUrl;
-                  
+
                   // Mark as prefetched after successful load
                   img.onload = () => {
                     sessionStorage.setItem(imageCacheKey, "true");
-                    console.log(`  🖼️ [BATCH] Prefetched image: ${imageUrl.slice(0, 50)}...`);
                   };
-                  
+
                   // If CORS fails, try without crossOrigin (for same-origin images)
                   img.onerror = () => {
                     try {
@@ -419,7 +412,6 @@ export function UrlList() {
                       img2.src = imageUrl;
                       img2.onload = () => {
                         sessionStorage.setItem(imageCacheKey, "true");
-                        console.log(`  🖼️ [BATCH] Prefetched image (no CORS): ${imageUrl.slice(0, 50)}...`);
                       };
                       img2.onerror = () => {
                         // Silently fail - image will load normally in component
@@ -431,7 +423,10 @@ export function UrlList() {
                 }
               } catch (error) {
                 // Ignore prefetch errors (non-critical)
-                console.warn(`  ⚠️ [BATCH] Failed to prefetch image for ${url}:`, error);
+                console.warn(
+                  `  ⚠️ [BATCH] Failed to prefetch image for ${url}:`,
+                  error
+                );
               }
             }
 
@@ -450,12 +445,6 @@ export function UrlList() {
             }
           });
 
-          console.log(
-            `✅ [BATCH] Hydrated ${hydratedCount} new entries into React Query cache (${
-              metadataCount - hydratedCount
-            } already cached)`
-          );
-
           // CRITICAL: Mark batch as complete AFTER cache hydration
           // This makes isMetadataReady=true on next render (computed synchronously)
           batchFetchCompleteRef.current = prefetchKey;
@@ -467,10 +456,6 @@ export function UrlList() {
             exact: false,
             refetchType: "none",
           });
-
-          console.log(
-            `🎯 [BATCH] Batch fetch complete, isMetadataReady=true (will be computed on next render)`
-          );
         } else {
           console.error(
             `❌ [BATCH] API error: ${response.status} ${response.statusText}`
@@ -545,6 +530,53 @@ export function UrlList() {
   const lastDragEndTimeRef = useRef<number>(0); // Track when drag ended
   const lastDragUpdateRef = useRef<string>(""); // Track last drag update to prevent excessive updates
   const lastDeleteTimeRef = useRef<number>(0); // Track when delete happened to prevent real-time refresh
+  const finalDragOrderRef = useRef<UrlItem[] | null>(null); // CRITICAL: Preserve final drag order across re-renders
+  const localStorageCleanupTimeoutRef = useRef<NodeJS.Timeout | null>(null); // Track localStorage cleanup timeout to clear previous ones
+
+  // CRITICAL: localStorage key for preserving drag order across Fast Refresh
+  // Using localStorage instead of sessionStorage because Fast Refresh clears sessionStorage
+  const getDragOrderStorageKey = (listId: string) => `drag-order:${listId}`;
+
+  // CRITICAL: Restore drag order from localStorage SYNCHRONOUSLY before first render
+  // useLayoutEffect runs BEFORE browser paint, so drag library sees correct order immediately
+  // Using localStorage instead of sessionStorage because Fast Refresh clears sessionStorage
+  useLayoutEffect(() => {
+    if (list?.id && typeof window !== "undefined") {
+      try {
+        const stored = localStorage.getItem(getDragOrderStorageKey(list.id));
+        if (stored) {
+          const parsed = JSON.parse(stored) as UrlItem[];
+          const currentUrls = (list.urls as unknown as UrlItem[]) || [];
+
+          // Only restore if same URLs (just reordered)
+          if (parsed.length === currentUrls.length) {
+            const storedIds = new Set(parsed.map((u) => u.id));
+            const currentIds = new Set(currentUrls.map((u) => u.id));
+            const sameIds =
+              storedIds.size === currentIds.size &&
+              [...storedIds].every((id) => currentIds.has(id));
+
+            if (sameIds) {
+              // Check if order actually differs
+              const storedOrder = parsed.map((u) => u.id).join(",");
+              const currentOrder = currentUrls.map((u) => u.id).join(",");
+
+              if (storedOrder !== currentOrder) {
+                finalDragOrderRef.current = parsed;
+                // CRITICAL: Apply restored order to store SYNCHRONOUSLY before render
+                // This ensures drag library sees correct order on INITIAL render
+                flushSync(() => {
+                  currentList.set({ ...list, urls: parsed });
+                });
+              }
+            }
+          }
+        }
+      } catch {
+        // Ignore sessionStorage errors
+      }
+    }
+  }, [list?.id, list?.urls]); // Run when list ID OR URLs change (catches Fast Refresh)
 
   // Listen for real-time update events (debounced to prevent loops)
   useEffect(() => {
@@ -559,13 +591,69 @@ export function UrlList() {
 
       const now = Date.now();
 
-      // Prevent refreshing if we just completed a drag operation (protect optimistic state)
-      if (now - lastDragEndTimeRef.current < 5000) {
+      // Get current list early (needed for multiple checks)
+      const current = currentList.get();
+
+      // CRITICAL: Prevent refreshing if we just completed a drag operation (protect optimistic state)
+      // Increased to 30 seconds to survive queued refreshes and Fast Refresh cycles
+      // This is especially important because real-time updates can queue refreshes that run later
+      if (now - lastDragEndTimeRef.current < 30000) {
+        const dragEndTime = now - lastDragEndTimeRef.current;
         console.log(
-          "⏭️ [REALTIME] Skipping refresh - drag operation just completed (protecting optimistic state)"
+          `⏭️ [REALTIME] Skipping refresh - drag operation just completed (${dragEndTime.toFixed(
+            0
+          )}ms ago, protecting optimistic state)`
         );
+
+        // CRITICAL: Clear any queued refreshes to prevent them from running later
+        if (refreshTimeoutRef.current) {
+          clearTimeout(refreshTimeoutRef.current);
+          refreshTimeoutRef.current = null;
+        }
         return;
       }
+
+      // CRITICAL: Also check if we have a preserved drag order in localStorage
+      // If we do, don't let real-time updates overwrite it
+      // Using localStorage instead of sessionStorage because Fast Refresh clears sessionStorage
+      if (current?.id && typeof window !== "undefined") {
+        try {
+          const stored = localStorage.getItem(
+            getDragOrderStorageKey(current.id)
+          );
+          if (stored) {
+            const parsed = JSON.parse(stored) as UrlItem[];
+            const currentUrls = (current.urls as unknown as UrlItem[]) || [];
+            if (parsed.length === currentUrls.length) {
+              const storedIds = new Set(parsed.map((u) => u.id));
+              const currentIds = new Set(currentUrls.map((u) => u.id));
+              const sameIds =
+                storedIds.size === currentIds.size &&
+                [...storedIds].every((id) => currentIds.has(id));
+              if (sameIds) {
+                const storedOrder = parsed.map((u) => u.id).join(",");
+                const currentOrder = currentUrls.map((u) => u.id).join(",");
+                if (storedOrder !== currentOrder) {
+                  console.log(
+                    `⏭️ [REALTIME] Skipping refresh - drag order preserved in localStorage`,
+                    { stored: storedOrder, current: currentOrder }
+                  );
+                  return;
+                }
+              }
+            }
+          }
+        } catch (err) {
+          console.error("❌ [REALTIME] Error checking localStorage", err);
+        }
+      }
+
+      // Only proceed if no drag order is preserved
+      console.log("🔄 [REALTIME] Proceeding with refresh", {
+        currentOrder: (current.urls as unknown as UrlItem[]).map(
+          (u: UrlItem) => u.id
+        ),
+      });
 
       // Prevent refreshing if we just deleted a URL (protect optimistic state)
       // Real-time events from our own delete operation should be ignored
@@ -581,7 +669,6 @@ export function UrlList() {
         timestamp?: string;
         action?: string;
       }>;
-      const current = currentList.get();
 
       // Only refresh if this is the current list
       if (current?.id === customEvent.detail.listId && current?.slug) {
@@ -610,16 +697,14 @@ export function UrlList() {
           // Queue refresh to happen after throttle expires
           refreshTimeoutRef.current = setTimeout(async () => {
             const now = Date.now();
+            // CRITICAL: Check drag end time here too - queued refreshes must respect drag protection
             if (
               !isLocalOperationRef.current &&
               !isDraggingRef.current &&
-              now - lastDragEndTimeRef.current >= 5000 &&
+              now - lastDragEndTimeRef.current >= 30000 && // Match the protection window
               now - lastDeleteTimeRef.current >= 5000 &&
               current.slug
             ) {
-              console.log(
-                "🔄 [REALTIME] Executing queued refresh from real-time update"
-              );
               lastRefreshRef.current = now;
               await getList(current.slug, true);
             }
@@ -634,9 +719,6 @@ export function UrlList() {
 
         // For metadata changes, refresh immediately (no debounce)
         if (isMetadataChange) {
-          console.log(
-            "🔄 [REALTIME] Refreshing list immediately (metadata change)"
-          );
           lastRefreshRef.current = now;
           await getList(current.slug, true);
           return;
@@ -645,14 +727,14 @@ export function UrlList() {
         // For other changes, debounce to batch rapid updates
         refreshTimeoutRef.current = setTimeout(async () => {
           const now = Date.now();
+          // CRITICAL: Check drag end time here too - queued refreshes must respect drag protection
           if (
             !isLocalOperationRef.current &&
             !isDraggingRef.current &&
-            now - lastDragEndTimeRef.current >= 5000 &&
+            now - lastDragEndTimeRef.current >= 30000 && // Match the protection window (30 seconds)
             now - lastDeleteTimeRef.current >= 5000 &&
             current.slug
           ) {
-            console.log("🔄 [REALTIME] Refreshing list from real-time update");
             lastRefreshRef.current = now;
             await getList(current.slug, true);
           }
@@ -789,13 +871,13 @@ export function UrlList() {
 
     // Set flag to prevent real-time refresh during add operation
     isLocalOperationRef.current = true;
-    
+
     // Notify activity feed to skip fetch after local operation
     window.dispatchEvent(new CustomEvent("local-operation"));
 
     try {
       const url = new URL(newUrl);
-      
+
       // Check if we already have metadata in React Query cache (from AI enhancement)
       const queryKey = ["url-metadata", url.toString()] as const;
       const existingMetadata = queryClient.getQueryData<UrlMetadata>(queryKey);
@@ -867,7 +949,10 @@ export function UrlList() {
           existingMetadata = queryClient.getQueryData<UrlMetadata>(queryKey);
           if (existingMetadata) {
             console.log(
-              `✅ [EDIT] Found cached metadata from prefetch for: ${url.slice(0, 40)}...`
+              `✅ [EDIT] Found cached metadata from prefetch for: ${url.slice(
+                0,
+                40
+              )}...`
             );
           }
         } catch {
@@ -1028,7 +1113,8 @@ export function UrlList() {
       // Show error toast
       toast({
         title: "Duplicate Failed",
-        description: err instanceof Error ? err.message : "Failed to duplicate URL",
+        description:
+          err instanceof Error ? err.message : "Failed to duplicate URL",
         variant: "error",
       });
     } finally {
@@ -1073,7 +1159,8 @@ export function UrlList() {
       // Show error toast
       toast({
         title: "Archive Failed",
-        description: err instanceof Error ? err.message : "Failed to archive URL",
+        description:
+          err instanceof Error ? err.message : "Failed to archive URL",
         variant: "error",
       });
     } finally {
@@ -1168,15 +1255,17 @@ export function UrlList() {
     }
   };
 
-  const handleDragEnd = async (result: DropResult) => {
-    if (!result.destination) {
-      // Clear flags immediately if no destination
-      isDraggingRef.current = false;
-      setDragInProgress(false);
-      return;
-    }
-    if (result.destination.index === result.source.index) {
-      // Clear flags immediately if no actual movement
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    console.log("🎯 [DRAG] handleDragEnd called", {
+      activeId: active.id,
+      overId: over?.id,
+    });
+
+    if (!over || active.id === over.id) {
+      console.log("⏭️ [DRAG] No destination or same position, skipping");
+      // Clear flags immediately if no destination or same position
       isDraggingRef.current = false;
       setDragInProgress(false);
       return;
@@ -1199,7 +1288,7 @@ export function UrlList() {
 
     // Set flag to prevent real-time refresh during drag operation
     isLocalOperationRef.current = true;
-    
+
     // Notify activity feed to skip fetch after local operation
     window.dispatchEvent(new CustomEvent("local-operation"));
 
@@ -1210,9 +1299,16 @@ export function UrlList() {
     if (isFilteringActive) {
       // For filtered/sorted views, reorder based on visible items only
       const visibleIds = filteredAndSortedUrls.map((u) => u.id);
-      const reorderedVisible = [...visibleIds];
-      const [movedId] = reorderedVisible.splice(result.source.index, 1);
-      reorderedVisible.splice(result.destination.index, 0, movedId);
+      const oldIndex = visibleIds.indexOf(active.id as string);
+      const newIndex = visibleIds.indexOf(over.id as string);
+
+      if (oldIndex === -1 || newIndex === -1) {
+        isDraggingRef.current = false;
+        setDragInProgress(false);
+        return;
+      }
+
+      const reorderedVisible = arrayMove(visibleIds, oldIndex, newIndex);
 
       // Build new order: visible items in new order, then hidden items in original order
       const hiddenIds = current.urls
@@ -1233,61 +1329,86 @@ export function UrlList() {
 
       if (stateOrder !== expectedOrder) {
         // Order doesn't match - update it
-        console.log("🔄 [DRAG] Correcting store order (filtered)");
         flushSync(() => {
           currentList.set({ ...current, urls: reorderedUrls });
         });
-      } else {
-        console.log("🔄 [DRAG] Store order already correct (filtered)");
+      }
+
+      // CRITICAL: Store final drag order in ref AND localStorage to survive Fast Refresh
+      // This ensures the card stays in position even if component remounts
+      finalDragOrderRef.current = [...reorderedUrls];
+
+      // CRITICAL: Also store in localStorage during drag (survives Fast Refresh)
+      // Using localStorage instead of sessionStorage because Fast Refresh clears sessionStorage
+      // This ensures order is preserved even if Fast Refresh happens mid-drag
+      if (current.id && typeof window !== "undefined") {
+        try {
+          const storageKey = getDragOrderStorageKey(current.id);
+          const storageValue = JSON.stringify(reorderedUrls);
+          localStorage.setItem(storageKey, storageValue);
+
+          // Verify write
+          const verifyStored = localStorage.getItem(storageKey);
+          if (verifyStored === storageValue) {
+            console.log("✅ [DRAG] Verified localStorage write in onDragOver", {
+              listId: current.id,
+              verified: true,
+            });
+          }
+        } catch (err) {
+          console.error(
+            "❌ [DRAG] Failed to store in localStorage in onDragOver",
+            err
+          );
+        }
       }
 
       // Use unified PATCH endpoint for reorder (same pattern as other URL actions)
-      // CRITICAL: Preserve the reorderedUrls from the drag operation (don't read from store)
-      // This ensures the card stays in the new position even if store state changes
-      const preservedReorderUrls = [...reorderedUrls]; // Copy to preserve reference
-      
+      // CRITICAL: Always use the preserved order from ref, not from store after API response
+
       try {
         const response = await fetch(`/api/lists/${current.id}/urls`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            urls: preservedReorderUrls,
+            urls: finalDragOrderRef.current, // Use preserved order from ref
             action: "reorder",
           }),
         });
         if (response.ok) {
           const { list, activity: activityData } = await response.json();
-          // Use the preserved order from drag operation (not from store)
-          // This ensures card stays in new position even if store was updated elsewhere
-          const preservedOrder = preservedReorderUrls.map((u) => u.id).join(",");
-          const serverUrls = (list.urls as unknown as UrlItem[]) || [];
-          const serverOrder = serverUrls.map((u) => u.id).join(",");
 
-          // Only update if server order is different AND we're not dragging
-          if (preservedOrder !== serverOrder && !isDraggingRef.current) {
-            console.log(
-              "🔄 [DRAG] Server order differs (filtered), updating from server"
-            );
+          // CRITICAL: Always use the preserved order from ref (survives re-renders)
+          // Get the preserved order BEFORE checking anything else
+          const preservedOrder = finalDragOrderRef.current;
+          if (!preservedOrder) {
+            // Fallback: if ref is cleared (shouldn't happen), use server order
             currentList.set(list);
-          } else {
-            // Server confirmed our order - keep optimistic state
-            console.log(
-              "✅ [DRAG] Server confirmed order (filtered), keeping optimistic state"
-            );
-            // Ensure our optimistic state is preserved (card stays in new position)
-            // Use preservedReorderUrls (from drag) instead of reading from store
-            const mergedList = {
-              ...list,
-              urls: preservedReorderUrls, // Keep our preserved optimistic order (prevents card jumping)
-            };
-            // Use flushSync to ensure React sees the update immediately
-            flushSync(() => {
-              currentList.set(mergedList);
-            });
-            console.log(
-              `✅ [DRAG] Preserved order in store (filtered): ${preservedOrder}`
-            );
+            return;
           }
+
+          // ALWAYS preserve the drag order in the store (card stays in position)
+          // Merge server response (for other fields) with preserved order
+          const mergedList = {
+            ...list,
+            urls: preservedOrder, // Always use preserved order (prevents card jumping)
+          };
+
+          // CRITICAL: Update store first, then increment key in same render cycle
+          // This ensures SortableContext remounts with the NEW items array from updated store
+          // The flushSync forces synchronous store update, then key increment schedules re-render
+          // with both new store value AND new key, so SortableContext gets correct items array
+          flushSync(() => {
+            currentList.set(mergedList);
+          });
+
+          // Increment key AFTER store update to force SortableContext remount with new items
+          // This happens in the same render cycle, so when component re-renders, it has:
+          // - New store value (from flushSync above)
+          // - New sortableContextKey (from this state update)
+          // - filteredAndSortedUrls recalculates with new store value
+          // - SortableContext remounts with new key and new items array
+          setSortableContextKey((prev) => prev + 1);
 
           // Dispatch activity-added event for optimistic feed update (no redundant fetch)
           if (activityData) {
@@ -1306,134 +1427,52 @@ export function UrlList() {
               })
             );
           }
-        }
-      } catch (err) {
-        console.error("Failed to reorder URLs:", err);
-        // Revert on error - fetch the current list
-        const currentSlug = currentList.get().slug;
-        if (currentSlug) {
-          await getList(currentSlug);
-        }
-      } finally {
-        // Clear flags IMMEDIATELY after API call completes
-        // Track timestamp for real-time protection (but don't block next drag)
-        const dragEndTime = Date.now();
-        lastDragEndTimeRef.current = dragEndTime;
 
-        isLocalOperationRef.current = false;
-        isDraggingRef.current = false;
-        setDragInProgress(false);
-        lastDragUpdateRef.current = ""; // Reset drag update tracking
-        console.log("✅ [DRAG] Cleared drag flags (filtered view)");
-      }
-    } else {
-      // Simple reorder when no filtering/sorting
-      const currentUrls = current.urls as unknown as UrlItem[];
-      const reorderedUrls = [...currentUrls];
-      const [movedUrl] = reorderedUrls.splice(result.source.index, 1);
-      reorderedUrls.splice(result.destination.index, 0, movedUrl);
+          // DON'T clear localStorage immediately - keep it much longer to survive Fast Refresh
+          // Fast Refresh can happen multiple times during development, so we need a longer window
+          // Clear ref after a shorter time, but keep localStorage for 60 seconds
+          setTimeout(() => {
+            finalDragOrderRef.current = null;
+          }, 5000); // Clear ref after 5 seconds
 
-      // Optimistically update the UI immediately - this is critical for UX
-      // Use a synchronous update to ensure React sees it immediately
-      console.log("🔄 [DRAG] Optimistically updating UI immediately");
-      console.log(
-        "🔄 [DRAG] New order:",
-        reorderedUrls.map((u) => u.id).join(",")
-      );
-      console.log(
-        "🔄 [DRAG] Old order:",
-        currentUrls.map((u) => u.id).join(",")
-      );
-
-      // Store is already updated from onDragUpdate, but ensure it's correct
-      // Double-check the order matches what we expect
-      const currentState = currentList.get();
-      const stateUrls = (currentState?.urls as unknown as UrlItem[]) || [];
-      const stateOrder = stateUrls.map((u) => u.id).join(",");
-      const expectedOrder = reorderedUrls.map((u) => u.id).join(",");
-
-      if (stateOrder !== expectedOrder) {
-        // Order doesn't match - update it
-        console.log("🔄 [DRAG] Correcting store order");
-        flushSync(() => {
-          currentList.set({ ...current, urls: reorderedUrls });
-        });
-      } else {
-        console.log("🔄 [DRAG] Store order already correct");
-      }
-
-      console.log(
-        "🔄 [DRAG] Store updated - Order:",
-        reorderedUrls.map((u) => u.id).join(",")
-      );
-
-      // Use unified PATCH endpoint for reorder (same pattern as other URL actions)
-      // CRITICAL: Preserve the reorderedUrls from the drag operation (don't read from store)
-      // This ensures the card stays in the new position even if store state changes
-      const preservedReorderUrls = [...reorderedUrls]; // Copy to preserve reference
-      
-      try {
-        const response = await fetch(`/api/lists/${current.id}/urls`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            urls: preservedReorderUrls,
-            action: "reorder",
-          }),
-        });
-        if (response.ok) {
-          const { list, activity: activityData } = await response.json();
-          // Use the preserved order from drag operation (not from store)
-          // This ensures card stays in new position even if store was updated elsewhere
-          const preservedOrder = preservedReorderUrls.map((u) => u.id).join(",");
-          const serverUrls = (list.urls as unknown as UrlItem[]) || [];
-          const serverOrder = serverUrls.map((u) => u.id).join(",");
-
-          // Only update if server order is different AND we're not dragging
-          if (preservedOrder !== serverOrder && !isDraggingRef.current) {
-            console.log("🔄 [DRAG] Server order differs, updating from server");
-            currentList.set(list);
-          } else {
-            // Server confirmed our order - keep optimistic state
-            console.log(
-              "✅ [DRAG] Server confirmed order, keeping optimistic state"
-            );
-            // Ensure our optimistic state is preserved (card stays in new position)
-            // Use preservedReorderUrls (from drag) instead of reading from store
-            const mergedList = {
-              ...list,
-              urls: preservedReorderUrls, // Keep our preserved optimistic order (prevents card jumping)
-            };
-            // Use flushSync to ensure React sees the update immediately
-            flushSync(() => {
-              currentList.set(mergedList);
-            });
-            console.log(
-              `✅ [DRAG] Preserved order in store: ${preservedOrder}`
-            );
+          // Keep localStorage for 60 seconds to survive multiple Fast Refresh cycles
+          // This is critical because Fast Refresh can happen during/after drag operations
+          // Clear previous cleanup timeout to avoid multiple cleanup messages
+          if (localStorageCleanupTimeoutRef.current) {
+            clearTimeout(localStorageCleanupTimeoutRef.current);
           }
-
-          // Dispatch activity-added event for optimistic feed update (no redundant fetch)
-          if (activityData) {
-            window.dispatchEvent(
-              new CustomEvent("activity-added", {
-                detail: {
-                  listId: current.id,
-                  activity: {
-                    id: activityData.id,
-                    action: activityData.action,
-                    details: activityData.details,
-                    createdAt: activityData.createdAt,
-                    user: activityData.user,
-                  },
-                },
-              })
-            );
-          }
+          localStorageCleanupTimeoutRef.current = setTimeout(() => {
+            localStorageCleanupTimeoutRef.current = null;
+            if (current.id && typeof window !== "undefined") {
+              try {
+                const storageKey = getDragOrderStorageKey(current.id);
+                localStorage.removeItem(storageKey);
+                // Also clear global cache
+                const globalCache = (window as any).__dragOrderCache;
+                if (globalCache) {
+                  delete globalCache[storageKey];
+                }
+                console.log("🧹 [DRAG] Cleared localStorage after 60 seconds", {
+                  storageKey,
+                });
+              } catch {
+                // Ignore localStorage errors
+              }
+            }
+          }, 60000); // Keep for 60 seconds to survive Fast Refresh cycles
         }
       } catch (err) {
         console.error("❌ [DRAG] Failed to reorder URLs:", err);
         // Revert on error - fetch the current list
+        finalDragOrderRef.current = null; // Clear ref on error
+        // Clear localStorage on error (using localStorage instead of sessionStorage)
+        if (current.id && typeof window !== "undefined") {
+          try {
+            localStorage.removeItem(getDragOrderStorageKey(current.id));
+          } catch {
+            // Ignore localStorage errors
+          }
+        }
         const currentSlug = currentList.get().slug;
         if (currentSlug) {
           await getList(currentSlug);
@@ -1448,16 +1487,597 @@ export function UrlList() {
         isDraggingRef.current = false;
         setDragInProgress(false);
         lastDragUpdateRef.current = ""; // Reset drag update tracking
-        console.log("✅ [DRAG] Cleared drag flags (simple view)");
+      }
+    } else {
+      // Simple reorder when no filtering/sorting
+      const currentUrls = current.urls as unknown as UrlItem[];
+      const oldIndex = currentUrls.findIndex((u) => u.id === active.id);
+      const newIndex = currentUrls.findIndex((u) => u.id === over.id);
+
+      if (oldIndex === -1 || newIndex === -1) {
+        isDraggingRef.current = false;
+        setDragInProgress(false);
+        return;
+      }
+
+      // Use position-based system - much simpler than array reordering!
+      // Assign position based on new index
+      const reorderedUrls = currentUrls.map((url, idx) => {
+        if (url.id === active.id) {
+          // Moved item gets new position
+          return { ...url, position: newIndex };
+        }
+        // Other items: adjust positions if needed
+        const currentPos = url.position ?? idx;
+        if (oldIndex < newIndex) {
+          // Moving down: items between old and new shift up
+          if (currentPos > oldIndex && currentPos <= newIndex) {
+            return { ...url, position: currentPos - 1 };
+          }
+        } else {
+          // Moving up: items between new and old shift down
+          if (currentPos >= newIndex && currentPos < oldIndex) {
+            return { ...url, position: currentPos + 1 };
+          }
+        }
+        return url;
+      });
+
+      // Sort by position for consistent order
+      reorderedUrls.sort((a, b) => (a.position ?? 999) - (b.position ?? 999));
+
+      console.log("🔄 [DRAG] Updated positions", {
+        oldIndex,
+        newIndex,
+        oldOrder: currentUrls.map((u) => u.id),
+        newOrder: reorderedUrls.map((u) => u.id),
+      });
+
+      // CRITICAL: Store final drag order in ref AND localStorage to survive Fast Refresh
+      // This ensures the card stays in position even if component remounts
+      finalDragOrderRef.current = [...reorderedUrls];
+      console.log(
+        "💾 [DRAG] Stored in finalDragOrderRef",
+        finalDragOrderRef.current.map((u) => u.id)
+      );
+
+      // CRITICAL: Store in localStorage IMMEDIATELY and verify the write
+      // Using localStorage instead of sessionStorage because Fast Refresh clears sessionStorage
+      // This MUST happen BEFORE any async operations or Fast Refresh
+      if (current.id && typeof window !== "undefined") {
+        try {
+          const storageKey = getDragOrderStorageKey(current.id);
+          const storageValue = JSON.stringify(reorderedUrls);
+
+          // Write to localStorage
+          localStorage.setItem(storageKey, storageValue);
+
+          // CRITICAL: Verify the write immediately and also check persistence
+          const verifyStored = localStorage.getItem(storageKey);
+          if (verifyStored === storageValue) {
+            // Also store in a global variable for immediate access (survives Fast Refresh better)
+            if (typeof window !== "undefined") {
+              (window as any).__dragOrderCache =
+                (window as any).__dragOrderCache || {};
+              (window as any).__dragOrderCache[storageKey] = reorderedUrls;
+            }
+
+            console.log("✅ [DRAG] Verified localStorage write", {
+              listId: current.id,
+              order: reorderedUrls.map((u) => u.id),
+              verified: true,
+              storageKey,
+              alsoStoredInGlobal: true,
+            });
+
+            // Double-check after a brief delay to ensure persistence
+            setTimeout(() => {
+              const checkPersisted = localStorage.getItem(storageKey);
+              if (checkPersisted === storageValue) {
+                console.log(
+                  "✅ [DRAG] localStorage still persisted after delay",
+                  { storageKey }
+                );
+              } else {
+                console.error(
+                  "❌ [DRAG] localStorage was cleared or changed after write!",
+                  {
+                    storageKey,
+                    expected: storageValue,
+                    actual: checkPersisted,
+                  }
+                );
+              }
+            }, 100);
+          } else {
+            console.error("❌ [DRAG] localStorage write verification FAILED", {
+              listId: current.id,
+              expected: storageValue,
+              actual: verifyStored,
+            });
+          }
+        } catch (err) {
+          console.error("❌ [DRAG] Failed to store in localStorage", err);
+        }
+      }
+
+      // Optimistically update the UI immediately - this is critical for UX
+      // Use a synchronous update to ensure React sees it immediately
+      console.log("🔄 [DRAG] Updating store optimistically");
+
+      // CRITICAL: Update store first, then increment key in same render cycle
+      // This ensures SortableContext remounts with the NEW items array from updated store
+      // The flushSync forces synchronous store update, then key increment schedules re-render
+      // with both new store value AND new key, so SortableContext gets correct items array
+      flushSync(() => {
+        currentList.set({ ...current, urls: reorderedUrls });
+      });
+
+      // Increment key AFTER store update to force SortableContext remount with new items
+      // This happens in the same render cycle, so when component re-renders, it has:
+      // - New store value (from flushSync above)
+      // - New sortableContextKey (from this state update)
+      // - filteredAndSortedUrls recalculates with new store value
+      // - SortableContext remounts with new key and new items array
+      setSortableContextKey((prev) => prev + 1);
+
+      console.log(
+        "✅ [DRAG] Store updated, sortableContextKey will increment on next render",
+        currentList.get().urls?.map((u: UrlItem) => u.id)
+      );
+
+      // Use unified PATCH endpoint for reorder (same pattern as other URL actions)
+      // CRITICAL: Always use the preserved order from ref, not from store after API response
+
+      // CRITICAL: Log what we're sending to the API
+      const urlsToSend = finalDragOrderRef.current;
+      const orderToSend = urlsToSend?.map((u) => u.id).join(",") || "NULL";
+      console.log("📤 [DRAG] Sending to API", {
+        order: orderToSend,
+        urlCount: urlsToSend?.length || 0,
+        refCurrent: !!finalDragOrderRef.current,
+      });
+
+      try {
+        const response = await fetch(`/api/lists/${current.id}/urls`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            urls: urlsToSend, // Use preserved order from ref
+            action: "reorder",
+          }),
+        });
+        if (response.ok) {
+          const { list, activity: activityData } = await response.json();
+
+          console.log("✅ [DRAG] API response received", {
+            serverOrder: (list.urls as unknown as UrlItem[]).map(
+              (u: UrlItem) => u.id
+            ),
+          });
+
+          // CRITICAL: Always use the preserved order from ref (survives re-renders)
+          // Get the preserved order BEFORE checking anything else
+          const preservedOrder = finalDragOrderRef.current;
+          console.log(
+            "🔍 [DRAG] Preserved order from ref",
+            preservedOrder?.map((u) => u.id) || "NULL"
+          );
+
+          if (!preservedOrder) {
+            console.warn(
+              "⚠️ [DRAG] No preserved order in ref, using server order"
+            );
+            // Fallback: if ref is cleared (shouldn't happen), use server order
+            currentList.set(list);
+            return;
+          }
+
+          const preservedOrderIds = preservedOrder.map((u) => u.id).join(",");
+          const serverUrls = (list.urls as unknown as UrlItem[]) || [];
+          const serverOrderIds = serverUrls.map((u) => u.id).join(",");
+
+          console.log("🔍 [DRAG] Order comparison", {
+            preserved: preservedOrderIds,
+            server: serverOrderIds,
+            match: preservedOrderIds === serverOrderIds,
+          });
+
+          // ALWAYS preserve the drag order in the store (card stays in position)
+          // Merge server response (for other fields) with preserved order
+          const mergedList = {
+            ...list,
+            urls: preservedOrder, // Always use preserved order (prevents card jumping)
+          };
+
+          console.log(
+            "🔄 [DRAG] Merging with preserved order",
+            mergedList.urls.map((u: UrlItem) => u.id)
+          );
+
+          // Use flushSync to ensure React sees the update immediately
+          // CRITICAL: Update the store AND ensure ref is synced BEFORE flushSync completes
+          // This ensures urlsToUse memo sees the correct order on the next render
+          finalDragOrderRef.current = preservedOrder; // Ensure ref is synced
+
+          // Also update global cache to ensure persistence
+          if (typeof window !== "undefined" && current.id) {
+            const storageKey = getDragOrderStorageKey(current.id);
+            const globalCache = (window as any).__dragOrderCache || {};
+            globalCache[storageKey] = preservedOrder;
+            (window as any).__dragOrderCache = globalCache;
+          }
+
+          // CRITICAL: Force SortableContext remount IMMEDIATELY AFTER store update
+          // This ensures dnd-kit uses the new items array for its final animation calculations
+          // The store update already happened optimistically above, so we just need to remount
+          // with the confirmed order from API response
+          flushSync(() => {
+            currentList.set(mergedList);
+          });
+
+          // Increment key after store update to ensure SortableContext remounts with new items array
+          setSortableContextKey((prev) => prev + 1);
+
+          console.log(
+            "✅ [DRAG] Final store state",
+            currentList.get().urls?.map((u: UrlItem) => u.id)
+          );
+
+          // Dispatch activity-added event for optimistic feed update (no redundant fetch)
+          if (activityData) {
+            window.dispatchEvent(
+              new CustomEvent("activity-added", {
+                detail: {
+                  listId: current.id,
+                  activity: {
+                    id: activityData.id,
+                    action: activityData.action,
+                    details: activityData.details,
+                    createdAt: activityData.createdAt,
+                    user: activityData.user,
+                  },
+                },
+              })
+            );
+          }
+
+          // DON'T clear localStorage immediately - keep it much longer to survive Fast Refresh
+          // Fast Refresh can happen multiple times during development, so we need a longer window
+          // Clear ref after a shorter time, but keep localStorage for 60 seconds
+          setTimeout(() => {
+            finalDragOrderRef.current = null;
+          }, 5000); // Clear ref after 5 seconds
+
+          // Keep localStorage for 60 seconds to survive multiple Fast Refresh cycles
+          // This is critical because Fast Refresh can happen during/after drag operations
+          // Clear previous cleanup timeout to avoid multiple cleanup messages
+          if (localStorageCleanupTimeoutRef.current) {
+            clearTimeout(localStorageCleanupTimeoutRef.current);
+          }
+          localStorageCleanupTimeoutRef.current = setTimeout(() => {
+            localStorageCleanupTimeoutRef.current = null;
+            if (current.id && typeof window !== "undefined") {
+              try {
+                const storageKey = getDragOrderStorageKey(current.id);
+                localStorage.removeItem(storageKey);
+                // Also clear global cache
+                const globalCache = (window as any).__dragOrderCache;
+                if (globalCache) {
+                  delete globalCache[storageKey];
+                }
+                console.log("🧹 [DRAG] Cleared localStorage after 60 seconds", {
+                  storageKey,
+                });
+              } catch {
+                // Ignore localStorage errors
+              }
+            }
+          }, 60000); // Keep for 60 seconds to survive Fast Refresh cycles
+        }
+      } catch (err) {
+        console.error("❌ [DRAG] Failed to reorder URLs:", err);
+        // Revert on error - fetch the current list
+        finalDragOrderRef.current = null; // Clear ref on error
+        // Clear localStorage on error (using localStorage instead of sessionStorage)
+        if (current.id && typeof window !== "undefined") {
+          try {
+            localStorage.removeItem(getDragOrderStorageKey(current.id));
+          } catch {
+            // Ignore localStorage errors
+          }
+        }
+        const currentSlug = currentList.get().slug;
+        if (currentSlug) {
+          await getList(currentSlug);
+        }
+      } finally {
+        // Clear flags IMMEDIATELY after API call completes
+        // Track timestamp for real-time protection (but don't block next drag)
+        const dragEndTime = Date.now();
+        lastDragEndTimeRef.current = dragEndTime;
+
+        isLocalOperationRef.current = false;
+        isDraggingRef.current = false;
+        setDragInProgress(false);
+        lastDragUpdateRef.current = ""; // Reset drag update tracking
       }
     }
   };
 
+  // CRITICAL: Restore drag order from global cache AND localStorage BEFORE urlsToUse memo runs
+  // This must happen synchronously during render to ensure correct order on Fast Refresh
+  // Using global cache AND localStorage because Fast Refresh might clear localStorage
+  // We check global cache first (faster), then localStorage, then restore to ref AND store for immediate effect
+  if (list?.id && typeof window !== "undefined") {
+    // Only restore if ref is empty (avoid overwriting active drag)
+    if (!finalDragOrderRef.current) {
+      try {
+        const storageKey = getDragOrderStorageKey(list.id);
+
+        // FIRST: Check global cache (survives Fast Refresh)
+        const globalCache = (window as any).__dragOrderCache;
+        let storedOrder = globalCache?.[storageKey] || null;
+        const source = storedOrder ? "global" : null;
+
+        // THEN: Check localStorage if global cache didn't have it
+        if (!storedOrder) {
+          const stored = localStorage.getItem(storageKey);
+          if (stored) {
+            try {
+              storedOrder = JSON.parse(stored) as UrlItem[];
+            } catch {
+              // Invalid JSON, ignore
+            }
+          }
+        }
+
+        console.log("🔍 [RENDER] Checking for drag order", {
+          hasGlobalCache: !!globalCache?.[storageKey],
+          hasStored: !!storedOrder,
+          source: storedOrder ? source || "localStorage" : "none",
+          listId: list.id,
+          refEmpty: !finalDragOrderRef.current,
+        });
+
+        if (storedOrder) {
+          const parsed = storedOrder as UrlItem[];
+          const currentUrls = (list.urls as unknown as UrlItem[]) || [];
+
+          console.log("🔍 [RENDER] Found stored order", {
+            storedLength: parsed.length,
+            currentLength: currentUrls.length,
+            storedOrderIds: parsed.map((u: UrlItem) => u.id).join(","),
+            currentOrder: currentUrls.map((u: UrlItem) => u.id).join(","),
+          });
+
+          // Only restore if same URLs (just reordered)
+          if (parsed.length === currentUrls.length) {
+            const storedIds = new Set(parsed.map((u: UrlItem) => u.id));
+            const currentIds = new Set(currentUrls.map((u: UrlItem) => u.id));
+            const sameIds =
+              storedIds.size === currentIds.size &&
+              [...storedIds].every((id: string) => currentIds.has(id));
+
+            console.log("🔍 [RENDER] Comparing IDs", {
+              sameIds,
+              storedIds: Array.from(storedIds),
+              currentIds: Array.from(currentIds),
+            });
+
+            if (sameIds) {
+              // Check if order actually differs
+              const storedOrderIds = parsed.map((u: UrlItem) => u.id).join(",");
+              const currentOrder = currentUrls
+                .map((u: UrlItem) => u.id)
+                .join(",");
+
+              console.log("🔍 [RENDER] Comparing order", {
+                storedOrderIds,
+                currentOrder,
+                differs: storedOrderIds !== currentOrder,
+              });
+
+              if (storedOrderIds !== currentOrder) {
+                finalDragOrderRef.current = parsed;
+                // CRITICAL: Update store IMMEDIATELY during render to prevent getList from overwriting
+                // This must happen synchronously BEFORE any useEffect/useLayoutEffect runs
+                // Also restore global cache so getList can find it
+                if (typeof window !== "undefined") {
+                  (window as any).__dragOrderCache =
+                    (window as any).__dragOrderCache || {};
+                  (window as any).__dragOrderCache[storageKey] = parsed;
+                }
+
+                const current = currentList.get();
+                if (current && current.id === list.id) {
+                  currentList.set({ ...current, urls: parsed });
+                  console.log(
+                    "✅ [RENDER] Restored and updated store during render",
+                    {
+                      restored: storedOrderIds,
+                      oldStore: currentOrder,
+                      source: source || "localStorage",
+                      note: "Store + global cache updated synchronously to prevent getList overwrite",
+                    }
+                  );
+                } else {
+                  console.log(
+                    "✅ [RENDER] Restored during render (ref populated, store will update in useLayoutEffect)",
+                    {
+                      restored: storedOrderIds,
+                      store: currentOrder,
+                      source: source || "localStorage",
+                    }
+                  );
+                }
+              } else {
+                console.log("⏭️ [RENDER] Orders match, no restoration needed");
+              }
+            } else {
+              console.log("⚠️ [RENDER] Different URLs, cannot restore");
+            }
+          } else {
+            console.log("⚠️ [RENDER] Different lengths, cannot restore");
+          }
+        } else {
+          console.log("⏭️ [RENDER] No stored order in localStorage");
+        }
+      } catch (err) {
+        console.error(
+          "❌ [RENDER] Failed to read localStorage during render",
+          err
+        );
+      }
+    } else {
+      console.log("⏭️ [RENDER] Ref already populated, skipping restoration", {
+        refOrder: finalDragOrderRef.current.map((u) => u.id).join(","),
+      });
+    }
+  } else {
+    console.log("⏭️ [RENDER] Cannot restore - missing list.id or window", {
+      hasListId: !!list?.id,
+      hasWindow: typeof window !== "undefined",
+    });
+  }
+
   // Filtering and sorting logic
-  // Use store URLs directly - store updates trigger immediate re-renders
+  // CRITICAL: Prioritize preserved drag order from ref OR localStorage (survives Fast Refresh)
+  // Using localStorage instead of sessionStorage because Fast Refresh clears sessionStorage
+  // If ref/localStorage has a preserved order, use that instead of store (card stays in position)
+  // NOTE: This runs SYNCHRONOUSLY during render, so drag library sees correct order immediately
   const urlsToUse = useMemo(() => {
-    return (list?.urls as unknown as UrlItem[]) || [];
-  }, [list?.urls]);
+    if (!list?.urls) return [];
+
+    const storeUrls = (list.urls as unknown as UrlItem[]) || [];
+    const storeOrder = storeUrls.map((u) => u.id).join(",");
+
+    // CRITICAL: ALWAYS check ref FIRST before store (ref is source of truth during/after drag)
+    // The ref is populated during drag and persists after drag completes
+    // Even if the store is updated with flushSync, the ref takes precedence
+    let preservedOrder = finalDragOrderRef.current;
+
+    // Double-check localStorage if ref is still empty (fallback, using localStorage instead of sessionStorage)
+    if (!preservedOrder && list.id && typeof window !== "undefined") {
+      try {
+        const storageKey = getDragOrderStorageKey(list.id);
+        // Also check global cache first (faster)
+        const globalCache = (window as any).__dragOrderCache;
+        if (globalCache?.[storageKey]) {
+          preservedOrder = globalCache[storageKey];
+          if (preservedOrder) {
+            finalDragOrderRef.current = preservedOrder; // Sync ref
+            console.log(
+              "📦 [URLS] Restored from global cache in memo",
+              preservedOrder.map((u) => u.id)
+            );
+          }
+        } else {
+          const stored = localStorage.getItem(storageKey);
+          if (stored) {
+            preservedOrder = JSON.parse(stored) as UrlItem[];
+            if (preservedOrder) {
+              // Restore to ref AND global cache for faster access
+              finalDragOrderRef.current = preservedOrder;
+              if (globalCache) {
+                globalCache[storageKey] = preservedOrder;
+              }
+              console.log(
+                "📦 [URLS] Restored from localStorage in memo",
+                preservedOrder.map((u) => u.id)
+              );
+            }
+          }
+        }
+      } catch (err) {
+        console.error("❌ [URLS] Failed to read localStorage in memo", err);
+      }
+    }
+
+    // If we have a preserved drag order, use it (prevents card jumping on Fast Refresh)
+    if (preservedOrder) {
+      const preservedOrderIds = preservedOrder.map((u) => u.id).join(",");
+
+      console.log("🔍 [URLS] Checking preserved order", {
+        hasPreserved: true,
+        preservedOrder: preservedOrderIds,
+        storeOrder: storeOrder,
+        preservedLength: preservedOrder.length,
+        storeLength: storeUrls.length,
+      });
+
+      // Only use preserved order if:
+      // 1. Both arrays have same length (no URLs added/removed)
+      // 2. Both arrays contain same URL IDs (just reordered)
+      if (preservedOrder.length === storeUrls.length) {
+        const preservedIds = new Set(preservedOrder.map((u) => u.id));
+        const storeIds = new Set(storeUrls.map((u) => u.id));
+        const sameIds =
+          preservedIds.size === storeIds.size &&
+          [...preservedIds].every((id) => storeIds.has(id));
+
+        console.log("🔍 [URLS] ID comparison", {
+          sameIds,
+          preservedIds: Array.from(preservedIds),
+          storeIds: Array.from(storeIds),
+          orderMatch: preservedOrderIds === storeOrder,
+        });
+
+        if (sameIds) {
+          // Same URLs, just reordered - use preserved order
+          if (preservedOrderIds !== storeOrder) {
+            console.log(
+              "✅ [URLS] Using preserved order (different from store)",
+              {
+                preserved: preservedOrderIds,
+                store: storeOrder,
+              }
+            );
+          } else {
+            console.log(
+              "✅ [URLS] Preserved order matches store, using preserved",
+              {
+                order: preservedOrderIds,
+              }
+            );
+          }
+          return preservedOrder;
+        } else {
+          console.log(
+            "⚠️ [URLS] Preserved order has different URLs, ignoring",
+            {
+              preserved: preservedOrderIds,
+              store: storeOrder,
+            }
+          );
+        }
+      } else {
+        console.log(
+          "⚠️ [URLS] Preserved order has different length, ignoring",
+          {
+            preservedLength: preservedOrder.length,
+            storeLength: storeUrls.length,
+          }
+        );
+      }
+    } else {
+      console.log("🔍 [URLS] No preserved order found", {
+        refEmpty: !finalDragOrderRef.current,
+        hasLocalStorage:
+          list.id && typeof window !== "undefined"
+            ? !!localStorage.getItem(getDragOrderStorageKey(list.id))
+            : false,
+      });
+    }
+
+    // Otherwise use store URLs (normal case)
+    console.log("📋 [URLS] Using store URLs", storeOrder);
+    return storeUrls;
+  }, [list?.urls, list?.id]);
+
+  // REMOVED: dragContextKey - was causing DragDropContext to remount during drag
+  // This was breaking drag operations. The preserved order in sessionStorage/ref
+  // should be enough to maintain correct order after Fast Refresh.
 
   const filteredAndSortedUrls = useMemo(() => {
     if (!urlsToUse || urlsToUse.length === 0) return [];
@@ -1533,14 +2153,28 @@ export function UrlList() {
 
     // Sorting (only applies to unpinned URLs, or all if no pins)
     if (sortOption === "latest") {
-      unpinnedUrls.sort(
-        (a, b) =>
+      // Use position for ordering when available (much simpler than array reordering!)
+      // Default to createdAt if position not set (backward compatibility)
+      unpinnedUrls.sort((a, b) => {
+        if (a.position !== undefined && b.position !== undefined) {
+          return a.position - b.position;
+        }
+        if (a.position !== undefined) return -1;
+        if (b.position !== undefined) return 1;
+        return (
           new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-      );
-      pinnedUrls.sort(
-        (a, b) =>
+        );
+      });
+      pinnedUrls.sort((a, b) => {
+        if (a.position !== undefined && b.position !== undefined) {
+          return a.position - b.position;
+        }
+        if (a.position !== undefined) return -1;
+        if (b.position !== undefined) return 1;
+        return (
           new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-      );
+        );
+      });
     } else if (sortOption === "oldest") {
       unpinnedUrls.sort(
         (a, b) =>
@@ -1619,7 +2253,8 @@ export function UrlList() {
       // Show error toast
       toast({
         title: "Restore Failed",
-        description: err instanceof Error ? err.message : "Failed to restore URL",
+        description:
+          err instanceof Error ? err.message : "Failed to restore URL",
         variant: "error",
       });
     } finally {
@@ -1755,16 +2390,16 @@ export function UrlList() {
 
       {/* Active URLs List */}
       {!showArchived && (
-        <DragDropContext
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
           onDragEnd={handleDragEnd}
-          onDragUpdate={(update) => {
+          onDragOver={(event: DragOverEvent) => {
             // Update store during drag so order is correct when drag ends
             // This ensures the drag library sees the new order immediately
             // Only works for simple view (no filtering/sorting)
-            if (
-              !update.destination ||
-              update.destination.index === update.source.index
-            ) {
+            const { active, over } = event;
+            if (!over || active.id === over.id) {
               return;
             }
 
@@ -1777,99 +2412,113 @@ export function UrlList() {
             const current = currentList.get();
             if (!current.urls || !current.id) return;
 
+            const currentUrls = current.urls as unknown as UrlItem[];
+            const oldIndex = currentUrls.findIndex((u) => u.id === active.id);
+            const newIndex = currentUrls.findIndex((u) => u.id === over.id);
+
+            if (oldIndex === -1 || newIndex === -1) {
+              return;
+            }
+
             // Only update if destination actually changed (prevent excessive updates)
-            const updateKey = `${update.source.index}-${update.destination.index}`;
+            const updateKey = `${oldIndex}-${newIndex}`;
             if (lastDragUpdateRef.current === updateKey) {
               return;
             }
             lastDragUpdateRef.current = updateKey;
 
-            const currentUrls = current.urls as unknown as UrlItem[];
-            const reorderedUrls = [...currentUrls];
-            const [movedUrl] = reorderedUrls.splice(update.source.index, 1);
-            reorderedUrls.splice(update.destination.index, 0, movedUrl);
+            const reorderedUrls = arrayMove(currentUrls, oldIndex, newIndex);
 
-            // Update store immediately during drag
-            currentList.set({ ...current, urls: reorderedUrls });
+            // CRITICAL: Store in ref AND localStorage ONLY - don't update store during drag
+            // This prevents dnd-kit from recalculating positions mid-drag, which causes bounce-back
+            // The urlsToUse memo will use ref/localStorage, and store will be updated after drag ends
+            // Updating store during drag causes re-renders that interfere with dnd-kit's drag calculations
+            // and triggers React errors about flushSync being called during render lifecycle
+            finalDragOrderRef.current = reorderedUrls;
+
+            // Also store in localStorage (survives Fast Refresh)
+            if (current.id && typeof window !== "undefined") {
+              try {
+                const storageKey = getDragOrderStorageKey(current.id);
+                localStorage.setItem(storageKey, JSON.stringify(reorderedUrls));
+
+                // Also update global cache
+                const globalCache = (window as any).__dragOrderCache || {};
+                globalCache[storageKey] = reorderedUrls;
+                (window as any).__dragOrderCache = globalCache;
+              } catch {
+                // Ignore localStorage errors
+              }
+            }
+
+            // NOTE: Store update happens ONLY in handleDragEnd after drag completes
+            // This ensures dnd-kit can calculate animations correctly without interference
           }}
         >
-          <Droppable droppableId="url-list">
-            {(provided, snapshot) => (
-              <div
-                {...provided.droppableProps}
-                ref={provided.innerRef}
-                className={`space-y-8 ${
-                  snapshot.isDraggingOver
-                    ? "bg-blue-500/5 rounded-xl p-4 transition-colors"
-                    : ""
-                }`}
-              >
-                {filteredAndSortedUrls.map((url, index) => (
-                  <Draggable key={url.id} draggableId={url.id} index={index}>
-                    {(provided, snapshot) => (
-                      <UrlCardWrapper
-                        url={url}
-                        provided={provided}
-                        snapshot={snapshot}
-                        onEdit={(urlObj) => {
-                          setEditingUrl(urlObj);
-                          setEditingTags(urlObj.tags?.join(", ") || "");
-                          setEditingNotes(urlObj.notes || "");
-                          setEditingReminder(urlObj.reminder || "");
-                        }}
-                        onDelete={(urlId) => {
-                          // Set flag to prevent real-time refresh and metadata batch fetch during delete
-                          isLocalOperationRef.current = true;
-                          lastDeleteTimeRef.current = Date.now(); // Track delete time to prevent real-time refresh
+          <SortableContext
+            key={sortableContextKey}
+            items={filteredAndSortedUrls.map((u) => u.id)}
+            strategy={verticalListSortingStrategy}
+          >
+            <div className="space-y-8">
+              {filteredAndSortedUrls.map((url) => (
+                <UrlCardWrapper
+                  key={url.id}
+                  url={url}
+                  onEdit={(urlObj) => {
+                    setEditingUrl(urlObj);
+                    setEditingTags(urlObj.tags?.join(", ") || "");
+                    setEditingNotes(urlObj.notes || "");
+                    setEditingReminder(urlObj.reminder || "");
+                  }}
+                  onDelete={(urlId) => {
+                    // Set flag to prevent real-time refresh and metadata batch fetch during delete
+                    isLocalOperationRef.current = true;
+                    lastDeleteTimeRef.current = Date.now(); // Track delete time to prevent real-time refresh
 
-                          // Clean up React Query cache for deleted URL before delete
-                          const current = currentList.get();
-                          if (current?.urls) {
-                            const currentUrls =
-                              current.urls as unknown as UrlItem[];
-                            const deletedUrl = currentUrls.find(
-                              (url) => url.id === urlId
-                            );
-                            if (deletedUrl) {
-                              queryClient.removeQueries({
-                                queryKey: ["url-metadata", deletedUrl.url],
-                              });
-                            }
-                          }
+                    // Clean up React Query cache for deleted URL before delete
+                    const current = currentList.get();
+                    if (current?.urls) {
+                      const currentUrls = current.urls as unknown as UrlItem[];
+                      const deletedUrl = currentUrls.find(
+                        (url) => url.id === urlId
+                      );
+                      if (deletedUrl) {
+                        queryClient.removeQueries({
+                          queryKey: ["url-metadata", deletedUrl.url],
+                        });
+                      }
+                    }
 
-                          // Perform delete (it does optimistic update internally)
-                          removeUrlFromList(urlId)
-                            .catch((err) => {
-                              console.error("Failed to delete URL:", err);
-                              // Revert on error - fetch fresh data
-                              if (current?.slug) {
-                                getList(current.slug);
-                              }
-                            })
-                            .finally(() => {
-                              // Clear flag after operation completes
-                              setTimeout(() => {
-                                isLocalOperationRef.current = false;
-                              }, 2000);
-                            });
-                        }}
-                        onToggleFavorite={handleToggleFavorite}
-                        onShare={handleShare}
-                        onUrlClick={handleUrlClick}
-                        onDuplicate={handleDuplicate}
-                        onArchive={handleArchive}
-                        onPin={handlePin}
-                        shareTooltip={shareTooltip}
-                        isMetadataReady={isMetadataReady}
-                      />
-                    )}
-                  </Draggable>
-                ))}
-                {provided.placeholder}
-              </div>
-            )}
-          </Droppable>
-        </DragDropContext>
+                    // Perform delete (it does optimistic update internally)
+                    removeUrlFromList(urlId)
+                      .catch((err) => {
+                        console.error("Failed to delete URL:", err);
+                        // Revert on error - fetch fresh data
+                        if (current?.slug) {
+                          getList(current.slug);
+                        }
+                      })
+                      .finally(() => {
+                        // Clear flag after operation completes
+                        setTimeout(() => {
+                          isLocalOperationRef.current = false;
+                        }, 2000);
+                      });
+                  }}
+                  onToggleFavorite={handleToggleFavorite}
+                  onShare={handleShare}
+                  onUrlClick={handleUrlClick}
+                  onDuplicate={handleDuplicate}
+                  onArchive={handleArchive}
+                  onPin={handlePin}
+                  shareTooltip={shareTooltip}
+                  isMetadataReady={isMetadataReady}
+                />
+              ))}
+            </div>
+          </SortableContext>
+        </DndContext>
       )}
 
       {/* Archived URLs List */}

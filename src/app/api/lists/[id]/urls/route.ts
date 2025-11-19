@@ -240,7 +240,12 @@ export async function POST(req: NextRequest, context: RouteContext) {
 
     const currentUrls = (currentList.urls as unknown as UrlItem[]) || [];
 
-    // Create new URL item
+    // Create new URL item with position (at the end)
+    const maxPosition = currentUrls.reduce((max, u) => {
+      const pos = u.position ?? 0;
+      return pos > max ? pos : max;
+    }, -1);
+
     const newUrl: UrlItem = {
       id: crypto.randomUUID(),
       url,
@@ -253,10 +258,13 @@ export async function POST(req: NextRequest, context: RouteContext) {
       reminder,
       category: category || metadata?.siteName,
       clickCount: 0,
+      position: maxPosition + 1, // Add at the end
     };
 
-    // Add URL to list
-    const updatedUrls = [...currentUrls, newUrl];
+    // Add URL to list and sort by position
+    const updatedUrls = [...currentUrls, newUrl].sort(
+      (a, b) => (a.position ?? 999) - (b.position ?? 999)
+    );
     const updated = await updateList(listId, { urls: updatedUrls });
 
     // Use provided metadata if available (from cache), otherwise fetch it
@@ -368,7 +376,9 @@ export async function POST(req: NextRequest, context: RouteContext) {
       });
     }
 
-    console.log(`✅ [POST] URL added: ${url}${isDuplicate ? " (duplicated)" : ""}`);
+    console.log(
+      `✅ [POST] URL added: ${url}${isDuplicate ? " (duplicated)" : ""}`
+    );
     // Return unified response
     return NextResponse.json({
       success: true,
@@ -426,9 +436,22 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
       metadata?: UrlMetadata;
     } = body;
 
+    // Log what we received from client
+    if (reorderedUrls && Array.isArray(reorderedUrls)) {
+      const receivedOrder = reorderedUrls.map((u: UrlItem) => u.id).join(",");
+      console.log(`📥 [PATCH] Received reorder request`, {
+        listId: listId,
+        receivedOrder: receivedOrder,
+        urlCount: reorderedUrls.length,
+        action: requestAction,
+      });
+    }
+
     // Support both single URL update and bulk reorder
-    const isReorderOperation = requestAction === "reorder" || (reorderedUrls && Array.isArray(reorderedUrls));
-    
+    const isReorderOperation =
+      requestAction === "reorder" ||
+      (reorderedUrls && Array.isArray(reorderedUrls));
+
     if (isReorderOperation) {
       // Reorder operation - use reorderedUrls
       if (!reorderedUrls || !Array.isArray(reorderedUrls)) {
@@ -463,46 +486,68 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
     }
 
     const currentUrls = (currentList.urls as unknown as UrlItem[]) || [];
-    
+
     let updated: any;
     let updatedUrls: UrlItem[];
     let updatedUrl: UrlItem | undefined;
-    
+
     if (isReorderOperation) {
-      // Reorder operation - update entire URLs array
-      updatedUrls = reorderedUrls!;
+      // Reorder operation - use position-based system instead of array reordering
+      // This is much simpler and more reliable!
+
+      // If reorderedUrls is provided, extract position from each URL
+      // Create a map of URL ID to position
+      const positionMap = new Map<string, number>();
+      reorderedUrls!.forEach((url: UrlItem, index: number) => {
+        positionMap.set(url.id, index);
+      });
+
+      // Update positions in existing URLs array (preserve all other data)
+      updatedUrls = currentUrls.map((url) => {
+        const newPosition = positionMap.get(url.id);
+        if (newPosition !== undefined) {
+          return { ...url, position: newPosition };
+        }
+        return url;
+      });
+
+      // Sort by position for consistent storage
+      updatedUrls.sort((a, b) => (a.position ?? 999) - (b.position ?? 999));
+
+      const orderToSave = updatedUrls.map((u) => u.id).join(",");
+      console.log(`💾 [PATCH] Updating positions`, {
+        listId: listId,
+        orderToSave: orderToSave,
+        urlCount: updatedUrls.length,
+      });
+
       updated = await updateList(listId, { urls: updatedUrls });
-      
-      // Detect if URLs were actually reordered
-      const isReordered =
-        JSON.stringify(updatedUrls.map((u) => u.id)) !==
-        JSON.stringify(currentUrls.map((u) => u.id));
-      
-      if (!isReordered) {
-        // Order unchanged, return early with success
-        return NextResponse.json({
-          success: true,
-          list: updated,
-        });
-      }
-      
+
+      const savedUrls = (updated.urls as unknown as UrlItem[]) || [];
+      const savedOrder = savedUrls.map((u) => u.id).join(",");
+      console.log(`✅ [PATCH] Positions updated`, {
+        listId: listId,
+        savedOrder: savedOrder,
+        matchesSent: savedOrder === orderToSave,
+      });
+
       // For reorder, we don't have a single updatedUrl, so set to undefined
       updatedUrl = undefined;
     } else {
       // Single URL update operation
       const urlToUpdate = currentUrls.find((u) => u.id === urlId);
-      
+
       if (!urlToUpdate) {
         return NextResponse.json({ error: "URL not found" }, { status: 404 });
       }
-      
+
       // Update URL
       const updatedUrlItem: UrlItem = {
         ...urlToUpdate,
         ...updates!,
         updatedAt: new Date().toISOString(),
       };
-      
+
       updatedUrl = updatedUrlItem; // Set for later use
       updatedUrls = currentUrls.map((u) =>
         u.id === urlId ? updatedUrlItem : u
@@ -511,7 +556,11 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
     }
 
     // Check if URL changed (need to fetch new metadata) - only for single URL update
-    const urlChanged = !isReorderOperation && updates?.url && updatedUrl && currentUrls.find((u) => u.id === urlId)?.url !== updatedUrl.url;
+    const urlChanged =
+      !isReorderOperation &&
+      updates?.url &&
+      updatedUrl &&
+      currentUrls.find((u) => u.id === urlId)?.url !== updatedUrl.url;
 
     // If URL changed, fetch metadata for the new URL
     let urlMetadata: UrlMetadata | undefined;
@@ -585,7 +634,7 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
     // Detect what changed to create appropriate activity
     let activityAction = "url_updated";
     let activityDetails: Record<string, unknown> = {};
-    
+
     if (isReorderOperation) {
       // Reorder operation - create url_reordered activity
       activityAction = "url_reordered";
@@ -609,7 +658,9 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
 
       // Determine activity action based on what changed
       if (isOnlyFavoriteChange) {
-        activityAction = updatedUrl.isFavorite ? "url_favorited" : "url_unfavorited";
+        activityAction = updatedUrl.isFavorite
+          ? "url_favorited"
+          : "url_unfavorited";
       } else if (isOnlyPinChange) {
         activityAction = updatedUrl.isPinned ? "url_pinned" : "url_unpinned";
       }
@@ -676,7 +727,13 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
     }
 
     if (isReorderOperation) {
-      console.log(`✅ [PATCH] URLs reordered (action: ${activityAction})`);
+      const savedOrder =
+        (updated.urls as unknown as UrlItem[])?.map((u: UrlItem) => u.id) || [];
+      console.log(`✅ [PATCH] URLs reordered (action: ${activityAction})`, {
+        savedOrder: savedOrder.join(","),
+        urlCount: savedOrder.length,
+        listId: listId,
+      });
       // Return unified response for reorder
       return NextResponse.json({
         success: true,
@@ -693,7 +750,9 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
         },
       });
     } else {
-      console.log(`✅ [PATCH] URL updated: ${updatedUrl?.url} (action: ${activityAction})`);
+      console.log(
+        `✅ [PATCH] URL updated: ${updatedUrl?.url} (action: ${activityAction})`
+      );
       // Return unified response for single URL update
       return NextResponse.json({
         success: true,
