@@ -162,13 +162,34 @@ export async function uploadExternalImage(
       // We intentionally ignore the error to proceed with upload
     }
 
-    // Fetch the image from the external URL
-    const response = await fetch(imageUrl, {
-      headers: {
-        "User-Agent":
-          "Mozilla/5.0 (compatible; UrllistBot/1.0; +https://urlist.com)",
-      },
-    });
+    // Fetch the image from the external URL with timeout to prevent hanging
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+    
+    let response: Response;
+    try {
+      response = await fetch(imageUrl, {
+        headers: {
+          "User-Agent":
+            "Mozilla/5.0 (compatible; UrllistBot/1.0; +https://urlist.com)",
+        },
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId); // Clear timeout on success
+    } catch (fetchError) {
+      clearTimeout(timeoutId); // Clear timeout on error
+      // Timeout or network error - don't block, just return null
+      if (fetchError instanceof Error && fetchError.name === "AbortError") {
+        console.warn(
+          `Timeout fetching image from ${imageUrl} (exceeded 10s)`
+        );
+      } else {
+        console.warn(`Failed to fetch image from ${imageUrl}:`, fetchError);
+      }
+      // Cache empty string to indicate failure
+      imageUploadCache.set(cacheKey, "");
+      return null;
+    }
 
     if (!response.ok) {
       console.warn(

@@ -70,6 +70,19 @@ export function useRealtimeList(listId: string | null) {
           if (data.type === "connected") {
             console.log("✅ [REALTIME] Connected to list updates");
           } else if (data.type === "list_updated") {
+            // CRITICAL: Skip all real-time events during bulk import to prevent getList spam
+            if (
+              typeof window !== "undefined" &&
+              (window as any).__bulkImportActive
+            ) {
+              if (process.env.NODE_ENV === "development") {
+                console.debug(
+                  "⏭️ [REALTIME] Skipping list_updated - bulk import in progress"
+                );
+              }
+              return; // Don't dispatch any events during bulk import
+            }
+
             // Check if this is a metadata change (needs immediate update)
             const isMetadataChange = data.action === "list_made_public" || 
                                      data.action === "list_made_private" ||

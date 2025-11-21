@@ -1,6 +1,13 @@
 import { atom, map } from "nanostores";
 import { queryClient } from "@/lib/react-query";
 import type { UrlMetadata } from "@/utils/urlMetadata";
+import {
+  syncDragOrderCacheWithServer,
+  getCachedDragOrder,
+  updateDragOrderCache,
+  clearDragOrderCache,
+  getDragOrderStorageKey,
+} from "./dragOrderCache";
 
 export interface UrlItem {
   id: string;
@@ -50,17 +57,109 @@ export function setDragInProgress(value: boolean) {
   isDragInProgress = value;
 }
 
-export async function getList(slug: string, skipIfDragInProgress = false) {
+// Track pending getList requests so we can cancel them
+let activeGetListController: AbortController | null = null;
+
+export async function getList(
+  slug: string,
+  skipIfDragInProgress = false,
+  abortSignal?: AbortSignal
+) {
+  // CRITICAL: Skip ALL getList calls during bulk import to prevent spam
+  if (typeof window !== "undefined" && (window as any).__bulkImportActive) {
+    if (process.env.NODE_ENV === "development") {
+      console.debug(
+        `⏭️ [STORE] Skipping getList('${slug}') - bulk import in progress`
+      );
+    }
+    // Return current list state if available, otherwise null
+    const current = currentList.get();
+    return (current?.slug === slug ? (current as UrlList) : null);
+  }
+
   // Skip if drag is in progress and we're asked to respect it
   if (skipIfDragInProgress && isDragInProgress) {
     const current = currentList.get();
     return current as UrlList | null;
   }
+
+  // Check if already aborted before starting
+  if (abortSignal?.aborted) {
+    return null;
+  }
+
+  // Cancel any existing getList request
+  if (activeGetListController) {
+    activeGetListController.abort();
+    activeGetListController = null;
+  }
+
+  // Create new abort controller for this request
+  const controller = new AbortController();
+  activeGetListController = controller;
+
+  // Combine abort signals (external + internal)
+  if (abortSignal) {
+    if (abortSignal.aborted) {
+      return null;
+    }
+    const abortHandler = () => controller.abort();
+    abortSignal.addEventListener("abort", abortHandler);
+    // Clean up listener when request completes
+    const cleanup = () => {
+      abortSignal.removeEventListener("abort", abortHandler);
+    };
+    (controller.signal as any)._cleanup = cleanup;
+  }
+
   isLoading.set(true);
   error.set(null);
 
   try {
-    const response = await fetch(`/api/lists/${slug}`);
+    // Add timeout to prevent hanging indefinitely (5 seconds max - reduced from 10)
+    // This prevents getList requests from hanging and blocking the UI
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      setTimeout(() => {
+        controller.abort();
+        reject(new Error("getList timeout after 5 seconds"));
+      }, 5000);
+    });
+
+    // Register with global abort registry to ensure cleanup
+    if (typeof window !== "undefined") {
+      try {
+        const { abortRegistry } = await import("@/utils/abortRegistry");
+        if (abortRegistry) {
+          abortRegistry.register(controller);
+        }
+      } catch {
+        // Ignore import errors
+      }
+    }
+
+    const fetchPromise = fetch(`/api/lists/${slug}`, {
+      signal: controller.signal,
+    });
+
+    const response = await Promise.race([fetchPromise, timeoutPromise]);
+
+    // Unregister from abort registry after successful fetch
+    if (typeof window !== "undefined") {
+      try {
+        const { abortRegistry } = await import("@/utils/abortRegistry");
+        if (abortRegistry) {
+          abortRegistry.unregister(controller);
+        }
+      } catch {
+        // Ignore import errors
+      }
+    }
+
+    // Clean up abort listener
+    if ((controller.signal as any)?._cleanup) {
+      (controller.signal as any)._cleanup();
+    }
+
     if (!response.ok) throw new Error("Failed to fetch list");
 
     const { list } = await response.json();
@@ -147,96 +246,46 @@ export async function getList(slug: string, skipIfDragInProgress = false) {
       // This prevents getList from overwriting drag order even after Fast Refresh
       // Using localStorage AND global variable because Fast Refresh might clear localStorage
       // Use list.id from server (always available) instead of current?.id (might be empty after Fast Refresh)
+      // Use centralized cache management for drag order
+      // This handles: URL add/delete, drag operations, HMR, SSE real-time updates
       let preservedOrder: UrlItem[] | null = null;
       if (typeof window !== "undefined" && list?.id) {
         try {
-          const storageKey = `drag-order:${list.id}`;
+          // Sync cache with server state (clears stale data, validates current data)
+          const syncResult = syncDragOrderCacheWithServer(
+            list.id,
+            newUrls,
+            skipIfDragInProgress && isDragInProgress
+          );
 
-          // FIRST: Check global cache (survives Fast Refresh better)
-          const globalCache = (window as any).__dragOrderCache;
-          if (globalCache && globalCache[storageKey]) {
-            preservedOrder = globalCache[storageKey];
-            if (preservedOrder) {
-              console.log("✅ [STORE] Found preserved order in global cache", {
-                listId: list.id,
-                order: preservedOrder.map((u) => u.id),
-              });
-            }
+          if (syncResult.cleared) {
+            // console.log("🧹 [STORE] Synced cache with server - cleared stale data", {
+            //   listId: list.id,
+            //   serverCount: newUrls.length,
+            // });
+          } else if (syncResult.updated) {
+            // console.log("🔄 [STORE] Synced cache with server - updated cache", {
+            //   listId: list.id,
+            //   serverCount: newUrls.length,
+            // });
           }
 
-          // THEN: Check localStorage (backup if global cache missing)
-          const stored = localStorage.getItem(storageKey);
+          // Get cached order if valid (after sync, so it's guaranteed to be valid)
+          preservedOrder = getCachedDragOrder(list.id, newUrls);
 
-          // CRITICAL: Also verify by reading again to ensure it's not a stale read
-          const verifyStored = localStorage.getItem(storageKey);
-
-          console.log("🔍 [STORE] getList checking localStorage", {
-            listId: list.id,
-            hasGlobalCache: !!preservedOrder,
-            hasStored: !!stored,
-            hasVerifyStored: !!verifyStored,
-            storedMatchesVerify: stored === verifyStored,
-            storedLength: stored?.length,
-            verifyLength: verifyStored?.length,
-            currentEmpty: !current,
-            currentId: current?.id,
-          });
-
-          // Use localStorage if global cache didn't have it
-          if (!preservedOrder && stored) {
-            const parsed = JSON.parse(stored) as UrlItem[];
-            // Use newUrls from server response for comparison (they're the latest)
-            if (parsed.length === newUrls.length) {
-              const storedIds = new Set(parsed.map((u) => u.id));
-              const serverIds = new Set(newUrls.map((u) => u.id));
-              const sameIds =
-                storedIds.size === serverIds.size &&
-                [...storedIds].every((id) => serverIds.has(id));
-
-              if (sameIds) {
-                preservedOrder = parsed;
-                console.log(
-                  "✅ [STORE] Found preserved order in localStorage",
-                  {
-                    preserved: parsed.map((u) => u.id),
-                    server: newUrls.map((u) => u.id),
-                  }
-                );
-              } else {
-                console.log(
-                  "⚠️ [STORE] Preserved order has different URLs, ignoring",
-                  {
-                    preserved: parsed.map((u) => u.id),
-                    server: newUrls.map((u) => u.id),
-                  }
-                );
-              }
-            } else {
-              console.log(
-                "⚠️ [STORE] Preserved order has different length, ignoring",
-                {
-                  preservedLength: parsed.length,
-                  serverLength: newUrls.length,
-                }
-              );
-            }
-          } else {
-            console.log("⏭️ [STORE] No preserved order in localStorage");
+          if (preservedOrder) {
+            // console.log("✅ [STORE] Found valid cached drag order", {
+            //   listId: list.id,
+            //   order: preservedOrder.map((u) => u.id),
+            //   count: preservedOrder.length,
+            // });
           }
         } catch (err) {
-          console.error(
-            "❌ [STORE] Failed to read localStorage in getList",
-            err
-          );
+          // console.error(
+          //   "❌ [STORE] Failed to sync drag order cache in getList",
+          //   err
+          // );
         }
-      } else {
-        console.log(
-          "⏭️ [STORE] Cannot check localStorage - missing list.id or window",
-          {
-            hasListId: !!list?.id,
-            hasWindow: typeof window !== "undefined",
-          }
-        );
       }
 
       // If ONLY order changed (same URLs, same content, just reordered), preserve optimistic order
@@ -254,10 +303,10 @@ export async function getList(slug: string, skipIfDragInProgress = false) {
           ...list,
           urls: orderToUse, // Keep optimistic/sessionStorage order - user's action takes precedence
         };
-        console.log("🔄 [STORE] Preserving drag order (only order changed)", {
-          preserved: orderToUse.map((u) => u.id),
-          server: newUrls.map((u) => u.id),
-        });
+        // console.log("🔄 [STORE] Preserving drag order (only order changed)", {
+        //   preserved: orderToUse.map((u) => u.id),
+        //   server: newUrls.map((u) => u.id),
+        // });
         currentList.set(mergedList);
         return currentList.get() as UrlList; // Return the preserved state
       } else if (preservedOrder) {
@@ -266,10 +315,10 @@ export async function getList(slug: string, skipIfDragInProgress = false) {
           ...list,
           urls: preservedOrder,
         };
-        console.log("🔄 [STORE] Preserving drag order (drag in progress)", {
-          preserved: preservedOrder.map((u) => u.id),
-          server: newUrls.map((u) => u.id),
-        });
+        // console.log("🔄 [STORE] Preserving drag order (drag in progress)", {
+        //   preserved: preservedOrder.map((u) => u.id),
+        //   server: newUrls.map((u) => u.id),
+        // });
         currentList.set(mergedList);
         return currentList.get() as UrlList;
       } else {
@@ -296,14 +345,14 @@ export async function getList(slug: string, skipIfDragInProgress = false) {
               ...list,
               urls: currentUrls, // Keep current order - user's action takes precedence
             };
-            console.log(
-              "🔄 [STORE] Preserving current order (reorder detected)",
-              {
-                current: currentUrls.map((u) => u.id),
-                server: newUrls.map((u) => u.id),
-                note: "User's drag order preserved over server order",
-              }
-            );
+            // console.log(
+            //   "🔄 [STORE] Preserving current order (reorder detected)",
+            //   {
+            //     current: currentUrls.map((u) => u.id),
+            //     server: newUrls.map((u) => u.id),
+            //     note: "User's drag order preserved over server order",
+            //   }
+            // );
             currentList.set(mergedList);
             return currentList.get() as UrlList;
           }
@@ -311,19 +360,69 @@ export async function getList(slug: string, skipIfDragInProgress = false) {
 
         // Normal update - URLs were added/removed/changed OR metadata changed
         // Always update from server for content/metadata changes (especially for cross-window updates)
-        console.log("🔄 [STORE] Using server order (normal update)", {
-          server: newUrls.map((u) => u.id),
-          current: currentUrls.map((u) => u.id),
-        });
+        // Sync cache with server state after update (handles URL add/delete/SSE updates)
+        if (list?.id) {
+          syncDragOrderCacheWithServer(list.id, newUrls, skipIfDragInProgress && isDragInProgress);
+        }
+        
+        // console.log("🔄 [STORE] Using server order (normal update)", {
+        //   server: newUrls.map((u) => u.id),
+        //   current: currentUrls.map((u) => u.id),
+        // });
         currentList.set(list);
       }
     }
     return (currentList.get() as UrlList) || list;
   } catch (err) {
-    error.set(err instanceof Error ? err.message : "Failed to fetch list");
+    // Unregister from abort registry on error
+    if (typeof window !== "undefined" && controller) {
+      // Use dynamic import without await (fire and forget)
+      import("@/utils/abortRegistry")
+        .then(({ abortRegistry }) => {
+          if (abortRegistry) {
+            abortRegistry.unregister(controller);
+          }
+        })
+        .catch(() => {
+          // Ignore import errors
+        });
+    }
+
+    // Check if this is an abort error or timeout
+    const isAborted =
+      err instanceof Error &&
+      (err.name === "AbortError" ||
+        err.message === "getList timeout after 5 seconds" ||
+        err.message.includes("aborted"));
+
+    // Don't set error for abort/timeout - just return null silently
+    if (!isAborted) {
+      error.set(err instanceof Error ? err.message : "Failed to fetch list");
+    }
+
+    if (process.env.NODE_ENV === "development" && isAborted) {
+      console.debug(`getList fetch aborted for slug: ${slug}`);
+    }
+
     return null;
   } finally {
+    // Clean up controller reference
+    if (activeGetListController === controller) {
+      activeGetListController = null;
+    }
+    // Clean up abort signal listener
+    if ((controller.signal as any)?._cleanup) {
+      (controller.signal as any)._cleanup();
+    }
     isLoading.set(false);
+  }
+}
+
+// Export function to cancel all pending getList requests
+export function cancelPendingGetList() {
+  if (activeGetListController) {
+    activeGetListController.abort();
+    activeGetListController = null;
   }
 }
 
@@ -335,10 +434,16 @@ export async function addUrlToList(
   reminder?: string,
   category?: string,
   existingMetadata?: unknown, // Optional metadata from cache (to avoid re-fetching)
-  isDuplicate?: boolean // Optional flag to indicate this is a duplicate operation
+  isDuplicate?: boolean, // Optional flag to indicate this is a duplicate operation
+  abortSignal?: AbortSignal // Optional abort signal to cancel the request
 ) {
   const current = currentList.get();
   if (!current.id || !current.urls) return;
+
+  // Check if already aborted before starting
+  if (abortSignal?.aborted) {
+    throw new Error("Request aborted");
+  }
 
   isLoading.set(true);
   error.set(null);
@@ -361,10 +466,44 @@ export async function addUrlToList(
     const currentUrls = current.urls as unknown as UrlItem[];
     const updatedUrls = [...currentUrls, newUrl];
 
+    // CRITICAL: Clear cache IMMEDIATELY before optimistic update
+    // This prevents component render from seeing stale cache (n URLs when server will have n+1)
+    // Must happen BEFORE store update to ensure cache is clean when component renders
+    // Preserves drag operations, HMR, and SSE by clearing only when URLs actually change
+    if (updatedUrls.length !== currentUrls.length && current.id) {
+      clearDragOrderCache(current.id);
+    }
+
     // Optimistic update - add immediately
     currentList.set({ ...current, urls: updatedUrls });
 
     // Use unified POST endpoint that handles add, metadata fetching, activity, and real-time updates
+    // Pass abort signal to fetch to allow cancellation
+    // Register with global abort registry to ensure cleanup
+    const controller = new AbortController();
+    
+    // If abortSignal is provided, link it to our controller
+    if (abortSignal) {
+      if (abortSignal.aborted) {
+        throw new Error("Request aborted");
+      }
+      abortSignal.addEventListener("abort", () => controller.abort());
+    }
+    
+    // Register controller synchronously with abort registry
+    // CRITICAL: Must import synchronously to ensure registration happens before fetch
+    if (typeof window !== "undefined") {
+      // Use direct import (abortRegistry is already imported at top of file)
+      // But we need to handle the case where it might not be available yet
+      import("@/utils/abortRegistry").then(({ abortRegistry }) => {
+        if (abortRegistry) {
+          abortRegistry.register(controller);
+        }
+      }).catch(() => {
+        // Ignore import errors
+      });
+    }
+
     const response = await fetch(`/api/lists/${current.id}/urls`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -378,6 +517,18 @@ export async function addUrlToList(
         metadata: existingMetadata, // Pass existing metadata if available (from AI enhancement or cache)
         isDuplicate: isDuplicate || false, // Pass duplicate flag if this is a duplicate operation
       }),
+      signal: controller.signal || abortSignal, // Pass abort signal to fetch
+    }).finally(() => {
+      // Clean up controller after fetch completes
+      if (typeof window !== "undefined") {
+        import("@/utils/abortRegistry").then(({ abortRegistry }) => {
+          if (abortRegistry) {
+            abortRegistry.unregister(controller);
+          }
+        }).catch(() => {
+          // Ignore import errors
+        });
+      }
     });
 
     if (!response.ok) throw new Error("Failed to add URL");
@@ -685,6 +836,14 @@ export async function removeUrlFromList(urlId: string) {
     const currentUrls = current.urls as unknown as UrlItem[];
     const updatedUrls = currentUrls.filter((url) => url.id !== urlId);
 
+    // CRITICAL: Clear cache IMMEDIATELY before optimistic update
+    // This prevents component render from seeing stale cache (7 URLs when server has 6)
+    // Must happen BEFORE store update to ensure cache is clean when component renders
+    // Preserves drag operations, HMR, and SSE by clearing only when URLs actually change
+    if (updatedUrls.length !== currentUrls.length && current.id) {
+      clearDragOrderCache(current.id);
+    }
+
     // Optimistic update - remove immediately (no need to re-fetch metadata on delete)
     // We keep the existing URLs with their metadata, just remove the deleted one
     const deletedUrl = currentUrls.find((url) => url.id === urlId);
@@ -739,6 +898,18 @@ export async function removeUrlFromList(urlId: string) {
         urls: serverUrls, // Use server URLs (unexpected scenario)
         updatedAt: list.updatedAt, // Update timestamp
       });
+    }
+
+    // Sync drag order cache with server state after URL delete
+    // This ensures localStorage stays in sync with real-time updates (SSE)
+    // Handles: URL delete, real-time updates, HMR/Fast Refresh
+    if (current.id) {
+      const finalUrls = currentList.get().urls as unknown as UrlItem[];
+      syncDragOrderCacheWithServer(
+        current.id,
+        finalUrls || serverUrls,
+        false // Allow update after delete operation completes
+      );
     }
 
     // Dispatch activity data for optimistic feed update

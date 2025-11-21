@@ -290,18 +290,44 @@ export async function POST(req: NextRequest, context: RouteContext) {
           }
         }
 
-        // If not in cache, fetch from web
+        // If not in cache, return fallback immediately and fetch metadata in background
+        // CRITICAL: This makes the POST endpoint return FAST (<100ms) instead of waiting
         if (!finalMetadata) {
-          finalMetadata = await fetchUrlMetadata(url);
-          // Cache metadata in Redis
-          if (redis) {
+          // Use fallback metadata immediately to return fast
+          finalMetadata = {
+            title: new URL(url).hostname.replace(/^www\./, ""),
+            description: undefined,
+            image: undefined,
+            favicon: undefined,
+            siteName: new URL(url).hostname.replace(/^www\./, ""),
+          };
+
+          // Fetch metadata in background (non-blocking) - don't await
+          // This allows the POST request to return immediately (<100ms) while metadata is fetched
+          // Metadata will be cached for future requests
+          Promise.resolve().then(async () => {
             try {
-              const urlCacheKey = cacheKeys.urlMetadata(url);
-              await redis.set(urlCacheKey, finalMetadata, { ex: 86400 * 7 }); // 7 days TTL
+              // Use a short timeout for server-side fetch (1 second max wait)
+              const metadata = await Promise.race([
+                fetchUrlMetadata(url, 1000).catch(() => ({})),
+                new Promise<UrlMetadata>((resolve) => {
+                  setTimeout(() => resolve({}), 1000);
+                }),
+              ]);
+
+              // If we got actual metadata, update it in cache for future requests
+              if (metadata && Object.keys(metadata).length > 0 && redis) {
+                try {
+                  const urlCacheKey = cacheKeys.urlMetadata(url);
+                  await redis.set(urlCacheKey, metadata, { ex: 86400 * 7 }); // 7 days TTL
+                } catch {
+                  // Ignore Redis errors
+                }
+              }
             } catch {
-              // Ignore Redis errors
+              // Silently fail - we already have fallback metadata
             }
-          }
+          });
         }
       } catch (error) {
         finalMetadata = {

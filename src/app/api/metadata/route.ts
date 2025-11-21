@@ -23,7 +23,7 @@ export async function GET(request: Request) {
         "Upgrade-Insecure-Requests": "1",
       },
       redirect: "follow",
-      signal: AbortSignal.timeout(15000), // 15 second timeout
+      signal: AbortSignal.timeout(10000), // 10 second timeout - faster failure, less blocking
     });
 
     // Check content type - if it's not HTML, return fallback
@@ -91,6 +91,23 @@ export async function GET(request: Request) {
           favicon: fallbackFavicon,
           siteName: new URL(url).hostname.replace(/^www\./, ""),
           error: `No metadata available (HTTP ${response.status})`,
+        });
+      }
+      // For rate limiting (429), return empty metadata instead of throwing
+      // This allows import to continue with imported data
+      if (response.status === 429) {
+        if (process.env.NODE_ENV === "development") {
+          console.warn(
+            `⚠️ [METADATA] Rate limited (429) for ${url} - using imported data`
+          );
+        }
+        return NextResponse.json({
+          title: new URL(url).hostname.replace(/^www\./, ""),
+          description: null,
+          image: undefined,
+          favicon: undefined,
+          siteName: new URL(url).hostname.replace(/^www\./, ""),
+          error: `Rate limited (429) - using imported data`,
         });
       }
       throw new Error(
@@ -683,13 +700,28 @@ export async function GET(request: Request) {
       : null;
 
     const faviconUrl = await getFavicon();
-    const optimizedFavicon = faviconUrl
-      ? await uploadExternalImage(faviconUrl, {
-          width: 32,
-          height: 32,
-          quality: "auto",
-        })
-      : null;
+    let optimizedFavicon: string | null = null;
+    if (faviconUrl) {
+      try {
+        // Wrap in timeout to prevent blocking if uploadExternalImage hangs
+        optimizedFavicon = await Promise.race([
+          uploadExternalImage(faviconUrl, {
+            width: 32,
+            height: 32,
+            quality: "auto",
+          }),
+          new Promise<null>((resolve) =>
+            setTimeout(() => {
+              console.warn(`Favicon upload timeout for ${faviconUrl}`);
+              resolve(null);
+            }, 15000)
+          ),
+        ]);
+      } catch (error) {
+        console.warn(`Error optimizing favicon ${faviconUrl}:`, error);
+        optimizedFavicon = null;
+      }
+    }
 
     const metadata = {
       title: getTitle(),

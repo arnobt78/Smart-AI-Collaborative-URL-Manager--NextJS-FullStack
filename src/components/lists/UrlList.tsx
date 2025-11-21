@@ -31,6 +31,11 @@ import {
   setDragInProgress,
   type UrlItem,
 } from "@/stores/urlListStore";
+import {
+  updateDragOrderCache,
+  syncDragOrderCacheWithServer,
+  getDragOrderStorageKey,
+} from "@/stores/dragOrderCache";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
@@ -185,9 +190,9 @@ export function UrlList() {
         // Populate React Query cache immediately so cards don't fetch
         const queryKey = ["url-metadata", url] as const;
         queryClient.setQueryData(queryKey, metadata);
-        console.log(
-          `✅ [POST] Populated React Query cache for: ${url.slice(0, 40)}...`
-        );
+        // console.log(
+        //   `✅ [POST] Populated React Query cache for: ${url.slice(0, 40)}...`
+        // );
       }
     };
 
@@ -247,6 +252,58 @@ export function UrlList() {
   // Real-time updates subscription
   useRealtimeList(list?.id || null);
 
+  // CRITICAL: Clear finalDragOrderRef when URLs are added/deleted (not just reordered)
+  // This prevents stale ref data from causing warnings after URL add/delete operations
+  // Preserves drag operations by only clearing when URLs actually change (length or IDs)
+  useEffect(() => {
+    if (!list?.id || !list?.urls) {
+      // List is empty or not loaded - clear ref
+      if (finalDragOrderRef.current) {
+        finalDragOrderRef.current = null;
+      }
+      return;
+    }
+
+    const currentUrls = (list.urls as unknown as UrlItem[]) || [];
+    const refOrder = finalDragOrderRef.current;
+
+    // Only clear if ref has data that doesn't match store (URLs were added/deleted)
+    if (refOrder) {
+      const refLength = refOrder.length;
+      const storeLength = currentUrls.length;
+
+      // Check if lengths match
+      if (refLength !== storeLength) {
+        // URLs were added/deleted - clear ref to prevent warnings
+        // console.log("🧹 [REF] Clearing finalDragOrderRef - URLs added/deleted", {
+        //   refLength,
+        //   storeLength,
+        //   listId: list.id,
+        // });
+        finalDragOrderRef.current = null;
+      } else {
+        // Same length - check if IDs match (might be reorder, but could be replace)
+        const refIds = new Set(refOrder.map((u) => u.id));
+        const storeIds = new Set(currentUrls.map((u) => u.id));
+        const sameIds =
+          refIds.size === storeIds.size &&
+          [...refIds].every((id) => storeIds.has(id));
+
+        if (!sameIds) {
+          // Different URLs (replaced, not reordered) - clear ref
+          // console.log("🧹 [REF] Clearing finalDragOrderRef - URLs replaced", {
+          //   refIds: Array.from(refIds),
+          //   storeIds: Array.from(storeIds),
+          //   listId: list.id,
+          // });
+          finalDragOrderRef.current = null;
+        }
+        // If same IDs and same length, it's just a reorder - preserve ref (drag operation)
+      }
+    }
+    // If ref is null, nothing to clear - this is expected after cache clear
+  }, [list?.id, list?.urls]);
+
   // Fetch all metadata from unified API endpoint when list loads
   // This acts as a middleware/proxy layer that returns all metadata instantly
   // IMPORTANT: This must run BEFORE cards render to prevent individual API calls
@@ -304,9 +361,9 @@ export function UrlList() {
     // Skip batch fetch if a local operation is in progress (delete, add, etc.)
     // This prevents unnecessary metadata fetches during optimistic updates
     if (isLocalOperationRef.current) {
-      console.log(
-        `⏭️ [BATCH] Skipping batch fetch - local operation in progress`
-      );
+      // console.log(
+      //   `⏭️ [BATCH] Skipping batch fetch - local operation in progress`
+      // );
       return;
     }
 
@@ -326,9 +383,9 @@ export function UrlList() {
         return !!queryClient.getQueryData<UrlMetadata>(queryKey);
       });
       if (allCached) {
-        console.log(
-          `⏭️ [BATCH] Already prefetched and cached for this list state (${urlCount} unique URLs)`
-        );
+        // console.log(
+        //   `⏭️ [BATCH] Already prefetched and cached for this list state (${urlCount} unique URLs)`
+        // );
         return; // Already done
       }
       // Cache incomplete, need to re-fetch
@@ -357,11 +414,11 @@ export function UrlList() {
 
           // Only log significant events (cache misses, errors)
           if (!cached) {
-            console.log(
-              `🔄 [BATCH] Fetched ${metadataCount} metadata entries from web (${fetchTime.toFixed(
-                2
-              )}ms)`
-            );
+            // console.log(
+            //   `🔄 [BATCH] Fetched ${metadataCount} metadata entries from web (${fetchTime.toFixed(
+            //     2
+            //   )}ms)`
+            // );
           }
 
           // Hydrate React Query cache and localStorage with all metadata instantly
@@ -423,10 +480,10 @@ export function UrlList() {
                 }
               } catch (error) {
                 // Ignore prefetch errors (non-critical)
-                console.warn(
-                  `  ⚠️ [BATCH] Failed to prefetch image for ${url}:`,
-                  error
-                );
+                // console.warn(
+                //   `  ⚠️ [BATCH] Failed to prefetch image for ${url}:`,
+                //   error
+                // );
               }
             }
 
@@ -457,13 +514,13 @@ export function UrlList() {
             refetchType: "none",
           });
         } else {
-          console.error(
-            `❌ [BATCH] API error: ${response.status} ${response.statusText}`
-          );
+          // console.error(
+          //   `❌ [BATCH] API error: ${response.status} ${response.statusText}`
+          // );
           prefetchedMetadataRef.current = null; // Reset on error
         }
       } catch (error) {
-        console.error(`❌ [BATCH] Failed to fetch batch metadata:`, error);
+        // console.error(`❌ [BATCH] Failed to fetch batch metadata:`, error);
         prefetchedMetadataRef.current = null; // Reset on error
 
         // Fallback to individual prefetching if batch endpoint fails
@@ -533,9 +590,8 @@ export function UrlList() {
   const finalDragOrderRef = useRef<UrlItem[] | null>(null); // CRITICAL: Preserve final drag order across re-renders
   const localStorageCleanupTimeoutRef = useRef<NodeJS.Timeout | null>(null); // Track localStorage cleanup timeout to clear previous ones
 
-  // CRITICAL: localStorage key for preserving drag order across Fast Refresh
-  // Using localStorage instead of sessionStorage because Fast Refresh clears sessionStorage
-  const getDragOrderStorageKey = (listId: string) => `drag-order:${listId}`;
+  // Use centralized drag order cache management (imported from dragOrderCache)
+  // This ensures consistency across all operations (add/delete/drag/HMR/SSE)
 
   // CRITICAL: Restore drag order from localStorage SYNCHRONOUSLY before first render
   // useLayoutEffect runs BEFORE browser paint, so drag library sees correct order immediately
@@ -583,9 +639,9 @@ export function UrlList() {
     const handleListUpdate = async (event: Event) => {
       // Skip refresh if we're performing a local operation or dragging (avoid loop/interference)
       if (isLocalOperationRef.current || isDraggingRef.current) {
-        console.log(
-          "⏭️ [REALTIME] Skipping refresh - local operation or drag in progress"
-        );
+        // console.log(
+        //   "⏭️ [REALTIME] Skipping refresh - local operation or drag in progress"
+        // );
         return;
       }
 
@@ -599,11 +655,11 @@ export function UrlList() {
       // This is especially important because real-time updates can queue refreshes that run later
       if (now - lastDragEndTimeRef.current < 30000) {
         const dragEndTime = now - lastDragEndTimeRef.current;
-        console.log(
-          `⏭️ [REALTIME] Skipping refresh - drag operation just completed (${dragEndTime.toFixed(
-            0
-          )}ms ago, protecting optimistic state)`
-        );
+        // console.log(
+        //   `⏭️ [REALTIME] Skipping refresh - drag operation just completed (${dragEndTime.toFixed(
+        //     0
+        //   )}ms ago, protecting optimistic state)`
+        // );
 
         // CRITICAL: Clear any queued refreshes to prevent them from running later
         if (refreshTimeoutRef.current) {
@@ -634,33 +690,33 @@ export function UrlList() {
                 const storedOrder = parsed.map((u) => u.id).join(",");
                 const currentOrder = currentUrls.map((u) => u.id).join(",");
                 if (storedOrder !== currentOrder) {
-                  console.log(
-                    `⏭️ [REALTIME] Skipping refresh - drag order preserved in localStorage`,
-                    { stored: storedOrder, current: currentOrder }
-                  );
+                  // console.log(
+                  //   `⏭️ [REALTIME] Skipping refresh - drag order preserved in localStorage`,
+                  //   { stored: storedOrder, current: currentOrder }
+                  // );
                   return;
                 }
               }
             }
           }
         } catch (err) {
-          console.error("❌ [REALTIME] Error checking localStorage", err);
+          // console.error("❌ [REALTIME] Error checking localStorage", err);
         }
       }
 
       // Only proceed if no drag order is preserved
-      console.log("🔄 [REALTIME] Proceeding with refresh", {
-        currentOrder: (current.urls as unknown as UrlItem[]).map(
-          (u: UrlItem) => u.id
-        ),
-      });
+      // console.log("🔄 [REALTIME] Proceeding with refresh", {
+      //   currentOrder: (current.urls as unknown as UrlItem[]).map(
+      //     (u: UrlItem) => u.id
+      //   ),
+      // });
 
       // Prevent refreshing if we just deleted a URL (protect optimistic state)
       // Real-time events from our own delete operation should be ignored
       if (now - lastDeleteTimeRef.current < 5000) {
-        console.log(
-          "⏭️ [REALTIME] Skipping refresh - delete operation just completed (protecting optimistic state)"
-        );
+        // console.log(
+        //   "⏭️ [REALTIME] Skipping refresh - delete operation just completed (protecting optimistic state)"
+        // );
         return;
       }
 
@@ -685,9 +741,9 @@ export function UrlList() {
         const timeSinceLastRefresh = now - lastRefreshRef.current;
         if (timeSinceLastRefresh < throttleWindow) {
           const remainingTime = throttleWindow - timeSinceLastRefresh;
-          console.log(
-            `⏭️ [REALTIME] Throttling refresh (${remainingTime}ms remaining), queuing for later...`
-          );
+          // console.log(
+          //   `⏭️ [REALTIME] Throttling refresh (${remainingTime}ms remaining), queuing for later...`
+          // );
 
           // Clear any existing queued refresh
           if (refreshTimeoutRef.current) {
@@ -717,6 +773,19 @@ export function UrlList() {
           clearTimeout(refreshTimeoutRef.current);
         }
 
+        // Skip getList during bulk imports to prevent overwhelming the browser/server
+        if (
+          typeof window !== "undefined" &&
+          (window as any).__bulkImportActive
+        ) {
+          if (process.env.NODE_ENV === "development") {
+            console.debug(
+              "⏭️ [URL_LIST] Skipping getList - bulk import in progress"
+            );
+          }
+          return;
+        }
+
         // For metadata changes, refresh immediately (no debounce)
         if (isMetadataChange) {
           lastRefreshRef.current = now;
@@ -727,6 +796,18 @@ export function UrlList() {
         // For other changes, debounce to batch rapid updates
         refreshTimeoutRef.current = setTimeout(async () => {
           const now = Date.now();
+          // Skip if bulk import started during the delay
+          if (
+            typeof window !== "undefined" &&
+            (window as any).__bulkImportActive
+          ) {
+            if (process.env.NODE_ENV === "development") {
+              console.debug(
+                "⏭️ [URL_LIST] Skipping queued getList - bulk import in progress"
+              );
+            }
+            return;
+          }
           // CRITICAL: Check drag end time here too - queued refreshes must respect drag protection
           if (
             !isLocalOperationRef.current &&
@@ -791,7 +872,7 @@ export function UrlList() {
           setLastSearchedQuery(currentSearchQuery);
         }
       } catch (error) {
-        console.error("Smart search failed:", error);
+        // console.error("Smart search failed:", error);
         // On error, set empty array (not null) so we know search completed with no results
         setSmartSearchResults([]);
         setLastSearchedQuery(currentSearchQuery);
@@ -856,7 +937,7 @@ export function UrlList() {
         currentList.set({ ...list, urls: finalUrls });
       }
     } catch (error) {
-      console.error("Failed to track URL click:", error);
+      // console.error("Failed to track URL click:", error);
       // Don't show error to user, just log it
     }
   };
@@ -948,12 +1029,12 @@ export function UrlList() {
           const queryKey = ["url-metadata", url] as const;
           existingMetadata = queryClient.getQueryData<UrlMetadata>(queryKey);
           if (existingMetadata) {
-            console.log(
-              `✅ [EDIT] Found cached metadata from prefetch for: ${url.slice(
-                0,
-                40
-              )}...`
-            );
+            // console.log(
+            //   `✅ [EDIT] Found cached metadata from prefetch for: ${url.slice(
+            //     0,
+            //     40
+            //   )}...`
+            // );
           }
         } catch {
           // Ignore cache check errors
@@ -1039,7 +1120,7 @@ export function UrlList() {
       // Use updateUrlInList which will sync with server
       await updateUrlInList(id, { isFavorite: updatedUrl.isFavorite });
     } catch (err) {
-      console.error("Failed to toggle favorite:", err);
+      // console.error("Failed to toggle favorite:", err);
       // Revert on error
       if (current.slug) {
         await getList(current.slug);
@@ -1073,12 +1154,12 @@ export function UrlList() {
           const queryKey = ["url-metadata", urlToDuplicate.url] as const;
           existingMetadata = queryClient.getQueryData<UrlMetadata>(queryKey);
           if (existingMetadata) {
-            console.log(
-              `✅ [DUPLICATE] Found cached metadata from React Query for: ${urlToDuplicate.url.slice(
-                0,
-                40
-              )}...`
-            );
+            // console.log(
+            //   `✅ [DUPLICATE] Found cached metadata from React Query for: ${urlToDuplicate.url.slice(
+            //     0,
+            //     40
+            //   )}...`
+            // );
           }
         } catch {
           // Ignore cache check errors
@@ -1105,7 +1186,7 @@ export function UrlList() {
         variant: "success",
       });
     } catch (err) {
-      console.error("Failed to duplicate URL:", err);
+      // console.error("Failed to duplicate URL:", err);
       // Revert on error
       if (current.slug) {
         await getList(current.slug);
@@ -1151,7 +1232,7 @@ export function UrlList() {
         variant: "success",
       });
     } catch (err) {
-      console.error("Failed to archive URL:", err);
+      // console.error("Failed to archive URL:", err);
       // Revert on error
       if (current?.slug) {
         await getList(current.slug);
@@ -1204,7 +1285,7 @@ export function UrlList() {
       // Use unified PATCH endpoint which handles pin/unpin and returns activity data
       await updateUrlInList(id, { isPinned: updatedUrl.isPinned });
     } catch (err) {
-      console.error("Failed to pin URL:", err);
+      // console.error("Failed to pin URL:", err);
       // Revert on error
       if (current.slug) {
         await getList(current.slug);
@@ -1230,7 +1311,7 @@ export function UrlList() {
         if (err instanceof Error && err.name === "AbortError") {
           return;
         }
-        console.error("Error sharing:", err);
+        // console.error("Error sharing:", err);
         // Fallback to clipboard on other errors
         try {
           await navigator.clipboard.writeText(url.url);
@@ -1541,63 +1622,52 @@ export function UrlList() {
         finalDragOrderRef.current.map((u) => u.id)
       );
 
-      // CRITICAL: Store in localStorage IMMEDIATELY and verify the write
-      // Using localStorage instead of sessionStorage because Fast Refresh clears sessionStorage
-      // This MUST happen BEFORE any async operations or Fast Refresh
+      // CRITICAL: Store in cache IMMEDIATELY using centralized cache management
+      // This handles both localStorage and global cache, with validation
+      // Using centralized functions ensures consistency across all operations
       if (current.id && typeof window !== "undefined") {
         try {
-          const storageKey = getDragOrderStorageKey(current.id);
-          const storageValue = JSON.stringify(reorderedUrls);
+          // Update cache with new drag order (centralized function handles both localStorage and global cache)
+          const updated = updateDragOrderCache(
+            current.id,
+            reorderedUrls,
+            false
+          );
 
-          // Write to localStorage
-          localStorage.setItem(storageKey, storageValue);
-
-          // CRITICAL: Verify the write immediately and also check persistence
-          const verifyStored = localStorage.getItem(storageKey);
-          if (verifyStored === storageValue) {
-            // Also store in a global variable for immediate access (survives Fast Refresh better)
-            if (typeof window !== "undefined") {
-              (window as any).__dragOrderCache =
-                (window as any).__dragOrderCache || {};
-              (window as any).__dragOrderCache[storageKey] = reorderedUrls;
-            }
-
-            console.log("✅ [DRAG] Verified localStorage write", {
+          if (updated) {
+            console.log("✅ [DRAG] Updated drag order cache", {
               listId: current.id,
               order: reorderedUrls.map((u) => u.id),
-              verified: true,
-              storageKey,
-              alsoStoredInGlobal: true,
+              count: reorderedUrls.length,
             });
 
-            // Double-check after a brief delay to ensure persistence
-            setTimeout(() => {
-              const checkPersisted = localStorage.getItem(storageKey);
-              if (checkPersisted === storageValue) {
-                console.log(
-                  "✅ [DRAG] localStorage still persisted after delay",
-                  { storageKey }
-                );
-              } else {
-                console.error(
-                  "❌ [DRAG] localStorage was cleared or changed after write!",
-                  {
-                    storageKey,
-                    expected: storageValue,
-                    actual: checkPersisted,
-                  }
-                );
-              }
-            }, 100);
+            // Verify persistence after a brief delay
+            if (current.id) {
+              setTimeout(() => {
+                const storageKey = getDragOrderStorageKey(current.id!);
+                const stored = localStorage.getItem(storageKey);
+                if (stored === JSON.stringify(reorderedUrls)) {
+                  console.log("✅ [DRAG] Cache still persisted after delay", {
+                    listId: current.id,
+                  });
+                } else {
+                  console.error(
+                    "❌ [DRAG] Cache was cleared or changed after write!",
+                    {
+                      listId: current.id,
+                      storageKey,
+                    }
+                  );
+                }
+              }, 100);
+            }
           } else {
-            console.error("❌ [DRAG] localStorage write verification FAILED", {
+            console.warn("⚠️ [DRAG] Failed to update drag order cache", {
               listId: current.id,
-              expected: storageValue,
-              actual: verifyStored,
             });
           }
         } catch (err) {
-          console.error("❌ [DRAG] Failed to store in localStorage", err);
+          console.error("❌ [DRAG] Failed to update drag order cache", err);
         }
       }
 
@@ -1700,12 +1770,9 @@ export function UrlList() {
           // This ensures urlsToUse memo sees the correct order on the next render
           finalDragOrderRef.current = preservedOrder; // Ensure ref is synced
 
-          // Also update global cache to ensure persistence
+          // Update cache using centralized function (handles both localStorage and global cache)
           if (typeof window !== "undefined" && current.id) {
-            const storageKey = getDragOrderStorageKey(current.id);
-            const globalCache = (window as any).__dragOrderCache || {};
-            globalCache[storageKey] = preservedOrder;
-            (window as any).__dragOrderCache = globalCache;
+            updateDragOrderCache(current.id, preservedOrder, false);
           }
 
           // CRITICAL: Force SortableContext remount IMMEDIATELY AFTER store update
@@ -1832,24 +1899,24 @@ export function UrlList() {
           }
         }
 
-        console.log("🔍 [RENDER] Checking for drag order", {
-          hasGlobalCache: !!globalCache?.[storageKey],
-          hasStored: !!storedOrder,
-          source: storedOrder ? source || "localStorage" : "none",
-          listId: list.id,
-          refEmpty: !finalDragOrderRef.current,
-        });
+        // console.log("🔍 [RENDER] Checking for drag order", {
+        //   hasGlobalCache: !!globalCache?.[storageKey],
+        //   hasStored: !!storedOrder,
+        //   source: storedOrder ? source || "localStorage" : "none",
+        //   listId: list.id,
+        //   refEmpty: !finalDragOrderRef.current,
+        // });
 
         if (storedOrder) {
           const parsed = storedOrder as UrlItem[];
           const currentUrls = (list.urls as unknown as UrlItem[]) || [];
 
-          console.log("🔍 [RENDER] Found stored order", {
-            storedLength: parsed.length,
-            currentLength: currentUrls.length,
-            storedOrderIds: parsed.map((u: UrlItem) => u.id).join(","),
-            currentOrder: currentUrls.map((u: UrlItem) => u.id).join(","),
-          });
+          // console.log("🔍 [RENDER] Found stored order", {
+          //   storedLength: parsed.length,
+          //   currentLength: currentUrls.length,
+          //   storedOrderIds: parsed.map((u: UrlItem) => u.id).join(","),
+          //   currentOrder: currentUrls.map((u: UrlItem) => u.id).join(","),
+          // });
 
           // Only restore if same URLs (just reordered)
           if (parsed.length === currentUrls.length) {
@@ -1859,11 +1926,11 @@ export function UrlList() {
               storedIds.size === currentIds.size &&
               [...storedIds].every((id: string) => currentIds.has(id));
 
-            console.log("🔍 [RENDER] Comparing IDs", {
-              sameIds,
-              storedIds: Array.from(storedIds),
-              currentIds: Array.from(currentIds),
-            });
+            // console.log("🔍 [RENDER] Comparing IDs", {
+            //   sameIds,
+            //   storedIds: Array.from(storedIds),
+            //   currentIds: Array.from(currentIds),
+            // });
 
             if (sameIds) {
               // Check if order actually differs
@@ -1872,11 +1939,11 @@ export function UrlList() {
                 .map((u: UrlItem) => u.id)
                 .join(",");
 
-              console.log("🔍 [RENDER] Comparing order", {
-                storedOrderIds,
-                currentOrder,
-                differs: storedOrderIds !== currentOrder,
-              });
+              // console.log("🔍 [RENDER] Comparing order", {
+              //   storedOrderIds,
+              //   currentOrder,
+              //   differs: storedOrderIds !== currentOrder,
+              // });
 
               if (storedOrderIds !== currentOrder) {
                 finalDragOrderRef.current = parsed;
@@ -1892,53 +1959,53 @@ export function UrlList() {
                 const current = currentList.get();
                 if (current && current.id === list.id) {
                   currentList.set({ ...current, urls: parsed });
-                  console.log(
-                    "✅ [RENDER] Restored and updated store during render",
-                    {
-                      restored: storedOrderIds,
-                      oldStore: currentOrder,
-                      source: source || "localStorage",
-                      note: "Store + global cache updated synchronously to prevent getList overwrite",
-                    }
-                  );
+                  // console.log(
+                  //   "✅ [RENDER] Restored and updated store during render",
+                  //   {
+                  //     restored: storedOrderIds,
+                  //     oldStore: currentOrder,
+                  //     source: source || "localStorage",
+                  //     note: "Store + global cache updated synchronously to prevent getList overwrite",
+                  //   }
+                  // );
                 } else {
-                  console.log(
-                    "✅ [RENDER] Restored during render (ref populated, store will update in useLayoutEffect)",
-                    {
-                      restored: storedOrderIds,
-                      store: currentOrder,
-                      source: source || "localStorage",
-                    }
-                  );
+                  // console.log(
+                  //   "✅ [RENDER] Restored during render (ref populated, store will update in useLayoutEffect)",
+                  //   {
+                  //     restored: storedOrderIds,
+                  //     store: currentOrder,
+                  //     source: source || "localStorage",
+                  //   }
+                  // );
                 }
               } else {
-                console.log("⏭️ [RENDER] Orders match, no restoration needed");
+                // console.log("⏭️ [RENDER] Orders match, no restoration needed");
               }
             } else {
-              console.log("⚠️ [RENDER] Different URLs, cannot restore");
+              // console.log("⚠️ [RENDER] Different URLs, cannot restore");
             }
           } else {
-            console.log("⚠️ [RENDER] Different lengths, cannot restore");
+            // console.log("⚠️ [RENDER] Different lengths, cannot restore");
           }
         } else {
-          console.log("⏭️ [RENDER] No stored order in localStorage");
+          // console.log("⏭️ [RENDER] No stored order in localStorage");
         }
       } catch (err) {
-        console.error(
-          "❌ [RENDER] Failed to read localStorage during render",
-          err
-        );
+        // console.error(
+        //   "❌ [RENDER] Failed to read localStorage during render",
+        //   err
+        // );
       }
     } else {
-      console.log("⏭️ [RENDER] Ref already populated, skipping restoration", {
-        refOrder: finalDragOrderRef.current.map((u) => u.id).join(","),
-      });
+      // console.log("⏭️ [RENDER] Ref already populated, skipping restoration", {
+      //   refOrder: finalDragOrderRef.current.map((u) => u.id).join(","),
+      // });
     }
   } else {
-    console.log("⏭️ [RENDER] Cannot restore - missing list.id or window", {
-      hasListId: !!list?.id,
-      hasWindow: typeof window !== "undefined",
-    });
+    // console.log("⏭️ [RENDER] Cannot restore - missing list.id or window", {
+    //   hasListId: !!list?.id,
+    //   hasWindow: typeof window !== "undefined",
+    // });
   }
 
   // Filtering and sorting logic
@@ -1967,10 +2034,10 @@ export function UrlList() {
           preservedOrder = globalCache[storageKey];
           if (preservedOrder) {
             finalDragOrderRef.current = preservedOrder; // Sync ref
-            console.log(
-              "📦 [URLS] Restored from global cache in memo",
-              preservedOrder.map((u) => u.id)
-            );
+            // console.log(
+            //   "📦 [URLS] Restored from global cache in memo",
+            //   preservedOrder.map((u) => u.id)
+            // );
           }
         } else {
           const stored = localStorage.getItem(storageKey);
@@ -1982,15 +2049,15 @@ export function UrlList() {
               if (globalCache) {
                 globalCache[storageKey] = preservedOrder;
               }
-              console.log(
-                "📦 [URLS] Restored from localStorage in memo",
-                preservedOrder.map((u) => u.id)
-              );
+              // console.log(
+              //   "📦 [URLS] Restored from localStorage in memo",
+              //   preservedOrder.map((u) => u.id)
+              // );
             }
           }
         }
       } catch (err) {
-        console.error("❌ [URLS] Failed to read localStorage in memo", err);
+        // console.error("❌ [URLS] Failed to read localStorage in memo", err);
       }
     }
 
@@ -1998,13 +2065,13 @@ export function UrlList() {
     if (preservedOrder) {
       const preservedOrderIds = preservedOrder.map((u) => u.id).join(",");
 
-      console.log("🔍 [URLS] Checking preserved order", {
-        hasPreserved: true,
-        preservedOrder: preservedOrderIds,
-        storeOrder: storeOrder,
-        preservedLength: preservedOrder.length,
-        storeLength: storeUrls.length,
-      });
+      // console.log("🔍 [URLS] Checking preserved order", {
+      //   hasPreserved: true,
+      //   preservedOrder: preservedOrderIds,
+      //   storeOrder: storeOrder,
+      //   preservedLength: preservedOrder.length,
+      //   storeLength: storeUrls.length,
+      // });
 
       // Only use preserved order if:
       // 1. Both arrays have same length (no URLs added/removed)
@@ -2016,62 +2083,112 @@ export function UrlList() {
           preservedIds.size === storeIds.size &&
           [...preservedIds].every((id) => storeIds.has(id));
 
-        console.log("🔍 [URLS] ID comparison", {
-          sameIds,
-          preservedIds: Array.from(preservedIds),
-          storeIds: Array.from(storeIds),
-          orderMatch: preservedOrderIds === storeOrder,
-        });
+        // console.log("🔍 [URLS] ID comparison", {
+        //   sameIds,
+        //   preservedIds: Array.from(preservedIds),
+        //   storeIds: Array.from(storeIds),
+        //   orderMatch: preservedOrderIds === storeOrder,
+        // });
 
         if (sameIds) {
           // Same URLs, just reordered - use preserved order
           if (preservedOrderIds !== storeOrder) {
-            console.log(
-              "✅ [URLS] Using preserved order (different from store)",
-              {
-                preserved: preservedOrderIds,
-                store: storeOrder,
-              }
-            );
+            // console.log(
+            //   "✅ [URLS] Using preserved order (different from store)",
+            //   {
+            //     preserved: preservedOrderIds,
+            //     store: storeOrder,
+            //   }
+            // );
           } else {
-            console.log(
-              "✅ [URLS] Preserved order matches store, using preserved",
-              {
-                order: preservedOrderIds,
-              }
-            );
+            // console.log(
+            //   "✅ [URLS] Preserved order matches store, using preserved",
+            //   {
+            //     order: preservedOrderIds,
+            //   }
+            // );
           }
           return preservedOrder;
         } else {
-          console.log(
-            "⚠️ [URLS] Preserved order has different URLs, ignoring",
-            {
-              preserved: preservedOrderIds,
-              store: storeOrder,
+          // Reduced to debug level - this is expected behavior when URLs are replaced
+          // The system correctly detects and ignores stale data, so this is not a warning
+          if (process.env.NODE_ENV === "development") {
+            // console.debug(
+            //   "ℹ️ [URLS] Preserved order has different URLs (URLs replaced), ignoring",
+            //   {
+            //     preserved: preservedOrderIds,
+            //     store: storeOrder,
+            //   }
+            // );
+          }
+
+          // CRITICAL: Also clear stale cache immediately when IDs don't match
+          // This prevents stale data from being checked again in subsequent renders
+          // Safe because: System already ignores stale data, and cache was already cleared on delete
+          // This is a cleanup for any remaining stale data in global cache
+          if (list?.id && typeof window !== "undefined") {
+            try {
+              const storageKey = getDragOrderStorageKey(list.id);
+              const globalCache = (window as any).__dragOrderCache;
+              if (globalCache && globalCache[storageKey]) {
+                delete globalCache[storageKey];
+              }
+              // Also ensure localStorage is cleared (defensive - should already be cleared)
+              localStorage.removeItem(storageKey);
+            } catch {
+              // Ignore errors - not critical
             }
-          );
+          }
         }
       } else {
-        console.log(
-          "⚠️ [URLS] Preserved order has different length, ignoring",
-          {
-            preservedLength: preservedOrder.length,
-            storeLength: storeUrls.length,
+        // Reduced to debug level - this is expected behavior when URLs are added/deleted
+        // The system correctly detects and ignores stale data, so this is not a warning
+        if (process.env.NODE_ENV === "development") {
+          // console.debug(
+          //   "ℹ️ [URLS] Preserved order has different length (URLs added/deleted), ignoring",
+          //   {
+          //     preservedLength: preservedOrder.length,
+          //     storeLength: storeUrls.length,
+          //   }
+          // );
+        }
+
+        // CRITICAL: Also clear stale cache immediately when mismatch is detected
+        // This prevents stale data from being checked again in subsequent renders
+        // Safe because: System already ignores stale data, and cache was already cleared on delete
+        // This is a cleanup for any remaining stale data in global cache
+        if (list?.id && typeof window !== "undefined") {
+          try {
+            const storageKey = getDragOrderStorageKey(list.id);
+            const globalCache = (window as any).__dragOrderCache;
+            if (globalCache && globalCache[storageKey]) {
+              delete globalCache[storageKey];
+            }
+            // Also ensure localStorage is cleared (defensive - should already be cleared)
+            const stored = localStorage.getItem(storageKey);
+            if (stored) {
+              const storedData = JSON.parse(stored) as UrlItem[];
+              if (storedData.length !== storeUrls.length) {
+                localStorage.removeItem(storageKey);
+              }
+            }
+          } catch {
+            // Ignore errors - not critical
           }
-        );
+        }
       }
     } else {
-      console.log("🔍 [URLS] No preserved order found", {
-        refEmpty: !finalDragOrderRef.current,
-        hasLocalStorage:
-          list.id && typeof window !== "undefined"
-            ? !!localStorage.getItem(getDragOrderStorageKey(list.id))
-            : false,
-      });
+      // console.log("🔍 [URLS] No preserved order found", {
+      //   refEmpty: !finalDragOrderRef.current,
+      //   hasLocalStorage:
+      //     list.id && typeof window !== "undefined"
+      //       ? !!localStorage.getItem(getDragOrderStorageKey(list.id))
+      //       : false,
+      // });
     }
 
     // Otherwise use store URLs (normal case)
-    console.log("📋 [URLS] Using store URLs", storeOrder);
+    // console.log("📋 [URLS] Using store URLs", storeOrder);
     return storeUrls;
   }, [list?.urls, list?.id]);
 
