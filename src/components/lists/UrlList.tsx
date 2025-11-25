@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect, useLayoutEffect, useRef } from "react";
+import React, { useState, useMemo, useEffect, useLayoutEffect, useRef } from "react";
 import { flushSync } from "react-dom";
 import {
   DndContext,
@@ -51,6 +51,7 @@ import { useDebounce } from "@/hooks/useDebounce";
 import type { SearchResult } from "@/lib/ai/search";
 import { useToast } from "@/components/ui/Toaster";
 import { useRealtimeList } from "@/hooks/useRealtimeList";
+import { useListPermissions } from "@/hooks/useListPermissions";
 import { UrlFilterBar } from "./UrlFilterBar";
 import { UrlBulkImportExport } from "./UrlBulkImportExport";
 import { UrlAddForm } from "./UrlAddForm";
@@ -68,6 +69,7 @@ function UrlCardWrapper({
   onPin,
   shareTooltip,
   isMetadataReady,
+  canEdit = true, // Permission to edit URLs (false for viewers)
 }: {
   url: UrlItem;
   onEdit: (url: UrlItem) => void;
@@ -80,6 +82,7 @@ function UrlCardWrapper({
   onPin?: (id: string) => void;
   shareTooltip: string | null;
   isMetadataReady: boolean;
+  canEdit?: boolean; // Permission to edit URLs (false for viewers)
 }) {
   const {
     attributes,
@@ -150,7 +153,8 @@ function UrlCardWrapper({
           onArchive={onArchive}
           onPin={onPin}
           shareTooltip={shareTooltip}
-          dragHandleProps={dragHandleListeners}
+          dragHandleProps={canEdit ? dragHandleListeners : null} // Disable drag for viewers
+          canEdit={canEdit}
         />
       </div>
     </div>
@@ -161,7 +165,46 @@ export function UrlList() {
   const list = useStore(currentList);
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const permissions = useListPermissions(); // Get permissions for current list and user
   const [newUrl, setNewUrl] = useState("");
+  
+  // Debug logging for list store updates to verify re-renders
+  React.useEffect(() => {
+    if (process.env.NODE_ENV === "development" && list?.urls) {
+      const urls = (list.urls as unknown as UrlItem[]) || [];
+      const urlWithClickCount = urls.find(u => u.clickCount !== undefined && u.clickCount > 0);
+      if (urlWithClickCount) {
+        console.log("🟡 [LIST_STORE] List store updated (UrlList re-rendered):", {
+          listId: list.id,
+          totalUrls: urls.length,
+          urlWithClickCount: {
+            id: urlWithClickCount.id,
+            title: urlWithClickCount.title?.substring(0, 30),
+            clickCount: urlWithClickCount.clickCount,
+          },
+        });
+      }
+    }
+  }, [list?.urls, list?.id]);
+  
+  // Debug logging for list updates
+  React.useEffect(() => {
+    if (process.env.NODE_ENV === "development" && list?.urls) {
+      const urls = (list.urls as unknown as UrlItem[]) || [];
+      const urlWithClickCount = urls.find(u => u.clickCount !== undefined && u.clickCount > 0);
+      if (urlWithClickCount) {
+        console.log("🟡 [LIST_STORE] List store updated (UrlList re-rendered):", {
+          listId: list.id,
+          totalUrls: urls.length,
+          urlWithClickCount: {
+            id: urlWithClickCount.id,
+            title: urlWithClickCount.title?.substring(0, 30),
+            clickCount: urlWithClickCount.clickCount,
+          },
+        });
+      }
+    }
+  }, [list?.urls, list?.id]);
 
   // Listen for metadata refresh events to invalidate cache
   useEffect(() => {
@@ -741,11 +784,32 @@ export function UrlList() {
 
       // Only refresh if this is the current list
       if (current?.id === customEvent.detail.listId && current?.slug) {
-        // Check if this is a metadata change (like visibility toggle) - these need immediate updates
+        // Skip collaborator_added and collaborator_removed - these are handled optimistically
+        // BUT allow collaborator_role_updated to trigger refresh (affects current user's permissions)
+        const isCollaboratorActionToSkip =
+          customEvent.detail.action === "collaborator_added" ||
+          customEvent.detail.action === "collaborator_removed";
+        
+        if (isCollaboratorActionToSkip) {
+          // console.log(
+          //   "⏭️ [REALTIME] Skipping refresh - collaborator action (handled optimistically)"
+          // );
+          return; // Skip refetch for collaborator add/remove changes
+        }
+
+        // For collaborator_role_updated, we need to refresh to update permissions
+        // This is critical for the collaborator whose role changed to see updated UI
+        if (customEvent.detail.action === "collaborator_role_updated") {
+          console.log("🔄 [URL_LIST] Role updated - refreshing list to update permissions");
+          // Continue to handle the refresh below
+        }
+
+        // Check if this is a metadata change (like visibility toggle or role updates) - these need immediate updates
         const isMetadataChange =
           customEvent.detail.action === "list_made_public" ||
           customEvent.detail.action === "list_made_private" ||
-          customEvent.detail.action === "list_updated";
+          customEvent.detail.action === "list_updated" ||
+          customEvent.detail.action === "collaborator_role_updated";
 
         // For metadata changes, use shorter throttle or force refresh
         const throttleWindow = isMetadataChange ? 2000 : 5000; // 2s for metadata, 5s for others
@@ -909,49 +973,178 @@ export function UrlList() {
 
   // Track URL clicks
   const handleUrlClick = async (urlId: string) => {
+    console.log("🔵 [CLICK] handleUrlClick called for urlId:", urlId);
+    
     const current = currentList.get();
-    if (!current.id || !current.urls) return;
+    console.log("🔵 [CLICK] Current list state:", {
+      listId: current.id,
+      hasUrls: !!current.urls,
+      urlCount: (current.urls as unknown as UrlItem[])?.length || 0,
+    });
+    
+    if (!current.id || !current.urls) {
+      console.warn("⚠️ [CLICK] Missing list.id or list.urls, aborting");
+      return;
+    }
 
     const currentUrls = current.urls as unknown as UrlItem[];
     const urlToUpdate = currentUrls.find((u) => u.id === urlId);
-    if (!urlToUpdate) return;
+    
+    if (!urlToUpdate) {
+      console.warn("⚠️ [CLICK] URL not found in list:", urlId);
+      return;
+    }
 
-    // Update click count optimistically
-    const updatedUrl = {
-      ...urlToUpdate,
-      clickCount: (urlToUpdate.clickCount || 0) + 1,
-    };
+    const oldClickCount = urlToUpdate.clickCount || 0;
+    console.log("🔵 [CLICK] URL found:", {
+      urlId,
+      title: urlToUpdate.title,
+      oldClickCount,
+    });
+
+    // Update click count optimistically FIRST - immediate UI feedback
+    const newClickCount = oldClickCount + 1;
+    console.log("🔵 [CLICK] Incrementing click count:", {
+      from: oldClickCount,
+      to: newClickCount,
+    });
+
+    // Create a new array with completely new object references to ensure React re-renders
     const updatedUrls = currentUrls.map((u) =>
-      u.id === urlId ? updatedUrl : u
+      u.id === urlId 
+        ? { ...u, clickCount: newClickCount } // Create new object with updated clickCount
+        : { ...u } // Create new object for all URLs to ensure React detects the change
     );
 
-    // Update store immediately
+    console.log("🔵 [CLICK] Created updated URLs array:", {
+      totalUrls: updatedUrls.length,
+      updatedUrl: updatedUrls.find(u => u.id === urlId),
+    });
+
+    // Update store immediately for instant feedback with new object references
+    console.log("🔵 [CLICK] Updating store with flushSync...");
     flushSync(() => {
       currentList.set({ ...current, urls: updatedUrls });
     });
+    
+    const afterUpdate = currentList.get();
+    const afterUpdateUrls = (afterUpdate.urls as unknown as UrlItem[]) || [];
+    const afterUpdateUrl = afterUpdateUrls.find(u => u.id === urlId);
+    console.log("✅ [CLICK] Store updated:", {
+      urlId,
+      clickCountAfterStoreUpdate: afterUpdateUrl?.clickCount,
+      expectedClickCount: newClickCount,
+      match: afterUpdateUrl?.clickCount === newClickCount,
+    });
 
+    // Track click on server (fire and forget for better UX, but ensure it happens)
+    console.log("🔵 [CLICK] Sending server request...");
     try {
       const response = await fetch(
         `/api/lists/${current.id}/urls/${urlId}/click`,
         {
           method: "POST",
+          credentials: "include", // Ensure cookies are sent for authentication
         }
       );
 
+      console.log("🔵 [CLICK] Server response received:", {
+        ok: response.ok,
+        status: response.status,
+        statusText: response.statusText,
+      });
+
       if (response.ok) {
-        const { list } = await response.json();
-        // Merge server response
-        const serverUrls = (list.urls as unknown as UrlItem[]) || [];
-        const serverUrlMap = new Map(serverUrls.map((u) => [u.id, u]));
-        const finalUrls = updatedUrls.map((url) => {
-          const serverUrl = serverUrlMap.get(url.id);
-          return serverUrl ? { ...url, ...serverUrl } : url;
+        const data = await response.json();
+        console.log("✅ [CLICK] Server response data:", {
+          success: data.success,
+          clickCount: data.clickCount,
+          hasList: !!data.list,
         });
-        currentList.set({ ...list, urls: finalUrls });
+
+        // Update with server response to ensure accuracy
+        if (data.list) {
+          const serverUrls = (data.list.urls as unknown as UrlItem[]) || [];
+          const serverUrlMap = new Map(serverUrls.map((u: UrlItem) => [u.id, u]));
+          const serverUrl = serverUrlMap.get(urlId);
+          console.log("🔵 [CLICK] Merging server response:", {
+            serverClickCount: serverUrl?.clickCount,
+            optimisticClickCount: newClickCount,
+          });
+
+          // Create completely new URLs array ensuring server clickCount is used
+          const finalUrls = updatedUrls.map((url) => {
+            const serverUrl = serverUrlMap.get(url.id);
+            // CRITICAL: Always create new object reference, use server clickCount if available
+            if (serverUrl) {
+              return { ...url, clickCount: serverUrl.clickCount ?? url.clickCount };
+            }
+            return { ...url }; // Create new reference even if no server update
+          });
+          
+          console.log("🔵 [CLICK] Updating store with server response...");
+          console.log("🔵 [CLICK] Final URLs array:", {
+            urlId,
+            urlInFinalUrls: finalUrls.find(u => u.id === urlId),
+            clickCountInFinalUrls: finalUrls.find(u => u.id === urlId)?.clickCount,
+            serverClickCount: serverUrlMap.get(urlId)?.clickCount,
+          });
+          
+          // Get current list state to preserve all fields
+          const currentListState = currentList.get();
+          
+          // Create completely new list object with new array references
+          // Adding updatedAt timestamp ensures nanostores detects the change
+          const updatedListData = {
+            ...currentListState, // Preserve existing fields
+            ...data.list, // Override with server data
+            urls: finalUrls.map(u => ({ ...u })), // Create completely new object references
+            updatedAt: new Date().toISOString(), // Timestamp to force change detection
+          };
+          
+          console.log("🔵 [CLICK] About to update store:", {
+            listId: updatedListData.id,
+            urlsCount: updatedListData.urls?.length,
+            urlClickCount: (updatedListData.urls as unknown as UrlItem[])?.find(u => u.id === urlId)?.clickCount,
+            expectedClickCount: serverUrlMap.get(urlId)?.clickCount || 14,
+          });
+          
+          // Use flushSync to ensure store update triggers immediate re-render
+          flushSync(() => {
+            currentList.set(updatedListData);
+          });
+          
+          // Verify store was updated correctly
+          const finalCheck = currentList.get();
+          const finalUrls_check = (finalCheck.urls as unknown as UrlItem[]) || [];
+          const finalUrl_check = finalUrls_check.find(u => u.id === urlId);
+          console.log("✅ [CLICK] Store updated (after flushSync):", {
+            urlId,
+            finalClickCount: finalUrl_check?.clickCount,
+            expectedClickCount: serverUrlMap.get(urlId)?.clickCount || 14,
+            match: finalUrl_check?.clickCount === (serverUrlMap.get(urlId)?.clickCount || 14),
+            urlsArrayLength: finalUrls_check.length,
+          });
+        }
+      } else {
+        // If server call failed, keep optimistic update but log for debugging
+        const errorData = await response.json().catch(() => ({}));
+        console.warn("⚠️ [CLICK] Server request failed:", {
+          status: response.status,
+          error: errorData.error || "Unknown error",
+          urlId,
+          keepingOptimisticUpdate: true,
+        });
+        // Keep optimistic update even if server call fails - better UX
       }
     } catch (error) {
-      // console.error("Failed to track URL click:", error);
-      // Don't show error to user, just log it
+      // Network error or other issue - keep optimistic update
+      console.warn("⚠️ [CLICK] Network error:", {
+        error,
+        urlId,
+        keepingOptimisticUpdate: true,
+      });
+      // Keep optimistic update for better UX even if network fails
     }
   };
 
@@ -2104,7 +2297,8 @@ export function UrlList() {
         // });
 
         if (sameIds) {
-          // Same URLs, just reordered - use preserved order
+          // Same URLs, just reordered - use preserved order BUT merge with latest store data
+          // This ensures we use preserved order for positioning, but get latest clickCount and other dynamic fields
           if (preservedOrderIds !== storeOrder) {
             // console.log(
             //   "✅ [URLS] Using preserved order (different from store)",
@@ -2121,7 +2315,18 @@ export function UrlList() {
             //   }
             // );
           }
-          return preservedOrder;
+          // CRITICAL: Merge preserved order with latest store data
+          // This preserves drag order while getting updated clickCount and other dynamic fields
+          const storeUrlMap = new Map(storeUrls.map((u: UrlItem) => [u.id, u]));
+          const mergedOrder = preservedOrder.map((preservedUrl) => {
+            const latestStoreUrl = storeUrlMap.get(preservedUrl.id);
+            if (latestStoreUrl) {
+              // Merge: use preserved order but update with latest store data (clickCount, etc.)
+              return { ...preservedUrl, ...latestStoreUrl };
+            }
+            return preservedUrl; // Fallback if not found in store
+          });
+          return mergedOrder;
         } else {
           // Reduced to debug level - this is expected behavior when URLs are replaced
           // The system correctly detects and ignores stale data, so this is not a warning
@@ -2331,7 +2536,25 @@ export function UrlList() {
     }
 
     // Always show pinned URLs at the top, then unpinned
-    return [...pinnedUrls, ...unpinnedUrls];
+    const result = [...pinnedUrls, ...unpinnedUrls];
+    
+    // Debug logging for click count updates in filtered URLs
+    if (process.env.NODE_ENV === "development") {
+      const urlWithClickCount = result.find(u => u.clickCount !== undefined && u.clickCount > 0);
+      if (urlWithClickCount) {
+        console.log("🔍 [FILTERED_URLS] filteredAndSortedUrls computed:", {
+          totalUrls: result.length,
+          urlWithClickCount: {
+            id: urlWithClickCount.id,
+            title: urlWithClickCount.title?.substring(0, 30),
+            clickCount: urlWithClickCount.clickCount,
+          },
+          listUrlsLength: list?.urls ? (list.urls as unknown as UrlItem[]).length : 0,
+        });
+      }
+    }
+    
+    return result;
     // urlsToUse is derived from optimisticUrls and list?.urls, which are already in dependencies
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
@@ -2425,11 +2648,13 @@ export function UrlList() {
           </Button>
         </div>
 
-        {/* Add URL Button - only show for active URLs */}
+        {/* Add URL Button - show for all users, but disable for viewers */}
         {!showArchived && (
           <Button
             type="button"
+            disabled={!permissions.canEdit}
             onClick={() => {
+              if (!permissions.canEdit) return; // Prevent action if disabled
               setIsAddUrlFormExpanded(!isAddUrlFormExpanded);
               if (isAddUrlFormExpanded) {
                 // Collapse: clear form and reset states
@@ -2440,7 +2665,9 @@ export function UrlList() {
                 setError(undefined);
               }
             }}
-            className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white flex items-center gap-2 transition-all duration-200 shadow-md hover:shadow-lg"
+            className={`bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white flex items-center gap-2 transition-all duration-200 shadow-md hover:shadow-lg ${
+              !permissions.canEdit ? "opacity-50 cursor-not-allowed" : ""
+            }`}
           >
             <CirclePlus className="h-4 w-4" />
             Add URL
@@ -2448,8 +2675,8 @@ export function UrlList() {
         )}
       </div>
 
-      {/* Add URL Form - Expandable - only show for active URLs */}
-      {!showArchived && (
+      {/* Add URL Form - Expandable - only show for active URLs and users who can edit */}
+      {!showArchived && isAddUrlFormExpanded && permissions.canEdit && (
         <UrlAddForm
           newUrl={newUrl}
           setNewUrl={setNewUrl}
@@ -2508,6 +2735,7 @@ export function UrlList() {
           <UrlBulkImportExport
             urls={(list.urls as unknown as UrlItem[]) || []}
             listTitle={list.title}
+            canEdit={permissions.canEdit} // Disable import for viewers
             onBulkOperationStart={() => {
               isLocalOperationRef.current = true;
             }}
@@ -2591,7 +2819,16 @@ export function UrlList() {
             strategy={verticalListSortingStrategy}
           >
             <div className="space-y-8">
-              {filteredAndSortedUrls.map((url) => (
+              {filteredAndSortedUrls.map((url) => {
+                // Log click count for debugging
+                if (process.env.NODE_ENV === "development" && url.clickCount !== undefined) {
+                  console.log("🔍 [URL_CARD] Rendering URL card:", {
+                    urlId: url.id,
+                    title: url.title?.substring(0, 30),
+                    clickCount: url.clickCount,
+                  });
+                }
+                return (
                 <UrlCardWrapper
                   key={url.id}
                   url={url}
@@ -2644,8 +2881,10 @@ export function UrlList() {
                   onPin={handlePin}
                   shareTooltip={shareTooltip}
                   isMetadataReady={isMetadataReady}
+                  canEdit={permissions.canEdit}
                 />
-              ))}
+              );
+              })}
             </div>
           </SortableContext>
         </DndContext>

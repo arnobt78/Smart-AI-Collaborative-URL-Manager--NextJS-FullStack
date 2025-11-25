@@ -23,15 +23,18 @@ import { useToast } from "@/components/ui/Toaster";
 import { InputDialog } from "@/components/ui/InputDialog";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { ActivityFeed } from "@/components/collaboration/ActivityFeed";
+import { PermissionManager } from "@/components/collaboration/PermissionManager";
+import { useListPermissions } from "@/hooks/useListPermissions";
 
 export default function ListPageClient() {
   const { toast } = useToast();
   const { slug } = useParams();
   const list = useStore(currentList);
+  const permissions = useListPermissions(); // Get permissions for current list and user
   const [isLoading, setIsLoading] = useState(true);
   const [isCopied, setIsCopied] = useState(false);
   const [isToggling, setIsToggling] = useState(false);
-  const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
+  // inviteDialogOpen removed - PermissionManager handles dialogs internally
   const [isCheckingHealth, setIsCheckingHealth] = useState(false);
   const [isRefreshingMetadata, setIsRefreshingMetadata] = useState(false);
   const [isSettingUpSchedule, setIsSettingUpSchedule] = useState(false);
@@ -113,13 +116,32 @@ export default function ListPageClient() {
 
         // Mark as fetched before the async call
         hasFetchedRef.current = slug;
-        await getList(slug, true); // Pass true to skip if drag in progress
+        try {
+          await getList(slug, true); // Pass true to skip if drag in progress
 
-        // Only set loading to false if we have valid list data with matching slug
-        // This prevents showing "List: undefined" flash
-        const currentListData = currentList.get();
-        if (currentListData && currentListData.slug === slug) {
+          // Only set loading to false if we have valid list data with matching slug
+          // This prevents showing "List: undefined" flash
+          const currentListData = currentList.get();
+          if (currentListData && currentListData.slug === slug) {
+            setIsLoading(false);
+          }
+        } catch (error) {
+          // Handle 401 Unauthorized - redirect to login immediately
+          if (
+            error instanceof Error &&
+            (error as any).status === 401 &&
+            typeof window !== "undefined"
+          ) {
+            // Redirect URL is already stored in sessionStorage by getList
+            // Redirect already happened in getList, but ensure it happens here too as backup
+            console.log("🔒 [AUTH] 401 Unauthorized - redirecting to login...");
+            window.location.replace("/");
+            return; // Exit early - don't set loading state or process further
+          }
+          // For other errors, set loading to false and let error state handle it
+          console.error("❌ [PAGE] Error fetching list:", error);
           setIsLoading(false);
+          // Don't re-throw - just show error state
         }
       } else {
         setIsLoading(false);
@@ -387,11 +409,11 @@ export default function ListPageClient() {
               )}
             </Badge>
 
-            {/* Private/Public Toggle */}
+            {/* Private/Public Toggle - Disabled for viewers */}
             <div className="flex flex-col items-center">
               <Switch
                 checked={list.isPublic ?? false}
-                disabled={isToggling}
+                disabled={isToggling || !permissions.canInvite}
                 onChange={async (e) => {
                   const newValue = e.target.checked;
                   setIsToggling(true);
@@ -728,100 +750,16 @@ export default function ListPageClient() {
           </div>
         </div>
 
-        {/* Collaborators Section */}
-        <div className="mt-4">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
-            <div className="flex items-center gap-3">
-              <div className="bg-gradient-to-br from-blue-500/20 to-purple-500/20 backdrop-blur-sm rounded-xl p-2 border border-blue-400/30">
-                <Mail className="w-5 h-5 text-blue-400" />
-              </div>
-              <h2 className="text-xl font-bold text-white">Collaborators</h2>
-            </div>
-            <button
-              type="button"
-              onClick={() => setInviteDialogOpen(true)}
-              className="group relative inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 hover:from-blue-700 hover:via-purple-700 hover:to-indigo-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 active:scale-95 overflow-hidden"
-            >
-              {/* Animated background effect */}
-              <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
-
-              {/* Icon */}
-              <UserPlus className="w-5 h-5 relative z-10 group-hover:rotate-90 transition-transform duration-300" />
-
-              {/* Text */}
-              <span className="relative z-10 text-sm sm:text-base whitespace-nowrap">
-                Invite Collaborator
-              </span>
-
-              {/* Shine effect on hover */}
-              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-            </button>
+        {/* Collaborators Section - PermissionManager */}
+        {list.id && list.slug && (
+          <div className="mt-4 bg-gradient-to-br from-white/5 to-white/3 backdrop-blur-md border border-white/10 rounded-2xl p-6 shadow-xl">
+            <PermissionManager
+              listId={list.id}
+              listTitle={list.title || "Untitled List"}
+              listSlug={list.slug}
+            />
           </div>
-
-          {/* Collaborators Grid */}
-          {list.collaborators && list.collaborators.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {list.collaborators.map((email) => (
-                <div
-                  key={email}
-                  className="group relative bg-gradient-to-br from-white/5 to-white/3 backdrop-blur-md border border-white/10 rounded-2xl px-5 py-4 hover:from-white/10 hover:to-white/5 hover:border-blue-400/40 hover:shadow-lg transition-all duration-300 cursor-default overflow-hidden"
-                >
-                  {/* Subtle glow effect on hover */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-blue-500/0 via-purple-500/0 to-indigo-500/0 group-hover:from-blue-500/10 group-hover:via-purple-500/10 group-hover:to-indigo-500/10 transition-all duration-300 rounded-2xl" />
-
-                  <div className="flex items-center gap-4 relative z-10">
-                    {/* Enhanced Avatar Circle */}
-                    <div className="relative flex-shrink-0">
-                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 via-purple-500 to-indigo-500 border-2 border-blue-400/60 flex items-center justify-center text-white font-bold text-lg group-hover:scale-110 group-hover:rotate-6 transition-all duration-300 shadow-lg group-hover:shadow-xl group-hover:shadow-blue-500/50">
-                        {email.charAt(0).toUpperCase()}
-                      </div>
-                      {/* Online indicator dot */}
-                      <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-400 border-2 border-white/20 rounded-full shadow-sm" />
-                    </div>
-
-                    {/* Email and Role */}
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-white truncate group-hover:text-blue-300 transition-colors duration-200">
-                        {email}
-                      </p>
-                      <div className="flex items-center gap-1.5 mt-1">
-                        <div className="w-1.5 h-1.5 rounded-full bg-blue-400/60" />
-                        <p className="text-xs font-medium text-white/60 truncate">
-                          Collaborator
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Hover arrow indicator */}
-                  <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                    <div className="w-6 h-6 rounded-full bg-blue-500/20 flex items-center justify-center">
-                      <Mail className="w-3 h-3 text-blue-400" />
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="bg-gradient-to-br from-white/5 to-white/3 backdrop-blur-md border border-white/10 rounded-2xl px-8 py-12 text-center overflow-hidden relative">
-              {/* Subtle animated background */}
-              <div className="absolute inset-0 bg-gradient-to-r from-blue-500/0 via-purple-500/5 to-indigo-500/0 animate-pulse" />
-
-              <div className="relative z-10">
-                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-blue-400/30 flex items-center justify-center">
-                  <Mail className="w-8 h-8 text-blue-400/60" />
-                </div>
-                <h3 className="text-lg font-semibold text-white mb-2">
-                  No collaborators yet
-                </h3>
-                <p className="text-sm text-white/60 max-w-sm mx-auto">
-                  Invite team members to collaborate on this list. They&apos;ll
-                  receive an email invitation.
-                </p>
-              </div>
-            </div>
-          )}
-        </div>
+        )}
 
         {/* Activity Feed Section */}
         {list.id && (
@@ -832,110 +770,7 @@ export default function ListPageClient() {
       </div>
       <UrlList />
 
-      {/* Invite Collaborator Dialog */}
-      <InputDialog
-        open={inviteDialogOpen}
-        onOpenChange={setInviteDialogOpen}
-        title="Invite Collaborator"
-        description="Add someone to collaborate on this list. They'll be able to view and edit the list."
-        label="Email Address"
-        type="email"
-        placeholder="collaborator@example.com"
-        confirmText="Send Invite"
-        cancelText="Cancel"
-        validate={(email) => {
-          if (!email || email.trim() === "") {
-            return "Email is required";
-          }
-          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-          if (!emailRegex.test(email)) {
-            return "Please enter a valid email address";
-          }
-          return null;
-        }}
-        onConfirm={async (email) => {
-          try {
-            const response = await fetch(
-              `/api/lists/${list.id}/collaborators`,
-              {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email: email.trim() }),
-              }
-            );
-
-            const data = await response.json();
-
-            // Close dialog first
-            setInviteDialogOpen(false);
-
-            if (!response.ok) {
-              toast({
-                title: "Invite Failed",
-                description: data.error || "Failed to invite collaborator",
-                variant: "error",
-              });
-              return;
-            }
-
-            // Update the list state immediately (optimistic)
-            if (data.list) {
-              flushSync(() => {
-                currentList.set(data.list);
-              });
-
-              // Trigger activity feed update AFTER API completes (activity is now in DB)
-              // The API already publishes real-time updates, so other windows will get it via SSE
-              window.dispatchEvent(
-                new CustomEvent("activity-updated", {
-                  detail: { listId: list.id },
-                })
-              );
-            } else if (typeof slug === "string") {
-              // Fallback: fetch if list not in response
-              await getList(slug);
-            }
-
-            // Check if email was sent successfully
-            const emailSent = data.emailSent === true;
-
-            if (emailSent) {
-              toast({
-                title: "Invite Sent! ✉️",
-                description: `Invitation sent to ${email}. They'll receive an email notification.`,
-                variant: "success",
-              });
-            } else {
-              // Check if it's a domain verification error
-              const isDomainError =
-                data.emailError?.includes("verify a domain") ||
-                data.emailError?.includes("Domain not verified");
-
-              if (isDomainError) {
-                toast({
-                  title: "Collaborator Added (Email Pending)",
-                  description: `${email} has been added, but email notification couldn't be sent. Domain verification required.`,
-                  variant: "info",
-                });
-              } else {
-                toast({
-                  title: "Collaborator Added",
-                  description: `${email} has been added as a collaborator.`,
-                  variant: "success",
-                });
-              }
-            }
-          } catch {
-            // Close dialog on error
-            setInviteDialogOpen(false);
-            toast({
-              title: "Invite Failed",
-              description: "Failed to invite collaborator",
-              variant: "error",
-            });
-          }
-        }}
-      />
+      {/* PermissionManager handles all collaborator dialogs internally */}
     </div>
   );
 }

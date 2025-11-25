@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { currentList } from "@/stores/urlListStore";
+import { currentList, type UrlItem } from "@/stores/urlListStore";
 
 interface RealtimeEvent {
   type: string;
@@ -10,6 +10,9 @@ interface RealtimeEvent {
   timestamp?: string;
   [key: string]: unknown;
 }
+
+// Global connection tracker to prevent duplicate EventSource connections (Firefox compatibility)
+const activeConnections = new Map<string, EventSource>();
 
 /**
  * Hook to subscribe to real-time updates for a list
@@ -22,14 +25,82 @@ export function useRealtimeList(listId: string | null) {
   const lastActivityDispatchRef = useRef<number>(0);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const reconnectAttemptsRef = useRef<number>(0);
+  const isConnectingRef = useRef<boolean>(false);
 
   useEffect(() => {
     if (!listId) return;
 
+    // Check if page is unloading/navigating (Firefox-specific: suppress errors during navigation)
+    let isUnloading = false;
+    const handleBeforeUnload = () => {
+      isUnloading = true;
+      // Close connection gracefully before page unloads
+      if (eventSourceRef.current) {
+        eventSourceRef.current.close();
+        eventSourceRef.current = null;
+      }
+    };
+    const handlePageHide = () => {
+      isUnloading = true;
+      // Close connection when page is hidden (Firefox navigation)
+      if (eventSourceRef.current) {
+        eventSourceRef.current.close();
+        eventSourceRef.current = null;
+      }
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    window.addEventListener("pagehide", handlePageHide);
+
     const connect = () => {
+      // Don't connect if page is unloading
+      if (isUnloading) return;
+
+      // Prevent duplicate connections
+      if (isConnectingRef.current) {
+        if (process.env.NODE_ENV === "development") {
+          console.log("⏭️ [REALTIME] Connection already in progress, skipping...");
+        }
+        return;
+      }
+
+      // Wait for page to be fully loaded before connecting (prevents Firefox interruption errors)
+      if (typeof window !== "undefined" && document.readyState !== "complete") {
+        const handleLoad = () => {
+          window.removeEventListener("load", handleLoad);
+          // Small delay after page load to ensure Firefox is ready
+          setTimeout(() => {
+            if (!isUnloading) {
+              connect();
+            }
+          }, 100);
+        };
+        window.addEventListener("load", handleLoad);
+        return;
+      }
+
+      // Check for existing global connection for this listId
+      const connectionKey = `list-${listId}`;
+      const existingConnection = activeConnections.get(connectionKey);
+      if (existingConnection) {
+        // Close existing connection if it's closed or in error state
+        if (existingConnection.readyState === EventSource.CLOSED) {
+          activeConnections.delete(connectionKey);
+        } else {
+          // Reuse existing connection
+          if (process.env.NODE_ENV === "development") {
+            console.log("♻️ [REALTIME] Reusing existing connection for list", listId);
+          }
+          eventSourceRef.current = existingConnection;
+          setIsConnected(existingConnection.readyState === EventSource.OPEN);
+          return;
+        }
+      }
+
       // Close existing connection if any
       if (eventSourceRef.current) {
         eventSourceRef.current.close();
+        eventSourceRef.current = null;
       }
 
       // Clear any pending reconnection
@@ -38,16 +109,20 @@ export function useRealtimeList(listId: string | null) {
         reconnectTimeoutRef.current = null;
       }
 
+      isConnectingRef.current = true;
+
       // Create SSE connection (start with 0 to get all messages)
-      const eventSource = new EventSource(
-        `/api/realtime/list/${listId}/events?lastEventId=0`
-      );
+      // Add timestamp to prevent Firefox caching issues
+      const url = `/api/realtime/list/${listId}/events?lastEventId=0&_t=${Date.now()}`;
+      const eventSource = new EventSource(url);
 
       eventSourceRef.current = eventSource;
+      activeConnections.set(connectionKey, eventSource);
 
       eventSource.onopen = () => {
         console.log("✅ [REALTIME] Connected to real-time updates");
         setIsConnected(true);
+        isConnectingRef.current = false;
         reconnectAttemptsRef.current = 0; // Reset reconnect attempts on successful connection
       };
 
@@ -81,6 +156,56 @@ export function useRealtimeList(listId: string | null) {
                 );
               }
               return; // Don't dispatch any events during bulk import
+            }
+
+            // Skip collaborator_added and collaborator_removed - these are handled optimistically
+            // BUT allow collaborator_role_updated to trigger refresh (affects current user's permissions)
+            const isCollaboratorActionToSkip = 
+              data.action === "collaborator_added" ||
+              data.action === "collaborator_removed";
+            
+            if (isCollaboratorActionToSkip) {
+              console.log(
+                `⏭️ [REALTIME] Skipping list_updated dispatch - collaborator action (handled optimistically)`
+              );
+              return; // Skip dispatching list-updated event for collaborator add/remove changes
+            }
+
+            // For collaborator_role_updated, we need to refresh the list to update permissions
+            // This is critical for the collaborator whose role changed to see updated UI
+            if (data.action === "collaborator_role_updated") {
+              console.log(
+                `🔄 [REALTIME] Role updated - refreshing list to update permissions`
+              );
+              // Continue to dispatch list-updated event below to trigger getList refresh
+            }
+
+            // For url_clicked actions, update the store directly with click count
+            // This ensures instant UI updates across all screens without full list refresh
+            if (data.action === "url_clicked" && data.urlId && typeof data.clickCount === "number") {
+              const current = currentList.get();
+              if (current?.urls && current.id === listId) {
+                const urls = (current.urls as unknown as UrlItem[]) || [];
+                const urlIndex = urls.findIndex((u) => u.id === data.urlId);
+                if (urlIndex !== -1) {
+                  // Update only the clicked URL's clickCount
+                  const updatedUrls = urls.map((url, idx) =>
+                    idx === urlIndex
+                      ? { ...url, clickCount: data.clickCount as number }
+                      : url
+                  );
+                  // Update store with new URLs array
+                  currentList.set({
+                    ...current,
+                    urls: updatedUrls,
+                  });
+                  console.log(
+                    `✅ [REALTIME] Updated click count for URL ${data.urlId} to ${data.clickCount}`
+                  );
+                  // Don't dispatch list-updated event for click count updates (already handled above)
+                  return;
+                }
+              }
             }
 
             // Check if this is a metadata change (needs immediate update)
@@ -152,32 +277,87 @@ export function useRealtimeList(listId: string | null) {
       };
 
       eventSource.onerror = (error) => {
-        console.error("❌ [REALTIME] SSE error:", error);
+        // Suppress errors during page unload/navigation (Firefox-specific)
+        if (isUnloading) {
+          return; // Don't log errors or reconnect during page navigation
+        }
+
+        // Check if this is a connection interruption (common in Firefox during page load)
+        const isConnectionInterrupted = 
+          eventSource.readyState === EventSource.CLOSED || 
+          eventSource.readyState === EventSource.CONNECTING;
+
+        // Only log error if not a simple connection interruption during page load
+        if (!isConnectionInterrupted || process.env.NODE_ENV === "development") {
+          console.error("❌ [REALTIME] SSE error:", error);
+        }
+
         setIsConnected(false);
+        isConnectingRef.current = false;
         
-        // Close the connection
+        // Close the connection and remove from global tracker
         eventSource.close();
+        const connectionKey = `list-${listId}`;
+        if (activeConnections.get(connectionKey) === eventSource) {
+          activeConnections.delete(connectionKey);
+        }
         eventSourceRef.current = null;
+
+        // Don't reconnect if page is unloading
+        if (isUnloading) {
+          return;
+        }
 
         // Reconnect with exponential backoff (max 30 seconds)
         reconnectAttemptsRef.current += 1;
         const delay = Math.min(1000 * Math.pow(2, reconnectAttemptsRef.current - 1), 30000);
         
-        console.log(`🔄 [REALTIME] Reconnecting in ${delay}ms (attempt ${reconnectAttemptsRef.current})...`);
+        if (process.env.NODE_ENV === "development") {
+          console.log(`🔄 [REALTIME] Reconnecting in ${delay}ms (attempt ${reconnectAttemptsRef.current})...`);
+        }
         
         reconnectTimeoutRef.current = setTimeout(() => {
-          connect(); // Reconnect
+          if (!isUnloading) {
+            connect(); // Reconnect only if page is still active
+          }
         }, delay);
       };
     };
 
-    // Initial connection
-    connect();
+    // Initial connection - wait for page to be ready
+    if (typeof window !== "undefined" && document.readyState === "complete") {
+      // Page already loaded, connect immediately
+      connect();
+    } else {
+      // Wait for page load before connecting (prevents Firefox interruption)
+      const handleLoad = () => {
+        window.removeEventListener("load", handleLoad);
+        // Small delay after page load to ensure Firefox is ready
+        setTimeout(() => {
+          if (!isUnloading) {
+            connect();
+          }
+        }, 200);
+      };
+      window.addEventListener("load", handleLoad);
+    }
 
     return () => {
+      // Mark as unloading to prevent reconnection attempts
+      isUnloading = true;
+      isConnectingRef.current = false;
+
+      // Remove event listeners
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      window.removeEventListener("pagehide", handlePageHide);
+
       // Clean up connection
       if (eventSourceRef.current) {
+        const connectionKey = `list-${listId}`;
         eventSourceRef.current.close();
+        if (activeConnections.get(connectionKey) === eventSourceRef.current) {
+          activeConnections.delete(connectionKey);
+        }
         eventSourceRef.current = null;
       }
       

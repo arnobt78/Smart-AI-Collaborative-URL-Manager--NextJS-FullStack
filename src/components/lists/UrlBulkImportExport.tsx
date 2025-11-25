@@ -29,6 +29,7 @@ interface UrlBulkImportExportProps {
   listTitle?: string;
   onBulkOperationStart?: () => void;
   onBulkOperationEnd?: () => void;
+  canEdit?: boolean; // Permission to edit URLs (false for viewers)
 }
 
 export function UrlBulkImportExport({
@@ -36,6 +37,7 @@ export function UrlBulkImportExport({
   listTitle,
   onBulkOperationStart,
   onBulkOperationEnd,
+  canEdit = true, // Default to true for backward compatibility
 }: UrlBulkImportExportProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -2402,14 +2404,14 @@ export function UrlBulkImportExport({
           <button
             type="button"
             onClick={() => setShowImportMenu(!showImportMenu)}
-            disabled={isImporting}
+            disabled={isImporting || !canEdit}
             className={`
               relative flex items-center justify-center gap-2 px-4 py-2 rounded-xl
               transition-all duration-200 shadow-md hover:shadow-lg
               text-sm font-medium whitespace-nowrap
               ${
-                isImporting
-                  ? "bg-white/5 text-white/40 cursor-wait"
+                isImporting || !canEdit
+                  ? "bg-white/5 text-white/40 cursor-not-allowed"
                   : "bg-gradient-to-r from-blue-600/20 to-blue-500/20 hover:from-blue-600/30 hover:to-blue-500/30 border border-blue-500/30 text-blue-300 hover:text-blue-200"
               }
             `}
@@ -2430,7 +2432,7 @@ export function UrlBulkImportExport({
         </HoverTooltip>
 
         {/* Import dropdown menu */}
-        {showImportMenu && !isImporting && (
+        {showImportMenu && !isImporting && canEdit && (
           <div className="absolute top-full right-0 mt-2 w-56 bg-slate-800 border border-slate-700 rounded-lg shadow-xl z-50 overflow-hidden">
             <div className="py-1">
               <label className="block px-4 py-2 text-sm text-white/90 hover:bg-slate-700 cursor-pointer">

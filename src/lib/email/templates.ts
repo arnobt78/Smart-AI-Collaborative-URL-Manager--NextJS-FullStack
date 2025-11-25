@@ -9,6 +9,7 @@ export interface CollaboratorInviteProps {
   listTitle: string;
   listSlug: string;
   inviteeEmail: string;
+  role?: "editor" | "viewer"; // Optional role (defaults to editor for backward compatibility)
 }
 
 /**
@@ -122,15 +123,34 @@ export function getCollaboratorInviteEmail({
   listTitle,
   listSlug,
   inviteeEmail,
+  role = "editor", // Default to editor for backward compatibility
 }: CollaboratorInviteProps) {
   const displayName = inviterName || inviterEmail.split("@")[0];
   const inviteeName = inviteeEmail.split("@")[0];
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
   const listUrl = `${baseUrl}/list/${listSlug}`;
   const uniqueId = generateUniqueId();
+  
+  // Role-specific messaging
+  const roleTitle = role === "editor" ? "Editor" : "Viewer";
+  const roleDescription = role === "editor"
+    ? "As an editor, you can add, edit, delete, and organize URLs in this list. You can also add comments."
+    : "As a viewer, you can view all URLs and add comments. You cannot modify the list contents.";
+  const roleIcon = role === "editor" ? "✏️" : "👁️";
+  
+  // Format date for email (RFC 2822 format to avoid spam)
+  const emailDate = new Date().toLocaleString("en-US", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    timeZoneName: "short",
+  });
 
   return {
-    subject: `${displayName} invited you to collaborate on "${listTitle}" [${uniqueId}]`,
+    subject: `${displayName} invited you as ${roleTitle} on "${listTitle}" [${uniqueId}]`,
     html: `
       <!DOCTYPE html>
       <html>
@@ -165,8 +185,17 @@ export function getCollaboratorInviteEmail({
                       <div bgcolor="#2d1b4e" style="background-color: #2d1b4e; border-left: 4px solid #8b5cf6; padding: 20px; margin: 30px 0; border-radius: 8px;">
                         <h3 style="color: #ffffff; font-size: 20px; margin: 0; font-weight: bold;">📋 ${listTitle}</h3>
                       </div>
+                      <div bgcolor="#1e3a5f" style="background-color: #1e3a5f; border-left: 4px solid #3b82f6; padding: 20px; margin: 30px 0; border-radius: 8px;">
+                        <h3 style="color: #ffffff; font-size: 18px; margin: 0 0 10px 0;">${roleIcon} Your Role: ${roleTitle}</h3>
+                        <p style="color: #e0e0e0; font-size: 15px; line-height: 1.6; margin: 0;">
+                          ${roleDescription}
+                        </p>
+                      </div>
                       <p style="color: #e0e0e0; font-size: 16px; line-height: 1.6; margin: 0 0 30px 0;">
-                        As a collaborator, you can add, edit, and organize URLs in this list. Start collaborating right away!
+                        Start collaborating right away!
+                      </p>
+                      <p style="color: #b0b0b0; font-size: 12px; line-height: 1.6; margin: 0 0 20px 0; font-style: italic;">
+                        Invitation sent on ${emailDate}
                       </p>
                       <table width="100%" cellpadding="0" cellspacing="0">
                         <tr>
@@ -203,9 +232,12 @@ export function getCollaboratorInviteEmail({
 
 ${displayName} (${inviterEmail}) has invited you to collaborate on "${listTitle}".
 
-As a collaborator, you can add, edit, and organize URLs in this list.
+Your Role: ${roleTitle}
+${roleDescription}
 
 View the list: ${listUrl}
+
+Invitation sent on ${emailDate}
 
 Didn't expect this invitation? You can safely ignore this email.
 

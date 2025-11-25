@@ -50,6 +50,7 @@ interface UrlCardProps {
   onPin?: (id: string) => void;
   shareTooltip: string | null;
   dragHandleProps?: React.HTMLAttributes<HTMLDivElement> | null;
+  canEdit?: boolean; // Permission to edit URLs (false for viewers)
 }
 
 interface TimeInfoProps {
@@ -80,7 +81,18 @@ export const UrlCard: React.FC<UrlCardProps> = ({
   onPin,
   shareTooltip,
   dragHandleProps,
+  canEdit = true, // Default to true for backward compatibility
 }) => {
+  // Log click count changes for debugging
+  React.useEffect(() => {
+    if (process.env.NODE_ENV === "development" && url.clickCount !== undefined) {
+      console.log("🟢 [URL_CARD] UrlCard rendered/updated:", {
+        urlId: url.id,
+        title: url.title?.substring(0, 30),
+        clickCount: url.clickCount,
+      });
+    }
+  }, [url.id, url.clickCount, url.title]);
   const [imageError, setImageError] = React.useState(false);
   const [imageLoading, setImageLoading] = React.useState(true);
   const [currentImageUrl, setCurrentImageUrl] = React.useState<
@@ -265,8 +277,11 @@ export const UrlCard: React.FC<UrlCardProps> = ({
     return () => clearTimeout(timeout);
   }, [imageLoading, currentImageUrl, imageError]);
 
+  // Use metadata with fallback to URL object fields for persistence
+  // This ensures data is displayed even if metadata hasn't loaded yet
   const title = metadata?.title || url.title || url.url;
-  const description = metadata?.description;
+  const description = metadata?.description || url.description; // Fallback to url.description from database
+  const siteName = metadata?.siteName || url.category; // Use category as siteName fallback
 
   // Check if we should show skeleton
   // Only show skeleton if we truly don't have ANY data to display
@@ -530,12 +545,14 @@ export const UrlCard: React.FC<UrlCardProps> = ({
                     icon={<PencilIcon />}
                     onClick={() => onEdit(url)}
                     tooltip="Edit URL"
+                    disabled={!canEdit}
                   />
                   <IconButton
                     icon={<TrashIcon />}
                     onClick={() => setDeleteDialogOpen(true)}
                     tooltip="Delete URL"
                     variant="danger"
+                    disabled={!canEdit}
                   />
                   <IconButton
                     icon={<ShareIcon />}
@@ -558,6 +575,7 @@ export const UrlCard: React.FC<UrlCardProps> = ({
                     }
                     variant={url.isFavorite ? "default" : "default"}
                     className={url.isFavorite ? "border-yellow-400" : ""}
+                    disabled={!canEdit}
                   />
                   <IconButton
                     icon={<ClipboardIcon className="h-5 w-5" />}
@@ -571,6 +589,7 @@ export const UrlCard: React.FC<UrlCardProps> = ({
                       onClick={() => onDuplicate(url)}
                       tooltip="Duplicate URL"
                       variant="default"
+                      disabled={!canEdit}
                     />
                   )}
                   {onArchive && (
@@ -579,6 +598,7 @@ export const UrlCard: React.FC<UrlCardProps> = ({
                       onClick={() => setArchiveDialogOpen(true)}
                       tooltip="Archive URL"
                       variant="default"
+                      disabled={!canEdit}
                     />
                   )}
                   {onPin && (
@@ -606,6 +626,7 @@ export const UrlCard: React.FC<UrlCardProps> = ({
                       }}
                       tooltip={url.isPinned ? "Unpin from top" : "Pin to top"}
                       variant={url.isPinned ? "default" : "default"}
+                      disabled={!canEdit}
                     />
                   )}
                   {url.clickCount !== undefined && (

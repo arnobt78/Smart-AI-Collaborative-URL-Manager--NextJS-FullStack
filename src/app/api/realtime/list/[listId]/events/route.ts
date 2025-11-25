@@ -2,6 +2,27 @@ import { NextRequest, NextResponse } from "next/server";
 import { redis, CHANNELS } from "@/lib/realtime/redis";
 
 /**
+ * OPTIONS /api/realtime/list/[listId]/events
+ * CORS preflight handler for Firefox and other browsers
+ */
+export async function OPTIONS(
+  request: NextRequest,
+  { params }: { params: Promise<{ listId: string }> }
+) {
+  // Firefox sometimes sends OPTIONS requests for EventSource connections
+  return new NextResponse(null, {
+    status: 204,
+    headers: {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET, OPTIONS",
+      "Access-Control-Allow-Headers": "Cache-Control, Last-Event-ID, Accept",
+      "Access-Control-Expose-Headers": "Content-Type, Cache-Control",
+      "Access-Control-Max-Age": "86400", // 24 hours
+    },
+  });
+}
+
+/**
  * GET /api/realtime/list/[listId]/events
  * Server-Sent Events endpoint for real-time list updates
  * Clients can subscribe to this endpoint to receive updates
@@ -14,12 +35,17 @@ export async function GET(
   const { searchParams } = new URL(request.url);
   const lastEventId = searchParams.get("lastEventId") || "0";
 
-  // Set up SSE headers
+  // Set up SSE headers with CORS support for Firefox and other browsers
   const headers = new Headers({
     "Content-Type": "text/event-stream",
-    "Cache-Control": "no-cache",
+    "Cache-Control": "no-cache, no-transform",
     "Connection": "keep-alive",
     "X-Accel-Buffering": "no", // Disable buffering in nginx
+    // CORS headers for cross-origin requests (if needed) and Firefox compatibility
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "GET, OPTIONS",
+    "Access-Control-Allow-Headers": "Cache-Control, Last-Event-ID",
+    "Access-Control-Expose-Headers": "Content-Type, Cache-Control",
   });
 
   const stream = new ReadableStream({

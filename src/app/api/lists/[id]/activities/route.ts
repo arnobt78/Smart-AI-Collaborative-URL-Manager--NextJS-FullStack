@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { getListById } from "@/lib/db";
 import { getActivitiesForList } from "@/lib/db/activities";
+import { hasListAccess } from "@/lib/collaboration/permissions";
 
 /**
  * GET /api/lists/[id]/activities
@@ -23,11 +24,7 @@ export async function GET(
     }
 
     const user = await getCurrentUser();
-    const hasAccess =
-      list.isPublic ||
-      (user &&
-        (list.userId === user.id ||
-          (list.collaborators && list.collaborators.includes(user.email))));
+    const hasAccess = await hasListAccess(list, user);
 
     if (!hasAccess) {
       return NextResponse.json(

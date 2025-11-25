@@ -3,6 +3,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { getListBySlug, updateList, deleteList, type UrlItem } from "@/lib/db";
 import { createActivity } from "@/lib/db/activities";
 import { publishMessage, CHANNELS } from "@/lib/realtime/redis";
+import { hasListAccess } from "@/lib/collaboration/permissions";
 
 export async function GET(
   req: NextRequest,
@@ -16,18 +17,9 @@ export async function GET(
       return NextResponse.json({ error: "List not found" }, { status: 404 });
     }
 
-    // Check if user has access to this list
+    // Check if user has access to this list (validates role-based system and removes old collaborators)
     const user = await getCurrentUser();
-
-    // Allow access if:
-    // 1. List is public (anyone can view)
-    // 2. User owns the list
-    // 3. User is a collaborator
-    const hasAccess =
-      list.isPublic ||
-      (user &&
-        (list.userId === user.id ||
-          (list.collaborators && list.collaborators.includes(user.email))));
+    const hasAccess = await hasListAccess(list, user);
 
     if (!hasAccess) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -55,11 +47,17 @@ export async function GET(
     }
 
     const urlOrder = urlsWithPositions.map((u) => u.id).join(",");
+    // Log click counts for debugging
+    const clickCounts = urlsWithPositions.map((u) => ({
+      urlId: u.id,
+      clickCount: u.clickCount || 0,
+    }));
     console.log(`📋 [GET /api/lists/${id}] Returning list from database`, {
       listId: list.id,
       slug: list.slug,
       urlCount: urlsWithPositions.length,
       urlOrder: urlOrder,
+      clickCounts: clickCounts,
     });
 
     return NextResponse.json({ list });

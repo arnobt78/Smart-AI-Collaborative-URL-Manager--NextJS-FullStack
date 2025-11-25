@@ -51,18 +51,29 @@ export function ActivityFeed({ listId, limit = 50 }: ActivityFeedProps) {
     const now = Date.now();
 
     // Atomic check: Prevent duplicate fetches if one is already in progress
-    // OR if we just started a fetch very recently (within 500ms)
+    // OR if we just started a fetch very recently (within 1000ms)
     if (isFetchingRef.current) {
       console.log("⏭️ [ACTIVITIES] Fetch already in progress, skipping...");
       return;
     }
 
-    if (now - lastFetchStartRef.current < 500) {
+    if (now - lastFetchStartRef.current < 1000) {
       console.log(
         `⏭️ [ACTIVITIES] Fetch started too recently (${
           now - lastFetchStartRef.current
         }ms ago), skipping...`
       );
+      // Queue the fetch to happen after debounce window
+      if (refreshTimeoutRef.current) {
+        clearTimeout(refreshTimeoutRef.current);
+      }
+      const timeSinceLastStart = now - lastFetchStartRef.current;
+      refreshTimeoutRef.current = setTimeout(() => {
+        const checkNow = Date.now();
+        if (!isFetchingRef.current && checkNow - lastFetchStartRef.current >= 1000) {
+          fetchActivities();
+        }
+      }, 1000 - timeSinceLastStart + 100); // Add 100ms buffer
       return;
     }
 
@@ -154,9 +165,9 @@ export function ActivityFeed({ listId, limit = 50 }: ActivityFeedProps) {
       }
 
       // Debounce rapid events (e.g., local dispatch + real-time event firing almost simultaneously)
-      // If we just started a fetch within the last 500ms, queue the next one
+      // If we just started a fetch within the last 1000ms, queue the next one
       const timeSinceLastStart = now - lastFetchStartRef.current;
-      if (timeSinceLastStart < 500) {
+      if (timeSinceLastStart < 1000) {
         console.log(
           `⏭️ [ACTIVITIES] Debouncing fetch (${timeSinceLastStart}ms since last start)...`
         );
@@ -174,7 +185,7 @@ export function ActivityFeed({ listId, limit = 50 }: ActivityFeedProps) {
           // Double-check we're not fetching and enough time has passed
           if (
             !isFetchingRef.current &&
-            now - lastFetchStartRef.current >= 500
+            now - lastFetchStartRef.current >= 1000
           ) {
             console.log(
               `🔄 [ACTIVITIES] Processing ${pendingEventsRef.count} pending event(s)...`
@@ -182,7 +193,7 @@ export function ActivityFeed({ listId, limit = 50 }: ActivityFeedProps) {
             pendingEventsRef.count = 0; // Reset counter
             fetchActivities();
           }
-        }, 500 - timeSinceLastStart + 100); // Add 100ms buffer
+        }, 1000 - timeSinceLastStart + 100); // Add 100ms buffer
         return;
       }
 

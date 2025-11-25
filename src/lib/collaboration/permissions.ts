@@ -13,6 +13,7 @@ export interface PermissionCheck {
 
 /**
  * Get user role for a list
+ * Priority: Owner > Collaborator (from collaboratorRoles) > Viewer (if public)
  */
 export async function getUserRole(
   listId: string,
@@ -26,13 +27,22 @@ export async function getUserRole(
   // Owner
   if (list.userId === userId) return "owner";
 
-  // Check if user is a collaborator
+  // Check if user is a collaborator with role
   const user = await getCurrentUser();
   if (!user || user.id !== userId) return "none";
 
-  if (list.collaborators && list.collaborators.includes(user.email)) {
-    // For now, all collaborators are editors
-    // Later we can add role field to collaborators
+  // Check collaboratorRoles first (new role-based system)
+  if (list.collaboratorRoles && typeof list.collaboratorRoles === "object") {
+    const roles = list.collaboratorRoles as Record<string, string>;
+    const role = roles[user.email];
+    if (role === "editor" || role === "viewer") {
+      return role;
+    }
+  }
+
+  // Fallback: Check legacy collaborators array (for backward compatibility)
+  // Convert legacy collaborators to "editor" role if found
+  if (list.collaborators && Array.isArray(list.collaborators) && list.collaborators.includes(user.email)) {
     return "editor";
   }
 
@@ -53,9 +63,9 @@ export async function checkPermissions(
 
   return {
     canEdit: role === "owner" || role === "editor",
-    canDelete: role === "owner",
-    canInvite: role === "owner",
-    canComment: role !== "none",
+    canDelete: role === "owner", // Only owner can delete
+    canInvite: role === "owner", // Only owner can invite/manage collaborators
+    canComment: role !== "none", // Owner, editor, and viewer can comment
     role,
   };
 }
@@ -82,5 +92,48 @@ export async function requirePermission(
   if (permission === "comment" && !perms.canComment) {
     throw new Error("You don't have permission to comment on this list");
   }
+}
+
+/**
+ * Check if a user has access to view a list
+ * This validates both the new role-based system and legacy collaborators array
+ * Returns true if user can access the list, false otherwise
+ */
+export async function hasListAccess(
+  list: { userId: string; isPublic: boolean; collaboratorRoles?: unknown; collaborators?: string[] },
+  user: { id: string; email: string } | null
+): Promise<boolean> {
+  // Public lists are accessible to everyone
+  if (list.isPublic) {
+    return true;
+  }
+
+  // No user = no access (unless public)
+  if (!user) {
+    return false;
+  }
+
+  // Owner always has access
+  if (list.userId === user.id) {
+    return true;
+  }
+
+  // Check if user is a collaborator using new role-based system
+  if (list.collaboratorRoles && typeof list.collaboratorRoles === "object") {
+    const roles = list.collaboratorRoles as Record<string, string>;
+    if (roles[user.email] === "editor" || roles[user.email] === "viewer") {
+      return true;
+    }
+  }
+
+  // Fallback: Check legacy collaborators array (backward compatibility)
+  if (list.collaborators && Array.isArray(list.collaborators)) {
+    if (list.collaborators.includes(user.email)) {
+      return true;
+    }
+  }
+
+  // No access
+  return false;
 }
 

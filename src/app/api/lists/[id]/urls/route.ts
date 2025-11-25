@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { getListById, updateList } from "@/lib/db";
 import { createActivity } from "@/lib/db/activities";
+import { hasListAccess } from "@/lib/collaboration/permissions";
 import { publishMessage, CHANNELS } from "@/lib/realtime/redis";
 import { deleteUrlVector, upsertUrlVectors, vectorIndex } from "@/lib/vector";
 import { requirePermission } from "@/lib/collaboration/permissions";
@@ -36,16 +37,8 @@ export async function GET(req: NextRequest, context: RouteContext) {
       return NextResponse.json({ error: "List not found" }, { status: 404 });
     }
 
-    // Check if user has access to this list (same logic as /api/lists/[id]/route.ts GET)
-    // Allow access if:
-    // 1. List is public (anyone can view)
-    // 2. User owns the list
-    // 3. User is a collaborator
-    const hasAccess =
-      list.isPublic ||
-      (user &&
-        (list.userId === user.id ||
-          (list.collaborators && list.collaborators.includes(user.email))));
+    // Check if user has access to this list (validates role-based system and removes old collaborators)
+    const hasAccess = await hasListAccess(list, user);
 
     if (!hasAccess) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -246,16 +239,24 @@ export async function POST(req: NextRequest, context: RouteContext) {
       return pos > max ? pos : max;
     }, -1);
 
+    // Create new URL object with all metadata fields saved to database
+    // This ensures metadata (title, description, category) persists after page refresh
+    // Image and favicon are stored separately in Redis metadata cache and fetched on-demand
     const newUrl: UrlItem = {
       id: crypto.randomUUID(),
       url,
+      // Title: user-provided or from metadata (saved to DB, persists after refresh)
       title: title || metadata?.title,
+      // Description: from metadata (saved to DB, persists after refresh)
+      description: metadata?.description,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       isFavorite: false,
+      // User-provided fields
       tags: tags || [],
       notes: notes || "",
       reminder,
+      // Category: user-provided or from metadata.siteName (saved to DB)
       category: category || metadata?.siteName,
       clickCount: 0,
       position: maxPosition + 1, // Add at the end
@@ -304,24 +305,73 @@ export async function POST(req: NextRequest, context: RouteContext) {
 
           // Fetch metadata in background (non-blocking) - don't await
           // This allows the POST request to return immediately (<100ms) while metadata is fetched
-          // Metadata will be cached for future requests
+          // Metadata will be cached for future requests and URL object will be updated
           Promise.resolve().then(async () => {
             try {
-              // Use a short timeout for server-side fetch (1 second max wait)
+              // Fetch metadata with longer timeout for background fetch (5 seconds)
               const metadata = await Promise.race([
-                fetchUrlMetadata(url, 1000).catch(() => ({})),
+                fetchUrlMetadata(url, 5000).catch(() => ({} as UrlMetadata)),
                 new Promise<UrlMetadata>((resolve) => {
-                  setTimeout(() => resolve({}), 1000);
+                  setTimeout(() => resolve({} as UrlMetadata), 5000);
                 }),
               ]);
 
-              // If we got actual metadata, update it in cache for future requests
-              if (metadata && Object.keys(metadata).length > 0 && redis) {
-                try {
-                  const urlCacheKey = cacheKeys.urlMetadata(url);
-                  await redis.set(urlCacheKey, metadata, { ex: 86400 * 7 }); // 7 days TTL
-                } catch {
-                  // Ignore Redis errors
+              // If we got actual metadata with useful fields, cache it and update URL object
+              if (metadata && Object.keys(metadata).length > 0) {
+                // Cache in Redis for unified endpoint
+                if (redis) {
+                  try {
+                    const urlCacheKey = cacheKeys.urlMetadata(url);
+                    await redis.set(urlCacheKey, metadata, { ex: 86400 * 7 }); // 7 days TTL
+                  } catch {
+                    // Ignore Redis errors
+                  }
+                }
+                
+                // Update URL object in database with metadata if we got better data
+                // Only update if we have new/better information
+                const needsUpdate = 
+                  (metadata.title && !newUrl.title) ||
+                  (metadata.description && !newUrl.description) ||
+                  (metadata.siteName && !newUrl.category);
+                
+                if (needsUpdate) {
+                  try {
+                    const currentList = await getListById(listId);
+                    if (currentList) {
+                      const currentUrls = (currentList.urls as unknown as UrlItem[]) || [];
+                      const urlToUpdate = currentUrls.find(u => u.id === newUrl.id);
+                      
+                      if (urlToUpdate) {
+                        // Update URL object with metadata fields
+                        const updatedUrl: UrlItem = {
+                          ...urlToUpdate,
+                          title: metadata.title || urlToUpdate.title,
+                          description: metadata.description || urlToUpdate.description,
+                          category: metadata.siteName || urlToUpdate.category,
+                          updatedAt: new Date().toISOString(),
+                        };
+                        
+                        // Update in database
+                        const updatedUrls = currentUrls.map(u => 
+                          u.id === newUrl.id ? updatedUrl : u
+                        );
+                        await updateList(listId, { urls: updatedUrls });
+                        
+                        // Invalidate list metadata cache so unified endpoint refetches
+                        if (redis) {
+                          try {
+                            await redis.del(cacheKeys.listMetadata(listId));
+                          } catch {
+                            // Ignore Redis errors
+                          }
+                        }
+                      }
+                    }
+                  } catch (error) {
+                    // Silently fail - metadata is cached, that's the main thing
+                    console.warn("Failed to update URL object with background metadata:", error);
+                  }
                 }
               }
             } catch {
@@ -345,6 +395,29 @@ export async function POST(req: NextRequest, context: RouteContext) {
           40
         )}...`
       );
+      
+      // CRITICAL: Cache provided metadata in Redis for unified endpoint
+      // This ensures metadata is available for the batch metadata endpoint
+      if (redis && finalMetadata) {
+        try {
+          const urlCacheKey = cacheKeys.urlMetadata(url);
+          await redis.set(urlCacheKey, finalMetadata, { ex: 86400 * 7 }); // 7 days TTL
+          
+          // Also update the URL object with metadata fields if they're better
+          if (finalMetadata.title && !newUrl.title) {
+            newUrl.title = finalMetadata.title;
+          }
+          if (finalMetadata.description && !newUrl.description) {
+            newUrl.description = finalMetadata.description;
+          }
+          if (finalMetadata.siteName && !newUrl.category) {
+            newUrl.category = finalMetadata.siteName;
+          }
+        } catch (error) {
+          // Ignore Redis errors (non-critical)
+          console.warn("Failed to cache provided metadata:", error);
+        }
+      }
     }
 
     // Determine activity action based on whether this is a duplicate
@@ -654,6 +727,28 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
           favicon: undefined,
           siteName: new URL(updatedUrl.url).hostname.replace(/^www\./, ""),
         };
+      }
+
+      // After fetching metadata (if URL changed), merge metadata fields into the URL object
+      // This ensures title, description, and category are saved to the database
+      if (urlMetadata && updatedUrl) {
+        const updatedUrlWithMetadata: UrlItem = {
+          ...updatedUrl,
+          // Update title from metadata if not manually provided in updates
+          title: updatedUrl.title || urlMetadata.title || updatedUrl.title,
+          // Update description from metadata
+          description: urlMetadata.description || updatedUrl.description || undefined,
+          // Update category from metadata siteName if not manually provided
+          category: updatedUrl.category || urlMetadata.siteName || updatedUrl.category || undefined,
+          updatedAt: new Date().toISOString(),
+        };
+
+        // Update the URLs array with the merged metadata
+        updatedUrls = updatedUrls.map((u) =>
+          u.id === urlId ? updatedUrlWithMetadata : u
+        );
+        updated = await updateList(listId, { urls: updatedUrls });
+        updatedUrl = updatedUrlWithMetadata; // Update reference for activity logging
       }
     }
 

@@ -165,6 +165,7 @@ interface IconButtonProps {
   tooltip: string;
   variant?: "default" | "primary" | "danger";
   className?: string;
+  disabled?: boolean; // Disabled state for viewer permissions
 }
 
 export function IconButton({
@@ -173,6 +174,7 @@ export function IconButton({
   tooltip,
   variant = "default",
   className = "",
+  disabled = false,
 }: IconButtonProps) {
   const variantClasses = {
     default:
@@ -183,14 +185,28 @@ export function IconButton({
       "bg-red-500/20 hover:bg-red-500/30 text-red-400 hover:text-red-300 border border-red-500/30 hover:border-red-500/50",
   };
 
+  const disabledClasses = disabled
+    ? "opacity-40 cursor-not-allowed hover:scale-100 hover:shadow-sm"
+    : "hover:scale-110 active:scale-95";
+
+  const buttonContent = (
+    <button
+      onClick={disabled ? undefined : onClick}
+      disabled={disabled}
+      className={`relative w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200 ${disabledClasses} shadow-sm hover:shadow-md ${variantClasses[variant]} ${className}`}
+    >
+      <div className="w-5 h-5">{icon}</div>
+    </button>
+  );
+
+  // Don't show tooltip if disabled (to prevent hover confusion)
+  if (disabled) {
+    return buttonContent;
+  }
+
   return (
     <HoverTooltip message={tooltip} position="top">
-      <button
-        onClick={onClick}
-        className={`relative w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110 active:scale-95 shadow-sm hover:shadow-md ${variantClasses[variant]} ${className}`}
-      >
-        <div className="w-5 h-5">{icon}</div>
-      </button>
+      {buttonContent}
     </HoverTooltip>
   );
 }

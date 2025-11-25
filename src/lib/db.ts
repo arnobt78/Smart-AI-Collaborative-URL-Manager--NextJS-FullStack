@@ -163,9 +163,14 @@ export async function deleteList(listId: string) {
 }
 
 /**
- * Add collaborator to a list
+ * Add collaborator to a list with a specific role
+ * Also maintains legacy collaborators array for backward compatibility
  */
-export async function addCollaborator(listId: string, email: string) {
+export async function addCollaborator(
+  listId: string,
+  email: string,
+  role: "editor" | "viewer" = "editor"
+) {
   const list = await prisma.list.findUnique({
     where: { id: listId },
   });
@@ -174,6 +179,12 @@ export async function addCollaborator(listId: string, email: string) {
     throw new Error("List not found");
   }
 
+  // Update collaboratorRoles (new role-based system)
+  const collaboratorRoles =
+    (list.collaboratorRoles as Record<string, string>) || {};
+  collaboratorRoles[email] = role;
+
+  // Also maintain legacy collaborators array for backward compatibility
   const collaborators = list.collaborators || [];
   if (!collaborators.includes(email)) {
     collaborators.push(email);
@@ -181,6 +192,104 @@ export async function addCollaborator(listId: string, email: string) {
 
   return prisma.list.update({
     where: { id: listId },
-    data: { collaborators },
+    data: {
+      collaboratorRoles: collaboratorRoles as unknown as Prisma.InputJsonValue,
+      collaborators,
+    },
   });
+}
+
+/**
+ * Update collaborator role
+ */
+export async function updateCollaboratorRole(
+  listId: string,
+  email: string,
+  role: "editor" | "viewer"
+) {
+  const list = await prisma.list.findUnique({
+    where: { id: listId },
+  });
+
+  if (!list) {
+    throw new Error("List not found");
+  }
+
+  const collaboratorRoles =
+    (list.collaboratorRoles as Record<string, string>) || {};
+  collaboratorRoles[email] = role;
+
+  return prisma.list.update({
+    where: { id: listId },
+    data: {
+      collaboratorRoles: collaboratorRoles as unknown as Prisma.InputJsonValue,
+    },
+  });
+}
+
+/**
+ * Remove collaborator from a list
+ * Removes from both collaboratorRoles and legacy collaborators array
+ */
+export async function removeCollaborator(listId: string, email: string) {
+  const list = await prisma.list.findUnique({
+    where: { id: listId },
+  });
+
+  if (!list) {
+    throw new Error("List not found");
+  }
+
+  // Remove from collaboratorRoles
+  const collaboratorRoles =
+    (list.collaboratorRoles as Record<string, string>) || {};
+  delete collaboratorRoles[email];
+
+  // Remove from legacy collaborators array
+  const collaborators = (list.collaborators || []).filter(
+    (e) => e !== email
+  );
+
+  return prisma.list.update({
+    where: { id: listId },
+    data: {
+      collaboratorRoles: collaboratorRoles as unknown as Prisma.InputJsonValue,
+      collaborators,
+    },
+  });
+}
+
+/**
+ * Get all collaborators with their roles
+ */
+export async function getCollaboratorsWithRoles(listId: string) {
+  const list = await prisma.list.findUnique({
+    where: { id: listId },
+  });
+
+  if (!list) {
+    throw new Error("List not found");
+  }
+
+  const roles = (list.collaboratorRoles as Record<string, string>) || {};
+  const collaborators: Array<{ email: string; role: "editor" | "viewer" }> =
+    [];
+
+  // Get from collaboratorRoles first
+  for (const [email, role] of Object.entries(roles)) {
+    if (role === "editor" || role === "viewer") {
+      collaborators.push({ email, role });
+    }
+  }
+
+  // Also check legacy collaborators array for any missing (backward compatibility)
+  const legacyCollaborators = list.collaborators || [];
+  for (const email of legacyCollaborators) {
+    if (!roles[email]) {
+      // Legacy collaborator without role - default to editor
+      collaborators.push({ email, role: "editor" as const });
+    }
+  }
+
+  return collaborators;
 }

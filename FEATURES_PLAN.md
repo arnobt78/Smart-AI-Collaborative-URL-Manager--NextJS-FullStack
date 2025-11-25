@@ -16,38 +16,41 @@ The following major features are fully implemented:
 - Activity Feed
 - URL Health Monitoring (backend + UI indicators)
 - Real-time Collaboration (Redis pub/sub)
-- Basic Import/Export (JSON/CSV)
+- Enhanced Import/Export (JSON/CSV/Markdown + Chrome/Pocket/Pinboard)
 - Session Management & Cleanup
 
 ---
 
 ## 📋 Remaining Features (Priority Order)
 
-### Priority 1: Enhanced Import/Export
+### Priority 1: Role-Based Permissions
 
-**Status:** Basic JSON/CSV exists. Need additional formats and import sources.
+**Status:** Not started
+
+**Value:** Granular access control for team collaboration
 
 **What's Missing:**
 
-- ❌ Chrome bookmarks import
-- ❌ Pocket import
-- ❌ Pinboard import
-- ❌ Markdown export
+- ❌ Role-based permissions (Owner, Editor, Viewer)
+- ❌ Permission management UI
+- ❌ Granular permission controls
 
 **Files to Create:**
 
-- `src/lib/import/chrome.ts` - Chrome bookmarks parser
-- `src/lib/import/pocket.ts` - Pocket export parser
-- `src/lib/import/pinboard.ts` - Pinboard export parser
-- `src/lib/export/markdown.ts` - Markdown export formatter
-- Update `src/components/lists/UrlBulkImportExport.tsx` - Add new import/export options
+- `src/lib/collaboration/permissions.ts` - Permission checking logic
+- `src/components/collaboration/PermissionManager.tsx` - UI for managing permissions
+- Update `src/app/api/lists/[id]/collaborators/route.ts` - Add role parameter
+- Database migration to add `collaboratorRoles` field to List model
 
-**Implementation Notes:**
+**Implementation:**
 
-- Chrome bookmarks are in HTML format (need to parse nested structure)
-- Pocket exports are in JSON format
-- Pinboard exports are in JSON format
-- Markdown export should generate a readable list format
+- Add `collaboratorRoles` JSON field: `{ email: "role" }` mapping
+- Roles: `"owner"` | `"editor"` | `"viewer"`
+- Editor: can add/edit/delete URLs, add comments
+- Viewer: can only view and add comments (no URL modifications)
+- Owner: full control + can manage collaborators
+
+**Estimated Effort:** 1-2 days
 
 ---
 
@@ -77,69 +80,39 @@ The following major features are fully implemented:
 - Use vector similarity search for grouping similar URLs
 - Cache collection suggestions in Redis
 
----
-
-### Priority 3: Advanced Collaboration Features
-
-**Status:** Basic collaboration exists (comments, activity feed, real-time). Need role-based permissions.
-
-**What's Missing:**
-
-- ❌ Role-based permissions (Owner, Editor, Viewer)
-- ❌ Permission management UI
-- ❌ Granular permission controls
-
-**Files to Create:**
-
-- `src/lib/collaboration/permissions.ts` - Permission checking logic
-- `src/components/collaboration/PermissionManager.tsx` - UI for managing permissions
-- Update `src/app/api/lists/[id]/collaborators/route.ts` - Add role parameter
-- Database migration to add `collaboratorRoles` field to List model
-
-**Implementation:**
-
-- Add `collaboratorRoles` JSON field: `{ email: "role" }` mapping
-- Roles: `"owner"` | `"editor"` | `"viewer"`
-- Editor: can add/edit/delete URLs, add comments
-- Viewer: can only view and add comments (no URL modifications)
-- Owner: full control + can manage collaborators
+**Estimated Effort:** 3-4 days
 
 ---
 
 ## 🎯 Recommended Implementation Order
 
-### 1. Enhanced Import/Export ⭐ **RECOMMENDED NEXT**
-
-**Why:**
-
-- High user value (data portability)
-- Relatively straightforward implementation
-- No new third-party services needed
-- Chrome bookmarks import is a common request
-
-**Estimated Effort:** 2-3 days
-
-### 2. Role-Based Permissions
+### 1. Role-Based Permissions ⭐ **RECOMMENDED NEXT**
 
 **Why:**
 
 - Enhances existing collaboration features
 - Important for team use cases
 - Uses existing infrastructure
+- Faster implementation (1-2 days)
 
 **Estimated Effort:** 1-2 days
 
-### 3. Smart Collections
+### 2. Smart Collections
 
 **Why:**
 
 - Leverages existing AI infrastructure
 - Great demo feature
 - Uses existing vector search
+- Auto-organization provides high user value
 
 **Estimated Effort:** 3-4 days
 
-### 4. Premium Tiers
+---
+
+## 📝 Optional Features (Future Consideration)
+
+### Premium Tiers
 
 **Why:**
 
@@ -192,7 +165,7 @@ STRIPE_WEBHOOK_SECRET=...
 
 ## Summary
 
-**Completed:** 12/15 major features (80%)  
-**Remaining:** 4 features (mostly enhancements, 1 optional)
+**Completed:** 13/15 major features (87%)  
+**Remaining:** 2 features (Role-Based Permissions, Smart Collections)
 
-**Focus Area:** Enhanced Import/Export is the recommended next feature to implement.
+**Focus Area:** Role-Based Permissions is the recommended next feature to implement (1-2 days effort).

@@ -41,7 +41,8 @@ export interface UrlList {
   createdAt: string;
   updatedAt?: string;
   isPublic?: boolean;
-  collaborators?: string[]; // user emails or ids
+  collaborators?: string[]; // user emails or ids (legacy)
+  collaboratorRoles?: Record<string, string>; // JSON object mapping email -> role: { "email@example.com": "editor" }
 }
 
 // Initialize with empty list state
@@ -160,7 +161,31 @@ export async function getList(
       (controller.signal as any)._cleanup();
     }
 
-    if (!response.ok) throw new Error("Failed to fetch list");
+    // Handle 401 Unauthorized - user needs to login first
+    if (response.status === 401) {
+      // Store the current URL for redirect after login
+      if (typeof window !== "undefined") {
+        const currentPath = window.location.pathname;
+        sessionStorage.setItem("authRedirect", currentPath);
+        console.log("🔒 [AUTH] 401 detected - stored redirect URL:", currentPath);
+        
+        // IMMEDIATELY redirect to login page - synchronous redirect
+        // Use replace() to prevent back button issues and ensure immediate redirect
+        window.location.replace("/");
+        
+        // Also throw error so component can handle it if redirect somehow fails
+        const error = new Error("Unauthorized - Please login to access this list");
+        (error as any).status = 401;
+        (error as any).code = "UNAUTHORIZED";
+        throw error;
+      }
+    }
+
+    if (!response.ok) {
+      const error = new Error(`Failed to fetch list: ${response.status} ${response.statusText}`);
+      (error as any).status = response.status;
+      throw error;
+    }
 
     const { list } = await response.json();
 
@@ -181,13 +206,18 @@ export async function getList(
     const collaboratorsChanged =
       JSON.stringify(current?.collaborators || []) !==
       JSON.stringify(list?.collaborators || []);
+    // Check for collaboratorRoles changes (critical for permission updates)
+    const collaboratorRolesChanged =
+      JSON.stringify(current?.collaboratorRoles || {}) !==
+      JSON.stringify(list?.collaboratorRoles || {});
 
     const metadataChanged =
       idChanged ||
       titleChanged ||
       descriptionChanged ||
       isPublicChanged ||
-      collaboratorsChanged;
+      collaboratorsChanged ||
+      collaboratorRolesChanged;
 
     // Check for changes in URLs (length, order, or content)
     const urlsLengthChanged = currentUrls.length !== newUrls.length;
@@ -288,6 +318,42 @@ export async function getList(
         }
       }
 
+      // Create a map of server URLs by ID for quick lookup (contains latest data like clickCount)
+      const serverUrlMap = new Map(newUrls.map((u) => [u.id, u]));
+
+      // Helper function to merge preserved order with server data
+      // Preserves order from cache, but uses fresh data (clickCount, etc.) from server
+      const mergeOrderWithServerData = (orderUrls: UrlItem[]): UrlItem[] => {
+        return orderUrls
+          .map((cachedUrl) => {
+            const serverUrl = serverUrlMap.get(cachedUrl.id);
+            if (serverUrl) {
+              // Use server data (has latest clickCount, etc.) but preserve order
+              return serverUrl;
+            }
+            // URL not in server (shouldn't happen if cache is valid, but handle gracefully)
+            return cachedUrl;
+          })
+          .filter((url) => url !== undefined) as UrlItem[];
+      };
+
+      // CRITICAL: If collaboratorRoles changed, always update store immediately (affects permissions)
+      // This must happen even if we're preserving drag order
+      if (collaboratorRolesChanged) {
+        // If we have preserved order, merge it but ensure collaboratorRoles from server is used
+        if (preservedOrder && !urlsLengthChanged && !urlsContentChanged) {
+          const mergedUrls = mergeOrderWithServerData(preservedOrder);
+          const mergedList = {
+            ...list, // Includes updated collaboratorRoles from server
+            urls: mergedUrls, // Preserve order but use latest server data
+          };
+          console.log("🔄 [STORE] Updating collaboratorRoles while preserving drag order");
+          currentList.set(mergedList);
+          return currentList.get() as UrlList;
+        }
+        // Otherwise, update normally (will preserve order if needed below)
+      }
+
       // If ONLY order changed (same URLs, same content, just reordered), preserve optimistic order
       // This prevents server refreshes from overwriting drag operations
       if (
@@ -299,9 +365,11 @@ export async function getList(
       ) {
         // This is ONLY a reorder - preserve the current (optimistic) order OR sessionStorage order
         const orderToUse = preservedOrder || currentUrls;
+        // Merge order with server data to get latest clickCount values
+        const mergedUrls = mergeOrderWithServerData(orderToUse);
         const mergedList = {
           ...list,
-          urls: orderToUse, // Keep optimistic/sessionStorage order - user's action takes precedence
+          urls: mergedUrls, // Keep order but use latest server data
         };
         // console.log("🔄 [STORE] Preserving drag order (only order changed)", {
         //   preserved: orderToUse.map((u) => u.id),
@@ -309,11 +377,14 @@ export async function getList(
         // });
         currentList.set(mergedList);
         return currentList.get() as UrlList; // Return the preserved state
-      } else if (preservedOrder) {
+      } else if (preservedOrder && !collaboratorRolesChanged) {
         // Even if URLs changed, if we have preserved order, use it (drag in progress)
+        // BUT: Skip if collaboratorRoles changed (already handled above)
+        // Merge with server data to get latest clickCount and other dynamic fields
+        const mergedUrls = mergeOrderWithServerData(preservedOrder);
         const mergedList = {
           ...list,
-          urls: preservedOrder,
+          urls: mergedUrls, // Preserve order, but use latest server data
         };
         // console.log("🔄 [STORE] Preserving drag order (drag in progress)", {
         //   preserved: preservedOrder.map((u) => u.id),
@@ -325,14 +396,17 @@ export async function getList(
         // Normal update - URLs were added/removed/changed OR metadata changed
         // BUT: Check if current store has a different order than server (possible drag in progress)
         // If so, preserve current order if it's a reorder (same URLs, just different order)
+        // IMPORTANT: Always include collaboratorRoles from server even when preserving order
         if (
           !urlsLengthChanged &&
           !urlsContentChanged &&
           urlsOrderChanged &&
+          !collaboratorRolesChanged &&
           currentUrls.length > 0 &&
           newUrls.length > 0
         ) {
           // This is a reorder - preserve current order (user's action) over server order
+          // BUT: Skip if collaboratorRoles changed (already handled above)
           const currentIds = new Set(currentUrls.map((u) => u.id));
           const serverIds = new Set(newUrls.map((u) => u.id));
           const sameIds =
@@ -341,9 +415,14 @@ export async function getList(
 
           if (sameIds) {
             // Same URLs, just different order - preserve current (user's drag order)
+            // BUT: Merge with server data to get latest clickCount and other dynamic fields
+            const mergedUrls = currentUrls.map((currentUrl) => {
+              const serverUrl = serverUrlMap.get(currentUrl.id);
+              return serverUrl || currentUrl; // Use server data if available, otherwise current
+            });
             const mergedList = {
-              ...list,
-              urls: currentUrls, // Keep current order - user's action takes precedence
+              ...list, // Always includes latest collaboratorRoles from server
+              urls: mergedUrls, // Keep current order but use latest server data
             };
             // console.log(
             //   "🔄 [STORE] Preserving current order (reorder detected)",
@@ -388,6 +467,11 @@ export async function getList(
         });
     }
 
+    // Check if this is a 401 Unauthorized error - redirect already handled
+    const isUnauthorized =
+      err instanceof Error &&
+      ((err as any).status === 401 || (err as any).code === "UNAUTHORIZED");
+    
     // Check if this is an abort error or timeout
     const isAborted =
       err instanceof Error &&
@@ -395,9 +479,14 @@ export async function getList(
         err.message === "getList timeout after 5 seconds" ||
         err.message.includes("aborted"));
 
-    // Don't set error for abort/timeout - just return null silently
-    if (!isAborted) {
+    // Don't set error for abort/timeout or unauthorized (redirect already handled)
+    if (!isAborted && !isUnauthorized) {
       error.set(err instanceof Error ? err.message : "Failed to fetch list");
+    }
+    
+    // For 401, redirect already happened - just return null silently
+    if (isUnauthorized) {
+      return null;
     }
 
     if (process.env.NODE_ENV === "development" && isAborted) {

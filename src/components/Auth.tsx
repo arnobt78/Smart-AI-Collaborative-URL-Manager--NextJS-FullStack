@@ -14,6 +14,18 @@ export default function Auth() {
   const [message, setMessage] = useState("");
   const [showSubtitle, setShowSubtitle] = useState(false);
 
+  // Get redirect URL from sessionStorage (set when user tries to access protected resource)
+  const getRedirectUrl = () => {
+    if (typeof window !== "undefined") {
+      const redirect = sessionStorage.getItem("authRedirect");
+      if (redirect) {
+        sessionStorage.removeItem("authRedirect"); // Clear after reading
+        return redirect;
+      }
+    }
+    return null;
+  };
+
   const { displayText: typewriterText, isComplete: isMainComplete } =
     useTypewriter({
       text: "> INITIALIZING URL COLLECTOR SYSTEM...",
@@ -70,7 +82,18 @@ export default function Auth() {
             "Account created successfully! Check your email for a welcome message.",
           variant: "success",
         });
-        setTimeout(() => window.location.reload(), 1500);
+        
+        // Check if there's a redirect URL (user was trying to access a protected resource)
+        const redirectUrl = getRedirectUrl();
+        if (redirectUrl) {
+          // Redirect to the original destination after successful signup
+          setTimeout(() => {
+            window.location.href = redirectUrl;
+          }, 1500);
+        } else {
+          // No redirect - just reload the page
+          setTimeout(() => window.location.reload(), 1500);
+        }
       }
     } catch {
       const errorMsg = "An unexpected error occurred";
@@ -114,7 +137,18 @@ export default function Auth() {
           description: "Signed in successfully!",
           variant: "success",
         });
-        setTimeout(() => window.location.reload(), 1000);
+        
+        // Check if there's a redirect URL (user was trying to access a protected resource)
+        const redirectUrl = getRedirectUrl();
+        if (redirectUrl) {
+          // Redirect to the original destination after successful login
+          setTimeout(() => {
+            window.location.href = redirectUrl;
+          }, 1000);
+        } else {
+          // No redirect - just reload the page
+          setTimeout(() => window.location.reload(), 1000);
+        }
       }
     } catch {
       const errorMsg = "An unexpected error occurred";

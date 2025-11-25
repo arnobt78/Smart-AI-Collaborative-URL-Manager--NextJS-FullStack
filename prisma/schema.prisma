@@ -50,9 +50,10 @@ model List {
   slug          String   @unique
   urls          Json     @default("[]") // Array of URL objects
   archivedUrls  Json     @default("[]") // Array of archived URL objects
-  userId        String   @map("user_id")
-  isPublic      Boolean  @default(false) @map("is_public")
-  collaborators String[] @default([]) // Array of email addresses
+  userId            String   @map("user_id")
+  isPublic          Boolean  @default(false) @map("is_public")
+  collaborators     String[] @default([]) // Array of email addresses (legacy, kept for backward compatibility)
+  collaboratorRoles Json?    @map("collaborator_roles") // JSON object mapping email -> role: { "email@example.com": "editor" }
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   comments Comment[] // Comments on URLs in this list
