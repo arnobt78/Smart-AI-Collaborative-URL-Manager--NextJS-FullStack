@@ -50,6 +50,35 @@ export const currentList = map<Partial<UrlList>>({});
 export const isLoading = atom<boolean>(false);
 export const error = atom<string | null>(null);
 
+/**
+ * Helper function to dispatch activity events for optimistic updates
+ * UNIFIED APPROACH: Only dispatch activity-added for immediate optimistic feedback
+ * SSE will handle ALL activity-updated events (single source of truth)
+ * This prevents duplicate API calls and simplifies the codebase
+ */
+function dispatchActivityEvents(
+  listId: string,
+  activity: {
+    id: string;
+    action: string;
+    details: any;
+    createdAt: string;
+    user: { id: string; email: string };
+  }
+) {
+  if (typeof window === "undefined") return;
+
+  // Dispatch activity-added for optimistic update (shows immediately in feed)
+  window.dispatchEvent(
+    new CustomEvent("activity-added", {
+      detail: { listId, activity },
+    })
+  );
+
+  // Note: activity-updated is ONLY dispatched by SSE (useRealtimeList hook)
+  // This ensures single source of truth - ONE API call per action, works on all screens
+}
+
 // Global flag to prevent getList from overwriting optimistic updates during drag
 // This is set by the component during drag operations
 let isDragInProgress = false;
@@ -671,24 +700,17 @@ export async function addUrlToList(
 
     // Dispatch activity data for optimistic feed update
     // Use user data from activityData if available (from API response), otherwise fetch session
-    if (typeof window !== "undefined" && activityData) {
+    if (typeof window !== "undefined" && activityData && current.id) {
       try {
         // If activityData already has user data (from API response), use it directly
         if (activityData.user?.email) {
-          window.dispatchEvent(
-            new CustomEvent("activity-added", {
-              detail: {
-                listId: current.id,
-                activity: {
-                  id: activityData.id,
-                  action: activityData.action,
-                  details: activityData.details,
-                  createdAt: activityData.createdAt,
-                  user: activityData.user,
-                },
-              },
-            })
-          );
+          dispatchActivityEvents(current.id, {
+            id: activityData.id,
+            action: activityData.action,
+            details: activityData.details,
+            createdAt: activityData.createdAt,
+            user: activityData.user,
+          });
         } else {
           // Fallback: fetch session if user data not in response (backward compatibility)
           const sessionResponse = await fetch("/api/auth/session");
@@ -696,23 +718,16 @@ export async function addUrlToList(
             const { user } = await sessionResponse.json();
             if (user?.email) {
               // Dispatch activity with user email for optimistic update
-              window.dispatchEvent(
-                new CustomEvent("activity-added", {
-                  detail: {
-                    listId: current.id,
-                    activity: {
-                      id: activityData.id,
-                      action: activityData.action,
-                      details: activityData.details,
-                      createdAt: activityData.createdAt,
-                      user: {
-                        id: user.id,
-                        email: user.email,
-                      },
-                    },
-                  },
-                })
-              );
+              dispatchActivityEvents(current.id, {
+                id: activityData.id,
+                action: activityData.action,
+                details: activityData.details,
+                createdAt: activityData.createdAt,
+                user: {
+                  id: user.id,
+                  email: user.email,
+                },
+              });
             }
           }
         }
@@ -722,7 +737,7 @@ export async function addUrlToList(
     }
 
     // Note: Activity feed will also update via real-time SSE event
-    // But optimistic update provides instant feedback
+    // But optimistic update provides instant feedback and activity-updated ensures refresh
 
     currentList.set({ ...list, urls: finalUrls });
     return { ...list, urls: finalUrls };
@@ -848,47 +863,33 @@ export async function updateUrlInList(
 
     // Dispatch activity data for optimistic feed update
     // Use user data from activityData if available (from API response), otherwise fetch session
-    if (typeof window !== "undefined" && activityData) {
+    if (typeof window !== "undefined" && activityData && current.id) {
       try {
         // If activityData already has user data (from API response), use it directly
         if (activityData.user?.email) {
-          window.dispatchEvent(
-            new CustomEvent("activity-added", {
-              detail: {
-                listId: current.id,
-                activity: {
-                  id: activityData.id,
-                  action: activityData.action,
-                  details: activityData.details,
-                  createdAt: activityData.createdAt,
-                  user: activityData.user,
-                },
-              },
-            })
-          );
+          dispatchActivityEvents(current.id, {
+            id: activityData.id,
+            action: activityData.action,
+            details: activityData.details,
+            createdAt: activityData.createdAt,
+            user: activityData.user,
+          });
         } else {
           // Fallback: fetch session if user data not in response (backward compatibility)
           const sessionResponse = await fetch("/api/auth/session");
           if (sessionResponse.ok) {
             const { user } = await sessionResponse.json();
             if (user?.email) {
-              window.dispatchEvent(
-                new CustomEvent("activity-added", {
-                  detail: {
-                    listId: current.id,
-                    activity: {
-                      id: activityData.id,
-                      action: activityData.action,
-                      details: activityData.details,
-                      createdAt: activityData.createdAt,
-                      user: {
-                        id: user.id,
-                        email: user.email,
-                      },
-                    },
-                  },
-                })
-              );
+              dispatchActivityEvents(current.id, {
+                id: activityData.id,
+                action: activityData.action,
+                details: activityData.details,
+                createdAt: activityData.createdAt,
+                user: {
+                  id: user.id,
+                  email: user.email,
+                },
+              });
             }
           }
         }
@@ -1001,30 +1002,23 @@ export async function removeUrlFromList(urlId: string) {
       );
     }
 
-    // Dispatch activity data for optimistic feed update
-    if (typeof window !== "undefined" && activity) {
+    // Dispatch activity events for optimistic feed update and refresh
+    if (typeof window !== "undefined" && activity && current.id) {
       try {
         const sessionResponse = await fetch("/api/auth/session");
         if (sessionResponse.ok) {
           const { user } = await sessionResponse.json();
           if (user?.email) {
-            window.dispatchEvent(
-              new CustomEvent("activity-added", {
-                detail: {
-                  listId: current.id,
-                  activity: {
-                    id: activity.id,
-                    action: activity.action,
-                    details: activity.details,
-                    createdAt: activity.createdAt,
-                    user: {
-                      id: user.id,
-                      email: user.email,
-                    },
-                  },
-                },
-              })
-            );
+            dispatchActivityEvents(current.id, {
+              id: activity.id,
+              action: activity.action,
+              details: activity.details,
+              createdAt: activity.createdAt,
+              user: {
+                id: user.id,
+                email: user.email,
+              },
+            });
           }
         }
       } catch {
@@ -1033,7 +1027,7 @@ export async function removeUrlFromList(urlId: string) {
     }
 
     // Note: Activity feed will also update via real-time SSE event
-    // But optimistic update provides instant feedback
+    // But optimistic update provides instant feedback and activity-updated ensures refresh
   } catch (err) {
     // Revert on error
     error.set(err instanceof Error ? err.message : "Failed to update list");
@@ -1115,23 +1109,18 @@ export async function reorderUrls(startIndex: number, endIndex: number) {
       currentList.set(list);
     }
 
-    // Dispatch activity-added event for optimistic feed update
-    if (typeof window !== "undefined" && activityData) {
+    // Dispatch activity events for optimistic feed update and refresh
+    if (typeof window !== "undefined" && activityData && current.id) {
       try {
-        window.dispatchEvent(
-          new CustomEvent("activity-added", {
-            detail: {
-              listId: current.id,
-              activity: {
-                id: activityData.id,
-                action: activityData.action,
-                details: activityData.details,
-                createdAt: activityData.createdAt,
-                user: activityData.user,
-              },
-            },
-          })
-        );
+        if (activityData.user?.email) {
+          dispatchActivityEvents(current.id, {
+            id: activityData.id,
+            action: activityData.action,
+            details: activityData.details,
+            createdAt: activityData.createdAt,
+            user: activityData.user,
+          });
+        }
       } catch {
         // Ignore event dispatch errors
       }
@@ -1216,47 +1205,33 @@ export async function archiveUrlFromList(urlId: string) {
 
     // Dispatch activity data for optimistic feed update
     // Use user data from activityData if available (from API response), otherwise fetch session
-    if (typeof window !== "undefined" && activityData) {
+    if (typeof window !== "undefined" && activityData && current.id) {
       try {
         // If activityData already has user data (from API response), use it directly
         if (activityData.user?.email) {
-          window.dispatchEvent(
-            new CustomEvent("activity-added", {
-              detail: {
-                listId: current.id,
-                activity: {
-                  id: activityData.id,
-                  action: activityData.action,
-                  details: activityData.details,
-                  createdAt: activityData.createdAt,
-                  user: activityData.user,
-                },
-              },
-            })
-          );
+          dispatchActivityEvents(current.id, {
+            id: activityData.id,
+            action: activityData.action,
+            details: activityData.details,
+            createdAt: activityData.createdAt,
+            user: activityData.user,
+          });
         } else {
           // Fallback: fetch session if user data not in response (backward compatibility)
           const sessionResponse = await fetch("/api/auth/session");
           if (sessionResponse.ok) {
             const { user } = await sessionResponse.json();
             if (user?.email) {
-              window.dispatchEvent(
-                new CustomEvent("activity-added", {
-                  detail: {
-                    listId: current.id,
-                    activity: {
-                      id: activityData.id,
-                      action: activityData.action,
-                      details: activityData.details,
-                      createdAt: activityData.createdAt,
-                      user: {
-                        id: user.id,
-                        email: user.email,
-                      },
-                    },
-                  },
-                })
-              );
+              dispatchActivityEvents(current.id, {
+                id: activityData.id,
+                action: activityData.action,
+                details: activityData.details,
+                createdAt: activityData.createdAt,
+                user: {
+                  id: user.id,
+                  email: user.email,
+                },
+              });
             }
           }
         }
@@ -1359,47 +1334,33 @@ export async function restoreArchivedUrl(urlId: string) {
 
     // Dispatch activity data for optimistic feed update
     // Use user data from activityData if available (from API response), otherwise fetch session
-    if (typeof window !== "undefined" && activityData) {
+    if (typeof window !== "undefined" && activityData && current.id) {
       try {
         // If activityData already has user data (from API response), use it directly
         if (activityData.user?.email) {
-          window.dispatchEvent(
-            new CustomEvent("activity-added", {
-              detail: {
-                listId: current.id,
-                activity: {
-                  id: activityData.id,
-                  action: activityData.action,
-                  details: activityData.details,
-                  createdAt: activityData.createdAt,
-                  user: activityData.user,
-                },
-              },
-            })
-          );
+          dispatchActivityEvents(current.id, {
+            id: activityData.id,
+            action: activityData.action,
+            details: activityData.details,
+            createdAt: activityData.createdAt,
+            user: activityData.user,
+          });
         } else {
           // Fallback: fetch session if user data not in response (backward compatibility)
           const sessionResponse = await fetch("/api/auth/session");
           if (sessionResponse.ok) {
             const { user } = await sessionResponse.json();
             if (user?.email) {
-              window.dispatchEvent(
-                new CustomEvent("activity-added", {
-                  detail: {
-                    listId: current.id,
-                    activity: {
-                      id: activityData.id,
-                      action: activityData.action,
-                      details: activityData.details,
-                      createdAt: activityData.createdAt,
-                      user: {
-                        id: user.id,
-                        email: user.email,
-                      },
-                    },
-                  },
-                })
-              );
+              dispatchActivityEvents(current.id, {
+                id: activityData.id,
+                action: activityData.action,
+                details: activityData.details,
+                createdAt: activityData.createdAt,
+                user: {
+                  id: user.id,
+                  email: user.email,
+                },
+              });
             }
           }
         }

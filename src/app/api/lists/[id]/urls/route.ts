@@ -327,37 +327,41 @@ export async function POST(req: NextRequest, context: RouteContext) {
                     // Ignore Redis errors
                   }
                 }
-                
+
                 // Update URL object in database with metadata if we got better data
                 // Only update if we have new/better information
-                const needsUpdate = 
+                const needsUpdate =
                   (metadata.title && !newUrl.title) ||
                   (metadata.description && !newUrl.description) ||
                   (metadata.siteName && !newUrl.category);
-                
+
                 if (needsUpdate) {
                   try {
                     const currentList = await getListById(listId);
                     if (currentList) {
-                      const currentUrls = (currentList.urls as unknown as UrlItem[]) || [];
-                      const urlToUpdate = currentUrls.find(u => u.id === newUrl.id);
-                      
+                      const currentUrls =
+                        (currentList.urls as unknown as UrlItem[]) || [];
+                      const urlToUpdate = currentUrls.find(
+                        (u) => u.id === newUrl.id
+                      );
+
                       if (urlToUpdate) {
                         // Update URL object with metadata fields
                         const updatedUrl: UrlItem = {
                           ...urlToUpdate,
                           title: metadata.title || urlToUpdate.title,
-                          description: metadata.description || urlToUpdate.description,
+                          description:
+                            metadata.description || urlToUpdate.description,
                           category: metadata.siteName || urlToUpdate.category,
                           updatedAt: new Date().toISOString(),
                         };
-                        
+
                         // Update in database
-                        const updatedUrls = currentUrls.map(u => 
+                        const updatedUrls = currentUrls.map((u) =>
                           u.id === newUrl.id ? updatedUrl : u
                         );
                         await updateList(listId, { urls: updatedUrls });
-                        
+
                         // Invalidate list metadata cache so unified endpoint refetches
                         if (redis) {
                           try {
@@ -370,7 +374,10 @@ export async function POST(req: NextRequest, context: RouteContext) {
                     }
                   } catch (error) {
                     // Silently fail - metadata is cached, that's the main thing
-                    console.warn("Failed to update URL object with background metadata:", error);
+                    console.warn(
+                      "Failed to update URL object with background metadata:",
+                      error
+                    );
                   }
                 }
               }
@@ -395,14 +402,14 @@ export async function POST(req: NextRequest, context: RouteContext) {
           40
         )}...`
       );
-      
+
       // CRITICAL: Cache provided metadata in Redis for unified endpoint
       // This ensures metadata is available for the batch metadata endpoint
       if (redis && finalMetadata) {
         try {
           const urlCacheKey = cacheKeys.urlMetadata(url);
           await redis.set(urlCacheKey, finalMetadata, { ex: 86400 * 7 }); // 7 days TTL
-          
+
           // Also update the URL object with metadata fields if they're better
           if (finalMetadata.title && !newUrl.title) {
             newUrl.title = finalMetadata.title;
@@ -443,7 +450,7 @@ export async function POST(req: NextRequest, context: RouteContext) {
       publishMessage(CHANNELS.listUpdate(listId), {
         type: "list_updated",
         listId: listId,
-        action: activityAction,
+        action: activityAction, // Use activityAction so reorder publishes as "url_reordered"
         timestamp: new Date().toISOString(),
         urlCount: updatedUrls.length,
       }),
@@ -452,7 +459,21 @@ export async function POST(req: NextRequest, context: RouteContext) {
         listId: listId,
         action: activityAction,
         timestamp: new Date().toISOString(),
-        activity,
+        activity: {
+          id: activity.id,
+          action: activity.action,
+          details: activity.details,
+          createdAt: activity.createdAt.toISOString(),
+          user: activity.user
+            ? {
+                id: activity.user.id,
+                email: activity.user.email,
+              }
+            : {
+                id: user.id,
+                email: user.email,
+              },
+        },
       }),
     ]);
 
@@ -737,9 +758,14 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
           // Update title from metadata if not manually provided in updates
           title: updatedUrl.title || urlMetadata.title || updatedUrl.title,
           // Update description from metadata
-          description: urlMetadata.description || updatedUrl.description || undefined,
+          description:
+            urlMetadata.description || updatedUrl.description || undefined,
           // Update category from metadata siteName if not manually provided
-          category: updatedUrl.category || urlMetadata.siteName || updatedUrl.category || undefined,
+          category:
+            updatedUrl.category ||
+            urlMetadata.siteName ||
+            updatedUrl.category ||
+            undefined,
           updatedAt: new Date().toISOString(),
         };
 
@@ -807,7 +833,7 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
       publishMessage(CHANNELS.listUpdate(listId), {
         type: "list_updated",
         listId: listId,
-        action: "url_updated",
+        action: activityAction || "url_updated", // Use activityAction if available (e.g., "url_reordered", "url_favorited")
         timestamp: new Date().toISOString(),
         urlCount: updatedUrls.length,
       }),
@@ -816,7 +842,21 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
         listId: listId,
         action: activityAction,
         timestamp: new Date().toISOString(),
-        activity,
+        activity: {
+          id: activity.id,
+          action: activity.action,
+          details: activity.details,
+          createdAt: activity.createdAt.toISOString(),
+          user: activity.user
+            ? {
+                id: activity.user.id,
+                email: activity.user.email,
+              }
+            : {
+                id: user.id,
+                email: user.email,
+              },
+        },
       }),
     ]);
 
@@ -984,7 +1024,21 @@ export async function DELETE(req: NextRequest, context: RouteContext) {
         listId: listId,
         action: "url_deleted",
         timestamp: new Date().toISOString(),
-        activity,
+        activity: {
+          id: activity.id,
+          action: activity.action,
+          details: activity.details,
+          createdAt: activity.createdAt.toISOString(),
+          user: activity.user
+            ? {
+                id: activity.user.id,
+                email: activity.user.email,
+              }
+            : {
+                id: user.id,
+                email: user.email,
+              },
+        },
       }),
     ]);
 

@@ -28,7 +28,7 @@ export async function GET(
     // Initialize positions for URLs that don't have them (backward compatibility)
     const urls = (list.urls as unknown as UrlItem[]) || [];
     let needsPositionInit = false;
-    
+
     const urlsWithPositions: UrlItem[] = urls.map((url, idx) => {
       if (url.position === undefined) {
         needsPositionInit = true;
@@ -36,11 +36,13 @@ export async function GET(
       }
       return url;
     });
-    
+
     // If positions were initialized, save them back to database
     if (needsPositionInit && urlsWithPositions.length > 0) {
       // Sort by position and update
-      urlsWithPositions.sort((a, b) => (a.position ?? 999) - (b.position ?? 999));
+      urlsWithPositions.sort(
+        (a, b) => (a.position ?? 999) - (b.position ?? 999)
+      );
       await updateList(list.id, { urls: urlsWithPositions });
       list.urls = urlsWithPositions as any;
       console.log(`✅ [GET] Initialized positions for ${list.id}`);
@@ -127,7 +129,12 @@ export async function PATCH(
 
     // Only create activity if there's a meaningful change
     if (activityAction) {
-      await createActivity(id, user.id, activityAction, activityDetails);
+      const activity = await createActivity(
+        id,
+        user.id,
+        activityAction,
+        activityDetails
+      );
 
       // Publish real-time update
       await publishMessage(CHANNELS.listUpdate(id), {
@@ -143,6 +150,21 @@ export async function PATCH(
         listId: id,
         action: activityAction,
         timestamp: new Date().toISOString(),
+        activity: {
+          id: activity.id,
+          action: activity.action,
+          details: activity.details,
+          createdAt: activity.createdAt.toISOString(),
+          user: activity.user
+            ? {
+                id: activity.user.id,
+                email: activity.user.email,
+              }
+            : {
+                id: user.id,
+                email: user.email,
+              },
+        },
       });
     } else {
       // Still publish list update even if no activity (for other metadata changes)

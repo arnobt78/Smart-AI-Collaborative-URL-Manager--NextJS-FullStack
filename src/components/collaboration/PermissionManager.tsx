@@ -97,23 +97,50 @@ export function PermissionManager({
         listId: string;
         action?: string;
       }>;
-      
+
       // Only handle collaborator_role_updated events for this list
       if (
         customEvent.detail?.listId === listId &&
         customEvent.detail?.action === "collaborator_role_updated"
       ) {
-        console.log("🔄 [PERMISSIONS] Role updated - refreshing collaborators and permissions");
+        console.log(
+          "🔄 [PERMISSIONS] Role updated (from list-updated) - refreshing collaborators and permissions"
+        );
         // Invalidate collaborators query to refetch with new roles
-        queryClient.invalidateQueries({ queryKey: [`collaborators:${listId}`] });
-        // The list-updated event will also trigger getList() which updates currentList
-        // This will cause useListPermissions to recalculate with new role
+        queryClient.invalidateQueries({
+          queryKey: [`collaborators:${listId}`],
+        });
+        // The unified endpoint will update currentList store, which will trigger useListPermissions to recalculate
+      }
+    };
+
+    const handleUnifiedUpdate = (event: Event) => {
+      const customEvent = event as CustomEvent<{
+        listId?: string;
+        action?: string;
+      }>;
+
+      // Handle collaborator_role_updated from unified-update events
+      if (
+        customEvent.detail?.listId === listId &&
+        customEvent.detail?.action === "collaborator_role_updated"
+      ) {
+        console.log(
+          "🔄 [PERMISSIONS] Role updated (from unified-update) - refreshing collaborators and permissions"
+        );
+        // Invalidate collaborators query to refetch with new roles
+        queryClient.invalidateQueries({
+          queryKey: [`collaborators:${listId}`],
+        });
+        // The unified endpoint will update currentList store, which will trigger useListPermissions to recalculate
       }
     };
 
     window.addEventListener("list-updated", handleListUpdate);
+    window.addEventListener("unified-update", handleUnifiedUpdate);
     return () => {
       window.removeEventListener("list-updated", handleListUpdate);
+      window.removeEventListener("unified-update", handleUnifiedUpdate);
     };
   }, [listId, queryClient]);
 
@@ -195,8 +222,8 @@ export function PermissionManager({
       // No need to invalidate - optimistic update already syncs cache
 
       // Local operation already marked before API call
-      // Real-time listener will receive activity_created event and dispatch activity-updated automatically
-      // ActivityFeed will queue the fetch due to local-operation flag
+      // UNIFIED APPROACH: SSE handles ALL activity-updated events (single source of truth)
+      // No local dispatch needed - prevents duplicate API calls
 
       // Notify parent component
       onUpdate?.();
@@ -274,8 +301,8 @@ export function PermissionManager({
       // The cache will be automatically refetched when it becomes stale (5 min) or on next mount
 
       // Local operation already marked before API call
-      // Real-time listener will receive activity_created event and dispatch activity-updated automatically
-      // ActivityFeed will queue the fetch due to local-operation flag
+      // UNIFIED APPROACH: SSE handles ALL activity-updated events (single source of truth)
+      // No local dispatch needed - prevents duplicate API calls
 
       // Notify parent component
       onUpdate?.();
@@ -346,8 +373,8 @@ export function PermissionManager({
       // No need to invalidate - optimistic update already syncs cache
 
       // Local operation already marked before API call
-      // Real-time listener will receive activity_created event and dispatch activity-updated automatically
-      // ActivityFeed will queue the fetch due to local-operation flag
+      // UNIFIED APPROACH: SSE handles ALL activity-updated events (single source of truth)
+      // No local dispatch needed - prevents duplicate API calls
 
       // Notify parent component
       onUpdate?.();

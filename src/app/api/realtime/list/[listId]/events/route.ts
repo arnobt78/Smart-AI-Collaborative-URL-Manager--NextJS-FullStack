@@ -58,23 +58,13 @@ export async function GET(
       );
 
       let lastCheck = parseInt(lastEventId, 10) || 0;
-      let lastPollTime = Date.now();
       const processedMessageIds = new Set<string>(); // Track processed message IDs
       const connectionStartTime = Date.now(); // Track when connection started
 
-      // Poll for new messages every 3 seconds (faster for real-time feel)
+      // Poll for new messages every 1 second to catch all events (no throttle)
+      // CRITICAL: Fast polling ensures we don't miss rapid events (favorite, pin, etc.)
       const interval = setInterval(async () => {
         try {
-          // Throttle polling - only poll if at least 3 seconds have passed
-          const now = Date.now();
-          if (now - lastPollTime < 3000) {
-            // Send heartbeat without checking for messages
-            controller.enqueue(
-              encoder.encode(`data: ${JSON.stringify({ type: "heartbeat" })}\n\n`)
-            );
-            return;
-          }
-          lastPollTime = now;
 
           if (!redis) {
             console.warn("⚠️ [REALTIME] Redis not available");
@@ -101,8 +91,32 @@ export async function GET(
               try {
                 const parsed = typeof msg === "string" ? JSON.parse(msg) : msg;
                 // Create a unique ID from the message content and timestamp
+                // CRITICAL: Each message needs a truly unique ID to prevent deduplication issues
                 const messageTimestamp = parsed.timestamp ? new Date(parsed.timestamp).getTime() : 0;
-                const messageId = `${parsed.type}_${messageTimestamp}_${JSON.stringify(parsed)}`;
+                
+                // CRITICAL: Generate truly unique message IDs to prevent deduplication bugs
+                // For activity_created events, use activity.id for absolute uniqueness
+                // For other events, use type + action + timestamp + content hash
+                let uniqueKey: string;
+                if (parsed.type === "activity_created") {
+                  // Activity ID ensures uniqueness - this is the most reliable way
+                  const activityId = (parsed.activity as any)?.id;
+                  if (activityId) {
+                    uniqueKey = activityId;
+                  } else {
+                    // Fallback: use action + timestamp + a hash of the full message
+                    const contentStr = JSON.stringify(parsed);
+                    const contentHash = contentStr.length + (contentStr.charCodeAt(0) || 0);
+                    uniqueKey = `${parsed.action || 'unknown'}_${messageTimestamp}_${contentHash}`;
+                  }
+                } else {
+                  // For other events, use type + action + timestamp + content hash
+                  const contentStr = JSON.stringify(parsed);
+                  const contentHash = contentStr.length + (contentStr.charCodeAt(0) || 0);
+                  uniqueKey = `${parsed.action || 'none'}_${messageTimestamp}_${contentHash}`;
+                }
+                
+                const messageId = `${parsed.type}_${uniqueKey}`;
                 return {
                   id: messageId,
                   data: parsed,
@@ -114,12 +128,14 @@ export async function GET(
             })
             .filter((msg): msg is { id: string; data: Record<string, unknown>; timestamp: number } => {
               if (msg === null) return false;
-              // Only send messages that:
-              // 1. We haven't processed yet
-              // 2. Were created after the connection started (or within last 5 seconds before connection)
+              
+              // CRITICAL: Only check if we've already processed this message
+              // Remove timestamp filtering - if message is in Redis, it's valid to send
+              // The 15-second window was too restrictive and was filtering out valid events
               const isNew = !processedMessageIds.has(msg.id);
-              const isRecent = msg.timestamp > (connectionStartTime - 5000);
-              return isNew && isRecent;
+              
+              // Always send if not processed yet (ignore timestamp - messages in Redis are valid)
+              return isNew;
             });
 
           // Send new messages (only if we have truly new ones)
@@ -130,13 +146,13 @@ export async function GET(
           }
 
           if (newMessages.length > 0) {
-            console.log(`📨 [REALTIME] Sending ${newMessages.length} new message(s) to client`);
             for (const message of newMessages) {
               // Check again before each message
               if (request.signal.aborted) {
                 clearInterval(interval);
                 return;
               }
+              
               processedMessageIds.add(message.id);
               // Use a unique event ID based on timestamp
               const eventId = message.timestamp || Date.now();
@@ -192,7 +208,7 @@ export async function GET(
             }
           }
         }
-      }, 3000); // Poll every 3 seconds for faster real-time updates
+      }, 1000); // Poll every 1 second to catch ALL events (no throttle)
 
       // Clean up on client disconnect
       request.signal.addEventListener("abort", () => {

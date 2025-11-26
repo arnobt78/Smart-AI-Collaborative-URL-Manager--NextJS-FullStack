@@ -131,7 +131,7 @@ export function Comments({ listId, urlId, currentUserId }: CommentsProps) {
         variant: "success",
       });
 
-      // Dispatch activity-added event with activity data from server
+      // Dispatch activity events for optimistic update and feed refresh
       if (data.activity) {
         window.dispatchEvent(
           new CustomEvent("activity-added", {
@@ -141,12 +141,10 @@ export function Comments({ listId, urlId, currentUserId }: CommentsProps) {
             },
           })
         );
+        
+        // UNIFIED APPROACH: SSE handles ALL activity-updated events (single source of truth)
+        // No local dispatch needed - prevents duplicate API calls
       }
-
-      // Note: We don't dispatch "comment-updated" here because:
-      // 1. We've already updated the cache optimistically and with server data
-      // 2. The real-time system (SSE) will notify other clients automatically
-      // 3. Dispatching here would trigger our own listener and cause a redundant refetch
     },
     onError: (error, _variables, context) => {
       // Rollback optimistic update
@@ -238,7 +236,7 @@ export function Comments({ listId, urlId, currentUserId }: CommentsProps) {
         variant: "success",
       });
 
-      // Dispatch activity-added event with activity data from server
+      // Dispatch activity events for optimistic update and feed refresh
       if (data.activity) {
         window.dispatchEvent(
           new CustomEvent("activity-added", {
@@ -248,12 +246,10 @@ export function Comments({ listId, urlId, currentUserId }: CommentsProps) {
             },
           })
         );
+        
+        // UNIFIED APPROACH: SSE handles ALL activity-updated events (single source of truth)
+        // No local dispatch needed - prevents duplicate API calls
       }
-
-      // Note: We don't dispatch "comment-updated" here because:
-      // 1. We've already updated the cache optimistically and with server data
-      // 2. The real-time system (SSE) will notify other clients automatically
-      // 3. Dispatching here would trigger our own listener and cause a redundant refetch
     },
     onError: (error, _variables, context) => {
       // Rollback optimistic update

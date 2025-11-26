@@ -138,7 +138,7 @@ export async function POST(
     const updated = await updateList(id, { urls: newUrls });
 
     // Log activity
-    await createActivity(id, user.id, activityAction, activityDetails);
+    const activity = await createActivity(id, user.id, activityAction, activityDetails);
 
     // Publish real-time update
     await publishMessage(CHANNELS.listUpdate(id), {
@@ -149,12 +149,22 @@ export async function POST(
       urlCount: newUrls.length,
     });
 
-    // Publish activity update
+    // Publish activity update with full activity object for optimistic updates
     await publishMessage(CHANNELS.listActivity(id), {
       type: "activity_created",
       listId: id,
       action: activityAction,
       timestamp: new Date().toISOString(),
+      activity: {
+        id: activity.id,
+        action: activity.action,
+        details: activity.details,
+        createdAt: activity.createdAt.toISOString(),
+        user: {
+          id: user.id,
+          email: user.email,
+        },
+      },
     });
 
     // Sync vectors in background (non-blocking)

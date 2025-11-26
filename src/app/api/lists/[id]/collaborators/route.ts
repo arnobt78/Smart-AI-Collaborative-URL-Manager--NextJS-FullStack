@@ -114,7 +114,7 @@ export async function POST(
     const updatedList = await addCollaborator(id, email, role);
 
     // Create activity log
-    await createActivity(id, user.id, "collaborator_added", {
+    const activity = await createActivity(id, user.id, "collaborator_added", {
       collaboratorEmail: email,
       role: role,
     });
@@ -133,6 +133,19 @@ export async function POST(
       listId: id,
       action: "collaborator_added",
       timestamp: new Date().toISOString(),
+      activity: {
+        id: activity.id,
+        action: activity.action,
+        details: activity.details,
+        createdAt: activity.createdAt.toISOString(),
+        user: activity.user ? {
+          id: activity.user.id,
+          email: activity.user.email,
+        } : {
+          id: user.id,
+          email: user.email,
+        },
+      },
     });
 
     // Send collaborator invite email (don't fail if email fails)
@@ -228,7 +241,7 @@ export async function PUT(
     const updatedList = await updateCollaboratorRole(id, email, role);
 
     // Create activity log
-    await createActivity(id, user.id, "collaborator_role_updated", {
+    const activity = await createActivity(id, user.id, "collaborator_role_updated", {
       collaboratorEmail: email,
       role: role,
     });
@@ -247,6 +260,19 @@ export async function PUT(
       listId: id,
       action: "collaborator_role_updated",
       timestamp: new Date().toISOString(),
+      activity: {
+        id: activity.id,
+        action: activity.action,
+        details: activity.details,
+        createdAt: activity.createdAt.toISOString(),
+        user: activity.user ? {
+          id: activity.user.id,
+          email: activity.user.email,
+        } : {
+          id: user.id,
+          email: user.email,
+        },
+      },
     });
 
     return NextResponse.json({
@@ -301,7 +327,7 @@ export async function DELETE(
     const updatedList = await removeCollaborator(id, email);
 
     // Create activity log
-    await createActivity(id, user.id, "collaborator_removed", {
+    const activity = await createActivity(id, user.id, "collaborator_removed", {
       collaboratorEmail: email,
     });
 
@@ -319,6 +345,19 @@ export async function DELETE(
       listId: id,
       action: "collaborator_removed",
       timestamp: new Date().toISOString(),
+      activity: {
+        id: activity.id,
+        action: activity.action,
+        details: activity.details,
+        createdAt: activity.createdAt.toISOString(),
+        user: activity.user ? {
+          id: activity.user.id,
+          email: activity.user.email,
+        } : {
+          id: user.id,
+          email: user.email,
+        },
+      },
     });
 
     return NextResponse.json({

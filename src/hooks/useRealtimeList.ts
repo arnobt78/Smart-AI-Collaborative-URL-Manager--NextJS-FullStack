@@ -58,9 +58,7 @@ export function useRealtimeList(listId: string | null) {
 
       // Prevent duplicate connections
       if (isConnectingRef.current) {
-        if (process.env.NODE_ENV === "development") {
-          console.log("⏭️ [REALTIME] Connection already in progress, skipping...");
-        }
+        // Connection already in progress, skipping...
         return;
       }
 
@@ -88,9 +86,6 @@ export function useRealtimeList(listId: string | null) {
           activeConnections.delete(connectionKey);
         } else {
           // Reuse existing connection
-          if (process.env.NODE_ENV === "development") {
-            console.log("♻️ [REALTIME] Reusing existing connection for list", listId);
-          }
           eventSourceRef.current = existingConnection;
           setIsConnected(existingConnection.readyState === EventSource.OPEN);
           return;
@@ -120,7 +115,6 @@ export function useRealtimeList(listId: string | null) {
       activeConnections.set(connectionKey, eventSource);
 
       eventSource.onopen = () => {
-        console.log("✅ [REALTIME] Connected to real-time updates");
         setIsConnected(true);
         isConnectingRef.current = false;
         reconnectAttemptsRef.current = 0; // Reset reconnect attempts on successful connection
@@ -143,7 +137,7 @@ export function useRealtimeList(listId: string | null) {
 
           // Handle different event types
           if (data.type === "connected") {
-            console.log("✅ [REALTIME] Connected to list updates");
+            // Connected to list updates
           } else if (data.type === "list_updated") {
             // CRITICAL: Skip all real-time events during bulk import to prevent getList spam
             if (
@@ -165,20 +159,12 @@ export function useRealtimeList(listId: string | null) {
               data.action === "collaborator_removed";
             
             if (isCollaboratorActionToSkip) {
-              console.log(
-                `⏭️ [REALTIME] Skipping list_updated dispatch - collaborator action (handled optimistically)`
-              );
-              return; // Skip dispatching list-updated event for collaborator add/remove changes
+              // Skip dispatching list-updated event for collaborator add/remove changes
+              return;
             }
 
             // For collaborator_role_updated, we need to refresh the list to update permissions
             // This is critical for the collaborator whose role changed to see updated UI
-            if (data.action === "collaborator_role_updated") {
-              console.log(
-                `🔄 [REALTIME] Role updated - refreshing list to update permissions`
-              );
-              // Continue to dispatch list-updated event below to trigger getList refresh
-            }
 
             // For url_clicked actions, update the store directly with click count
             // This ensures instant UI updates across all screens without full list refresh
@@ -199,9 +185,6 @@ export function useRealtimeList(listId: string | null) {
                     ...current,
                     urls: updatedUrls,
                   });
-                  console.log(
-                    `✅ [REALTIME] Updated click count for URL ${data.urlId} to ${data.clickCount}`
-                  );
                   // Don't dispatch list-updated event for click count updates (already handled above)
                   return;
                 }
@@ -218,34 +201,27 @@ export function useRealtimeList(listId: string | null) {
             const now = Date.now();
             
             if (now - lastListDispatchRef.current < throttleWindow) {
-              // For metadata changes, still dispatch but log it
+              // For metadata changes, still dispatch
               if (isMetadataChange) {
-                console.log(
-                  `🔄 [REALTIME] List updated (metadata change) - dispatching despite throttle`
-                );
                 // Still dispatch for metadata changes, but update throttle time
                 lastListDispatchRef.current = now;
               } else {
-                console.log(
-                  `⏭️ [REALTIME] Skipping list_updated dispatch - too soon (${throttleWindow}ms throttle)`
-                );
                 return; // Skip if we dispatched recently
               }
             } else {
               lastListDispatchRef.current = now;
             }
 
-            // Refresh the list when it's updated
-            console.log(
-              "🔄 [REALTIME] List updated event received, dispatching..."
-            );
+            // UNIFIED APPROACH: Dispatch unified event instead of separate list-updated
+            // This will trigger ONE unified API call that returns both list + activities
+            console.log(`🔄 [REALTIME] List updated - dispatching unified-update (action: ${data.action || 'list_updated'})`);
 
-            // Get current list slug and refetch
+            // Get current list slug and dispatch unified event
             const current = currentList.get();
             if (current?.slug) {
-              // Trigger a refetch with timestamp and action to help deduplicate
+              // Dispatch unified event that will trigger the unified endpoint
               window.dispatchEvent(
-                new CustomEvent("list-updated", {
+                new CustomEvent("unified-update", {
                   detail: {
                     listId,
                     timestamp: data.timestamp || new Date().toISOString(),
@@ -255,20 +231,27 @@ export function useRealtimeList(listId: string | null) {
               );
             }
           } else if (data.type === "activity_created") {
-            // For activity_created events from real-time (other windows), update immediately
-            // Use a shorter throttle to allow rapid updates from other users
-            const now = Date.now();
-            if (now - lastActivityDispatchRef.current < 500) {
-              // Only throttle if we just dispatched (prevent duplicate rapid events)
-              console.log("⏭️ [REALTIME] Skipping activity dispatch - too soon");
-              return;
-            }
-            lastActivityDispatchRef.current = now;
-
-            // Refresh activity feed immediately when new activity is created (from other windows)
-            console.log("🔄 [REALTIME] Activity created (from other window), refreshing feed...");
+            // UNIFIED APPROACH: Dispatch unified event that triggers ONE API call for both list + activities
+            // This ensures consistency - one API endpoint returns everything needed
+            const activityData = data.activity as any;
+            const action = activityData?.action || "unknown";
+            console.log(`🔄 [REALTIME] Activity created - dispatching unified-update (action: ${action})`);
+            
+            // Dispatch unified event that will trigger the unified endpoint
             window.dispatchEvent(
-              new CustomEvent("activity-updated", { detail: { listId } })
+              new CustomEvent("unified-update", { 
+                detail: { 
+                  listId,
+                  action, // Include action at top level for logging/debugging
+                  activity: activityData ? {
+                    id: activityData.id,
+                    action: activityData.action,
+                    details: activityData.details,
+                    createdAt: activityData.createdAt || new Date().toISOString(),
+                    user: activityData.user || { id: '', email: 'Unknown' },
+                  } : undefined,
+                } 
+              })
             );
           }
         } catch (error) {

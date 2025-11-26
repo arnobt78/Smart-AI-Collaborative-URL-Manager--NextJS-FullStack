@@ -33,7 +33,7 @@ export async function POST(
     await updateList(id, { isPublic });
 
     // Create activity log
-    await createActivity(id, user.id, isPublic ? "list_made_public" : "list_made_private", {
+    const activity = await createActivity(id, user.id, isPublic ? "list_made_public" : "list_made_private", {
       isPublic,
     });
 
@@ -51,6 +51,19 @@ export async function POST(
       listId: id,
       action: isPublic ? "list_made_public" : "list_made_private",
       timestamp: new Date().toISOString(),
+      activity: {
+        id: activity.id,
+        action: activity.action,
+        details: activity.details,
+        createdAt: activity.createdAt.toISOString(),
+        user: activity.user ? {
+          id: activity.user.id,
+          email: activity.user.email,
+        } : {
+          id: user.id,
+          email: user.email,
+        },
+      },
     });
 
     // Fetch and return the updated list

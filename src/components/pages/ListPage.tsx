@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import { flushSync } from "react-dom";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useStore } from "@nanostores/react";
 import { currentList, getList } from "@/stores/urlListStore";
 import { UrlList } from "@/components/lists/UrlList";
@@ -25,10 +25,13 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { ActivityFeed } from "@/components/collaboration/ActivityFeed";
 import { PermissionManager } from "@/components/collaboration/PermissionManager";
 import { useListPermissions } from "@/hooks/useListPermissions";
+import { useSession } from "@/hooks/useSession";
 
 export default function ListPageClient() {
   const { toast } = useToast();
+  const router = useRouter();
   const { slug } = useParams();
+  const { user: sessionUser } = useSession();
   const list = useStore(currentList);
   const permissions = useListPermissions(); // Get permissions for current list and user
   const [isLoading, setIsLoading] = useState(true);
@@ -40,6 +43,7 @@ export default function ListPageClient() {
   const [isSettingUpSchedule, setIsSettingUpSchedule] = useState(false);
   const hasSyncedVectors = useRef<string | null>(null); // Track which list ID we've synced
   const hasFetchedRef = useRef<string | null>(null);
+  const hasRedirectedRef = useRef<boolean>(false); // Track if we've already redirected to prevent duplicate redirects
 
   useEffect(() => {
     async function fetchList() {
@@ -160,6 +164,134 @@ export default function ListPageClient() {
       setIsLoading(true);
     }
   }, [list, slug]);
+
+  // Track current permissions with a ref to check in callbacks
+  const permissionsRef = useRef(permissions);
+  useEffect(() => {
+    permissionsRef.current = permissions;
+  }, [permissions]);
+
+  // Track recent collaborator_removed events to handle 401 errors
+  const recentCollaboratorRemovedRef = useRef<{
+    email: string;
+    ownerEmail: string;
+    timestamp: number;
+  } | null>(null);
+
+  // Listen for collaborator removal and redirect if current user is removed
+  // Only trigger if user currently has access (not on initial load or stale events)
+  useEffect(() => {
+    if (!sessionUser?.email || !list?.id || hasRedirectedRef.current || isLoading) {
+      return;
+    }
+
+    // Don't set up listener if user doesn't have access (initial load, they were never added, etc.)
+    if (permissions.role === "none") {
+      return;
+    }
+
+    const handleUnifiedUpdate = (event: Event) => {
+      const customEvent = event as CustomEvent<{
+        listId?: string;
+        action?: string;
+        activity?: {
+          action?: string;
+          details?: {
+            collaboratorEmail?: string;
+          };
+          user?: {
+            email?: string;
+          };
+        };
+      }>;
+
+      // Only handle collaborator_removed actions for this list
+      if (
+        customEvent.detail?.listId === list.id &&
+        customEvent.detail?.action === "collaborator_removed"
+      ) {
+        const activity = customEvent.detail?.activity;
+        const removedEmail = activity?.details?.collaboratorEmail;
+        const ownerEmail = activity?.user?.email;
+
+        // Check if the removed collaborator is the current user
+        if (removedEmail && removedEmail.toLowerCase() === sessionUser.email.toLowerCase()) {
+          // Store this event info for 401 handling
+          recentCollaboratorRemovedRef.current = {
+            email: removedEmail,
+            ownerEmail: ownerEmail || "the owner",
+            timestamp: Date.now(),
+          };
+
+          // Prevent duplicate redirects
+          if (hasRedirectedRef.current) {
+            return;
+          }
+
+          // Wait for unified endpoint to update permissions, then verify they lost access
+          setTimeout(() => {
+            // Check current permissions (from ref, which updates via useEffect above)
+            const currentRole = permissionsRef.current.role;
+            
+            // Only redirect if they actually lost access
+            if (currentRole === "none" && !hasRedirectedRef.current) {
+              handleRedirect(ownerEmail || "the owner");
+            }
+          }, 800); // Delay to allow unified endpoint to update permissions
+        }
+      }
+    };
+
+    // Handle 401 Unauthorized from unified endpoint (indicates access was removed)
+    const handleUnauthorized = (event: Event) => {
+      const customEvent = event as CustomEvent<{ listId?: string; slug?: string }>;
+      
+      // Check if this is for our list and we have a recent collaborator_removed event
+      if (
+        customEvent.detail?.listId === list.id &&
+        recentCollaboratorRemovedRef.current &&
+        Date.now() - recentCollaboratorRemovedRef.current.timestamp < 5000 // Within last 5 seconds
+      ) {
+        const removedInfo = recentCollaboratorRemovedRef.current;
+        
+        // Verify this is for the current user
+        if (removedInfo.email.toLowerCase() === sessionUser.email.toLowerCase()) {
+          // 401 + recent collaborator_removed event = user was definitely removed
+          if (!hasRedirectedRef.current) {
+            handleRedirect(removedInfo.ownerEmail);
+          }
+        }
+      }
+    };
+
+    const handleRedirect = (ownerEmail: string) => {
+      hasRedirectedRef.current = true;
+      
+      // Get list name
+      const listName = list.title || "this list";
+
+      // Show toast with list name and owner email
+      toast({
+        title: "Access Removed",
+        description: `You have been removed from "${listName}" by ${ownerEmail}.`,
+        variant: "error",
+        duration: 5000,
+      });
+
+      // Redirect to home page after a short delay to show the toast
+      setTimeout(() => {
+        router.push("/");
+      }, 500);
+    };
+
+    window.addEventListener("unified-update", handleUnifiedUpdate);
+    window.addEventListener("unified-update-unauthorized", handleUnauthorized);
+
+    return () => {
+      window.removeEventListener("unified-update", handleUnifiedUpdate);
+      window.removeEventListener("unified-update-unauthorized", handleUnauthorized);
+    };
+  }, [list?.id, list?.title, sessionUser?.email, router, toast, isLoading, permissions.role]);
 
   // Auto-sync vectors for existing URLs when list loads (background, non-blocking)
   useEffect(() => {
@@ -434,12 +566,8 @@ export default function ListPageClient() {
                           currentList.set(updatedList);
                         });
 
-                        // Trigger activity feed update AFTER API call completes (activity is now in DB)
-                        window.dispatchEvent(
-                          new CustomEvent("activity-updated", {
-                            detail: { listId: list.id },
-                          })
-                        );
+                        // UNIFIED APPROACH: SSE handles ALL activity-updated events (single source of truth)
+                        // No local dispatch needed - prevents duplicate API calls
 
                         toast({
                           title: newValue
@@ -652,12 +780,8 @@ export default function ListPageClient() {
                           currentList.set(data.list);
                         });
 
-                        // Trigger activity feed update
-                        window.dispatchEvent(
-                          new CustomEvent("activity-updated", {
-                            detail: { listId: list.id },
-                          })
-                        );
+                        // UNIFIED APPROACH: SSE handles ALL activity-updated events (single source of truth)
+                        // No local dispatch needed - prevents duplicate API calls
                       } else if (typeof slug === "string") {
                         // Fallback: fetch if list not in response
                         await getList(slug);

@@ -91,6 +91,19 @@ export async function DELETE(
         listId: listId,
         action: "url_deleted",
         timestamp: new Date().toISOString(),
+        activity: {
+          id: activity.id,
+          action: activity.action,
+          details: activity.details,
+          createdAt: activity.createdAt.toISOString(),
+          user: activity.user ? {
+            id: activity.user.id,
+            email: activity.user.email,
+          } : {
+            id: user.id,
+            email: user.email,
+          },
+        },
       }),
     ]);
 

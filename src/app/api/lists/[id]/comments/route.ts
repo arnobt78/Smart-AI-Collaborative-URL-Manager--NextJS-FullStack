@@ -178,6 +178,19 @@ export async function POST(
       listId,
       action: "comment_added",
       timestamp: new Date().toISOString(),
+      activity: {
+        id: activity.id,
+        action: activity.action,
+        details: activity.details,
+        createdAt: activity.createdAt.toISOString(),
+        user: activity.user ? {
+          id: activity.user.id,
+          email: activity.user.email,
+        } : {
+          id: user.id,
+          email: user.email,
+        },
+      },
     });
 
     console.log(`✅ [POST] Comment created: ${comment.id}`);
@@ -292,6 +305,19 @@ export async function PATCH(
       listId,
       action: "comment_updated",
       timestamp: new Date().toISOString(),
+      activity: {
+        id: activity.id,
+        action: activity.action,
+        details: activity.details,
+        createdAt: activity.createdAt.toISOString(),
+        user: activity.user ? {
+          id: activity.user.id,
+          email: activity.user.email,
+        } : {
+          id: user.id,
+          email: user.email,
+        },
+      },
     });
 
     console.log(`✅ [PATCH] Comment updated: ${comment.id}`);
@@ -405,6 +431,19 @@ export async function DELETE(
       listId,
       action: "comment_deleted",
       timestamp: new Date().toISOString(),
+      activity: {
+        id: activity.id,
+        action: activity.action,
+        details: activity.details,
+        createdAt: activity.createdAt.toISOString(),
+        user: activity.user ? {
+          id: activity.user.id,
+          email: activity.user.email,
+        } : {
+          id: user.id,
+          email: user.email,
+        },
+      },
     });
 
     console.log(`✅ [DELETE] Comment deleted: ${commentId}`);

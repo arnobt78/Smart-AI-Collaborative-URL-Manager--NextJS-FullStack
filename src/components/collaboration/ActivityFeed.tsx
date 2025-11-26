@@ -1,6 +1,9 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useStore } from "@nanostores/react";
+import { currentList } from "@/stores/urlListStore";
+import { useUnifiedListUpdates } from "@/hooks/useUnifiedListUpdates";
 import {
   Activity,
   MessageSquare,
@@ -36,6 +39,8 @@ interface ActivityFeedProps {
 export function ActivityFeed({ listId, limit = 50 }: ActivityFeedProps) {
   const [activities, setActivities] = useState<ActivityItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const list = useStore(currentList);
+  const { fetchUnifiedUpdates } = useUnifiedListUpdates(listId);
 
   // Track last fetch start time to prevent excessive calls
   const lastFetchStartRef = React.useRef<number>(0);
@@ -45,43 +50,30 @@ export function ActivityFeed({ listId, limit = 50 }: ActivityFeedProps) {
   const refreshTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
   // Track last local operation time to skip fetches after local actions
   const lastLocalOperationRef = React.useRef<number>(0);
+  // Track pending activity-updated events to coalesce duplicates (local + SSE)
+  const pendingActivityUpdateRef = React.useRef<boolean>(false);
+  // Track last activity-updated event timestamp to deduplicate rapid events
+  const lastActivityUpdateEventRef = React.useRef<number>(0);
 
   // Fetch activities
   const fetchActivities = React.useCallback(async () => {
     const now = Date.now();
 
     // Atomic check: Prevent duplicate fetches if one is already in progress
-    // OR if we just started a fetch very recently (within 1000ms)
+    // CRITICAL: Only prevent if actively fetching, not based on time (event handler already debounces)
     if (isFetchingRef.current) {
-      console.log("⏭️ [ACTIVITIES] Fetch already in progress, skipping...");
+      // Fetch already in progress, skipping...
       return;
     }
 
-    if (now - lastFetchStartRef.current < 1000) {
-      console.log(
-        `⏭️ [ACTIVITIES] Fetch started too recently (${
-          now - lastFetchStartRef.current
-        }ms ago), skipping...`
-      );
-      // Queue the fetch to happen after debounce window
-      if (refreshTimeoutRef.current) {
-        clearTimeout(refreshTimeoutRef.current);
-      }
-      const timeSinceLastStart = now - lastFetchStartRef.current;
-      refreshTimeoutRef.current = setTimeout(() => {
-        const checkNow = Date.now();
-        if (!isFetchingRef.current && checkNow - lastFetchStartRef.current >= 1000) {
-          fetchActivities();
-        }
-      }, 1000 - timeSinceLastStart + 100); // Add 100ms buffer
-      return;
-    }
+    // Note: Removed time-based debounce here - event handler already handles debouncing
+    // This ensures queued events from handleActivityUpdate always execute
 
     // Mark as fetching and update last fetch start time BEFORE starting (atomic operation)
     isFetchingRef.current = true;
     lastFetchStartRef.current = now;
 
-    setIsLoading(true);
+      setIsLoading(true);
     try {
       const response = await fetch(
         `/api/lists/${listId}/activities?limit=${limit}`
@@ -89,15 +81,15 @@ export function ActivityFeed({ listId, limit = 50 }: ActivityFeedProps) {
       if (response.ok) {
         const data = await response.json();
         setActivities(data.activities || []);
-        console.log("✅ [ACTIVITIES] Activities fetched successfully");
       }
     } catch (error) {
       console.error("Failed to fetch activities:", error);
     } finally {
       setIsLoading(false);
-      // Clear fetching flag after completion (with small delay to prevent rapid re-triggers)
+      // Clear fetching flag and pending flag after completion
       setTimeout(() => {
         isFetchingRef.current = false;
+        pendingActivityUpdateRef.current = false; // Clear pending flag after fetch completes
       }, 100); // 100ms delay to prevent immediate re-trigger
     }
   }, [listId, limit]);
@@ -112,99 +104,153 @@ export function ActivityFeed({ listId, limit = 50 }: ActivityFeedProps) {
     }
     hasInitialFetchedRef.current = fetchKey;
 
-    // Initial fetch - reset throttling
-    lastFetchStartRef.current = 0;
-    fetchActivities();
-  }, [listId, limit, fetchActivities]);
+    // Initial fetch - use unified endpoint for consistency
+    // Get slug from currentList store
+    const current = currentList.get();
+    if (current?.slug && current.id === listId) {
+      fetchUnifiedUpdates(current.slug, limit);
+    } else {
+      // Fallback to old endpoint if slug not available yet
+      lastFetchStartRef.current = 0;
+      fetchActivities();
+    }
+  }, [listId, limit, fetchActivities, fetchUnifiedUpdates]);
 
-  // Listen for real-time activity updates - debounced to prevent duplicate fetches
+  // Listen for unified-update events (UNIFIED APPROACH: One event, one API call)
   useEffect(() => {
-    // Track pending events to coalesce multiple rapid events
-    const pendingEventsRef = { count: 0 };
-
+    // Listen for unified-activities-updated events (dispatched by unified hook after fetch)
+    const handleUnifiedActivitiesUpdate = (event: Event) => {
+      const customEvent = event as CustomEvent<{
+        listId: string;
+        activities: ActivityItem[];
+      }>;
+      
+      if (customEvent.detail?.listId !== listId) {
+        return;
+      }
+      
+      console.log(`📨 [ACTIVITIES] Received unified activities update: ${customEvent.detail.activities.length} activities`);
+      setActivities(customEvent.detail.activities || []);
+    };
+    
+    window.addEventListener("unified-activities-updated", handleUnifiedActivitiesUpdate);
+    
+    // Listen for unified-update events (from SSE) - triggers unified endpoint call
+    const handleUnifiedUpdate = async (event: Event) => {
+      const customEvent = event as CustomEvent<{
+        listId?: string;
+        action?: string;
+        timestamp?: string;
+        activity?: ActivityItem;
+      }>;
+      
+      // Only handle if it's for this list
+      if (customEvent.detail?.listId && customEvent.detail.listId !== listId) {
+        console.log(`⏭️ [ACTIVITIES] Skipping unified-update - wrong listId (${customEvent.detail.listId} vs ${listId})`);
+        return;
+      }
+      
+      // Get slug from currentList store
+      const current = currentList.get();
+      if (!current?.slug) {
+        console.log("⏭️ [ACTIVITIES] No slug available yet, skipping unified update");
+        return;
+      }
+      
+      console.log(`🔄 [ACTIVITIES] Received unified-update event, calling unified endpoint (action: ${customEvent.detail?.action || 'unknown'})...`);
+      // Call unified endpoint (global lock ensures only one call at a time)
+      // Wrap in try-catch to silently handle ALL errors to prevent React error overlay
+      // 401 errors are expected when collaborator is removed - they're handled gracefully
+      try {
+        await fetchUnifiedUpdates(current.slug, limit);
+      } catch (error) {
+        // Silently ignore all errors here - fetchUnifiedUpdates already handles 401 gracefully
+        // This catch prevents any errors from bubbling up and triggering React error overlay
+        // No logging needed - errors are already handled in fetchUnifiedUpdates
+      }
+      
+      // Activities will be updated via unified-activities-updated event
+    };
+    
+    window.addEventListener("unified-update", handleUnifiedUpdate);
+    
+    // Keep old activity-updated listener for backward compatibility during transition
     const handleActivityUpdate = (event: Event) => {
-      const customEvent = event as CustomEvent<{ listId?: string }>;
+      const customEvent = event as CustomEvent<{ 
+        listId?: string;
+        isRemote?: boolean; // Flag to indicate if this is from another screen
+        activity?: ActivityItem; // Optional activity object for optimistic updates
+      }>;
 
       // Only update if it's for this list (or no listId specified, meaning all lists)
       if (customEvent.detail?.listId && customEvent.detail.listId !== listId) {
+        // Skipping event - wrong listId
         return;
       }
 
       const now = Date.now();
+      const activityData = customEvent.detail?.activity;
       
-      // Queue fetch if we just performed a local operation (add/edit/delete)
-      // This prevents flicker when activity feed refreshes after local actions
-      // But we still want to update eventually, so queue it for later
-      if (now - lastLocalOperationRef.current < 2000) {
-        console.log(
-          `⏭️ [ACTIVITIES] Queuing fetch - local operation just completed (${now - lastLocalOperationRef.current}ms ago), will fetch after 2s`
-        );
-        // Clear any existing queued fetch
-        if (refreshTimeoutRef.current) {
-          clearTimeout(refreshTimeoutRef.current);
-        }
-        // Queue fetch to happen after 2 seconds (when local operation window expires)
-        const timeSinceLocalOp = now - lastLocalOperationRef.current;
-        refreshTimeoutRef.current = setTimeout(() => {
-          const now = Date.now();
-          // Only fetch if enough time has passed and no fetch in progress
-          if (!isFetchingRef.current && now - lastFetchStartRef.current >= 500) {
-            console.log("🔄 [ACTIVITIES] Executing queued fetch after local operation");
-            fetchActivities();
+      // UNIFIED APPROACH: All activity-updated events come from SSE
+      // isRemote flag is no longer needed since we use single source of truth
+      
+      // UNIFIED APPROACH: All activity-updated events come from SSE (single source of truth)
+      // If we have activity data, optimistically add it immediately for instant feedback
+      if (activityData) {
+        setActivities((prev) => {
+          // Check if activity already exists (prevent duplicates)
+          if (prev.some((a) => a.id === activityData.id)) {
+            return prev;
           }
-        }, 2000 - timeSinceLocalOp + 100); // Add 100ms buffer
-        return;
+          
+          // Add to beginning (newest first)
+          return [activityData, ...prev].slice(0, limit); // Keep within limit
+        });
       }
 
-      // Skip if fetch is already in progress
+      // Skip if fetch is already in progress (queue it instead)
       if (isFetchingRef.current) {
-        console.log("⏭️ [ACTIVITIES] Fetch in progress, skipping event...");
-        // Increment pending events counter (will be processed after current fetch)
-        pendingEventsRef.count++;
-        return;
-      }
-
-      // Debounce rapid events (e.g., local dispatch + real-time event firing almost simultaneously)
-      // If we just started a fetch within the last 1000ms, queue the next one
-      const timeSinceLastStart = now - lastFetchStartRef.current;
-      if (timeSinceLastStart < 1000) {
-        console.log(
-          `⏭️ [ACTIVITIES] Debouncing fetch (${timeSinceLastStart}ms since last start)...`
-        );
-        // Increment pending events counter
-        pendingEventsRef.count++;
-
-        // Clear any pending refresh
+        // Clear any existing timeout and set a new one
         if (refreshTimeoutRef.current) {
           clearTimeout(refreshTimeoutRef.current);
         }
-
-        // Queue a single fetch after debounce window expires (coalesce all pending events)
+        // CRITICAL: Always queue - ensure fetch happens after current one completes
         refreshTimeoutRef.current = setTimeout(() => {
-          const now = Date.now();
-          // Double-check we're not fetching and enough time has passed
-          if (
-            !isFetchingRef.current &&
-            now - lastFetchStartRef.current >= 1000
-          ) {
-            console.log(
-              `🔄 [ACTIVITIES] Processing ${pendingEventsRef.count} pending event(s)...`
-            );
-            pendingEventsRef.count = 0; // Reset counter
+          if (!isFetchingRef.current) {
             fetchActivities();
           }
-        }, 1000 - timeSinceLastStart + 100); // Add 100ms buffer
+        }, 200); // Shorter delay to ensure quick refresh
         return;
       }
 
-      // Clear any pending refresh and reset counter
+      // CRITICAL: Reduced debounce window and always ensure fetch happens
+      // Only debounce if we literally just fetched (within 200ms) to prevent true duplicates
+      const timeSinceLastFetch = now - lastFetchStartRef.current;
+      const debounceWindow = 200; // Reduced from 400ms - only prevent immediate duplicates
+      
+      if (timeSinceLastFetch < debounceWindow) {
+        // Clear any existing timeout and set a new one (coalesce multiple rapid events)
+        if (refreshTimeoutRef.current) {
+          clearTimeout(refreshTimeoutRef.current);
+        }
+        
+        // CRITICAL: Always queue the fetch - ensure it happens even after very recent fetch
+        const queueDelay = Math.max(50, debounceWindow - timeSinceLastFetch + 100); // Minimum 50ms, buffer 100ms
+        refreshTimeoutRef.current = setTimeout(() => {
+          // Always fetch if ready
+          if (!isFetchingRef.current) {
+            fetchActivities();
+          }
+        }, queueDelay);
+        return;
+      }
+
+      // Clear any pending refresh
       if (refreshTimeoutRef.current) {
         clearTimeout(refreshTimeoutRef.current);
       }
-      pendingEventsRef.count = 0;
 
-      // Fetch immediately if enough time has passed since last fetch start
-      console.log("🔄 [ACTIVITIES] Fetching activities immediately...");
+      // Fetch immediately - enough time has passed since last fetch
       fetchActivities();
     };
 
@@ -233,7 +279,7 @@ export function ActivityFeed({ listId, limit = 50 }: ActivityFeedProps) {
         }
         
         // Add to beginning (newest first)
-        console.log(`✨ [ACTIVITIES] Optimistically added activity: ${newActivity.action}`);
+        // Optimistically added activity
         return [newActivity, ...prev].slice(0, limit); // Keep within limit
       });
     };
@@ -246,6 +292,8 @@ export function ActivityFeed({ listId, limit = 50 }: ActivityFeedProps) {
     window.addEventListener("local-operation", handleLocalOperation);
     
     return () => {
+      window.removeEventListener("unified-update", handleUnifiedUpdate);
+      window.removeEventListener("unified-activities-updated", handleUnifiedActivitiesUpdate);
       window.removeEventListener("activity-updated", handleActivityUpdate);
       window.removeEventListener("activity-added", handleActivityAdded);
       window.removeEventListener("local-operation", handleLocalOperation);
@@ -253,7 +301,7 @@ export function ActivityFeed({ listId, limit = 50 }: ActivityFeedProps) {
         clearTimeout(refreshTimeoutRef.current);
       }
     };
-  }, [listId, limit, fetchActivities]);
+  }, [listId, limit, fetchActivities, fetchUnifiedUpdates]);
 
   // Get action icon
   const getActionIcon = (action: string) => {

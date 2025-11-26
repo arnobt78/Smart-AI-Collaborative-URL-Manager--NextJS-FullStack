@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
       const user = await getCurrentUser();
       if (user) {
         // Create activity log
-        await createActivity(listId, user.id, "health_check_completed", {
+        const activity = await createActivity(listId, user.id, "health_check_completed", {
           checked: urls.length,
           healthy: healthyCount,
           warning: warningCount,
@@ -92,6 +92,19 @@ export async function POST(request: NextRequest) {
           listId,
           action: "health_check_completed",
           timestamp: new Date().toISOString(),
+          activity: {
+            id: activity.id,
+            action: activity.action,
+            details: activity.details,
+            createdAt: activity.createdAt.toISOString(),
+            user: activity.user ? {
+              id: activity.user.id,
+              email: activity.user.email,
+            } : {
+              id: user.id,
+              email: user.email,
+            },
+          },
         });
       }
     } catch (error) {

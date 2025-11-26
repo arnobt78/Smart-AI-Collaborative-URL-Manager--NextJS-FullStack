@@ -52,6 +52,7 @@ import type { SearchResult } from "@/lib/ai/search";
 import { useToast } from "@/components/ui/Toaster";
 import { useRealtimeList } from "@/hooks/useRealtimeList";
 import { useListPermissions } from "@/hooks/useListPermissions";
+import { useUnifiedListUpdates } from "@/hooks/useUnifiedListUpdates";
 import { UrlFilterBar } from "./UrlFilterBar";
 import { UrlBulkImportExport } from "./UrlBulkImportExport";
 import { UrlAddForm } from "./UrlAddForm";
@@ -166,6 +167,7 @@ export function UrlList() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const permissions = useListPermissions(); // Get permissions for current list and user
+  const { fetchUnifiedUpdates } = useUnifiedListUpdates(list?.id || "");
   const [newUrl, setNewUrl] = useState("");
   
   // Debug logging for list store updates to verify re-renders
@@ -675,9 +677,9 @@ export function UrlList() {
 
               if (storedOrder !== currentOrder) {
                 finalDragOrderRef.current = parsed;
-                // CRITICAL: Apply restored order to store SYNCHRONOUSLY before render
-                // This ensures drag library sees correct order on INITIAL render
-                flushSync(() => {
+                // CRITICAL: Apply restored order to store - use queueMicrotask to avoid flushSync in lifecycle
+                // This ensures drag library sees correct order without React warnings
+                queueMicrotask(() => {
                   currentList.set({ ...list, urls: parsed });
                 });
               }
@@ -800,7 +802,7 @@ export function UrlList() {
         // For collaborator_role_updated, we need to refresh to update permissions
         // This is critical for the collaborator whose role changed to see updated UI
         if (customEvent.detail.action === "collaborator_role_updated") {
-          console.log("🔄 [URL_LIST] Role updated - refreshing list to update permissions");
+          // Role updated - refreshing list to update permissions
           // Continue to handle the refresh below
         }
 
@@ -900,14 +902,104 @@ export function UrlList() {
       }
     };
 
+    // Listen for unified-update events (UNIFIED APPROACH: One event, one API call)
+    const handleUnifiedUpdate = async (event: Event) => {
+      const customEvent = event as CustomEvent<{
+        listId?: string;
+        action?: string;
+        timestamp?: string;
+      }>;
+      
+      const current = currentList.get();
+      if (!current?.id || !current?.slug) {
+        return;
+      }
+      
+      // Only handle if it's for this list
+      if (customEvent.detail?.listId && customEvent.detail.listId !== current.id) {
+        console.log(`⏭️ [URL_LIST] Skipping unified-update - wrong listId (${customEvent.detail.listId} vs ${current.id})`);
+        return;
+      }
+      
+      // Skip collaborator actions (handled optimistically)
+      const isCollaboratorActionToSkip =
+        customEvent.detail?.action === "collaborator_added" ||
+        customEvent.detail?.action === "collaborator_removed";
+      
+      if (isCollaboratorActionToSkip) {
+        return;
+      }
+      
+      const action = customEvent.detail?.action || 'unknown';
+      console.log(`🔄 [URL_LIST] Received unified-update event, calling unified endpoint (action: ${action})...`);
+      
+      // CRITICAL: If this is a reorder action, clear local drag order cache on remote screens
+      // This ensures we use the server's order instead of any stale local cache
+      if (action === "url_reordered") {
+        console.log(`🔄 [URL_LIST] Reorder detected - clearing local drag order cache`);
+        finalDragOrderRef.current = null;
+        // Also clear localStorage cache to ensure fresh order from server
+        if (current.id && typeof window !== "undefined") {
+          try {
+            localStorage.removeItem(getDragOrderStorageKey(current.id));
+          } catch (err) {
+            console.error("❌ [URL_LIST] Failed to clear localStorage cache:", err);
+          }
+        }
+      }
+      
+      // Store current order before update to detect reorder changes
+      const currentUrls = (current.urls as unknown as UrlItem[]) || [];
+      const oldOrder = currentUrls.map((u) => u.id).join(",");
+      
+      // Call unified endpoint (global lock ensures only one call at a time)
+      // This will update both list store and dispatch activities
+      // Wrap in try-catch to silently handle 401 errors (expected when collaborator is removed)
+      try {
+        await fetchUnifiedUpdates(current.slug, 30);
+      } catch (error) {
+        // Silently ignore errors - fetchUnifiedUpdates already handles 401 gracefully
+        // This prevents React error overlay from showing for expected 401 errors
+      }
+      
+      // After unified update, handle reorder detection
+      const updated = currentList.get();
+      if (updated) {
+        const newUrls = (updated.urls as unknown as UrlItem[]) || [];
+        const newOrder = newUrls.map((u) => u.id).join(",");
+        
+        // CRITICAL: Always increment sortableContextKey for reorder actions
+        // This forces SortableContext to remount and recognize the new order
+        if (action === "url_reordered") {
+          console.log(`🔄 [URL_LIST] Reorder action detected - incrementing sortableContextKey to update card positions`);
+          setSortableContextKey((prev) => prev + 1);
+        } else if (oldOrder !== newOrder && newUrls.length === currentUrls.length) {
+          // For other actions, check if order changed (might be a side effect)
+          // Verify it's the same URLs (just reordered) by checking IDs
+          const oldIds = new Set(currentUrls.map((u) => u.id));
+          const newIds = new Set(newUrls.map((u) => u.id));
+          const sameIds = oldIds.size === newIds.size && [...oldIds].every((id) => newIds.has(id));
+          
+          if (sameIds) {
+            console.log(`🔄 [URL_LIST] Order changed from remote update - incrementing sortableContextKey`);
+            setSortableContextKey((prev) => prev + 1);
+          }
+        }
+      }
+      
+      // List store is already updated by fetchUnifiedUpdates
+    };
+    
     window.addEventListener("list-updated", handleListUpdate);
+    window.addEventListener("unified-update", handleUnifiedUpdate);
     return () => {
       window.removeEventListener("list-updated", handleListUpdate);
+      window.removeEventListener("unified-update", handleUnifiedUpdate);
       if (refreshTimeoutRef.current) {
         clearTimeout(refreshTimeoutRef.current);
       }
     };
-  }, []);
+  }, [fetchUnifiedUpdates]);
 
   // Debounce search query for smart search (only trigger after 500ms of no typing)
   const debouncedSearch = useDebounce(search, 500);
@@ -2153,37 +2245,14 @@ export function UrlList() {
 
               if (storedOrderIds !== currentOrder) {
                 finalDragOrderRef.current = parsed;
-                // CRITICAL: Update store IMMEDIATELY during render to prevent getList from overwriting
-                // This must happen synchronously BEFORE any useEffect/useLayoutEffect runs
-                // Also restore global cache so getList can find it
+                // Restore global cache so getList can find it
+                // NOTE: Store update is handled by useLayoutEffect to avoid React warnings
                 if (typeof window !== "undefined") {
                   (window as any).__dragOrderCache =
                     (window as any).__dragOrderCache || {};
                   (window as any).__dragOrderCache[storageKey] = parsed;
                 }
-
-                const current = currentList.get();
-                if (current && current.id === list.id) {
-                  currentList.set({ ...current, urls: parsed });
-                  // console.log(
-                  //   "✅ [RENDER] Restored and updated store during render",
-                  //   {
-                  //     restored: storedOrderIds,
-                  //     oldStore: currentOrder,
-                  //     source: source || "localStorage",
-                  //     note: "Store + global cache updated synchronously to prevent getList overwrite",
-                  //   }
-                  // );
-                } else {
-                  // console.log(
-                  //   "✅ [RENDER] Restored during render (ref populated, store will update in useLayoutEffect)",
-                  //   {
-                  //     restored: storedOrderIds,
-                  //     store: currentOrder,
-                  //     source: source || "localStorage",
-                  //   }
-                  // );
-                }
+                // Store update will happen in useLayoutEffect to avoid "setState during render" error
               } else {
                 // console.log("⏭️ [RENDER] Orders match, no restoration needed");
               }
@@ -2936,8 +3005,14 @@ export function UrlList() {
                   </div>
                   <Button
                     type="button"
-                    onClick={() => handleRestore(url.id)}
-                    className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg"
+                    disabled={!permissions.canEdit}
+                    onClick={() => {
+                      if (!permissions.canEdit) return; // Prevent action if disabled
+                      handleRestore(url.id);
+                    }}
+                    className={`bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg ${
+                      !permissions.canEdit ? "opacity-50 cursor-not-allowed" : ""
+                    }`}
                   >
                     Restore
                   </Button>
