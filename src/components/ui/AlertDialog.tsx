@@ -1,6 +1,7 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
+import ReactDOM from "react-dom";
 import { X } from "lucide-react";
 
 interface AlertDialogProps {
@@ -24,6 +25,29 @@ export function AlertDialog({
   onConfirm,
   variant = "default",
 }: AlertDialogProps) {
+  // Prevent body scroll when dialog is open
+  useEffect(() => {
+    if (open) {
+      // Save current scroll position
+      const scrollY = window.scrollY;
+      // Lock body scroll
+      document.body.style.position = "fixed";
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.width = "100%";
+      document.body.style.overflow = "hidden";
+
+      return () => {
+        // Restore body scroll
+        document.body.style.position = "";
+        document.body.style.top = "";
+        document.body.style.width = "";
+        document.body.style.overflow = "";
+        // Restore scroll position
+        window.scrollTo(0, scrollY);
+      };
+    }
+  }, [open]);
+
   if (!open) return null;
 
   const handleConfirm = () => {
@@ -35,18 +59,27 @@ export function AlertDialog({
     onOpenChange(false);
   };
 
-  return (
+  // Use portal to render at document root level, ensuring proper viewport positioning
+  const dialogContent = (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
       onClick={handleCancel}
+      style={{
+        position: "fixed",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+      }}
     >
       <div
-        className="relative w-full max-w-md mx-4 bg-gradient-to-br from-zinc-900 to-zinc-800 rounded-2xl shadow-2xl border border-white/20 p-6"
+        className="relative w-full max-w-md bg-gradient-to-br from-zinc-900 to-zinc-800 rounded-2xl shadow-2xl border border-white/20 p-6 max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <button
           onClick={handleCancel}
-          className="absolute top-4 right-4 text-white/60 hover:text-white transition-colors"
+          className="absolute top-4 right-4 text-white/60 hover:text-white transition-colors z-10"
+          aria-label="Close"
         >
           <X className="h-5 w-5" />
         </button>
@@ -77,4 +110,11 @@ export function AlertDialog({
       </div>
     </div>
   );
+
+  // Render to document.body using portal for proper viewport positioning
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  return ReactDOM.createPortal(dialogContent, document.body);
 }

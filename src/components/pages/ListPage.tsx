@@ -27,7 +27,7 @@ import { PermissionManager } from "@/components/collaboration/PermissionManager"
 import { SmartCollections } from "@/components/collections/SmartCollections";
 import { useListPermissions } from "@/hooks/useListPermissions";
 import { useSession } from "@/hooks/useSession";
-import { useUnifiedListUpdates } from "@/hooks/useUnifiedListUpdates";
+import { useUnifiedListQuery, setupSSECacheSync } from "@/hooks/useListQueries";
 
 export default function ListPageClient() {
   const { toast } = useToast();
@@ -36,9 +36,19 @@ export default function ListPageClient() {
   const { user: sessionUser } = useSession();
   const list = useStore(currentList);
   const permissions = useListPermissions(); // Get permissions for current list and user
-  // Use list?.id if available (will be set after unified fetch), or use slug for hook initialization
-  const listIdForHook = list?.id || (typeof slug === "string" ? slug : "");
-  const { fetchUnifiedUpdates } = useUnifiedListUpdates(listIdForHook);
+  const listSlug = typeof slug === "string" ? slug : "";
+  
+  // Setup SSE cache sync for React Query
+  useEffect(() => {
+    return setupSSECacheSync();
+  }, []);
+  
+  // Use React Query for unified list data
+  const { data: unifiedData, isLoading: isLoadingQuery, refetch } = useUnifiedListQuery(
+    listSlug,
+    !!listSlug
+  );
+  
   const [isLoading, setIsLoading] = useState(true);
   const [isCopied, setIsCopied] = useState(false);
   const [isToggling, setIsToggling] = useState(false);
@@ -50,131 +60,17 @@ export default function ListPageClient() {
   const hasFetchedRef = useRef<string | null>(null);
   const hasRedirectedRef = useRef<boolean>(false); // Track if we've already redirected to prevent duplicate redirects
 
+  // Update loading state based on React Query
   useEffect(() => {
-    async function fetchList() {
-      if (typeof slug === "string") {
-        // Reset fetch ref if slug changed (user navigated to different list)
-        if (hasFetchedRef.current && hasFetchedRef.current !== slug) {
-          hasFetchedRef.current = null;
-          setIsLoading(true); // Show skeleton for new list
-        }
-
-        // Only fetch if slug changed (prevent duplicate fetches)
-        if (hasFetchedRef.current === slug) {
-          // If already fetched, check if we have valid list data
-          if (list && list.slug === slug) {
-            setIsLoading(false);
-          }
-          return;
-        }
-
-        // CRITICAL: Before calling getList, check localStorage for preserved drag order
-        // This must happen FIRST to restore order before getList can overwrite it
-        // This is especially important after Fast Refresh in dev mode
-        // NOTE: In production, Fast Refresh doesn't exist, so this issue won't occur
-        if (typeof window !== "undefined") {
-          try {
-            // First, we need to get the list to know the ID, but we can check after a small delay
-            // to see if localStorage has a preserved order for any list
-            const currentStoreData = currentList.get();
-            if (currentStoreData && currentStoreData.id) {
-              const storageKey = `drag-order:${currentStoreData.id}`;
-              const stored = localStorage.getItem(storageKey);
-              const globalCache = (window as any).__dragOrderCache;
-              const cachedOrder = globalCache?.[storageKey];
-
-              if ((stored || cachedOrder) && currentStoreData.slug === slug) {
-                // We have a preserved order for this list - restore it immediately
-                try {
-                  const preservedOrder = cachedOrder || JSON.parse(stored!);
-                  if (
-                    preservedOrder &&
-                    Array.isArray(preservedOrder) &&
-                    preservedOrder.length > 0
-                  ) {
-                    // Restore to store (use queueMicrotask to avoid flushSync warning)
-                    queueMicrotask(() => {
-                      currentList.set({
-                        ...currentStoreData,
-                        urls: preservedOrder,
-                      });
-                    });
-                    console.log(
-                      "✅ [PAGE] Restored drag order from localStorage before getList",
-                      {
-                        hasLocalStorage: !!stored,
-                        hasGlobalCache: !!cachedOrder,
-                        order: preservedOrder.map((u: any) => u.id),
-                        slug,
-                        note: "Order restored to prevent getList overwrite",
-                      }
-                    );
-                  }
-                } catch (parseErr) {
-                  console.error(
-                    "❌ [PAGE] Failed to parse preserved order",
-                    parseErr
-                  );
-                }
-              }
-            }
-          } catch (err) {
-            console.error("❌ [PAGE] Error checking localStorage", err);
-          }
-        }
-
-        // Mark as fetched before the async call
-        hasFetchedRef.current = slug;
-        try {
-          // UNIFIED APPROACH: Use unified endpoint to get list + activities + collaborators in one call
-          // This eliminates redundant API calls and ensures consistency
-          const unifiedData = await fetchUnifiedUpdates(slug, 30);
-          
-          if (unifiedData.list) {
-            // Unified endpoint already updated currentList store via fetchUnifiedUpdates
-            // Activities and collaborators are dispatched via events
-            const currentListData = currentList.get();
-            if (currentListData && currentListData.slug === slug) {
-              setIsLoading(false);
-              return; // Success - unified endpoint handled everything
-            }
-          }
-          
-          // Fallback to getList if unified endpoint didn't return list (backwards compatibility)
-          // This ensures existing code still works if unified endpoint has issues
-          console.log("🔄 [PAGE] Unified endpoint didn't return list, falling back to getList...");
-          await getList(slug, true); // Pass true to skip if drag in progress
-
-          // Only set loading to false if we have valid list data with matching slug
-          // This prevents showing "List: undefined" flash
-          const currentListData = currentList.get();
-          if (currentListData && currentListData.slug === slug) {
-            setIsLoading(false);
-          }
-        } catch (error) {
-          // Handle 401 Unauthorized - redirect to login immediately
-          if (
-            error instanceof Error &&
-            (error as any).status === 401 &&
-            typeof window !== "undefined"
-          ) {
-            // Redirect URL is already stored in sessionStorage by getList
-            // Redirect already happened in getList, but ensure it happens here too as backup
-            console.log("🔒 [AUTH] 401 Unauthorized - redirecting to login...");
-            window.location.replace("/");
-            return; // Exit early - don't set loading state or process further
-          }
-          // For other errors, set loading to false and let error state handle it
-          console.error("❌ [PAGE] Error fetching list:", error);
-          setIsLoading(false);
-          // Don't re-throw - just show error state
-        }
-      } else {
-        setIsLoading(false);
-      }
+    if (unifiedData?.list && unifiedData.list.slug === listSlug) {
+      setIsLoading(false);
+    } else if (isLoadingQuery && listSlug) {
+      setIsLoading(true);
     }
-    fetchList();
-  }, [slug]); // Only depend on slug, not list (to avoid infinite loops)
+  }, [unifiedData, isLoadingQuery, listSlug]);
+
+  // React Query handles all fetching automatically
+  // No manual fetch needed - unified query will update store and dispatch events
 
   // Watch for list updates from store and update loading state when valid data arrives
   useEffect(() => {

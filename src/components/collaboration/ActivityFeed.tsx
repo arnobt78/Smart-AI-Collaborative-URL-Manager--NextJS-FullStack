@@ -97,24 +97,51 @@ export function ActivityFeed({ listId, limit = 50 }: ActivityFeedProps) {
   const hasInitialFetchedRef = React.useRef<string | null>(null);
 
   useEffect(() => {
-    // Only fetch once per listId/limit combination on mount
+    // OPTIMIZATION: ActivityFeed should NOT fetch on mount if ListPage is handling it
+    // ListPage fetches unified data on mount, which dispatches unified-activities-updated event
+    // ActivityFeed listens to this event, so it should wait for it instead of fetching separately
+    
     const fetchKey = `${listId}-${limit}`;
     if (hasInitialFetchedRef.current === fetchKey) {
       return; // Already fetched
     }
-    hasInitialFetchedRef.current = fetchKey;
 
-    // Initial fetch - use unified endpoint for consistency
-    // Get slug from currentList store
-    const current = currentList.get();
-    if (current?.slug && current.id === listId) {
-      fetchUnifiedUpdates(current.slug, limit);
-    } else {
-      // Fallback to old endpoint if slug not available yet
-      lastFetchStartRef.current = 0;
-      fetchActivities();
+    // If activities are already populated (from event listener), don't fetch
+    if (activities.length > 0) {
+      hasInitialFetchedRef.current = fetchKey;
+      return; // Activities already loaded via event
     }
-  }, [listId, limit, fetchActivities, fetchUnifiedUpdates]);
+
+    // Wait longer (2 seconds) to see if we receive unified-activities-updated event
+    // ListPage fetches on mount and dispatches event - we should receive it
+    // Only fetch manually if no event received after 2 seconds (handles edge cases)
+    const timeoutId = setTimeout(() => {
+      // After timeout, check again if activities were set by event
+      // Only fetch if still empty and ListPage hasn't provided data
+      const current = currentList.get();
+      if (current?.slug && current.id === listId) {
+        // Check if activities were populated by event listener
+        const activitiesAfterWait = activities.length;
+        if (activitiesAfterWait === 0) {
+          // Still no activities - might be edge case, fetch manually
+          hasInitialFetchedRef.current = fetchKey;
+          fetchUnifiedUpdates(current.slug, limit);
+        } else {
+          // Activities were populated by event - mark as fetched
+          hasInitialFetchedRef.current = fetchKey;
+        }
+      } else if (!current?.slug || current.id !== listId) {
+        // Fallback to old endpoint if slug not available yet
+        lastFetchStartRef.current = 0;
+        fetchActivities();
+      }
+    }, 2000); // Wait 2 seconds for ListPage's fetch to complete and dispatch event
+
+    // Clear timeout if component unmounts
+    return () => {
+      clearTimeout(timeoutId);
+    };
+  }, [listId, limit, activities.length, fetchActivities, fetchUnifiedUpdates]);
 
   // Listen for unified-update events (UNIFIED APPROACH: One event, one API call)
   useEffect(() => {
@@ -135,8 +162,11 @@ export function ActivityFeed({ listId, limit = 50 }: ActivityFeedProps) {
     
     window.addEventListener("unified-activities-updated", handleUnifiedActivitiesUpdate);
     
-    // Listen for unified-update events (from SSE) - triggers unified endpoint call
-    const handleUnifiedUpdate = async (event: Event) => {
+    // Listen for unified-update events (from SSE)
+    // OPTIMIZATION: Don't call fetchUnifiedUpdates here - unified-update events are dispatched AFTER server updates
+    // The unified-activities-updated event will be dispatched by ListPage's fetchUnifiedUpdates
+    // We just need to listen for that event, not trigger another fetch
+    const handleUnifiedUpdate = (event: Event) => {
       const customEvent = event as CustomEvent<{
         listId?: string;
         action?: string;
@@ -146,30 +176,15 @@ export function ActivityFeed({ listId, limit = 50 }: ActivityFeedProps) {
       
       // Only handle if it's for this list
       if (customEvent.detail?.listId && customEvent.detail.listId !== listId) {
-        console.log(`⏭️ [ACTIVITIES] Skipping unified-update - wrong listId (${customEvent.detail.listId} vs ${listId})`);
         return;
       }
       
-      // Get slug from currentList store
-      const current = currentList.get();
-      if (!current?.slug) {
-        console.log("⏭️ [ACTIVITIES] No slug available yet, skipping unified update");
-        return;
-      }
-      
-      console.log(`🔄 [ACTIVITIES] Received unified-update event, calling unified endpoint (action: ${customEvent.detail?.action || 'unknown'})...`);
-      // Call unified endpoint (global lock ensures only one call at a time)
-      // Wrap in try-catch to silently handle ALL errors to prevent React error overlay
-      // 401 errors are expected when collaborator is removed - they're handled gracefully
-      try {
-        await fetchUnifiedUpdates(current.slug, limit);
-      } catch (error) {
-        // Silently ignore all errors here - fetchUnifiedUpdates already handles 401 gracefully
-        // This catch prevents any errors from bubbling up and triggering React error overlay
-        // No logging needed - errors are already handled in fetchUnifiedUpdates
-      }
-      
-      // Activities will be updated via unified-activities-updated event
+      // Note: We don't call fetchUnifiedUpdates here because:
+      // 1. Unified-update events are dispatched AFTER server updates (data is already fresh)
+      // 2. ListPage will handle unified fetch on mount or when needed
+      // 3. The unified-activities-updated event will be dispatched by ListPage's fetch
+      // 4. Calling fetchUnifiedUpdates here causes duplicate API calls
+      // We just wait for unified-activities-updated event to update activities
     };
     
     window.addEventListener("unified-update", handleUnifiedUpdate);

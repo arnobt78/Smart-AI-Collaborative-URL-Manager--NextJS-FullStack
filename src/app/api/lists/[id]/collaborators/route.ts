@@ -6,6 +6,7 @@ import {
   removeCollaborator,
   getCollaboratorsWithRoles,
   getListById,
+  getListBySlugOrId,
 } from "@/lib/db";
 import { sendCollaboratorInviteEmail } from "@/lib/email";
 import { createActivity } from "@/lib/db/activities";
@@ -26,14 +27,18 @@ export async function GET(
 
     // Check if user has access to view collaborators
     // Allow viewing if: user is owner OR user is a collaborator (editor/viewer)
-    const list = await getListById(id);
+    // Support both slug and ID
+    const list = await getListBySlugOrId(id);
     if (!list) {
       return NextResponse.json({ error: "List not found" }, { status: 404 });
     }
 
+    // Use list.id for all operations (ensures we use UUID)
+    const listId = list.id;
+
     // Owner can always view
     if (list.userId === user.id) {
-      const collaborators = await getCollaboratorsWithRoles(id);
+      const collaborators = await getCollaboratorsWithRoles(listId);
       return NextResponse.json({ collaborators });
     }
 
@@ -41,20 +46,20 @@ export async function GET(
     if (list.collaboratorRoles && typeof list.collaboratorRoles === "object") {
       const roles = list.collaboratorRoles as Record<string, string>;
       if (roles[user.email] === "editor" || roles[user.email] === "viewer") {
-        const collaborators = await getCollaboratorsWithRoles(id);
+        const collaborators = await getCollaboratorsWithRoles(listId);
         return NextResponse.json({ collaborators });
       }
     }
 
     // Fallback: Check legacy collaborators array
     if (list.collaborators && Array.isArray(list.collaborators) && list.collaborators.includes(user.email)) {
-      const collaborators = await getCollaboratorsWithRoles(id);
+      const collaborators = await getCollaboratorsWithRoles(listId);
       return NextResponse.json({ collaborators });
     }
 
     // Public list - allow viewing collaborators
     if (list.isPublic) {
-      const collaborators = await getCollaboratorsWithRoles(id);
+      const collaborators = await getCollaboratorsWithRoles(listId);
       return NextResponse.json({ collaborators });
     }
 
@@ -64,7 +69,7 @@ export async function GET(
       { status: 403 }
     );
 
-    const collaborators = await getCollaboratorsWithRoles(id);
+    const collaborators = await getCollaboratorsWithRoles(listId);
     return NextResponse.json({ collaborators });
   } catch (error) {
     const message =
@@ -97,14 +102,18 @@ export async function POST(
       );
     }
 
-    const list = await getListById(id);
+    // Support both slug and ID
+    const list = await getListBySlugOrId(id);
     if (!list) {
       return NextResponse.json({ error: "List not found" }, { status: 404 });
     }
 
+    // Use list.id for all operations (ensures we use UUID)
+    const listId = list.id;
+
     // Check permission (only owner can add collaborators)
     try {
-      await requirePermission(id, user.id, "invite");
+      await requirePermission(listId, user.id, "invite");
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Permission denied";
@@ -113,26 +122,26 @@ export async function POST(
 
     // addCollaborator handles duplicate prevention (case-insensitive) - 
     // if collaborator exists, it updates the role instead of creating duplicate
-    const updatedList = await addCollaborator(id, email.trim(), role);
+    const updatedList = await addCollaborator(listId, email.trim(), role);
 
     // Create activity log
-    const activity = await createActivity(id, user.id, "collaborator_added", {
+    const activity = await createActivity(listId, user.id, "collaborator_added", {
       collaboratorEmail: email,
       role: role,
     });
 
     // Publish real-time update
-    await publishMessage(CHANNELS.listUpdate(id), {
+    await publishMessage(CHANNELS.listUpdate(listId), {
       type: "list_updated",
-      listId: id,
+      listId: listId,
       action: "collaborator_added",
       timestamp: new Date().toISOString(),
     });
 
     // Publish activity update
-    await publishMessage(CHANNELS.listActivity(id), {
+    await publishMessage(CHANNELS.listActivity(listId), {
       type: "activity_created",
-      listId: id,
+      listId: listId,
       action: "collaborator_added",
       timestamp: new Date().toISOString(),
       activity: {
@@ -226,24 +235,28 @@ export async function PUT(
       );
     }
 
-    const list = await getListById(id);
+    // Support both slug and ID
+    const list = await getListBySlugOrId(id);
     if (!list) {
       return NextResponse.json({ error: "List not found" }, { status: 404 });
     }
 
+    // Use list.id for all operations (ensures we use UUID)
+    const listId = list.id;
+
     // Check permission (only owner can update collaborator roles)
     try {
-      await requirePermission(id, user.id, "invite");
+      await requirePermission(listId, user.id, "invite");
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Permission denied";
       return NextResponse.json({ error: message }, { status: 403 });
     }
 
-    const updatedList = await updateCollaboratorRole(id, email, role);
+    const updatedList = await updateCollaboratorRole(listId, email, role);
 
     // Create activity log
-    const activity = await createActivity(id, user.id, "collaborator_role_updated", {
+    const activity = await createActivity(listId, user.id, "collaborator_role_updated", {
       collaboratorEmail: email,
       role: role,
     });
@@ -312,39 +325,43 @@ export async function DELETE(
       );
     }
 
-    const list = await getListById(id);
+    // Support both slug and ID
+    const list = await getListBySlugOrId(id);
     if (!list) {
       return NextResponse.json({ error: "List not found" }, { status: 404 });
     }
 
+    // Use list.id for all operations (ensures we use UUID)
+    const listId = list.id;
+
     // Check permission (only owner can remove collaborators)
     try {
-      await requirePermission(id, user.id, "invite");
+      await requirePermission(listId, user.id, "invite");
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Permission denied";
       return NextResponse.json({ error: message }, { status: 403 });
     }
 
-    const updatedList = await removeCollaborator(id, email);
+    const updatedList = await removeCollaborator(listId, email);
 
     // Create activity log
-    const activity = await createActivity(id, user.id, "collaborator_removed", {
+    const activity = await createActivity(listId, user.id, "collaborator_removed", {
       collaboratorEmail: email,
     });
 
     // Publish real-time update
-    await publishMessage(CHANNELS.listUpdate(id), {
+    await publishMessage(CHANNELS.listUpdate(listId), {
       type: "list_updated",
-      listId: id,
+      listId: listId,
       action: "collaborator_removed",
       timestamp: new Date().toISOString(),
     });
 
     // Publish activity update
-    await publishMessage(CHANNELS.listActivity(id), {
+    await publishMessage(CHANNELS.listActivity(listId), {
       type: "activity_created",
-      listId: id,
+      listId: listId,
       action: "collaborator_removed",
       timestamp: new Date().toISOString(),
       activity: {

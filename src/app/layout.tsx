@@ -6,6 +6,7 @@ import Footer from "@/components/layout/Footer";
 import FloatingBackground from "@/components/layout/FloatingBackground";
 import { QueryProvider } from "@/components/providers/QueryProvider";
 import { ToastProvider } from "@/components/ui/Toaster";
+import { UserDataPrefetcher } from "@/hooks/usePrefetchUserData";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -133,6 +134,7 @@ export default function RootLayout({
       >
         <QueryProvider>
           <ToastProvider>
+            <UserDataPrefetcher />
             <FloatingBackground />
             <div className="flex flex-col min-h-screen bg-transparent">
               <Navbar />

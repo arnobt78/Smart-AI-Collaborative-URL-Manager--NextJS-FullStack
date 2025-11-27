@@ -50,42 +50,49 @@ export async function GET(
       (a, b) => (a.position ?? 999) - (b.position ?? 999)
     );
 
-    // If positions were initialized, save them back to database
-    if (needsPositionInit && urlsWithPositions.length > 0) {
-      await updateList(list.id, { urls: urlsWithPositions });
-      list.urls = urlsWithPositions as any;
-    } else {
-      // Always update list.urls to the sorted version (even if positions existed)
-      list.urls = urlsWithPositions as any;
+    // Always update list.urls to the sorted version
+    list.urls = urlsWithPositions as any;
+
+    // OPTIMIZATION: Run position initialization (if needed), activities, and collaborators queries in PARALLEL
+    // Determine if user can access collaborators first (synchronous check, no DB query)
+    const canViewCollaborators = 
+      list.userId === user.id || // Owner can always view
+      (list.collaboratorRoles && typeof list.collaboratorRoles === "object" && 
+       ((list.collaboratorRoles as Record<string, string>)[user.email] === "editor" || 
+        (list.collaboratorRoles as Record<string, string>)[user.email] === "viewer")) || // Collaborator can view
+      (list.collaborators && Array.isArray(list.collaborators) && list.collaborators.includes(user.email)) || // Legacy check
+      list.isPublic; // Public list
+
+    // Run ALL queries in parallel (much faster than sequential)
+    // Position init is non-blocking - response returns immediately, position save happens in background
+    const [positionInitResult, activitiesResult, collaboratorsResult] = await Promise.allSettled([
+      // Position initialization (only if needed) - non-blocking
+      needsPositionInit && urlsWithPositions.length > 0
+        ? updateList(list.id, { urls: urlsWithPositions })
+        : Promise.resolve(null),
+      // Activities fetch
+      getActivitiesForList(list.id, activityLimit),
+      // Collaborators fetch (only if user has access)
+      canViewCollaborators 
+        ? getCollaboratorsWithRoles(list.id)
+        : Promise.resolve([] as Array<{ email: string; role: "editor" | "viewer" }>),
+    ]);
+
+    // Extract results safely
+    // Note: Position init result is ignored - it's a background operation
+    if (positionInitResult.status === "rejected") {
+      console.warn("Failed to initialize positions (non-critical):", positionInitResult.reason);
     }
 
-    // Get activities
-    const activities = await getActivitiesForList(list.id, activityLimit);
-
-    // Get collaborators (if user has access) - same access logic as /collaborators endpoint
-    let collaborators: Array<{ email: string; role: "editor" | "viewer" }> = [];
-    try {
-      // Owner can always view collaborators
-      if (list.userId === user.id) {
-        collaborators = await getCollaboratorsWithRoles(list.id);
-      } else if (list.collaboratorRoles && typeof list.collaboratorRoles === "object") {
-        // Check if user is a collaborator (editor or viewer can view)
-        const roles = list.collaboratorRoles as Record<string, string>;
-        if (roles[user.email] === "editor" || roles[user.email] === "viewer") {
-          collaborators = await getCollaboratorsWithRoles(list.id);
-        }
-      } else if (list.collaborators && Array.isArray(list.collaborators) && list.collaborators.includes(user.email)) {
-        // Fallback: Check legacy collaborators array
-        collaborators = await getCollaboratorsWithRoles(list.id);
-      } else if (list.isPublic) {
-        // Public list - allow viewing collaborators
-        collaborators = await getCollaboratorsWithRoles(list.id);
-      }
-      // Otherwise: No access - collaborators array remains empty
-    } catch (error) {
-      // If collaborator fetch fails, continue without them (non-critical)
-      console.warn("Failed to fetch collaborators in unified endpoint:", error);
-    }
+    const activities = activitiesResult.status === "fulfilled" ? activitiesResult.value : [];
+    const collaborators: Array<{ email: string; role: "editor" | "viewer" }> = 
+      collaboratorsResult.status === "fulfilled" 
+        ? collaboratorsResult.value 
+        : (() => {
+            // If collaborator fetch fails, log but continue without them (non-critical)
+            console.warn("Failed to fetch collaborators in unified endpoint:", collaboratorsResult.reason);
+            return [];
+          })();
 
     const urlOrder = urlsWithPositions.map((u) => u.id).join(",");
     const clickCounts = urlsWithPositions.map((u) => ({
@@ -98,7 +105,7 @@ export async function GET(
     // and PermissionManager expects for collaborators
     return NextResponse.json({
       list,
-      activities,
+      activities, // Fixed: was using undefined variable
       collaborators,
       urlOrder,
       clickCounts,

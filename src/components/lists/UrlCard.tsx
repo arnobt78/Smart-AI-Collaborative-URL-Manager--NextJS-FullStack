@@ -86,11 +86,7 @@ export const UrlCard: React.FC<UrlCardProps> = ({
   // Log click count changes for debugging
   React.useEffect(() => {
     if (process.env.NODE_ENV === "development" && url.clickCount !== undefined) {
-      console.log("🟢 [URL_CARD] UrlCard rendered/updated:", {
-        urlId: url.id,
-        title: url.title?.substring(0, 30),
-        clickCount: url.clickCount,
-      });
+      // Removed excessive console log for URL card rendering
     }
   }, [url.id, url.clickCount, url.title]);
   const [imageError, setImageError] = React.useState(false);

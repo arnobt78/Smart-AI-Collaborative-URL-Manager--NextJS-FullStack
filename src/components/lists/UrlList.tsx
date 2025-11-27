@@ -902,8 +902,12 @@ export function UrlList() {
       }
     };
 
-    // Listen for unified-update events (UNIFIED APPROACH: One event, one API call)
-    const handleUnifiedUpdate = async (event: Event) => {
+    // Listen for unified-update events (from SSE/real-time updates)
+    // OPTIMIZATION: Unified-update events are dispatched AFTER server updates complete
+    // The event means data is already updated - we don't need to fetch again
+    // ListPage handles initial fetch on mount, and SSE syncs changes automatically
+    // Only handle specific actions that need UI updates (like clearing drag cache)
+    const handleUnifiedUpdate = (event: Event) => {
       const customEvent = event as CustomEvent<{
         listId?: string;
         action?: string;
@@ -911,13 +915,12 @@ export function UrlList() {
       }>;
       
       const current = currentList.get();
-      if (!current?.id || !current?.slug) {
+      if (!current?.id) {
         return;
       }
       
       // Only handle if it's for this list
       if (customEvent.detail?.listId && customEvent.detail.listId !== current.id) {
-        console.log(`⏭️ [URL_LIST] Skipping unified-update - wrong listId (${customEvent.detail.listId} vs ${current.id})`);
         return;
       }
       
@@ -931,12 +934,10 @@ export function UrlList() {
       }
       
       const action = customEvent.detail?.action || 'unknown';
-      console.log(`🔄 [URL_LIST] Received unified-update event, calling unified endpoint (action: ${action})...`);
       
       // CRITICAL: If this is a reorder action, clear local drag order cache on remote screens
       // This ensures we use the server's order instead of any stale local cache
       if (action === "url_reordered") {
-        console.log(`🔄 [URL_LIST] Reorder detected - clearing local drag order cache`);
         finalDragOrderRef.current = null;
         // Also clear localStorage cache to ensure fresh order from server
         if (current.id && typeof window !== "undefined") {
@@ -946,62 +947,15 @@ export function UrlList() {
             console.error("❌ [URL_LIST] Failed to clear localStorage cache:", err);
           }
         }
+        // Force re-render to show updated order
+        setSortableContextKey((prev) => prev + 1);
       }
       
-      // Store current order before update to detect reorder changes
-      const currentUrls = (current.urls as unknown as UrlItem[]) || [];
-      const oldOrder = currentUrls.map((u) => u.id).join(",");
-      
-      // Call unified endpoint (global lock ensures only one call at a time)
-      // This will update both list store and dispatch activities
-      // Wrap in try-catch to silently handle expected errors (NetworkError/AbortError during bulk import refresh)
-      try {
-        await fetchUnifiedUpdates(current.slug, 30);
-      } catch (error) {
-        // Handle expected errors silently (no error overlay):
-        // - NetworkError/AbortError (page refresh during bulk import)
-        // - Request aborted (normal during page transitions)
-        const isExpectedError =
-          error instanceof Error &&
-          (error.name === "NetworkError" ||
-           error.name === "AbortError" ||
-           error.message.includes("aborted") ||
-           error.message.includes("401"));
-        
-        // Silently ignore expected errors - fetchUnifiedUpdates already handles them gracefully
-        // This prevents React error overlay from showing for expected errors
-        if (!isExpectedError) {
-          // Only log unexpected errors
-          console.error("❌ [URL_LIST] Unexpected error in unified update:", error);
-        }
-      }
-      
-      // After unified update, handle reorder detection
-      const updated = currentList.get();
-      if (updated) {
-        const newUrls = (updated.urls as unknown as UrlItem[]) || [];
-        const newOrder = newUrls.map((u) => u.id).join(",");
-        
-        // CRITICAL: Always increment sortableContextKey for reorder actions
-        // This forces SortableContext to remount and recognize the new order
-        if (action === "url_reordered") {
-          console.log(`🔄 [URL_LIST] Reorder action detected - incrementing sortableContextKey to update card positions`);
-          setSortableContextKey((prev) => prev + 1);
-        } else if (oldOrder !== newOrder && newUrls.length === currentUrls.length) {
-          // For other actions, check if order changed (might be a side effect)
-          // Verify it's the same URLs (just reordered) by checking IDs
-          const oldIds = new Set(currentUrls.map((u) => u.id));
-          const newIds = new Set(newUrls.map((u) => u.id));
-          const sameIds = oldIds.size === newIds.size && [...oldIds].every((id) => newIds.has(id));
-          
-          if (sameIds) {
-            console.log(`🔄 [URL_LIST] Order changed from remote update - incrementing sortableContextKey`);
-            setSortableContextKey((prev) => prev + 1);
-          }
-        }
-      }
-      
-      // List store is already updated by fetchUnifiedUpdates
+      // Note: We don't call fetchUnifiedUpdates here because:
+      // 1. Unified-update events are dispatched AFTER server updates (data is already fresh on server)
+      // 2. ListPage handles unified fetch on mount and will refetch when needed
+      // 3. Calling fetchUnifiedUpdates here causes duplicate API calls
+      // 4. The store will be updated by ListPage's fetchUnifiedUpdates or via other mechanisms
     };
     
     window.addEventListener("list-updated", handleListUpdate);
@@ -2903,14 +2857,6 @@ export function UrlList() {
           >
             <div className="space-y-8">
               {filteredAndSortedUrls.map((url) => {
-                // Log click count for debugging
-                if (process.env.NODE_ENV === "development" && url.clickCount !== undefined) {
-                  console.log("🔍 [URL_CARD] Rendering URL card:", {
-                    urlId: url.id,
-                    title: url.title?.substring(0, 30),
-                    clickCount: url.clickCount,
-                  });
-                }
                 return (
                 <UrlCardWrapper
                   key={url.id}

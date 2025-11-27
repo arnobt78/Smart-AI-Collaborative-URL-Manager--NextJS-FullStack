@@ -83,6 +83,12 @@ export default function Auth() {
           variant: "success",
         });
         
+        // Trigger session refetch to start prefetching user data immediately
+        // This ensures data is ready when user navigates to pages
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new CustomEvent("session-updated"));
+        }
+        
         // Check if there's a redirect URL (user was trying to access a protected resource)
         const redirectUrl = getRedirectUrl();
         if (redirectUrl) {
@@ -137,6 +143,12 @@ export default function Auth() {
           description: "Signed in successfully!",
           variant: "success",
         });
+        
+        // Trigger session refetch to start prefetching user data immediately
+        // This ensures data is ready when user navigates to pages
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new CustomEvent("session-updated"));
+        }
         
         // Check if there's a redirect URL (user was trying to access a protected resource)
         const redirectUrl = getRedirectUrl();

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
@@ -15,56 +15,36 @@ import {
   Users,
   ExternalLink,
 } from "lucide-react";
+import {
+  useAllListsQuery,
+  useDeleteList,
+  setupSSECacheSync,
+  type UserList,
+} from "@/hooks/useListQueries";
 
-interface List {
-  id: string;
-  slug: string;
-  title: string | null;
-  description?: string | null;
-  urls: { id: string; url: string; title?: string }[];
-  created_at?: string;
-  createdAt?: string | Date;
-  updated_at?: string;
-  updatedAt?: string | Date;
-  isPublic?: boolean;
-  collaborators?: string[];
-}
+// Keep interface for backward compatibility
+interface List extends UserList {}
 
 export default function ListsPageClient() {
   const router = useRouter();
   const { toast } = useToast();
-  const [lists, setLists] = useState<List[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [listToDelete, setListToDelete] = useState<List | null>(null);
-  const hasFetchedRef = React.useRef(false);
+
+  // Setup SSE cache sync for React Query
+  useEffect(() => {
+    return setupSSECacheSync();
+  }, []);
+
+  // Use React Query for fetching lists with automatic refetching
+  const { data: listsData, isLoading, refetch } = useAllListsQuery();
+  const lists = listsData?.lists || [];
+
+  // Use React Query mutation for deleting lists
+  const deleteListMutation = useDeleteList();
+
   // Hardcoded skeleton count - always show 3 skeletons while loading
   const skeletonCount = 3;
-
-  useEffect(() => {
-    // Prevent double fetching (React Strict Mode in dev)
-    if (hasFetchedRef.current) {
-      return;
-    }
-    hasFetchedRef.current = true;
-
-    async function fetchData() {
-      try {
-        // Fetch lists
-        const listsRes = await fetch("/api/lists");
-        const listsData = await listsRes.json();
-        const fetchedLists = listsData.lists || [];
-        setLists(fetchedLists);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    fetchData();
-  }, []);
 
   const handleDeleteClick = (list: List) => {
     setListToDelete(list);
@@ -77,36 +57,19 @@ export default function ListsPageClient() {
     const id = listToDelete.id;
     const listTitle = listToDelete.title || listToDelete.slug;
 
-    setDeletingId(id);
-    try {
-      const response = await fetch(`/api/lists/${id}`, { method: "DELETE" });
-
-      if (!response.ok) throw new Error("Failed to delete list");
-
-      const updatedLists = lists.filter((list) => list.id !== id);
-      setLists(updatedLists);
-
-      // Show success toast notification
-      toast({
-        title: "List Deleted 🗑️",
-        description: `"${listTitle}" has been successfully deleted.`,
-        variant: "success",
-      });
-    } catch (error) {
-      console.error("Error deleting list:", error);
-
-      // Show error toast notification
-      toast({
-        title: "Delete Failed",
-        description:
-          error instanceof Error ? error.message : "Failed to delete list",
-        variant: "error",
-      });
-    } finally {
-      setDeletingId(null);
-      setDeleteDialogOpen(false);
-      setListToDelete(null);
-    }
+    // Use React Query mutation (handles optimistic updates, rollback, and toasts automatically)
+    deleteListMutation.mutate(id, {
+      onSuccess: () => {
+        setDeleteDialogOpen(false);
+        setListToDelete(null);
+        // Refetch lists to ensure cache is up to date
+        refetch();
+      },
+      onError: () => {
+        // Error toast is handled by mutation
+        // Keep dialog open on error so user can retry
+      },
+    });
   };
 
   const handleEditClick = (list: List) => {
@@ -396,7 +359,10 @@ export default function ListsPageClient() {
                         onClick={() => handleDeleteClick(list)}
                         variant="ghost"
                         className="text-white/80 hover:text-red-400 hover:bg-red-500/20 transition-all duration-200 border border-transparent hover:border-red-400/30"
-                        disabled={deletingId === list.id}
+                        disabled={
+                          deleteListMutation.isPending &&
+                          listToDelete?.id === list.id
+                        }
                         title="Delete List"
                       >
                         <TrashIcon className="h-4 w-4 sm:h-5 sm:w-5" />
@@ -449,7 +415,7 @@ export default function ListsPageClient() {
               }"? This action cannot be undone.`
             : "Are you sure you want to delete this list? This action cannot be undone."
         }
-        confirmText="Delete"
+        confirmText={deleteListMutation.isPending ? "Deleting..." : "Delete"}
         cancelText="Cancel"
         onConfirm={handleDeleteConfirm}
         variant="destructive"

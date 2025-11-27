@@ -20,6 +20,12 @@ import {
 import { queryClient } from "@/lib/react-query";
 import { useQuery } from "@tanstack/react-query";
 import { useListPermissions } from "@/hooks/useListPermissions";
+import { 
+  useAddCollaborator, 
+  useUpdateCollaboratorRole, 
+  useRemoveCollaborator,
+  listQueryKeys 
+} from "@/hooks/useListQueries";
 
 export interface Collaborator {
   email: string;
@@ -54,50 +60,38 @@ export function PermissionManager({
   }>({ open: false, email: "" });
   const [newEmail, setNewEmail] = useState("");
   const [newRole, setNewRole] = useState<"editor" | "viewer">("editor");
-  const [isAdding, setIsAdding] = useState(false);
-  const [isUpdating, setIsUpdating] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
   const [expandedCollaborator, setExpandedCollaborator] = useState<
     string | null
   >(null);
+  
+  // Use React Query mutations
+  const addCollaboratorMutation = useAddCollaborator(listId, listSlug);
+  const updateRoleMutation = useUpdateCollaboratorRole(listId, listSlug);
+  const removeCollaboratorMutation = useRemoveCollaborator(listId, listSlug);
 
   // Track if unified endpoint has provided collaborators (to avoid redundant fetch)
   const unifiedDataReceivedRef = useRef<boolean>(false);
   const fetchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
-  // Fetch collaborators with React Query caching (5 minute stale time)
-  // UNIFIED APPROACH: Prefer collaborators from unified endpoint, fallback to separate fetch
-  // Wait a delay on mount to let unified endpoint populate cache first
-  const [shouldFetch, setShouldFetch] = useState(false);
+  // Fetch collaborators with React Query
+  // Unified query populates cache automatically - we just read from it
+  const { data: collaboratorsData } = useQuery({
+    queryKey: listQueryKeys.collaborators(listId),
+    queryFn: async () => {
+      const response = await fetch(`/api/lists/${listSlug}/updates?activityLimit=30`);
+      if (!response.ok) return { collaborators: [] };
+      const data = await response.json();
+      return { collaborators: data.collaborators || [] };
+    },
+    enabled: false, // Don't fetch - rely on unified query to populate cache
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+  });
   
-  // Check cache immediately and set up delay (runs once per listId)
+  // Check cache immediately (runs once per listId)
   useEffect(() => {
     // Reset flag when listId changes
     unifiedDataReceivedRef.current = false;
-    setShouldFetch(false); // Start disabled - never fetch until delay expires and unified endpoint hasn't provided data
-    
-    // Check if cache already has data (from unified endpoint that completed before component mounted)
-    const cached = queryClient.getQueryData<{ collaborators: Collaborator[] }>([`collaborators:${listId}`]);
-    if (cached) {
-      console.log(`✅ [PERMISSIONS] Found cached collaborators on mount: ${cached.collaborators?.length || 0} collaborators`);
-      unifiedDataReceivedRef.current = true;
-      // Cache found - never enable separate fetch
-      return;
-    } else {
-      console.log(`⏳ [PERMISSIONS] No cached collaborators found on mount, waiting for unified endpoint...`);
-    }
-    
-    // Clear any existing timeout
-    if (fetchTimeoutRef.current) {
-      clearTimeout(fetchTimeoutRef.current);
-    }
-    
-    // Give unified endpoint 1500ms to populate cache before triggering separate fetch
-    // This prevents redundant API calls while maintaining fallback
-    // Unified endpoint typically takes ~800-900ms, so 1500ms gives comfortable margin
-    fetchTimeoutRef.current = setTimeout(() => {
-      // Final check - if unified endpoint still hasn't provided data, enable separate fetch
-      const cached = queryClient.getQueryData<{ collaborators: Collaborator[] }>([`collaborators:${listId}`]);
       if (!cached && !unifiedDataReceivedRef.current) {
         console.log(`⚠️ [PERMISSIONS] Unified endpoint didn't provide data after 1500ms, enabling separate fetch`);
         setShouldFetch(true);
@@ -282,130 +276,76 @@ export function PermissionManager({
       });
       return;
     }
-
-    try {
-      // Mark as local operation BEFORE API call to help ActivityFeed debounce real-time events
-      if (typeof window !== "undefined") {
-        window.dispatchEvent(new CustomEvent("local-operation"));
-      }
-
-      setIsAdding(true);
-
-      const response = await fetch(`/api/lists/${listId}/collaborators`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+    
+    // Use React Query mutation (handles optimistic updates, rollback, and toasts automatically)
+    addCollaboratorMutation.mutate(
+      { email: newEmail.trim(), role: newRole },
+      {
+        onSuccess: () => {
+          setNewEmail("");
+          setInviteDialogOpen(false);
+          onUpdate?.();
         },
-        credentials: "include",
-        body: JSON.stringify({
-          email: newEmail.trim(),
-          role: newRole,
-        }),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Failed to add collaborator");
       }
-
-      const data = await response.json();
-
-      toast({
-        title: "Collaborator Added! ✅",
-        description: `${newEmail.trim()} has been added as ${newRole}.${
-          data.emailSent
-            ? " An invitation email has been sent."
-            : data.emailError
-            ? ` Note: Email could not be sent (${data.emailError}).`
-            : ""
-        }`,
-        variant: "success",
-      });
-
-      // Optimistic update: Update UI immediately with new collaborator
-      // Prevent duplicates by checking if collaborator already exists
-      queryClient.setQueryData<{ collaborators: Collaborator[] }>(
-        [`collaborators:${listId}`],
-        (old) => {
-          const existingCollaborators = old?.collaborators || [];
-          const trimmedEmail = newEmail.trim().toLowerCase();
-          
-          // Check if collaborator already exists (case-insensitive email match)
-          const alreadyExists = existingCollaborators.some(
-            (c) => c.email.toLowerCase() === trimmedEmail
-          );
-          
-          if (alreadyExists) {
-            // Update existing collaborator's role instead of adding duplicate
-            return {
-              collaborators: existingCollaborators.map((c) =>
-                c.email.toLowerCase() === trimmedEmail
-                  ? { email: c.email, role: newRole } // Keep original email casing
-                  : c
-              ),
-            };
-          }
-          
-          // Add new collaborator
-          return {
-            collaborators: [
-              ...existingCollaborators,
-              { email: newEmail.trim(), role: newRole },
-            ],
-          };
-        }
-      );
-
-      // No need to update list state - optimistic update already handled it
-      // Updating currentList here could trigger unnecessary getList() calls
-
-      // No need to invalidate - optimistic update already syncs cache
-
-      // Local operation already marked before API call
-      // UNIFIED APPROACH: SSE handles ALL activity-updated events (single source of truth)
-      // No local dispatch needed - prevents duplicate API calls
-
-      // Notify parent component
-      onUpdate?.();
-
-      // Reset form
-      setNewEmail("");
-      setNewRole("editor");
-      setInviteDialogOpen(false);
-    } catch (error) {
-      // Handle expected errors silently (no error overlay):
-      // - NetworkError/AbortError (page refresh during bulk import)
-      // - Request aborted (normal during page transitions)
-      const isExpectedError =
-        error instanceof Error &&
-        (error.name === "NetworkError" ||
-         error.name === "AbortError" ||
-         error.message.includes("aborted") ||
-         error.message.includes("fetch"));
-      
-      if (!isExpectedError) {
-        // Only show toast for unexpected errors
-        console.error("Failed to add collaborator:", error);
-        toast({
-          title: "Error",
-          description:
-            error instanceof Error
-              ? error.message
-              : "Failed to add collaborator. Please try again.",
-          variant: "error",
-        });
-      } else if (process.env.NODE_ENV === "development") {
-        // Silently handle expected errors (no console spam)
-        console.debug("⏭️ [PERMISSIONS] Add collaborator request aborted (expected during page refresh)");
-      }
-    } finally {
-      setIsAdding(false);
-    }
+    );
   };
 
   // Update collaborator role
   const handleUpdateRole = async (newRole: "editor" | "viewer") => {
     if (!roleChangeDialog.email) return;
+
+    const emailToUpdate = roleChangeDialog.email;
+
+    // Use React Query mutation (handles optimistic updates, rollback, and toasts automatically)
+    updateRoleMutation.mutate(
+      { email: emailToUpdate, role: newRole },
+      {
+        onSuccess: () => {
+          setRoleChangeDialog({ open: false, email: "", currentRole: "editor" });
+          onUpdate?.();
+        },
+      }
+    );
+  };
+
+  // Legacy handler code (kept for reference - React Query mutation handles this now)
+  const handleUpdateRoleLegacy = async (newRole: "editor" | "viewer") => {
+    if (!roleChangeDialog.email) return;
+
+    const emailToUpdate = roleChangeDialog.email;
+    const previousData = queryClient.getQueryData<{ collaborators: Collaborator[] }>([`collaborators:${listId}`]);
+
+    // OPTIMISTIC UPDATE: Update UI IMMEDIATELY before API call for instant feedback
+    queryClient.setQueryData<{ collaborators: Collaborator[] }>(
+      [`collaborators:${listId}`],
+      (old) => {
+        const targetEmailLower = emailToUpdate.toLowerCase();
+        // Update role (case-insensitive match) and deduplicate result
+        const updated = (old?.collaborators || [])
+          .map((collab) =>
+            collab.email.toLowerCase() === targetEmailLower
+              ? { ...collab, role: newRole }
+              : collab
+          )
+          .reduce<Collaborator[]>((acc, collaborator) => {
+            const emailLower = collaborator.email.toLowerCase();
+            const exists = acc.some((c) => c.email.toLowerCase() === emailLower);
+            if (!exists) {
+              acc.push(collaborator);
+            }
+            return acc;
+          }, []);
+        return { collaborators: updated };
+      }
+    );
+
+    // Show toast and close dialog immediately (instant feedback)
+    toast({
+      title: "Role Updated! ✅",
+      description: `${emailToUpdate} is now a ${newRole}.`,
+      variant: "success",
+    });
+    setRoleChangeDialog({ open: false, email: "", currentRole: "editor" });
 
     try {
       // Mark as local operation BEFORE API call to help ActivityFeed debounce real-time events
@@ -422,7 +362,7 @@ export function PermissionManager({
         },
         credentials: "include",
         body: JSON.stringify({
-          email: roleChangeDialog.email,
+          email: emailToUpdate,
           role: newRole,
         }),
       });
@@ -430,51 +370,20 @@ export function PermissionManager({
       const data = await response.json();
 
       if (!response.ok) {
+        // Rollback optimistic update on error
+        if (previousData) {
+          queryClient.setQueryData([`collaborators:${listId}`], previousData);
+        }
         throw new Error(data.error || "Failed to update role");
       }
 
-      // Optimistic update: Update role in UI immediately
-      // Use `setQueryData` with `skipRefetch: true` to prevent automatic background refetch
-      queryClient.setQueryData<{ collaborators: Collaborator[] }>(
-        [`collaborators:${listId}`],
-        (old) => {
-          const targetEmailLower = roleChangeDialog.email.toLowerCase();
-          // Update role (case-insensitive match) and deduplicate result
-          const updated = (old?.collaborators || [])
-            .map((collab) =>
-              collab.email.toLowerCase() === targetEmailLower
-                ? { ...collab, role: newRole }
-                : collab
-            )
-            .reduce<Collaborator[]>((acc, collaborator) => {
-              const emailLower = collaborator.email.toLowerCase();
-              const exists = acc.some((c) => c.email.toLowerCase() === emailLower);
-              if (!exists) {
-                acc.push(collaborator);
-              }
-              return acc;
-            }, []);
-          return { collaborators: updated };
-        }
-      );
+      // Success - optimistic update already applied, UI already updated
 
-      toast({
-        title: "Role Updated! ✅",
-        description: `${roleChangeDialog.email} is now a ${newRole}.`,
-        variant: "success",
-      });
-
-      // No need to invalidate - optimistic update already syncs cache
-      // The cache will be automatically refetched when it becomes stale (5 min) or on next mount
-
-      // Local operation already marked before API call
-      // UNIFIED APPROACH: SSE handles ALL activity-updated events (single source of truth)
-      // No local dispatch needed - prevents duplicate API calls
-
+      // Success - optimistic update already applied, UI already updated
+      // SSE/unified-update event will sync in background, but UI is already instant
+      
       // Notify parent component
       onUpdate?.();
-
-      setRoleChangeDialog({ open: false, email: "", currentRole: "editor" });
     } catch (error) {
       // Handle expected errors silently (no error overlay):
       // - NetworkError/AbortError (page refresh during bulk import)
@@ -488,6 +397,7 @@ export function PermissionManager({
       
       if (!isExpectedError) {
         // Only show toast for unexpected errors
+        // Show error toast (optimistic update already rolled back above)
         console.error("Failed to update role:", error);
         toast({
           title: "Error",
@@ -497,6 +407,8 @@ export function PermissionManager({
               : "Failed to update role. Please try again.",
           variant: "error",
         });
+        // Re-open dialog on error so user can retry
+        setRoleChangeDialog({ open: true, email: emailToUpdate, currentRole: newRole });
       } else if (process.env.NODE_ENV === "development") {
         // Silently handle expected errors (no console spam)
         console.debug("⏭️ [PERMISSIONS] Update role request aborted (expected during page refresh)");
@@ -510,6 +422,63 @@ export function PermissionManager({
   const handleRemoveCollaborator = async () => {
     if (!deleteDialog.email) return;
 
+    const emailToDelete = deleteDialog.email;
+
+    // Use React Query mutation (handles optimistic updates, rollback, and toasts automatically)
+    removeCollaboratorMutation.mutate(
+      emailToDelete,
+      {
+        onSuccess: () => {
+          setDeleteDialog({ open: false, email: "" });
+          setExpandedCollaborator(null);
+          onUpdate?.();
+        },
+      }
+    );
+  };
+
+  // Legacy handler code (kept for reference - React Query mutation handles this now)
+  const handleRemoveCollaboratorLegacy = async () => {
+    if (!deleteDialog.email) return;
+
+    const emailToDelete = deleteDialog.email; // Store before async operations
+    const targetEmailLower = emailToDelete.toLowerCase();
+
+    // OPTIMISTIC UPDATE: Update UI IMMEDIATELY before API call for instant feedback
+    const previousData = queryClient.getQueryData<{ collaborators: Collaborator[] }>([`collaborators:${listId}`]);
+    
+    // Remove from UI immediately (before API call)
+    queryClient.setQueryData<{ collaborators: Collaborator[] }>(
+      [`collaborators:${listId}`],
+      (old) => {
+        // Remove collaborator (case-insensitive match) and deduplicate result
+        const filtered = (old?.collaborators || [])
+          .filter(
+            (collab) => collab.email.toLowerCase() !== targetEmailLower
+          )
+          .reduce<Collaborator[]>((acc, collaborator) => {
+            const emailLower = collaborator.email.toLowerCase();
+            const exists = acc.some((c) => c.email.toLowerCase() === emailLower);
+            if (!exists) {
+              acc.push(collaborator);
+            }
+            return acc;
+          }, []);
+        return { collaborators: filtered };
+      }
+    );
+
+    // Show toast immediately (instant feedback)
+    toast({
+      title: "Collaborator Removed",
+      description: `${emailToDelete} has been removed from this list.`,
+      variant: "success",
+    });
+
+    // Close dialog immediately
+    setDeleteDialog({ open: false, email: "" });
+    setExpandedCollaborator(null);
+
     try {
       // Mark as local operation BEFORE API call to help ActivityFeed debounce real-time events
       if (typeof window !== "undefined") {
@@ -519,9 +488,7 @@ export function PermissionManager({
       setIsDeleting(true);
 
       const response = await fetch(
-        `/api/lists/${listId}/collaborators?email=${encodeURIComponent(
-          deleteDialog.email
-        )}`,
+        `/api/lists/${listId}/collaborators?email=${encodeURIComponent(emailToDelete)}`,
         {
           method: "DELETE",
           credentials: "include",
@@ -531,51 +498,21 @@ export function PermissionManager({
       const data = await response.json();
 
       if (!response.ok) {
+        // Rollback optimistic update on error
+        if (previousData) {
+          queryClient.setQueryData([`collaborators:${listId}`], previousData);
+        }
         throw new Error(data.error || "Failed to remove collaborator");
       }
 
-      // Optimistic update: Remove collaborator from UI immediately
-      queryClient.setQueryData<{ collaborators: Collaborator[] }>(
-        [`collaborators:${listId}`],
-        (old) => {
-          const targetEmailLower = deleteDialog.email.toLowerCase();
-          // Remove collaborator (case-insensitive match) and deduplicate result
-          const filtered = (old?.collaborators || [])
-            .filter(
-              (collab) => collab.email.toLowerCase() !== targetEmailLower
-            )
-            .reduce<Collaborator[]>((acc, collaborator) => {
-              const emailLower = collaborator.email.toLowerCase();
-              const exists = acc.some((c) => c.email.toLowerCase() === emailLower);
-              if (!exists) {
-                acc.push(collaborator);
-              }
-              return acc;
-            }, []);
-          return { collaborators: filtered };
-        }
-      );
+      // Success - optimistic update already applied, no need to update again
+      // The SSE/unified-update event will sync in background, but UI is already updated
 
-      toast({
-        title: "Collaborator Removed",
-        description: `${deleteDialog.email} has been removed from this list.`,
-        variant: "success",
-      });
-
-      // No need to update list state - optimistic update already handled it
-      // Updating currentList here could trigger unnecessary getList() calls
-
-      // No need to invalidate - optimistic update already syncs cache
-
-      // Local operation already marked before API call
-      // UNIFIED APPROACH: SSE handles ALL activity-updated events (single source of truth)
-      // No local dispatch needed - prevents duplicate API calls
-
+      // Success - optimistic update already applied, UI already updated
+      // SSE/unified-update event will sync in background, but UI is already instant
+      
       // Notify parent component
       onUpdate?.();
-
-      setDeleteDialog({ open: false, email: "" });
-      setExpandedCollaborator(null);
     } catch (error) {
       // Handle expected errors silently (no error overlay):
       // - NetworkError/AbortError (page refresh during bulk import)
@@ -589,6 +526,7 @@ export function PermissionManager({
       
       if (!isExpectedError) {
         // Only show toast for unexpected errors
+        // Show error toast (optimistic update already rolled back above)
         console.error("Failed to remove collaborator:", error);
         toast({
           title: "Error",
@@ -598,6 +536,8 @@ export function PermissionManager({
               : "Failed to remove collaborator. Please try again.",
           variant: "error",
         });
+        // Re-open dialog on error so user can retry
+        setDeleteDialog({ open: true, email: emailToDelete });
       } else if (process.env.NODE_ENV === "development") {
         // Silently handle expected errors (no console spam)
         console.debug("⏭️ [PERMISSIONS] Remove collaborator request aborted (expected during page refresh)");
@@ -809,7 +749,7 @@ export function PermissionManager({
             <div
               className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm"
               onClick={() => {
-                if (!isAdding) {
+                if (!addCollaboratorMutation.isPending) {
                   setInviteDialogOpen(false);
                   setNewEmail("");
                 }
@@ -821,12 +761,12 @@ export function PermissionManager({
               >
                 <button
                   onClick={() => {
-                    if (!isAdding) {
+                    if (!addCollaboratorMutation.isPending) {
                       setInviteDialogOpen(false);
                       setNewEmail("");
                     }
                   }}
-                  disabled={isAdding}
+                  disabled={addCollaboratorMutation.isPending}
                   className="absolute top-4 right-4 text-white/60 hover:text-white transition-colors disabled:opacity-50"
                 >
                   <X className="h-5 w-5" />
@@ -850,7 +790,7 @@ export function PermissionManager({
                       value={newEmail}
                       onChange={(e) => setNewEmail(e.target.value)}
                       placeholder="collaborator@example.com"
-                      disabled={isAdding}
+                      disabled={addCollaboratorMutation.isPending}
                       className="w-full"
                       onKeyDown={(e) => {
                         if (e.key === "Enter" && newEmail.trim() && !isAdding) {
@@ -867,7 +807,7 @@ export function PermissionManager({
                       <button
                         type="button"
                         onClick={() => setNewRole("editor")}
-                        disabled={isAdding}
+                        disabled={addCollaboratorMutation.isPending}
                         className={`flex-1 p-3 rounded-lg border transition-colors disabled:opacity-50 ${
                           newRole === "editor"
                             ? "bg-purple-500/30 border-purple-400/50 text-purple-200"
@@ -883,7 +823,7 @@ export function PermissionManager({
                       <button
                         type="button"
                         onClick={() => setNewRole("viewer")}
-                        disabled={isAdding}
+                        disabled={addCollaboratorMutation.isPending}
                         className={`flex-1 p-3 rounded-lg border transition-colors disabled:opacity-50 ${
                           newRole === "viewer"
                             ? "bg-blue-500/30 border-blue-400/50 text-blue-200"
@@ -902,12 +842,12 @@ export function PermissionManager({
                     <Button
                       type="button"
                       onClick={() => {
-                        if (!isAdding) {
+                        if (!addCollaboratorMutation.isPending) {
                           setInviteDialogOpen(false);
                           setNewEmail("");
                         }
                       }}
-                      disabled={isAdding}
+                      disabled={addCollaboratorMutation.isPending}
                       variant="ghost"
                       className="text-white/80 hover:text-white hover:bg-white/10"
                     >
@@ -916,11 +856,11 @@ export function PermissionManager({
                     <Button
                       type="button"
                       onClick={handleAddCollaborator}
-                      disabled={isAdding || !newEmail.trim()}
-                      isLoading={isAdding}
+                      disabled={addCollaboratorMutation.isPending || !newEmail.trim()}
+                      isLoading={addCollaboratorMutation.isPending}
                       className="bg-blue-600 hover:bg-blue-700 text-white"
                     >
-                      {isAdding ? "Sending..." : "Send Invite"}
+                      {addCollaboratorMutation.isPending ? "Sending..." : "Send Invite"}
                     </Button>
                   </div>
                 </div>
@@ -944,7 +884,7 @@ export function PermissionManager({
                     })
                   }
                   className="absolute top-4 right-4 text-white/60 hover:text-white transition-colors"
-                  disabled={isUpdating}
+                      disabled={updateRoleMutation.isPending}
                 >
                   <X className="h-5 w-5" />
                 </button>
@@ -965,7 +905,7 @@ export function PermissionManager({
                         currentRole: "editor",
                       })
                     }
-                    disabled={isUpdating}
+                      disabled={updateRoleMutation.isPending}
                     className={`flex-1 p-3 rounded-lg border transition-colors ${
                       roleChangeDialog.currentRole === "editor"
                         ? "bg-purple-500/30 border-purple-400/50 text-purple-200"
@@ -986,7 +926,7 @@ export function PermissionManager({
                         currentRole: "viewer",
                       })
                     }
-                    disabled={isUpdating}
+                      disabled={updateRoleMutation.isPending}
                     className={`flex-1 p-3 rounded-lg border transition-colors ${
                       roleChangeDialog.currentRole === "viewer"
                         ? "bg-blue-500/30 border-blue-400/50 text-blue-200"
@@ -1009,7 +949,7 @@ export function PermissionManager({
                         currentRole: "editor",
                       })
                     }
-                    disabled={isUpdating}
+                      disabled={updateRoleMutation.isPending}
                     className="px-4 py-2 text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-colors font-medium disabled:opacity-50"
                   >
                     Cancel
@@ -1018,10 +958,10 @@ export function PermissionManager({
                     onClick={() =>
                       handleUpdateRole(roleChangeDialog.currentRole)
                     }
-                    disabled={isUpdating}
+                      disabled={updateRoleMutation.isPending}
                     className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                   >
-                    {isUpdating && (
+                    {updateRoleMutation.isPending && (
                       <svg
                         className="h-4 w-4 animate-spin"
                         xmlns="http://www.w3.org/2000/svg"
@@ -1058,7 +998,7 @@ export function PermissionManager({
         onOpenChange={(open) => setDeleteDialog({ ...deleteDialog, open })}
         title="Remove Collaborator"
         description={`Are you sure you want to remove ${deleteDialog.email} from this list? They will lose access immediately.`}
-        confirmText={isDeleting ? "Removing..." : "Remove"}
+        confirmText={removeCollaboratorMutation.isPending ? "Removing..." : "Remove"}
         onConfirm={handleRemoveCollaborator}
         variant="destructive"
       />

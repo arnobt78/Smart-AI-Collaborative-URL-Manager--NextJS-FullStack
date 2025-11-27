@@ -34,6 +34,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { AlertDialog } from "@/components/ui/AlertDialog";
 
 interface SmartCollectionsProps {
   listId: string;
@@ -98,8 +99,9 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
   } = useQuery<{ duplicates: DuplicateDetection[] }>({
     queryKey: [`collections-duplicates:${listId}`, list?.urls?.length], // Include URL count in key so cache invalidates when URLs change
     queryFn: async () => {
+      // Use unified API endpoint without cache-busting - React Query handles caching
       const response = await fetch(
-        `/api/lists/${listSlug}/collections?includeDuplicates=true&minGroupSize=2&maxCollections=10&_t=${Date.now()}`
+        `/api/lists/${listSlug}/collections?includeDuplicates=true&minGroupSize=2&maxCollections=10`
       );
       if (!response.ok) {
         throw new Error("Failed to fetch duplicates");
@@ -108,11 +110,12 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
       return { duplicates: data.duplicates || [] };
     },
     enabled: shouldFetchDuplicates && !!listSlug && !!list?.urls, // Only fetch when explicitly requested
-    staleTime: 0, // Always consider stale so refetch works on demand
+    staleTime: 5 * 60 * 1000, // 5 minutes - data stays fresh for 5 minutes (allows refetch on demand but uses cache)
     gcTime: 10 * 60 * 1000, // 10 minutes - cache kept for 10 minutes
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
     retry: false, // Don't retry on error to prevent infinite loops
+    // React Query will use cached data if available, preventing duplicate API calls
   });
 
   const duplicates = duplicatesData?.duplicates || [];
@@ -122,41 +125,14 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
     new Set()
   );
   const [isExpanded, setIsExpanded] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [pendingDeleteDuplicate, setPendingDeleteDuplicate] =
+    useState<DuplicateDetection | null>(null);
 
-  // Listen for URL deletions to invalidate duplicates cache
-  useEffect(() => {
-    if (!list?.urls) return;
-
-    const handleListUpdate = (event: Event) => {
-      const customEvent = event as CustomEvent<{
-        listId: string;
-        action?: string;
-      }>;
-      
-      // Invalidate duplicates cache when URLs are deleted
-      if (
-        customEvent.detail?.listId === listId &&
-        customEvent.detail?.action === "url_deleted"
-      ) {
-        queryClient.invalidateQueries({
-          queryKey: [`collections-duplicates:${listId}`],
-        });
-        queryClient.invalidateQueries({
-          queryKey: [`collections-suggestions:${listId}`],
-        });
-        
-        // If duplicates are currently shown, refetch them
-        if (showDuplicates && shouldFetchDuplicates) {
-          refetchDuplicates();
-        }
-      }
-    };
-
-    window.addEventListener("activity-added", handleListUpdate);
-    return () => {
-      window.removeEventListener("activity-added", handleListUpdate);
-    };
-  }, [listId, list?.urls?.length, showDuplicates, shouldFetchDuplicates, queryClient, refetchDuplicates]);
+  // Track last invalidation time and event IDs to prevent duplicate API calls
+  const lastInvalidationRef = useRef<number>(0);
+  const processedEventsRef = useRef<Set<string>>(new Set());
+  const INVALIDATION_DEBOUNCE_MS = 1000; // Debounce invalidations by 1 second
 
   // Force refresh (clears React Query cache and refetches)
   const refreshCollections = useCallback(async () => {
@@ -183,11 +159,11 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
     const previousSuggestionsCount = suggestions.length;
 
     try {
-      // Clear server-side Redis cache first
+      // Clear server-side Redis cache first (use GET with clearCache=true, not DELETE)
       try {
-        await fetch(`/api/lists/${listSlug}/collections?clearCache=true`, {
-          method: "DELETE",
-        });
+        await fetch(
+          `/api/lists/${listSlug}/collections?clearCache=true&_t=${Date.now()}`
+        );
       } catch (error) {
         // Ignore cache clear errors
       }
@@ -254,9 +230,53 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
     refetchSuggestions,
   ]);
 
-  // Listen for unified-update events to refresh collections when URLs change
+  // UNIFIED EVENT LISTENER: Listen for URL changes via unified-update events (single source of truth)
+  // Uses event deduplication to prevent processing the same event twice
   useEffect(() => {
-    const handleUnifiedUpdate = async (event: Event) => {
+    const handleUrlChange = (action: string, timestamp: number) => {
+      // Only refresh if this is a real-time update (not from initial load)
+      const timeSinceMount = Date.now() - componentMountedRef.current;
+      if (timeSinceMount < 2000) {
+        return;
+      }
+
+      // Create unique event ID for deduplication (prevents processing same event twice)
+      const eventId = `${action}-${timestamp}-${listId}`;
+      if (processedEventsRef.current.has(eventId)) {
+        return; // Already processed this event
+      }
+
+      // Debounce invalidations to prevent duplicate API calls
+      const now = Date.now();
+      if (now - lastInvalidationRef.current < INVALIDATION_DEBOUNCE_MS) {
+        return;
+      }
+
+      // Mark event as processed and update last invalidation time
+      processedEventsRef.current.add(eventId);
+      lastInvalidationRef.current = now;
+
+      // Clean up old processed events (keep only last 50 to prevent memory leak)
+      if (processedEventsRef.current.size > 50) {
+        const eventsArray = Array.from(processedEventsRef.current);
+        processedEventsRef.current = new Set(eventsArray.slice(-50));
+      }
+
+      // Mark queries as stale and refetch only if they're actively being used
+      // This prevents duplicate API calls by checking if queries have observers
+      if (showDuplicates && shouldFetchDuplicates) {
+        // Duplicates query is enabled - refetch it
+        queryClient.invalidateQueries({
+          queryKey: [`collections-duplicates:${listId}`],
+        });
+      }
+      // Always mark suggestions as stale - it will refetch when accessed
+      queryClient.invalidateQueries({
+        queryKey: [`collections-suggestions:${listId}`],
+      });
+    };
+
+    const handleUnifiedUpdate = (event: Event) => {
       const customEvent = event as CustomEvent;
       const eventListId = customEvent.detail?.listId;
       const action = customEvent.detail?.action || "";
@@ -264,50 +284,33 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
         ? new Date(customEvent.detail.timestamp).getTime()
         : Date.now();
 
-      // Ignore events that occurred before component mount (old/stale events)
+      // Ignore events that occurred before component mount
       if (eventTimestamp < componentMountedRef.current - 1000) {
-        console.log("⏭️ [COLLECTIONS] Ignoring stale unified-update event");
         return;
       }
 
       if (eventListId === listId && listSlug) {
-        // Refresh collections after URL changes
+        // Only refresh collections for URL/collection changes (not collaborator changes)
+        // This prevents unnecessary fetches when collaborators are added/removed/updated
+        // Collaborator changes don't affect collections, so we skip them here
         if (
           action.includes("url_") ||
           action === "list_updated" ||
           action === "collection_created"
         ) {
-          // Only refresh if this is a real-time update (not from initial load)
-          // If we just mounted, skip the unified-update refresh since React Query already fetched
-          const timeSinceMount = Date.now() - componentMountedRef.current;
-          if (timeSinceMount < 2000) {
-            console.log(
-              "⏭️ [COLLECTIONS] Skipping unified-update - too soon after mount"
-            );
-            return;
-          }
-
-          // Invalidate React Query cache for both suggestions and duplicates
-          queryClient.invalidateQueries({
-            queryKey: [`collections-suggestions:${listId}`],
-          });
-          queryClient.invalidateQueries({
-            queryKey: [`collections-duplicates:${listId}`],
-          });
-          
-          // If duplicates are currently shown, refetch them after URL deletion
-          if (action === "url_deleted" && showDuplicates && shouldFetchDuplicates) {
-            refetchDuplicates();
-          }
+          handleUrlChange(action, eventTimestamp);
         }
+        // Note: collaborator_* actions are intentionally skipped to avoid unnecessary API calls
       }
     };
 
+    // Only listen to unified-update (single source of truth)
+    // activity-added events are handled by unified-update, so no need to listen separately
     window.addEventListener("unified-update", handleUnifiedUpdate);
     return () => {
       window.removeEventListener("unified-update", handleUnifiedUpdate);
     };
-  }, [listId, listSlug, queryClient]);
+  }, [listId, listSlug, queryClient, showDuplicates, shouldFetchDuplicates]);
 
   // Create collection from suggestion
   const createCollection = async (suggestion: CollectionSuggestion) => {
@@ -632,68 +635,9 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
                         </div>
                         {permissions.canEdit && (
                           <button
-                            onClick={async () => {
-                              if (
-                                !confirm(
-                                  `Remove "${
-                                    dup.url.title || dup.url.url
-                                  }" from this list?`
-                                )
-                              ) {
-                                return;
-                              }
-
-                              setDeletingDuplicateIds((prev) =>
-                                new Set(prev).add(dup.url.id)
-                              );
-                              try {
-                                const response = await fetch(
-                                  `/api/lists/${listSlug}/urls?urlId=${dup.url.id}`,
-                                  {
-                                    method: "DELETE",
-                                  }
-                                );
-
-                                if (!response.ok) {
-                                  throw new Error("Failed to remove duplicate");
-                                }
-
-                                // Invalidate both duplicates and collections cache to refresh
-                                await Promise.all([
-                                  queryClient.invalidateQueries({
-                                    queryKey: [`collections-duplicates:${listId}`],
-                                  }),
-                                  queryClient.invalidateQueries({
-                                    queryKey: [`collections-suggestions:${listId}`],
-                                  }),
-                                ]);
-
-                                // Refetch duplicates to show updated count (if currently shown)
-                                if (showDuplicates) {
-                                  await refetchDuplicates();
-                                }
-
-                                toast({
-                                  title: "Duplicate Removed",
-                                  description: `"${
-                                    dup.url.title || dup.url.url
-                                  }" has been removed from this list`,
-                                  variant: "success",
-                                });
-                              } catch (error) {
-                                toast({
-                                  title: "Error",
-                                  description:
-                                    "Failed to remove duplicate. Please try again.",
-                                  variant: "error",
-                                });
-                              } finally {
-                                setDeletingDuplicateIds((prev) => {
-                                  const next = new Set(prev);
-                                  next.delete(dup.url.id);
-                                  return next;
-                                });
-                              }
+                            onClick={() => {
+                              setPendingDeleteDuplicate(dup);
+                              setDeleteDialogOpen(true);
                             }}
                             disabled={isDeleting}
                             className="shrink-0 px-3 py-1.5 text-xs rounded-md border border-red-400/30 bg-red-400/10 text-red-200 hover:bg-red-400/20 hover:border-red-400/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400/50 disabled:opacity-50 disabled:pointer-events-none disabled:cursor-not-allowed transition-colors flex items-center gap-1.5"
@@ -751,7 +695,7 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
                 // Show duplicates section and always refetch fresh data
                 setShowDuplicates(true);
                 setShouldFetchDuplicates(true);
-                
+
                 try {
                   // Always refetch to get latest duplicates (ignore cache)
                   const result = await refetchDuplicates();
@@ -768,8 +712,7 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
                   } else {
                     toast({
                       title: "No Duplicates",
-                      description:
-                        "No duplicate URLs found across your lists!",
+                      description: "No duplicate URLs found across your lists!",
                       variant: "success",
                     });
                   }
@@ -821,6 +764,107 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
           </button>
         </div>
       </CardContent>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        title="Remove Duplicate URL"
+        description={
+          pendingDeleteDuplicate
+            ? `Are you sure you want to remove "${
+                pendingDeleteDuplicate.url.title ||
+                pendingDeleteDuplicate.url.url
+              }" from this list? This action cannot be undone.`
+            : ""
+        }
+        confirmText="Remove"
+        cancelText="Cancel"
+        variant="destructive"
+        onConfirm={async () => {
+          if (!pendingDeleteDuplicate) return;
+
+          const dup = pendingDeleteDuplicate;
+          setDeleteDialogOpen(false);
+          setDeletingDuplicateIds((prev) => new Set(prev).add(dup.url.id));
+
+          try {
+            const response = await fetch(
+              `/api/lists/${listSlug}/urls?urlId=${dup.url.id}`,
+              {
+                method: "DELETE",
+              }
+            );
+
+            if (!response.ok) {
+              throw new Error("Failed to remove duplicate");
+            }
+
+            // Invalidate immediately for responsive UI, but use deduplication to prevent duplicate calls
+            // Update lastInvalidationRef so unified-update event (which fires after SSE) won't duplicate this
+            lastInvalidationRef.current = Date.now();
+
+            // Optimistically remove deleted duplicate from UI immediately for instant feedback
+            queryClient.setQueryData<{ duplicates: DuplicateDetection[] }>(
+              [`collections-duplicates:${listId}`, list?.urls?.length],
+              (old) => {
+                if (!old?.duplicates) return old;
+                // Remove the deleted duplicate from the list
+                const filtered = old.duplicates.filter(
+                  (d) => d.url.id !== dup.url.id
+                );
+                return { duplicates: filtered };
+              }
+            );
+
+            // Trigger fresh duplicate check after deletion to re-check ALL remaining URLs
+            // This ensures we discover new duplicates that were beyond the first 20 URLs
+            if (showDuplicates && shouldFetchDuplicates) {
+              // The query key includes list?.urls?.length, so when URL count changes,
+              // React Query will treat it as a new query and fetch fresh data
+              // Force a refetch to ensure we re-check all remaining URLs (not just first 20)
+              setTimeout(() => {
+                refetchDuplicates();
+              }, 100); // Small delay to ensure list state has updated with new URL count
+            }
+            queryClient.invalidateQueries({
+              queryKey: [`collections-suggestions:${listId}`],
+            });
+
+            // Show success toast with dynamic text
+            const urlTitle = dup.url.title || dup.url.url;
+            const duplicateCount = dup.duplicates.length;
+            toast({
+              title: "Duplicate Removed",
+              description: `"${urlTitle}" has been removed from this list. ${
+                duplicateCount > 1
+                  ? `It was also found in ${duplicateCount - 1} other list${
+                      duplicateCount - 1 > 1 ? "s" : ""
+                    }.`
+                  : ""
+              }`,
+              variant: "success",
+            });
+
+            setPendingDeleteDuplicate(null);
+          } catch (error) {
+            console.error("Failed to remove duplicate:", error);
+            toast({
+              title: "Error",
+              description: `Failed to remove "${
+                dup.url.title || dup.url.url
+              }". Please try again.`,
+              variant: "error",
+            });
+          } finally {
+            setDeletingDuplicateIds((prev) => {
+              const next = new Set(prev);
+              next.delete(dup.url.id);
+              return next;
+            });
+          }
+        }}
+      />
     </Card>
   );
 }
