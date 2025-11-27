@@ -111,7 +111,9 @@ export async function POST(
       return NextResponse.json({ error: message }, { status: 403 });
     }
 
-    const updatedList = await addCollaborator(id, email, role);
+    // addCollaborator handles duplicate prevention (case-insensitive) - 
+    // if collaborator exists, it updates the role instead of creating duplicate
+    const updatedList = await addCollaborator(id, email.trim(), role);
 
     // Create activity log
     const activity = await createActivity(id, user.id, "collaborator_added", {

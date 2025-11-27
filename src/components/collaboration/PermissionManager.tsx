@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import ReactDOM from "react-dom";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -61,7 +61,59 @@ export function PermissionManager({
     string | null
   >(null);
 
+  // Track if unified endpoint has provided collaborators (to avoid redundant fetch)
+  const unifiedDataReceivedRef = useRef<boolean>(false);
+  const fetchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  
   // Fetch collaborators with React Query caching (5 minute stale time)
+  // UNIFIED APPROACH: Prefer collaborators from unified endpoint, fallback to separate fetch
+  // Wait a delay on mount to let unified endpoint populate cache first
+  const [shouldFetch, setShouldFetch] = useState(false);
+  
+  // Check cache immediately and set up delay (runs once per listId)
+  useEffect(() => {
+    // Reset flag when listId changes
+    unifiedDataReceivedRef.current = false;
+    setShouldFetch(false); // Start disabled - never fetch until delay expires and unified endpoint hasn't provided data
+    
+    // Check if cache already has data (from unified endpoint that completed before component mounted)
+    const cached = queryClient.getQueryData<{ collaborators: Collaborator[] }>([`collaborators:${listId}`]);
+    if (cached) {
+      console.log(`✅ [PERMISSIONS] Found cached collaborators on mount: ${cached.collaborators?.length || 0} collaborators`);
+      unifiedDataReceivedRef.current = true;
+      // Cache found - never enable separate fetch
+      return;
+    } else {
+      console.log(`⏳ [PERMISSIONS] No cached collaborators found on mount, waiting for unified endpoint...`);
+    }
+    
+    // Clear any existing timeout
+    if (fetchTimeoutRef.current) {
+      clearTimeout(fetchTimeoutRef.current);
+    }
+    
+    // Give unified endpoint 1500ms to populate cache before triggering separate fetch
+    // This prevents redundant API calls while maintaining fallback
+    // Unified endpoint typically takes ~800-900ms, so 1500ms gives comfortable margin
+    fetchTimeoutRef.current = setTimeout(() => {
+      // Final check - if unified endpoint still hasn't provided data, enable separate fetch
+      const cached = queryClient.getQueryData<{ collaborators: Collaborator[] }>([`collaborators:${listId}`]);
+      if (!cached && !unifiedDataReceivedRef.current) {
+        console.log(`⚠️ [PERMISSIONS] Unified endpoint didn't provide data after 1500ms, enabling separate fetch`);
+        setShouldFetch(true);
+      } else if (cached) {
+        console.log(`✅ [PERMISSIONS] Found cached collaborators after delay: ${cached.collaborators?.length || 0} collaborators, separate fetch disabled`);
+        unifiedDataReceivedRef.current = true;
+      }
+    }, 1500); // Increased delay to 1500ms to allow unified endpoint to complete
+    
+    return () => {
+      if (fetchTimeoutRef.current) {
+        clearTimeout(fetchTimeoutRef.current);
+      }
+    };
+  }, [listId, queryClient]);
+  
   const {
     data: collaboratorsData,
     isLoading,
@@ -80,13 +132,78 @@ export function PermissionManager({
 
       return response.json();
     },
-    enabled: !!listId,
+    enabled: !!listId && shouldFetch, // Only fetch if unified endpoint hasn't provided data within delay
     staleTime: 5 * 60 * 1000, // 5 minutes - data stays fresh for 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes - cache kept for 10 minutes after last use
     refetchOnWindowFocus: false, // Don't refetch on window focus to prevent duplicate requests
     refetchOnReconnect: false, // Don't refetch on network reconnect to prevent duplicate requests
     refetchOnMount: false, // Don't refetch on mount if we have cached data (optimistic updates handle UI)
   });
+
+  // Listen for collaborators from unified endpoint (preferred - no separate API call)
+  // Set up listener IMMEDIATELY to catch events that fire before component fully mounts
+  useEffect(() => {
+    const handleUnifiedCollaborators = (event: Event) => {
+      const customEvent = event as CustomEvent<{
+        listId: string;
+        collaborators: Collaborator[];
+      }>;
+      
+      // Handle event if it's for this list (even if collaborators is empty array)
+      // Empty array is valid data - it means "no collaborators"
+      // Use Array.isArray to handle both empty arrays and populated arrays
+      const eventListId = customEvent.detail?.listId;
+      const eventCollaborators = customEvent.detail?.collaborators;
+      
+      console.log(`📥 [PERMISSIONS] Received unified-collaborators-updated event - eventListId: ${eventListId}, componentListId: ${listId}, matches: ${eventListId === listId}, isArray: ${Array.isArray(eventCollaborators)}`);
+      
+      if (eventListId === listId && Array.isArray(eventCollaborators)) {
+        console.log(`✅ [PERMISSIONS] Processing unified collaborators: ${eventCollaborators.length} collaborators`);
+        
+        // Mark that unified endpoint provided data (prevent separate fetch)
+        unifiedDataReceivedRef.current = true;
+        setShouldFetch(false); // Disable separate fetch since unified endpoint provided data
+        
+        // Clear the timeout to prevent separate fetch
+        if (fetchTimeoutRef.current) {
+          clearTimeout(fetchTimeoutRef.current);
+          fetchTimeoutRef.current = null;
+        }
+        
+        // Update React Query cache with unified collaborators (bypasses separate fetch)
+        // Deduplicate collaborators by email (case-insensitive) to prevent duplicate keys
+        // Even if empty array, this prevents the separate API call
+        const uniqueCollaborators = eventCollaborators.reduce<Collaborator[]>(
+          (acc, collaborator) => {
+            const emailLower = collaborator.email.toLowerCase();
+            // Check if we already have this collaborator (case-insensitive)
+            const exists = acc.some((c) => c.email.toLowerCase() === emailLower);
+            if (!exists) {
+              acc.push(collaborator);
+            }
+            return acc;
+          },
+          []
+        );
+        
+        queryClient.setQueryData<{ collaborators: Collaborator[] }>(
+          [`collaborators:${listId}`],
+          { collaborators: uniqueCollaborators }
+        );
+        
+        console.log(`✅ [PERMISSIONS] Cache updated with ${eventCollaborators.length} collaborators, separate fetch disabled`);
+      } else {
+        console.log(`⏭️ [PERMISSIONS] Ignoring event - listId mismatch or invalid collaborators data`);
+      }
+    };
+    
+    // Add listener IMMEDIATELY (before delay timeout) to catch events that fire quickly
+    window.addEventListener("unified-collaborators-updated", handleUnifiedCollaborators);
+    
+    return () => {
+      window.removeEventListener("unified-collaborators-updated", handleUnifiedCollaborators);
+    };
+  }, [listId, queryClient]);
 
   const collaborators = collaboratorsData?.collaborators || [];
 
@@ -206,14 +323,37 @@ export function PermissionManager({
       });
 
       // Optimistic update: Update UI immediately with new collaborator
+      // Prevent duplicates by checking if collaborator already exists
       queryClient.setQueryData<{ collaborators: Collaborator[] }>(
         [`collaborators:${listId}`],
-        (old) => ({
-          collaborators: [
-            ...(old?.collaborators || []),
-            { email: newEmail.trim(), role: newRole },
-          ],
-        })
+        (old) => {
+          const existingCollaborators = old?.collaborators || [];
+          const trimmedEmail = newEmail.trim().toLowerCase();
+          
+          // Check if collaborator already exists (case-insensitive email match)
+          const alreadyExists = existingCollaborators.some(
+            (c) => c.email.toLowerCase() === trimmedEmail
+          );
+          
+          if (alreadyExists) {
+            // Update existing collaborator's role instead of adding duplicate
+            return {
+              collaborators: existingCollaborators.map((c) =>
+                c.email.toLowerCase() === trimmedEmail
+                  ? { email: c.email, role: newRole } // Keep original email casing
+                  : c
+              ),
+            };
+          }
+          
+          // Add new collaborator
+          return {
+            collaborators: [
+              ...existingCollaborators,
+              { email: newEmail.trim(), role: newRole },
+            ],
+          };
+        }
       );
 
       // No need to update list state - optimistic update already handled it
@@ -233,15 +373,31 @@ export function PermissionManager({
       setNewRole("editor");
       setInviteDialogOpen(false);
     } catch (error) {
-      console.error("Failed to add collaborator:", error);
-      toast({
-        title: "Error",
-        description:
-          error instanceof Error
-            ? error.message
-            : "Failed to add collaborator. Please try again.",
-        variant: "error",
-      });
+      // Handle expected errors silently (no error overlay):
+      // - NetworkError/AbortError (page refresh during bulk import)
+      // - Request aborted (normal during page transitions)
+      const isExpectedError =
+        error instanceof Error &&
+        (error.name === "NetworkError" ||
+         error.name === "AbortError" ||
+         error.message.includes("aborted") ||
+         error.message.includes("fetch"));
+      
+      if (!isExpectedError) {
+        // Only show toast for unexpected errors
+        console.error("Failed to add collaborator:", error);
+        toast({
+          title: "Error",
+          description:
+            error instanceof Error
+              ? error.message
+              : "Failed to add collaborator. Please try again.",
+          variant: "error",
+        });
+      } else if (process.env.NODE_ENV === "development") {
+        // Silently handle expected errors (no console spam)
+        console.debug("⏭️ [PERMISSIONS] Add collaborator request aborted (expected during page refresh)");
+      }
     } finally {
       setIsAdding(false);
     }
@@ -282,11 +438,22 @@ export function PermissionManager({
       queryClient.setQueryData<{ collaborators: Collaborator[] }>(
         [`collaborators:${listId}`],
         (old) => {
-          const updated = (old?.collaborators || []).map((collab) =>
-            collab.email === roleChangeDialog.email
-              ? { ...collab, role: newRole }
-              : collab
-          );
+          const targetEmailLower = roleChangeDialog.email.toLowerCase();
+          // Update role (case-insensitive match) and deduplicate result
+          const updated = (old?.collaborators || [])
+            .map((collab) =>
+              collab.email.toLowerCase() === targetEmailLower
+                ? { ...collab, role: newRole }
+                : collab
+            )
+            .reduce<Collaborator[]>((acc, collaborator) => {
+              const emailLower = collaborator.email.toLowerCase();
+              const exists = acc.some((c) => c.email.toLowerCase() === emailLower);
+              if (!exists) {
+                acc.push(collaborator);
+              }
+              return acc;
+            }, []);
           return { collaborators: updated };
         }
       );
@@ -309,15 +476,31 @@ export function PermissionManager({
 
       setRoleChangeDialog({ open: false, email: "", currentRole: "editor" });
     } catch (error) {
-      console.error("Failed to update role:", error);
-      toast({
-        title: "Error",
-        description:
-          error instanceof Error
-            ? error.message
-            : "Failed to update role. Please try again.",
-        variant: "error",
-      });
+      // Handle expected errors silently (no error overlay):
+      // - NetworkError/AbortError (page refresh during bulk import)
+      // - Request aborted (normal during page transitions)
+      const isExpectedError =
+        error instanceof Error &&
+        (error.name === "NetworkError" ||
+         error.name === "AbortError" ||
+         error.message.includes("aborted") ||
+         error.message.includes("fetch"));
+      
+      if (!isExpectedError) {
+        // Only show toast for unexpected errors
+        console.error("Failed to update role:", error);
+        toast({
+          title: "Error",
+          description:
+            error instanceof Error
+              ? error.message
+              : "Failed to update role. Please try again.",
+          variant: "error",
+        });
+      } else if (process.env.NODE_ENV === "development") {
+        // Silently handle expected errors (no console spam)
+        console.debug("⏭️ [PERMISSIONS] Update role request aborted (expected during page refresh)");
+      }
     } finally {
       setIsUpdating(false);
     }
@@ -354,11 +537,23 @@ export function PermissionManager({
       // Optimistic update: Remove collaborator from UI immediately
       queryClient.setQueryData<{ collaborators: Collaborator[] }>(
         [`collaborators:${listId}`],
-        (old) => ({
-          collaborators: (old?.collaborators || []).filter(
-            (collab) => collab.email !== deleteDialog.email
-          ),
-        })
+        (old) => {
+          const targetEmailLower = deleteDialog.email.toLowerCase();
+          // Remove collaborator (case-insensitive match) and deduplicate result
+          const filtered = (old?.collaborators || [])
+            .filter(
+              (collab) => collab.email.toLowerCase() !== targetEmailLower
+            )
+            .reduce<Collaborator[]>((acc, collaborator) => {
+              const emailLower = collaborator.email.toLowerCase();
+              const exists = acc.some((c) => c.email.toLowerCase() === emailLower);
+              if (!exists) {
+                acc.push(collaborator);
+              }
+              return acc;
+            }, []);
+          return { collaborators: filtered };
+        }
       );
 
       toast({
@@ -382,15 +577,31 @@ export function PermissionManager({
       setDeleteDialog({ open: false, email: "" });
       setExpandedCollaborator(null);
     } catch (error) {
-      console.error("Failed to remove collaborator:", error);
-      toast({
-        title: "Error",
-        description:
-          error instanceof Error
-            ? error.message
-            : "Failed to remove collaborator. Please try again.",
-        variant: "error",
-      });
+      // Handle expected errors silently (no error overlay):
+      // - NetworkError/AbortError (page refresh during bulk import)
+      // - Request aborted (normal during page transitions)
+      const isExpectedError =
+        error instanceof Error &&
+        (error.name === "NetworkError" ||
+         error.name === "AbortError" ||
+         error.message.includes("aborted") ||
+         error.message.includes("fetch"));
+      
+      if (!isExpectedError) {
+        // Only show toast for unexpected errors
+        console.error("Failed to remove collaborator:", error);
+        toast({
+          title: "Error",
+          description:
+            error instanceof Error
+              ? error.message
+              : "Failed to remove collaborator. Please try again.",
+          variant: "error",
+        });
+      } else if (process.env.NODE_ENV === "development") {
+        // Silently handle expected errors (no console spam)
+        console.debug("⏭️ [PERMISSIONS] Remove collaborator request aborted (expected during page refresh)");
+      }
     } finally {
       setIsDeleting(false);
     }
@@ -458,9 +669,19 @@ export function PermissionManager({
         </div>
       ) : (
         <div className="space-y-2">
-          {collaborators.map((collaborator) => (
+          {/* Deduplicate collaborators before rendering to prevent duplicate keys */}
+          {collaborators
+            .reduce<Collaborator[]>((acc, collaborator) => {
+              const emailLower = collaborator.email.toLowerCase();
+              const exists = acc.some((c) => c.email.toLowerCase() === emailLower);
+              if (!exists) {
+                acc.push(collaborator);
+              }
+              return acc;
+            }, [])
+            .map((collaborator, index) => (
             <div
-              key={collaborator.email}
+              key={`${collaborator.email.toLowerCase()}-${index}`}
               className="bg-white/5 border border-white/10 rounded-lg p-4 hover:bg-white/10 transition-colors"
             >
               <div className="flex items-center justify-between">

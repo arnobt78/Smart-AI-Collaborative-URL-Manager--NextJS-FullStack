@@ -954,12 +954,26 @@ export function UrlList() {
       
       // Call unified endpoint (global lock ensures only one call at a time)
       // This will update both list store and dispatch activities
-      // Wrap in try-catch to silently handle 401 errors (expected when collaborator is removed)
+      // Wrap in try-catch to silently handle expected errors (NetworkError/AbortError during bulk import refresh)
       try {
         await fetchUnifiedUpdates(current.slug, 30);
       } catch (error) {
-        // Silently ignore errors - fetchUnifiedUpdates already handles 401 gracefully
-        // This prevents React error overlay from showing for expected 401 errors
+        // Handle expected errors silently (no error overlay):
+        // - NetworkError/AbortError (page refresh during bulk import)
+        // - Request aborted (normal during page transitions)
+        const isExpectedError =
+          error instanceof Error &&
+          (error.name === "NetworkError" ||
+           error.name === "AbortError" ||
+           error.message.includes("aborted") ||
+           error.message.includes("401"));
+        
+        // Silently ignore expected errors - fetchUnifiedUpdates already handles them gracefully
+        // This prevents React error overlay from showing for expected errors
+        if (!isExpectedError) {
+          // Only log unexpected errors
+          console.error("❌ [URL_LIST] Unexpected error in unified update:", error);
+        }
       }
       
       // After unified update, handle reorder detection

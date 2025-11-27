@@ -3,6 +3,7 @@
 import { useCallback, useRef, useEffect } from "react";
 import { currentList } from "@/stores/urlListStore";
 import type { UrlList } from "@/stores/urlListStore";
+import { queryClient } from "@/lib/react-query";
 
 interface ActivityItem {
   id: string;
@@ -15,9 +16,15 @@ interface ActivityItem {
   };
 }
 
+interface Collaborator {
+  email: string;
+  role: "editor" | "viewer";
+}
+
 interface UnifiedUpdateResponse {
   list: UrlList;
   activities: ActivityItem[];
+  collaborators?: Collaborator[]; // Optional - included when available
   urlOrder: string;
   clickCounts: Array<{ urlId: string; clickCount: number }>;
 }
@@ -42,18 +49,19 @@ export function useUnifiedListUpdates(listId: string) {
     ): Promise<{
       list: UrlList | null;
       activities: ActivityItem[];
+      collaborators?: Collaborator[];
     }> => {
       // Global lock: Prevent duplicate fetches across all components
       const now = Date.now();
       if (globalIsFetching) {
         console.log("⏭️ [UNIFIED] Global fetch already in progress, skipping...");
-        return { list: null, activities: [] };
+        return { list: null, activities: [], collaborators: [] };
       }
 
       // Debounce: Only fetch if at least 200ms since last global fetch
       if (now - globalLastFetch < 200) {
         console.log(`⏭️ [UNIFIED] Too soon since last fetch (${now - globalLastFetch}ms), skipping...`);
-        return { list: null, activities: [] };
+        return { list: null, activities: [], collaborators: [] };
       }
 
       // Set global lock
@@ -78,7 +86,7 @@ export function useUnifiedListUpdates(listId: string) {
               })
             );
             // Return empty result without throwing - 401 is expected when removed
-            return { list: null, activities: [] };
+            return { list: null, activities: [], collaborators: [] };
           }
           // For other errors, throw normally
           throw new Error(
@@ -87,19 +95,46 @@ export function useUnifiedListUpdates(listId: string) {
         }
 
         const data: UnifiedUpdateResponse = await response.json();
-        console.log(`✅ [UNIFIED] Fetched list + ${data.activities.length} activities`);
+        console.log(`✅ [UNIFIED] Fetched list + ${data.activities.length} activities${data.collaborators ? ` + ${data.collaborators.length} collaborators` : ''}`);
 
         // Update list store
         if (data.list) {
           currentList.set(data.list);
         }
 
+        // Use actual list ID from response (more reliable than hook parameter)
+        const actualListId = data.list?.id || listId;
+
         // Dispatch activities to ActivityFeed component
         window.dispatchEvent(
           new CustomEvent("unified-activities-updated", {
             detail: {
-              listId,
+              listId: actualListId,
               activities: data.activities,
+            },
+          })
+        );
+
+        // Dispatch collaborators to PermissionManager component (always dispatch, even if empty array)
+        // This prevents PermissionManager from making a separate API call
+        // Empty array [] is still valid data - it means "no collaborators"
+        const collaboratorsData = data.collaborators || [];
+        console.log(`📤 [UNIFIED] Dispatching unified-collaborators-updated event for listId: ${actualListId}, collaborators: ${collaboratorsData.length}`);
+        
+        // CRITICAL: Populate React Query cache DIRECTLY so PermissionManager finds it even if component isn't mounted yet
+        // This ensures cache is available immediately when PermissionManager checks on mount (before 1500ms delay expires)
+        queryClient.setQueryData<{ collaborators: Collaborator[] }>(
+          [`collaborators:${actualListId}`],
+          { collaborators: collaboratorsData }
+        );
+        console.log(`💾 [UNIFIED] Populated React Query cache for listId: ${actualListId} with ${collaboratorsData.length} collaborators`);
+        
+        // Dispatch event for PermissionManager component listener (catches it if already mounted)
+        window.dispatchEvent(
+          new CustomEvent("unified-collaborators-updated", {
+            detail: {
+              listId: actualListId,
+              collaborators: collaboratorsData,
             },
           })
         );
@@ -107,13 +142,29 @@ export function useUnifiedListUpdates(listId: string) {
         return {
           list: data.list || null,
           activities: data.activities || [],
+          collaborators: data.collaborators || [],
         };
       } catch (error) {
-        // Only log non-401 errors (401 is handled above and returned silently)
-        if (!(error instanceof Error && error.message.includes("401"))) {
+        // Handle expected errors silently (no error overlay):
+        // - 401 Unauthorized (already handled above)
+        // - NetworkError/AbortError (page refresh during bulk import)
+        // - Request aborted (normal during page transitions)
+        const isExpectedError =
+          (error instanceof Error && error.message.includes("401")) ||
+          (error instanceof Error && 
+            (error.name === "NetworkError" ||
+             error.name === "AbortError" ||
+             error.message.includes("aborted") ||
+             error.message.includes("fetch")));
+        
+        if (!isExpectedError) {
+          // Only log unexpected errors
           console.error("❌ [UNIFIED] Failed to fetch updates:", error);
+        } else if (process.env.NODE_ENV === "development") {
+          // Silently handle expected errors (no console spam)
+          console.debug("⏭️ [UNIFIED] Fetch aborted (expected during page refresh/bulk import)");
         }
-        return { list: null, activities: [] };
+        return { list: null, activities: [], collaborators: [] };
       } finally {
         // Clear global lock after a short delay
         setTimeout(() => {

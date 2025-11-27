@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
-import { getListById, updateList } from "@/lib/db";
+import { getListBySlugOrId, updateList } from "@/lib/db";
 import { createActivity } from "@/lib/db/activities";
 import { hasListAccess } from "@/lib/collaboration/permissions";
 import { publishMessage, CHANNELS } from "@/lib/realtime/redis";
@@ -29,13 +29,16 @@ export async function GET(req: NextRequest, context: RouteContext) {
     }
 
     const params = await context.params;
-    const listId = params.id;
+    const identifier = params.id; // Can be slug or UUID
 
-    // Get list from database
-    const list = await getListById(listId);
+    // Get list from database (supports both slug and UUID)
+    const list = await getListBySlugOrId(identifier);
     if (!list) {
       return NextResponse.json({ error: "List not found" }, { status: 404 });
     }
+
+    // Use list.id for cache keys and permissions (always UUID)
+    const listId = list.id;
 
     // Check if user has access to this list (validates role-based system and removes old collaborators)
     const hasAccess = await hasListAccess(list, user);
@@ -46,7 +49,7 @@ export async function GET(req: NextRequest, context: RouteContext) {
 
     const urls = (list.urls as unknown as UrlItem[]) || [];
 
-    // Check Redis cache for URLs with metadata
+    // Check Redis cache for URLs with metadata (use list.id, not identifier)
     const cacheKey = `list-urls:${listId}`;
     let cachedData: {
       urls: UrlItem[];
@@ -190,7 +193,7 @@ export async function POST(req: NextRequest, context: RouteContext) {
     }
 
     const params = await context.params;
-    const listId = params.id;
+    const identifier = params.id; // Can be slug or UUID
     const body = await req.json();
     const {
       url,
@@ -216,11 +219,14 @@ export async function POST(req: NextRequest, context: RouteContext) {
       return NextResponse.json({ error: "URL is required" }, { status: 400 });
     }
 
-    // Get current list
-    const currentList = await getListById(listId);
+    // Get current list (supports both slug and UUID)
+    const currentList = await getListBySlugOrId(identifier);
     if (!currentList) {
       return NextResponse.json({ error: "List not found" }, { status: 404 });
     }
+
+    // Use list.id for permissions and cache keys (always UUID)
+    const listId = currentList.id;
 
     // Check edit permission
     try {
@@ -337,10 +343,10 @@ export async function POST(req: NextRequest, context: RouteContext) {
 
                 if (needsUpdate) {
                   try {
-                    const currentList = await getListById(listId);
-                    if (currentList) {
+                    const refreshedList = await getListBySlugOrId(identifier);
+                    if (refreshedList) {
                       const currentUrls =
-                        (currentList.urls as unknown as UrlItem[]) || [];
+                        (refreshedList.urls as unknown as UrlItem[]) || [];
                       const urlToUpdate = currentUrls.find(
                         (u) => u.id === newUrl.id
                       );
@@ -356,16 +362,16 @@ export async function POST(req: NextRequest, context: RouteContext) {
                           updatedAt: new Date().toISOString(),
                         };
 
-                        // Update in database
+                        // Update in database (use refreshedList.id, always UUID)
                         const updatedUrls = currentUrls.map((u) =>
                           u.id === newUrl.id ? updatedUrl : u
                         );
-                        await updateList(listId, { urls: updatedUrls });
+                        await updateList(refreshedList.id, { urls: updatedUrls });
 
                         // Invalidate list metadata cache so unified endpoint refetches
                         if (redis) {
                           try {
-                            await redis.del(cacheKeys.listMetadata(listId));
+                            await redis.del(cacheKeys.listMetadata(refreshedList.id));
                           } catch {
                             // Ignore Redis errors
                           }
@@ -540,7 +546,7 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
     }
 
     const params = await context.params;
-    const listId = params.id;
+    const identifier = params.id; // Can be slug or UUID
     const body = await req.json();
     const {
       urlId,
@@ -555,6 +561,15 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
       action?: string;
       metadata?: UrlMetadata;
     } = body;
+
+    // Get current list (supports both slug and UUID)
+    const currentList = await getListBySlugOrId(identifier);
+    if (!currentList) {
+      return NextResponse.json({ error: "List not found" }, { status: 404 });
+    }
+
+    // Use list.id for permissions and cache keys (always UUID)
+    const listId = currentList.id;
 
     // Log what we received from client
     if (reorderedUrls && Array.isArray(reorderedUrls)) {
@@ -588,12 +603,6 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
           { status: 400 }
         );
       }
-    }
-
-    // Get current list
-    const currentList = await getListById(listId);
-    if (!currentList) {
-      return NextResponse.json({ error: "List not found" }, { status: 404 });
     }
 
     // Check edit permission
@@ -956,7 +965,7 @@ export async function DELETE(req: NextRequest, context: RouteContext) {
     }
 
     const params = await context.params;
-    const listId = params.id;
+    const identifier = params.id; // Can be slug or UUID
     const body = await req.json().catch(() => ({}));
     const { urlId }: { urlId?: string } = body;
 
@@ -968,11 +977,14 @@ export async function DELETE(req: NextRequest, context: RouteContext) {
       return NextResponse.json({ error: "urlId is required" }, { status: 400 });
     }
 
-    // Get current list
-    const currentList = await getListById(listId);
+    // Get current list (supports both slug and UUID)
+    const currentList = await getListBySlugOrId(identifier);
     if (!currentList) {
       return NextResponse.json({ error: "List not found" }, { status: 404 });
     }
+
+    // Use list.id for permissions and cache keys (always UUID)
+    const listId = currentList.id;
 
     // Check edit permission
     try {
@@ -1042,12 +1054,14 @@ export async function DELETE(req: NextRequest, context: RouteContext) {
       }),
     ]);
 
-    // Invalidate cache
+    // Invalidate cache (including collections cache)
     if (redis) {
       try {
         await Promise.all([
           redis.del(cacheKeys.listMetadata(listId)),
           redis.del(`list-urls:${listId}`),
+          // Clear collections cache so duplicate detection and suggestions refresh
+          redis.del(`collections:suggestions:${listId}`),
         ]);
       } catch (error) {
         // Ignore cache errors

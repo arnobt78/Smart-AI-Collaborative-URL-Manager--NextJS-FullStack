@@ -50,6 +50,29 @@ export async function getListById(id: string) {
 }
 
 /**
+ * Get a list by slug or ID (unified helper)
+ * Tries to fetch by slug first, then by ID if not found
+ * This allows API routes to accept both slug and UUID identifiers
+ */
+export async function getListBySlugOrId(identifier: string) {
+  // Try slug first (most common case)
+  let list = await prisma.list.findUnique({
+    where: { slug: identifier },
+    include: { user: true },
+  });
+
+  // If not found by slug, try by ID
+  if (!list) {
+    list = await prisma.list.findUnique({
+      where: { id: identifier },
+      include: { user: true },
+    });
+  }
+
+  return list;
+}
+
+/**
  * Get a public list by slug
  */
 export async function getPublicListBySlug(slug: string) {
@@ -179,15 +202,35 @@ export async function addCollaborator(
     throw new Error("List not found");
   }
 
+  // Normalize email to lowercase for duplicate checking
+  const trimmedEmail = email.trim();
+  const normalizedEmail = trimmedEmail.toLowerCase();
+
   // Update collaboratorRoles (new role-based system)
   const collaboratorRoles =
     (list.collaboratorRoles as Record<string, string>) || {};
-  collaboratorRoles[email] = role;
+
+  // Check for existing collaborator (case-insensitive) - update role if exists
+  const existingEmailKey = Object.keys(collaboratorRoles).find(
+    (key) => key.toLowerCase() === normalizedEmail
+  );
+
+  if (existingEmailKey) {
+    // Update existing collaborator's role (keep original email casing from database)
+    collaboratorRoles[existingEmailKey] = role;
+  } else {
+    // Add new collaborator with trimmed email
+    collaboratorRoles[trimmedEmail] = role;
+  }
 
   // Also maintain legacy collaborators array for backward compatibility
   const collaborators = list.collaborators || [];
-  if (!collaborators.includes(email)) {
-    collaborators.push(email);
+  // Check for duplicate (case-insensitive) before adding
+  const emailExists = collaborators.some(
+    (collabEmail) => collabEmail.toLowerCase() === normalizedEmail
+  );
+  if (!emailExists) {
+    collaborators.push(trimmedEmail);
   }
 
   return prisma.list.update({
@@ -246,9 +289,7 @@ export async function removeCollaborator(listId: string, email: string) {
   delete collaboratorRoles[email];
 
   // Remove from legacy collaborators array
-  const collaborators = (list.collaborators || []).filter(
-    (e) => e !== email
-  );
+  const collaborators = (list.collaborators || []).filter((e) => e !== email);
 
   return prisma.list.update({
     where: { id: listId },
@@ -272,8 +313,7 @@ export async function getCollaboratorsWithRoles(listId: string) {
   }
 
   const roles = (list.collaboratorRoles as Record<string, string>) || {};
-  const collaborators: Array<{ email: string; role: "editor" | "viewer" }> =
-    [];
+  const collaborators: Array<{ email: string; role: "editor" | "viewer" }> = [];
 
   // Get from collaboratorRoles first
   for (const [email, role] of Object.entries(roles)) {

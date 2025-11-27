@@ -24,8 +24,10 @@ import { InputDialog } from "@/components/ui/InputDialog";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { ActivityFeed } from "@/components/collaboration/ActivityFeed";
 import { PermissionManager } from "@/components/collaboration/PermissionManager";
+import { SmartCollections } from "@/components/collections/SmartCollections";
 import { useListPermissions } from "@/hooks/useListPermissions";
 import { useSession } from "@/hooks/useSession";
+import { useUnifiedListUpdates } from "@/hooks/useUnifiedListUpdates";
 
 export default function ListPageClient() {
   const { toast } = useToast();
@@ -34,6 +36,9 @@ export default function ListPageClient() {
   const { user: sessionUser } = useSession();
   const list = useStore(currentList);
   const permissions = useListPermissions(); // Get permissions for current list and user
+  // Use list?.id if available (will be set after unified fetch), or use slug for hook initialization
+  const listIdForHook = list?.id || (typeof slug === "string" ? slug : "");
+  const { fetchUnifiedUpdates } = useUnifiedListUpdates(listIdForHook);
   const [isLoading, setIsLoading] = useState(true);
   const [isCopied, setIsCopied] = useState(false);
   const [isToggling, setIsToggling] = useState(false);
@@ -121,6 +126,23 @@ export default function ListPageClient() {
         // Mark as fetched before the async call
         hasFetchedRef.current = slug;
         try {
+          // UNIFIED APPROACH: Use unified endpoint to get list + activities + collaborators in one call
+          // This eliminates redundant API calls and ensures consistency
+          const unifiedData = await fetchUnifiedUpdates(slug, 30);
+          
+          if (unifiedData.list) {
+            // Unified endpoint already updated currentList store via fetchUnifiedUpdates
+            // Activities and collaborators are dispatched via events
+            const currentListData = currentList.get();
+            if (currentListData && currentListData.slug === slug) {
+              setIsLoading(false);
+              return; // Success - unified endpoint handled everything
+            }
+          }
+          
+          // Fallback to getList if unified endpoint didn't return list (backwards compatibility)
+          // This ensures existing code still works if unified endpoint has issues
+          console.log("🔄 [PAGE] Unified endpoint didn't return list, falling back to getList...");
           await getList(slug, true); // Pass true to skip if drag in progress
 
           // Only set loading to false if we have valid list data with matching slug
@@ -882,6 +904,13 @@ export default function ListPageClient() {
               listTitle={list.title || "Untitled List"}
               listSlug={list.slug}
             />
+          </div>
+        )}
+
+        {/* Smart Collections Section */}
+        {list.id && list.slug && (
+          <div className="mt-6">
+            <SmartCollections listId={list.id} listSlug={list.slug} />
           </div>
         )}
 

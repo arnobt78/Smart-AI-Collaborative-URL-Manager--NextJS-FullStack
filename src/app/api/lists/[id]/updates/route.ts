@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
-import { getListBySlug, updateList, type UrlItem } from "@/lib/db";
+import { getListBySlug, updateList, getCollaboratorsWithRoles, type UrlItem } from "@/lib/db";
 import { getActivitiesForList } from "@/lib/db/activities";
 import { hasListAccess } from "@/lib/collaboration/permissions";
 
@@ -28,7 +28,7 @@ export async function GET(
     const user = await getCurrentUser();
     const hasAccess = await hasListAccess(list, user);
 
-    if (!hasAccess) {
+    if (!hasAccess || !user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -62,17 +62,44 @@ export async function GET(
     // Get activities
     const activities = await getActivitiesForList(list.id, activityLimit);
 
+    // Get collaborators (if user has access) - same access logic as /collaborators endpoint
+    let collaborators: Array<{ email: string; role: "editor" | "viewer" }> = [];
+    try {
+      // Owner can always view collaborators
+      if (list.userId === user.id) {
+        collaborators = await getCollaboratorsWithRoles(list.id);
+      } else if (list.collaboratorRoles && typeof list.collaboratorRoles === "object") {
+        // Check if user is a collaborator (editor or viewer can view)
+        const roles = list.collaboratorRoles as Record<string, string>;
+        if (roles[user.email] === "editor" || roles[user.email] === "viewer") {
+          collaborators = await getCollaboratorsWithRoles(list.id);
+        }
+      } else if (list.collaborators && Array.isArray(list.collaborators) && list.collaborators.includes(user.email)) {
+        // Fallback: Check legacy collaborators array
+        collaborators = await getCollaboratorsWithRoles(list.id);
+      } else if (list.isPublic) {
+        // Public list - allow viewing collaborators
+        collaborators = await getCollaboratorsWithRoles(list.id);
+      }
+      // Otherwise: No access - collaborators array remains empty
+    } catch (error) {
+      // If collaborator fetch fails, continue without them (non-critical)
+      console.warn("Failed to fetch collaborators in unified endpoint:", error);
+    }
+
     const urlOrder = urlsWithPositions.map((u) => u.id).join(",");
     const clickCounts = urlsWithPositions.map((u) => ({
       urlId: u.id,
       clickCount: u.clickCount || 0,
     }));
 
-    // Return unified response with both list and activities
-    // Format matches what getList expects for list, and ActivityFeed expects for activities
+    // Return unified response with list, activities, and collaborators
+    // Format matches what getList expects for list, ActivityFeed expects for activities,
+    // and PermissionManager expects for collaborators
     return NextResponse.json({
       list,
       activities,
+      collaborators,
       urlOrder,
       clickCounts,
     });
