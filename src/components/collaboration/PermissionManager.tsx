@@ -17,8 +17,7 @@ import {
   MoreVertical,
   Trash2,
 } from "lucide-react";
-import { queryClient } from "@/lib/react-query";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useListPermissions } from "@/hooks/useListPermissions";
 import { 
   useAddCollaborator, 
@@ -46,6 +45,7 @@ export function PermissionManager({
   onUpdate,
 }: PermissionManagerProps) {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const permissions = useListPermissions(); // Get permissions for current list and user
   const canInvite = permissions.canInvite; // Only owners can invite
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
@@ -73,9 +73,17 @@ export function PermissionManager({
   const unifiedDataReceivedRef = useRef<boolean>(false);
   const fetchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
+  // Track if we should fetch collaborators separately (fallback if unified endpoint doesn't populate cache)
+  const [shouldFetch, setShouldFetch] = useState(false);
+  
   // Fetch collaborators with React Query
   // Unified query populates cache automatically - we just read from it
-  const { data: collaboratorsData } = useQuery({
+  // Only fetch separately if unified endpoint didn't provide data after delay
+  const {
+    data: collaboratorsData,
+    isLoading,
+    refetch: refetchCollaborators,
+  } = useQuery({
     queryKey: listQueryKeys.collaborators(listId),
     queryFn: async () => {
       const response = await fetch(`/api/lists/${listSlug}/updates?activityLimit=30`);
@@ -83,7 +91,7 @@ export function PermissionManager({
       const data = await response.json();
       return { collaborators: data.collaborators || [] };
     },
-    enabled: false, // Don't fetch - rely on unified query to populate cache
+    enabled: shouldFetch && !!listSlug, // Only fetch if needed and slug is available
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
   });
@@ -92,11 +100,33 @@ export function PermissionManager({
   useEffect(() => {
     // Reset flag when listId changes
     unifiedDataReceivedRef.current = false;
-      if (!cached && !unifiedDataReceivedRef.current) {
-        console.log(`⚠️ [PERMISSIONS] Unified endpoint didn't provide data after 1500ms, enabling separate fetch`);
+    
+    // Wait for unified endpoint to populate cache
+    const cached = queryClient.getQueryData<{ collaborators: Array<{ email: string; role: string }> }>(
+      listQueryKeys.collaborators(listId)
+    );
+    
+    if (cached && cached.collaborators) {
+      // Cache already populated by unified endpoint
+      unifiedDataReceivedRef.current = true;
+      return;
+    }
+    
+    // Wait 1500ms to allow unified endpoint to complete, then check again
+    fetchTimeoutRef.current = setTimeout(() => {
+      const cachedAfterDelay = queryClient.getQueryData<{ collaborators: Array<{ email: string; role: string }> }>(
+        listQueryKeys.collaborators(listId)
+      );
+      
+      if (!cachedAfterDelay && !unifiedDataReceivedRef.current) {
+        if (process.env.NODE_ENV === "development") {
+          console.log(`⚠️ [PERMISSIONS] Unified endpoint didn't provide data after 1500ms, enabling separate fetch`);
+        }
         setShouldFetch(true);
-      } else if (cached) {
-        console.log(`✅ [PERMISSIONS] Found cached collaborators after delay: ${cached.collaborators?.length || 0} collaborators, separate fetch disabled`);
+      } else if (cachedAfterDelay) {
+        if (process.env.NODE_ENV === "development") {
+          console.log(`✅ [PERMISSIONS] Found cached collaborators after delay: ${cachedAfterDelay.collaborators?.length || 0} collaborators, separate fetch disabled`);
+        }
         unifiedDataReceivedRef.current = true;
       }
     }, 1500); // Increased delay to 1500ms to allow unified endpoint to complete
@@ -106,33 +136,7 @@ export function PermissionManager({
         clearTimeout(fetchTimeoutRef.current);
       }
     };
-  }, [listId, queryClient]);
-  
-  const {
-    data: collaboratorsData,
-    isLoading,
-    refetch: refetchCollaborators,
-  } = useQuery<{ collaborators: Collaborator[] }>({
-    queryKey: [`collaborators:${listId}`],
-    queryFn: async () => {
-      const response = await fetch(`/api/lists/${listId}/collaborators`, {
-        method: "GET",
-        credentials: "include",
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch collaborators");
-      }
-
-      return response.json();
-    },
-    enabled: !!listId && shouldFetch, // Only fetch if unified endpoint hasn't provided data within delay
-    staleTime: 5 * 60 * 1000, // 5 minutes - data stays fresh for 5 minutes
-    gcTime: 10 * 60 * 1000, // 10 minutes - cache kept for 10 minutes after last use
-    refetchOnWindowFocus: false, // Don't refetch on window focus to prevent duplicate requests
-    refetchOnReconnect: false, // Don't refetch on network reconnect to prevent duplicate requests
-    refetchOnMount: false, // Don't refetch on mount if we have cached data (optimistic updates handle UI)
-  });
+  }, [listId, queryClient, shouldFetch, listSlug]);
 
   // Listen for collaborators from unified endpoint (preferred - no separate API call)
   // Set up listener IMMEDIATELY to catch events that fire before component fully mounts
@@ -181,13 +185,17 @@ export function PermissionManager({
         );
         
         queryClient.setQueryData<{ collaborators: Collaborator[] }>(
-          [`collaborators:${listId}`],
+          listQueryKeys.collaborators(listId),
           { collaborators: uniqueCollaborators }
         );
         
-        console.log(`✅ [PERMISSIONS] Cache updated with ${eventCollaborators.length} collaborators, separate fetch disabled`);
+        if (process.env.NODE_ENV === "development") {
+          console.log(`✅ [PERMISSIONS] Cache updated with ${eventCollaborators.length} collaborators, separate fetch disabled`);
+        }
       } else {
-        console.log(`⏭️ [PERMISSIONS] Ignoring event - listId mismatch or invalid collaborators data`);
+        if (process.env.NODE_ENV === "development") {
+          console.log(`⏭️ [PERMISSIONS] Ignoring event - listId mismatch or invalid collaborators data`);
+        }
       }
     };
     
@@ -219,7 +227,7 @@ export function PermissionManager({
         );
         // Invalidate collaborators query to refetch with new roles
         queryClient.invalidateQueries({
-          queryKey: [`collaborators:${listId}`],
+          queryKey: listQueryKeys.collaborators(listId),
         });
         // The unified endpoint will update currentList store, which will trigger useListPermissions to recalculate
       }
@@ -236,12 +244,14 @@ export function PermissionManager({
         customEvent.detail?.listId === listId &&
         customEvent.detail?.action === "collaborator_role_updated"
       ) {
-        console.log(
-          "🔄 [PERMISSIONS] Role updated (from unified-update) - refreshing collaborators and permissions"
-        );
+        if (process.env.NODE_ENV === "development") {
+          console.log(
+            "🔄 [PERMISSIONS] Role updated (from unified-update) - refreshing collaborators and permissions"
+          );
+        }
         // Invalidate collaborators query to refetch with new roles
         queryClient.invalidateQueries({
-          queryKey: [`collaborators:${listId}`],
+          queryKey: listQueryKeys.collaborators(listId),
         });
         // The unified endpoint will update currentList store, which will trigger useListPermissions to recalculate
       }
@@ -313,11 +323,11 @@ export function PermissionManager({
     if (!roleChangeDialog.email) return;
 
     const emailToUpdate = roleChangeDialog.email;
-    const previousData = queryClient.getQueryData<{ collaborators: Collaborator[] }>([`collaborators:${listId}`]);
+    const previousData = queryClient.getQueryData<{ collaborators: Collaborator[] }>(listQueryKeys.collaborators(listId));
 
     // OPTIMISTIC UPDATE: Update UI IMMEDIATELY before API call for instant feedback
     queryClient.setQueryData<{ collaborators: Collaborator[] }>(
-      [`collaborators:${listId}`],
+      listQueryKeys.collaborators(listId),
       (old) => {
         const targetEmailLower = emailToUpdate.toLowerCase();
         // Update role (case-insensitive match) and deduplicate result
@@ -353,8 +363,6 @@ export function PermissionManager({
         window.dispatchEvent(new CustomEvent("local-operation"));
       }
 
-      setIsUpdating(true);
-
       const response = await fetch(`/api/lists/${listId}/collaborators`, {
         method: "PUT",
         headers: {
@@ -372,7 +380,7 @@ export function PermissionManager({
       if (!response.ok) {
         // Rollback optimistic update on error
         if (previousData) {
-          queryClient.setQueryData([`collaborators:${listId}`], previousData);
+          queryClient.setQueryData(listQueryKeys.collaborators(listId), previousData);
         }
         throw new Error(data.error || "Failed to update role");
       }
@@ -414,7 +422,6 @@ export function PermissionManager({
         console.debug("⏭️ [PERMISSIONS] Update role request aborted (expected during page refresh)");
       }
     } finally {
-      setIsUpdating(false);
     }
   };
 
@@ -445,11 +452,11 @@ export function PermissionManager({
     const targetEmailLower = emailToDelete.toLowerCase();
 
     // OPTIMISTIC UPDATE: Update UI IMMEDIATELY before API call for instant feedback
-    const previousData = queryClient.getQueryData<{ collaborators: Collaborator[] }>([`collaborators:${listId}`]);
+    const previousData = queryClient.getQueryData<{ collaborators: Collaborator[] }>(listQueryKeys.collaborators(listId));
     
     // Remove from UI immediately (before API call)
     queryClient.setQueryData<{ collaborators: Collaborator[] }>(
-      [`collaborators:${listId}`],
+      listQueryKeys.collaborators(listId),
       (old) => {
         // Remove collaborator (case-insensitive match) and deduplicate result
         const filtered = (old?.collaborators || [])
@@ -485,7 +492,6 @@ export function PermissionManager({
         window.dispatchEvent(new CustomEvent("local-operation"));
       }
 
-      setIsDeleting(true);
 
       const response = await fetch(
         `/api/lists/${listId}/collaborators?email=${encodeURIComponent(emailToDelete)}`,
@@ -500,7 +506,7 @@ export function PermissionManager({
       if (!response.ok) {
         // Rollback optimistic update on error
         if (previousData) {
-          queryClient.setQueryData([`collaborators:${listId}`], previousData);
+          queryClient.setQueryData(listQueryKeys.collaborators(listId), previousData);
         }
         throw new Error(data.error || "Failed to remove collaborator");
       }
@@ -543,7 +549,7 @@ export function PermissionManager({
         console.debug("⏭️ [PERMISSIONS] Remove collaborator request aborted (expected during page refresh)");
       }
     } finally {
-      setIsDeleting(false);
+      // Mutation handles loading state
     }
   };
 
@@ -610,7 +616,7 @@ export function PermissionManager({
       ) : (
         <div className="space-y-2">
           {/* Deduplicate collaborators before rendering to prevent duplicate keys */}
-          {collaborators
+          {(collaborators as Collaborator[])
             .reduce<Collaborator[]>((acc, collaborator) => {
               const emailLower = collaborator.email.toLowerCase();
               const exists = acc.some((c) => c.email.toLowerCase() === emailLower);
@@ -793,7 +799,7 @@ export function PermissionManager({
                       disabled={addCollaboratorMutation.isPending}
                       className="w-full"
                       onKeyDown={(e) => {
-                        if (e.key === "Enter" && newEmail.trim() && !isAdding) {
+                        if (e.key === "Enter" && newEmail.trim() && !addCollaboratorMutation.isPending) {
                           handleAddCollaborator();
                         }
                       }}

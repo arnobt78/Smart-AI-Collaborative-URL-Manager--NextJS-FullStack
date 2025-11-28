@@ -52,7 +52,6 @@ import type { SearchResult } from "@/lib/ai/search";
 import { useToast } from "@/components/ui/Toaster";
 import { useRealtimeList } from "@/hooks/useRealtimeList";
 import { useListPermissions } from "@/hooks/useListPermissions";
-import { useUnifiedListUpdates } from "@/hooks/useUnifiedListUpdates";
 import { UrlFilterBar } from "./UrlFilterBar";
 import { UrlBulkImportExport } from "./UrlBulkImportExport";
 import { UrlAddForm } from "./UrlAddForm";
@@ -167,7 +166,6 @@ export function UrlList() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const permissions = useListPermissions(); // Get permissions for current list and user
-  const { fetchUnifiedUpdates } = useUnifiedListUpdates(list?.id || "");
   const [newUrl, setNewUrl] = useState("");
   
   // Debug logging for list store updates to verify re-renders
@@ -951,11 +949,9 @@ export function UrlList() {
         setSortableContextKey((prev) => prev + 1);
       }
       
-      // Note: We don't call fetchUnifiedUpdates here because:
-      // 1. Unified-update events are dispatched AFTER server updates (data is already fresh on server)
-      // 2. ListPage handles unified fetch on mount and will refetch when needed
-      // 3. Calling fetchUnifiedUpdates here causes duplicate API calls
-      // 4. The store will be updated by ListPage's fetchUnifiedUpdates or via other mechanisms
+      // Note: Unified-update events are dispatched AFTER server updates (data is already fresh on server)
+      // ListPage handles unified fetch on mount and will refetch when needed via React Query
+      // The store will be updated by ListPage's unified query or via other mechanisms
     };
     
     window.addEventListener("list-updated", handleListUpdate);
@@ -967,7 +963,7 @@ export function UrlList() {
         clearTimeout(refreshTimeoutRef.current);
       }
     };
-  }, [fetchUnifiedUpdates]);
+  }, []);
 
   // Debounce search query for smart search (only trigger after 500ms of no typing)
   const debouncedSearch = useDebounce(search, 500);

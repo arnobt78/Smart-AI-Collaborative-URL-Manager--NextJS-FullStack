@@ -179,8 +179,11 @@ export function useAddCollaborator(listId: string, listSlug?: string) {
         variant: "success",
       });
       
-      // Invalidate unified query to refresh
-      queryClient.invalidateQueries({ queryKey: listQueryKeys.all });
+      // Invalidate unified query and all lists to refresh
+      if (listSlug) {
+        queryClient.invalidateQueries({ queryKey: listQueryKeys.unified(listSlug) });
+      }
+      queryClient.invalidateQueries({ queryKey: listQueryKeys.allLists() });
     },
     onError: (error, variables, context) => {
       // Rollback
@@ -244,7 +247,10 @@ export function useUpdateCollaboratorRole(listId: string, listSlug?: string) {
         variant: "success",
       });
       
-      queryClient.invalidateQueries({ queryKey: listQueryKeys.all });
+      if (listSlug) {
+        queryClient.invalidateQueries({ queryKey: listQueryKeys.unified(listSlug) });
+      }
+      queryClient.invalidateQueries({ queryKey: listQueryKeys.allLists() });
     },
     onError: (error, variables, context) => {
       if (context?.previous) {
@@ -304,7 +310,10 @@ export function useRemoveCollaborator(listId: string, listSlug?: string) {
         variant: "success",
       });
       
-      queryClient.invalidateQueries({ queryKey: listQueryKeys.all });
+      if (listSlug) {
+        queryClient.invalidateQueries({ queryKey: listQueryKeys.unified(listSlug) });
+      }
+      queryClient.invalidateQueries({ queryKey: listQueryKeys.allLists() });
     },
     onError: (error, email, context) => {
       if (context?.previous) {
@@ -520,6 +529,7 @@ export function useUpdateUrl(listId: string, listSlug: string) {
       
       toast({
         title: "URL Updated! ✅",
+        description: "The URL has been updated successfully.",
         variant: "success",
       });
     },
@@ -568,9 +578,9 @@ export function useAllListsQuery() {
     },
     staleTime: 30 * 1000, // 30 seconds - data is fresh for 30 seconds
     gcTime: 5 * 60 * 1000, // 5 minutes - cache kept for 5 minutes
-    refetchOnWindowFocus: true, // Refetch when user returns to tab
-    refetchOnMount: true, // Always refetch on mount to get fresh data
-    refetchInterval: 60 * 1000, // Refetch every 60 seconds when page is active
+    refetchOnWindowFocus: true, // Refetch when user returns to tab (stale data is refetched)
+    refetchOnMount: false, // Don't refetch on mount if data is fresh (use cache if available)
+    refetchInterval: false, // Disable automatic refetching - rely on window focus and manual refresh
     retry: 1,
   });
 }

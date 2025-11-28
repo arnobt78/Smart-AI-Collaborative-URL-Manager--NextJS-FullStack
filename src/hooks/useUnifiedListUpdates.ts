@@ -4,6 +4,7 @@ import { useCallback, useRef, useEffect } from "react";
 import { currentList } from "@/stores/urlListStore";
 import type { UrlList } from "@/stores/urlListStore";
 import { queryClient } from "@/lib/react-query";
+import { listQueryKeys } from "./useListQueries";
 
 interface ActivityItem {
   id: string;
@@ -71,7 +72,9 @@ export function useUnifiedListUpdates(listId: string) {
       // CRITICAL: Synchronous check - no await here! Check for existing promise first
       const existingFetch = activeFetches.get(fetchKey);
       if (existingFetch) {
-        console.log(`♻️ [UNIFIED] Reusing existing fetch for ${slug} (limit: ${activityLimit})`);
+        if (process.env.NODE_ENV === "development") {
+          console.log(`♻️ [UNIFIED] Reusing existing fetch for ${slug} (limit: ${activityLimit})`);
+        }
         return existingFetch;
       }
 
@@ -82,7 +85,9 @@ export function useUnifiedListUpdates(listId: string) {
         while (attempts < 50) { // 50 * 2ms = 100ms max wait
           const waitingFetch = activeFetches.get(fetchKey);
           if (waitingFetch) {
-            console.log(`♻️ [UNIFIED] Found fetch created by another component for ${slug} (limit: ${activityLimit})`);
+            if (process.env.NODE_ENV === "development") {
+              console.log(`♻️ [UNIFIED] Found fetch created by another component for ${slug} (limit: ${activityLimit})`);
+            }
             return waitingFetch;
           }
           // Small synchronous delay (simulate with Promise.resolve().then() pattern)
@@ -126,7 +131,9 @@ export function useUnifiedListUpdates(listId: string) {
           }
 
           const data: UnifiedUpdateResponse = await response.json();
-          console.log(`✅ [UNIFIED] Fetched list + ${data.activities.length} activities${data.collaborators ? ` + ${data.collaborators.length} collaborators` : ''}`);
+          if (process.env.NODE_ENV === "development") {
+            console.log(`✅ [UNIFIED] Fetched list + ${data.activities.length} activities${data.collaborators ? ` + ${data.collaborators.length} collaborators` : ''}`);
+          }
 
           // Update list store
           if (data.list) {
@@ -150,15 +157,19 @@ export function useUnifiedListUpdates(listId: string) {
           // This prevents PermissionManager from making a separate API call
           // Empty array [] is still valid data - it means "no collaborators"
           const collaboratorsData = data.collaborators || [];
-          console.log(`📤 [UNIFIED] Dispatching unified-collaborators-updated event for listId: ${actualListId}, collaborators: ${collaboratorsData.length}`);
+            if (process.env.NODE_ENV === "development") {
+              console.log(`📤 [UNIFIED] Dispatching unified-collaborators-updated event for listId: ${actualListId}, collaborators: ${collaboratorsData.length}`);
+            }
           
           // CRITICAL: Populate React Query cache DIRECTLY so PermissionManager finds it even if component isn't mounted yet
           // This ensures cache is available immediately when PermissionManager checks on mount (before 1500ms delay expires)
           queryClient.setQueryData<{ collaborators: Collaborator[] }>(
-            [`collaborators:${actualListId}`],
+            listQueryKeys.collaborators(actualListId),
             { collaborators: collaboratorsData }
           );
-          console.log(`💾 [UNIFIED] Populated React Query cache for listId: ${actualListId} with ${collaboratorsData.length} collaborators`);
+            if (process.env.NODE_ENV === "development") {
+              console.log(`💾 [UNIFIED] Populated React Query cache for listId: ${actualListId} with ${collaboratorsData.length} collaborators`);
+            }
           
           // Dispatch event for PermissionManager component listener (catches it if already mounted)
           window.dispatchEvent(

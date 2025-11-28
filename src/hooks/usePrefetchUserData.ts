@@ -39,7 +39,7 @@ export function usePrefetchUserData() {
     const prefetchAllUserData = async () => {
       try {
         // Step 1: Prefetch all user lists
-        const listsResult = await queryClient.prefetchQuery({
+        await queryClient.prefetchQuery({
           queryKey: listQueryKeys.allLists(),
           queryFn: async () => {
             const response = await fetch("/api/lists");
@@ -59,8 +59,10 @@ export function usePrefetchUserData() {
           console.log("✅ [PREFETCH] User lists prefetched successfully");
         }
 
-        // Step 2: Get the prefetched lists data
-        const listsData = await listsResult;
+        // Step 2: Get the prefetched lists data from cache
+        const listsData = queryClient.getQueryData<{ lists: Array<{ id: string; slug: string }> }>(
+          listQueryKeys.allLists()
+        );
         const lists = listsData?.lists || [];
 
         if (lists.length === 0) {
@@ -171,12 +173,13 @@ export function usePrefetchUserData() {
     // Prefetch immediately when user is authenticated
     prefetchAllUserData();
 
-    // Also set up interval to keep data fresh (every 60 seconds)
+    // Also set up interval to keep data fresh (every 2 minutes)
+    // Less frequent than before to reduce unnecessary API calls when user is inactive
     const interval = setInterval(() => {
       if (isAuthenticated) {
         prefetchAllUserData();
       }
-    }, 60 * 1000);
+    }, 2 * 60 * 1000); // 2 minutes instead of 60 seconds
 
     return () => {
       clearInterval(interval);

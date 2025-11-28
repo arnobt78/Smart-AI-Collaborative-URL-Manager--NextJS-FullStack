@@ -14,9 +14,9 @@ import {
 import { Badge } from "@/components/ui/Badge";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { useToast } from "@/components/ui/Toaster";
-import { useUnifiedListUpdates } from "@/hooks/useUnifiedListUpdates";
 import { useListPermissions } from "@/hooks/useListPermissions";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { listQueryKeys } from "@/hooks/useListQueries";
 import type {
   CollectionSuggestion,
   DuplicateDetection,
@@ -46,7 +46,6 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
   const router = useRouter();
   const list = useStore(currentList);
   const permissions = useListPermissions(); // Get permissions for role-based access control
-  const { fetchUnifiedUpdates } = useUnifiedListUpdates(listId);
   const queryClient = useQueryClient();
   const componentMountedRef = useRef<number>(Date.now()); // Track when component mounted
 
@@ -57,7 +56,7 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
     isLoading: isLoadingSuggestions,
     refetch: refetchSuggestions,
   } = useQuery<{ suggestions: CollectionSuggestion[] }>({
-    queryKey: [`collections-suggestions:${listId}`, list?.urls?.length],
+    queryKey: [...listQueryKeys.collections(listId), list?.urls?.length],
     queryFn: async () => {
       if (!listSlug) {
         throw new Error("List slug required");
@@ -97,7 +96,7 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
     isLoading: isLoadingDuplicates,
     refetch: refetchDuplicates,
   } = useQuery<{ duplicates: DuplicateDetection[] }>({
-    queryKey: [`collections-duplicates:${listId}`, list?.urls?.length], // Include URL count in key so cache invalidates when URLs change
+    queryKey: [...listQueryKeys.duplicates(listId), list?.urls?.length], // Include URL count in key so cache invalidates when URLs change
     queryFn: async () => {
       // Use unified API endpoint without cache-busting - React Query handles caching
       const response = await fetch(
@@ -153,7 +152,11 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
       return;
     }
 
-    console.log("🔄 [COLLECTIONS] Starting manual refresh...");
+    if (process.env.NODE_ENV === "development") {
+      if (process.env.NODE_ENV === "development") {
+        console.log("🔄 [COLLECTIONS] Starting manual refresh...");
+      }
+    }
 
     // Store previous suggestions count to show in toast
     const previousSuggestionsCount = suggestions.length;
@@ -170,7 +173,7 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
 
       // Clear React Query cache and force refetch
       queryClient.removeQueries({
-        queryKey: [`collections-suggestions:${listId}`],
+        queryKey: listQueryKeys.collections(listId),
       });
 
       // Force refetch with cache-busting
@@ -267,12 +270,12 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
       if (showDuplicates && shouldFetchDuplicates) {
         // Duplicates query is enabled - refetch it
         queryClient.invalidateQueries({
-          queryKey: [`collections-duplicates:${listId}`],
+          queryKey: listQueryKeys.duplicates(listId),
         });
       }
       // Always mark suggestions as stale - it will refetch when accessed
       queryClient.invalidateQueries({
-        queryKey: [`collections-suggestions:${listId}`],
+        queryKey: listQueryKeys.collections(listId),
       });
     };
 
@@ -356,12 +359,13 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
         variant: "success",
       });
 
-      // Refresh list data
-      await fetchUnifiedUpdates(listSlug, 30);
-
-      // Invalidate React Query cache to remove created suggestion
+      // Invalidate React Query cache to refresh list data and remove created suggestion
+      queryClient.invalidateQueries({
+        queryKey: listQueryKeys.unified(listSlug),
+      });
+      queryClient.invalidateQueries({ queryKey: listQueryKeys.allLists() });
       queryClient.setQueryData<{ suggestions: CollectionSuggestion[] }>(
-        [`collections-suggestions:${listId}`, list?.urls?.length],
+        [...listQueryKeys.collections(listId), list?.urls?.length],
         (oldData) => {
           if (!oldData) return oldData;
           return {
@@ -806,7 +810,7 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
 
             // Optimistically remove deleted duplicate from UI immediately for instant feedback
             queryClient.setQueryData<{ duplicates: DuplicateDetection[] }>(
-              [`collections-duplicates:${listId}`, list?.urls?.length],
+              [...listQueryKeys.duplicates(listId), list?.urls?.length],
               (old) => {
                 if (!old?.duplicates) return old;
                 // Remove the deleted duplicate from the list
@@ -828,7 +832,7 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
               }, 100); // Small delay to ensure list state has updated with new URL count
             }
             queryClient.invalidateQueries({
-              queryKey: [`collections-suggestions:${listId}`],
+              queryKey: listQueryKeys.collections(listId),
             });
 
             // Show success toast with dynamic text

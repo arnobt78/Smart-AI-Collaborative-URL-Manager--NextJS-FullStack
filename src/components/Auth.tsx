@@ -4,9 +4,11 @@ import { useState, useEffect } from "react";
 import { OptimizedImage } from "@/components/ui/OptimizedImage";
 import { useTypewriter } from "@/hooks/useTypewriter";
 import { useToast } from "@/components/ui/Toaster";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function Auth() {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [showWelcome, setShowWelcome] = useState(true);
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
@@ -83,8 +85,9 @@ export default function Auth() {
           variant: "success",
         });
         
-        // Trigger session refetch to start prefetching user data immediately
-        // This ensures data is ready when user navigates to pages
+        // Invalidate session cache to trigger refetch and start prefetching user data immediately
+        queryClient.invalidateQueries({ queryKey: ["session"] });
+        // Dispatch event for components that listen
         if (typeof window !== "undefined") {
           window.dispatchEvent(new CustomEvent("session-updated"));
         }
@@ -144,8 +147,9 @@ export default function Auth() {
           variant: "success",
         });
         
-        // Trigger session refetch to start prefetching user data immediately
-        // This ensures data is ready when user navigates to pages
+        // Invalidate session cache to trigger refetch and start prefetching user data immediately
+        queryClient.invalidateQueries({ queryKey: ["session"] });
+        // Dispatch event for components that listen
         if (typeof window !== "undefined") {
           window.dispatchEvent(new CustomEvent("session-updated"));
         }
