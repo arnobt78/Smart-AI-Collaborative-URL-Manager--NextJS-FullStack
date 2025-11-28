@@ -743,10 +743,9 @@ export async function addUrlToList(
     return { ...list, urls: finalUrls };
   } catch (err) {
     // Revert on error
+    // Note: Components that call this function handle errors and use React Query invalidations
+    // We don't call getList() here to avoid duplicate API calls
     error.set(err instanceof Error ? err.message : "Failed to update list");
-    if (current.slug) {
-      await getList(current.slug);
-    }
     throw err;
   } finally {
     isLoading.set(false);
@@ -905,10 +904,9 @@ export async function updateUrlInList(
     return { ...list, urls: finalUrls };
   } catch (err) {
     // Revert on error - fetch fresh data
+    // Note: Components that call this function handle errors and use React Query invalidations
+    // We don't call getList() here to avoid duplicate API calls
     error.set(err instanceof Error ? err.message : "Failed to update list");
-    if (current.slug) {
-      await getList(current.slug);
-    }
     throw err;
   } finally {
     isLoading.set(false);
@@ -1030,10 +1028,9 @@ export async function removeUrlFromList(urlId: string) {
     // But optimistic update provides instant feedback and activity-updated ensures refresh
   } catch (err) {
     // Revert on error
+    // Note: Components that call this function handle errors and use React Query invalidations
+    // We don't call getList() here to avoid duplicate API calls
     error.set(err instanceof Error ? err.message : "Failed to update list");
-    if (current.slug) {
-      await getList(current.slug);
-    }
     throw err;
   } finally {
     isLoading.set(false);
@@ -1248,9 +1245,8 @@ export async function archiveUrlFromList(urlId: string) {
   } catch (err) {
     error.set(err instanceof Error ? err.message : "Failed to archive URL");
     // Revert on error
-    if (current.slug) {
-      await getList(current.slug);
-    }
+    // Note: Components that call this function handle errors and use React Query invalidations
+    // We don't call getList() here to avoid duplicate API calls
     throw err;
   } finally {
     isLoading.set(false);

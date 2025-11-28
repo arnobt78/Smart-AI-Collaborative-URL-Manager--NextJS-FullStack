@@ -7,11 +7,23 @@ import { Button } from "@/components/ui/Button";
 import { Textarea } from "@/components/ui/Textarea";
 import { useToast } from "@/components/ui/Toaster";
 import { PencilIcon } from "@heroicons/react/24/outline";
+import { useUnifiedListQuery } from "@/hooks/useListQueries";
+import { useQueryClient } from "@tanstack/react-query";
+import { listQueryKeys } from "@/hooks/useListQueries";
 
 export default function EditListPageClient() {
   const { slug } = useParams();
   const router = useRouter();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const listSlug = typeof slug === "string" ? slug : "";
+  
+  // Use React Query to fetch list data (checks cache first)
+  const { data: unifiedData, isLoading: isLoadingQuery } = useUnifiedListQuery(
+    listSlug,
+    !!listSlug
+  );
+  
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [isPublic, setIsPublic] = useState(false);
@@ -20,28 +32,20 @@ export default function EditListPageClient() {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string>();
 
+  // Update form fields when React Query data is available
   useEffect(() => {
-    async function fetchList() {
-      if (typeof slug !== "string") return;
-
-      try {
-        const response = await fetch(`/api/lists/${slug}`);
-        if (!response.ok) throw new Error("Failed to fetch list");
-
-        const { list } = await response.json();
-        setTitle(list.title || "");
-        setDescription(list.description || "");
-        setIsPublic(list.isPublic ?? false);
-        setListId(list.id);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load list");
-      } finally {
-        setIsLoading(false);
-      }
+    if (unifiedData?.list) {
+      setTitle(unifiedData.list.title || "");
+      setDescription(unifiedData.list.description || "");
+      setIsPublic(unifiedData.list.isPublic ?? false);
+      setListId(unifiedData.list.id);
+      setIsLoading(false);
+    } else if (!isLoadingQuery && listSlug) {
+      // If query finished but no data, show error
+      setError("Failed to load list");
+      setIsLoading(false);
     }
-
-    fetchList();
-  }, [slug]);
+  }, [unifiedData, isLoadingQuery, listSlug]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -65,6 +69,10 @@ export default function EditListPageClient() {
         throw new Error(errorData.error || "Failed to update list");
       }
 
+      // Invalidate React Query cache to ensure fresh data when navigating back
+      queryClient.invalidateQueries({ queryKey: listQueryKeys.unified(listSlug) });
+      queryClient.invalidateQueries({ queryKey: listQueryKeys.allLists() });
+      
       // Show success toast notification
       toast({
         title: "List Updated! ✅",

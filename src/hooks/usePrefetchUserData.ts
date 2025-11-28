@@ -65,9 +65,11 @@ export function usePrefetchUserData() {
           return; // No lists to prefetch
         }
 
-        // Step 3: Prefetch unified data for ALL lists (list + activities + collaborators)
-        // This makes navigating to any list instant - all data is already cached
-        const prefetchPromises = lists.map((list) => {
+        // Step 3: Prefetch unified data for FIRST 3 lists only (list + activities + collaborators)
+        // This makes navigating to commonly accessed lists instant without overwhelming the server
+        // Other lists will be fetched on-demand when user navigates to them
+        const listsToPrefetch = lists.slice(0, 3); // Only prefetch first 3 lists
+        const prefetchPromises = listsToPrefetch.map((list) => {
           if (!list.slug) return Promise.resolve();
 
           return queryClient

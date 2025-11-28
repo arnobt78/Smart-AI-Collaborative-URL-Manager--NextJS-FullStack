@@ -17,6 +17,7 @@ import { addUrlToList, cancelPendingGetList } from "@/stores/urlListStore";
 import { abortRegistry } from "@/utils/abortRegistry";
 import { fetchUrlMetadata, type UrlMetadata } from "@/utils/urlMetadata";
 import { useQueryClient } from "@tanstack/react-query";
+import { listQueryKeys } from "@/hooks/useListQueries";
 import {
   parseChromeBookmarks,
   parsePocketExport,
@@ -2277,7 +2278,7 @@ export function UrlBulkImportExport({
 
         // After import completes, trigger a single refresh to get final state
         // This happens AFTER all cancellations and delays to ensure clean state
-        import("@/stores/urlListStore").then(({ getList, currentList }) => {
+        import("@/stores/urlListStore").then(({ currentList }) => {
           const current = currentList.get();
           const slug = current?.slug;
           if (slug && typeof slug === "string") {
@@ -2289,8 +2290,8 @@ export function UrlBulkImportExport({
                     "🔄 [IMPORT] Triggering final list refresh after import completion"
                   );
                 }
-                // Use getList from the store instead of window event to avoid real-time throttling
-                getList(slug, true);
+                // Use React Query invalidation instead of getList() - triggers unified endpoint refetch
+                queryClient.invalidateQueries({ queryKey: listQueryKeys.unified(slug) });
               }
             }, 800); // Reduced delay since we're aborting all requests
           }

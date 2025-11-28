@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import { flushSync } from "react-dom";
 import { useParams, useRouter } from "next/navigation";
 import { useStore } from "@nanostores/react";
-import { currentList, getList } from "@/stores/urlListStore";
+import { currentList } from "@/stores/urlListStore";
 import { UrlList } from "@/components/lists/UrlList";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
@@ -27,7 +27,8 @@ import { PermissionManager } from "@/components/collaboration/PermissionManager"
 import { SmartCollections } from "@/components/collections/SmartCollections";
 import { useListPermissions } from "@/hooks/useListPermissions";
 import { useSession } from "@/hooks/useSession";
-import { useUnifiedListQuery, setupSSECacheSync } from "@/hooks/useListQueries";
+import { useUnifiedListQuery, setupSSECacheSync, listQueryKeys } from "@/hooks/useListQueries";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function ListPageClient() {
   const { toast } = useToast();
@@ -37,6 +38,7 @@ export default function ListPageClient() {
   const list = useStore(currentList);
   const permissions = useListPermissions(); // Get permissions for current list and user
   const listSlug = typeof slug === "string" ? slug : "";
+  const queryClient = useQueryClient();
   
   // Setup SSE cache sync for React Query
   useEffect(() => {
@@ -495,9 +497,9 @@ export default function ListPageClient() {
                           variant: "success",
                         });
                       } else {
-                        // Refetch the list if not returned
+                        // Refetch via React Query invalidation - triggers unified endpoint refetch
                         if (typeof slug === "string") {
-                          await getList(slug);
+                          queryClient.invalidateQueries({ queryKey: listQueryKeys.unified(slug) });
                         }
                         toast({
                           title: newValue
@@ -630,9 +632,9 @@ export default function ListPageClient() {
                         );
                       }
 
-                      // Refetch list to get updated URLs
+                      // Refetch via React Query invalidation - triggers unified endpoint refetch
                       if (typeof slug === "string") {
-                        await getList(slug);
+                        queryClient.invalidateQueries({ queryKey: listQueryKeys.unified(slug) });
                       }
 
                       toast({
@@ -699,8 +701,8 @@ export default function ListPageClient() {
                         // UNIFIED APPROACH: SSE handles ALL activity-updated events (single source of truth)
                         // No local dispatch needed - prevents duplicate API calls
                       } else if (typeof slug === "string") {
-                        // Fallback: fetch if list not in response
-                        await getList(slug);
+                        // Fallback: use React Query invalidation - triggers unified endpoint refetch
+                        queryClient.invalidateQueries({ queryKey: listQueryKeys.unified(slug) });
                       }
 
                       toast({

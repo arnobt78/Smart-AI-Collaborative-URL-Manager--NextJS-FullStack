@@ -353,10 +353,10 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
         }
       );
 
-      // Navigate to new collection
+      // Navigate to new collection using Next.js router
       if (data.collection?.slug) {
         setTimeout(() => {
-          window.location.href = `/list/${data.collection.slug}`;
+          router.push(`/list/${data.collection.slug}`);
         }, 1000);
       }
     } catch (error) {

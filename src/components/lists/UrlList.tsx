@@ -27,7 +27,6 @@ import {
   removeUrlFromList,
   updateUrlInList,
   toggleUrlFavorite,
-  getList,
   setDragInProgress,
   type UrlItem,
 } from "@/stores/urlListStore";
@@ -801,7 +800,7 @@ export function UrlList() {
           }
 
           // Queue refresh to happen after throttle expires
-          refreshTimeoutRef.current = setTimeout(async () => {
+          refreshTimeoutRef.current = setTimeout(() => {
             const now = Date.now();
             // CRITICAL: Check drag end time here too - queued refreshes must respect drag protection
             if (
@@ -812,7 +811,8 @@ export function UrlList() {
               current.slug
             ) {
               lastRefreshRef.current = now;
-              await getList(current.slug, true);
+              // Use React Query invalidation instead of getList() - triggers unified endpoint refetch
+              queryClient.invalidateQueries({ queryKey: listQueryKeys.unified(current.slug) });
             }
           }, remainingTime + 100); // Add 100ms buffer
           return;
@@ -839,7 +839,8 @@ export function UrlList() {
         // For metadata changes, refresh immediately (no debounce)
         if (isMetadataChange) {
           lastRefreshRef.current = now;
-          await getList(current.slug, true);
+          // Use React Query invalidation instead of getList() - triggers unified endpoint refetch
+          queryClient.invalidateQueries({ queryKey: listQueryKeys.unified(current.slug) });
           return;
         }
 
@@ -865,7 +866,8 @@ export function UrlList() {
             current.slug
           ) {
             lastRefreshRef.current = now;
-            await getList(current.slug, true);
+            // Use React Query invalidation instead of getList() - triggers unified endpoint refetch
+            queryClient.invalidateQueries({ queryKey: listQueryKeys.unified(current.slug) });
           }
         }, 1000); // 1 second delay to batch multiple rapid updates
       }
@@ -1040,7 +1042,9 @@ export function UrlList() {
 
       if (response.ok) {
         const data = await response.json();
-        console.log(`✅ [API] POST /api/lists/${current.id}/urls/${urlId}/click - success`);
+        if (process.env.NODE_ENV === "development") {
+          console.log(`✅ [API] POST /api/lists/${current.id}/urls/${urlId}/click - success`);
+        }
 
         // Update with server response to ensure accuracy
         if (data.list) {
@@ -1264,9 +1268,9 @@ export function UrlList() {
       await updateUrlInList(id, { isFavorite: updatedUrl.isFavorite });
     } catch (err) {
       // console.error("Failed to toggle favorite:", err);
-      // Revert on error
+      // Revert on error - use React Query invalidation to trigger unified endpoint refetch
       if (current.slug) {
-        await getList(current.slug);
+        queryClient.invalidateQueries({ queryKey: listQueryKeys.unified(current.slug) });
       }
     } finally {
       setTimeout(() => {
@@ -1330,9 +1334,9 @@ export function UrlList() {
       });
     } catch (err) {
       // console.error("Failed to duplicate URL:", err);
-      // Revert on error
+      // Revert on error - use React Query invalidation to trigger unified endpoint refetch
       if (current.slug) {
-        await getList(current.slug);
+        queryClient.invalidateQueries({ queryKey: listQueryKeys.unified(current.slug) });
       }
       // Show error toast
       toast({
@@ -1376,9 +1380,9 @@ export function UrlList() {
       });
     } catch (err) {
       // console.error("Failed to archive URL:", err);
-      // Revert on error
+      // Revert on error - use React Query invalidation to trigger unified endpoint refetch
       if (current?.slug) {
-        await getList(current.slug);
+        queryClient.invalidateQueries({ queryKey: listQueryKeys.unified(current.slug) });
       }
       // Show error toast
       toast({
@@ -1429,9 +1433,9 @@ export function UrlList() {
       await updateUrlInList(id, { isPinned: updatedUrl.isPinned });
     } catch (err) {
       // console.error("Failed to pin URL:", err);
-      // Revert on error
+      // Revert on error - use React Query invalidation to trigger unified endpoint refetch
       if (current.slug) {
-        await getList(current.slug);
+        queryClient.invalidateQueries({ queryKey: listQueryKeys.unified(current.slug) });
       }
     } finally {
       setTimeout(() => {
@@ -1573,7 +1577,9 @@ export function UrlList() {
       // CRITICAL: Always use the preserved order from ref, not from store after API response
 
       try {
-        console.log(`🔄 [API] PATCH /api/lists/${current.id}/urls - reorder`);
+        if (process.env.NODE_ENV === "development") {
+          console.log(`🔄 [API] PATCH /api/lists/${current.id}/urls - reorder`);
+        }
         const response = await fetch(`/api/lists/${current.id}/urls`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
@@ -1679,7 +1685,8 @@ export function UrlList() {
         }
         const currentSlug = currentList.get().slug;
         if (currentSlug) {
-          await getList(currentSlug);
+          // Use React Query invalidation instead of getList() - triggers unified endpoint refetch
+          queryClient.invalidateQueries({ queryKey: listQueryKeys.unified(currentSlug) });
         }
       } finally {
         // Clear flags IMMEDIATELY after API call completes
@@ -1783,7 +1790,9 @@ export function UrlList() {
       const urlsToSend = finalDragOrderRef.current;
       const orderToSend = urlsToSend?.map((u) => u.id).join(",") || "NULL";
       try {
-        console.log(`🔄 [API] PATCH /api/lists/${current.id}/urls - reorder`);
+        if (process.env.NODE_ENV === "development") {
+          console.log(`🔄 [API] PATCH /api/lists/${current.id}/urls - reorder`);
+        }
         const response = await fetch(`/api/lists/${current.id}/urls`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
@@ -1794,7 +1803,9 @@ export function UrlList() {
         });
         if (response.ok) {
           const { list, activity: activityData } = await response.json();
-          console.log(`✅ [API] PATCH /api/lists/${current.id}/urls - reorder success`);
+          if (process.env.NODE_ENV === "development") {
+            console.log(`✅ [API] PATCH /api/lists/${current.id}/urls - reorder success`);
+          }
 
           // CRITICAL: Always use the preserved order from ref (survives re-renders)
           // Get the preserved order BEFORE checking anything else
@@ -1901,7 +1912,8 @@ export function UrlList() {
         }
         const currentSlug = currentList.get().slug;
         if (currentSlug) {
-          await getList(currentSlug);
+          // Use React Query invalidation instead of getList() - triggers unified endpoint refetch
+          queryClient.invalidateQueries({ queryKey: listQueryKeys.unified(currentSlug) });
         }
       } finally {
         // Clear flags IMMEDIATELY after API call completes
@@ -2415,9 +2427,9 @@ export function UrlList() {
       });
     } catch (err) {
       console.error("Failed to restore URL:", err);
-      // Revert on error
+      // Revert on error - use React Query invalidation to trigger unified endpoint refetch
       if (current?.slug) {
-        await getList(current.slug);
+        queryClient.invalidateQueries({ queryKey: listQueryKeys.unified(current.slug) });
       }
       // Show error toast
       toast({
@@ -2669,9 +2681,9 @@ export function UrlList() {
                     removeUrlFromList(urlId)
                       .catch((err) => {
                         console.error("Failed to delete URL:", err);
-                        // Revert on error - fetch fresh data
+                        // Revert on error - use React Query invalidation to trigger unified endpoint refetch
                         if (current?.slug) {
-                          getList(current.slug);
+                          queryClient.invalidateQueries({ queryKey: listQueryKeys.unified(current.slug) });
                         }
                       })
                       .finally(() => {

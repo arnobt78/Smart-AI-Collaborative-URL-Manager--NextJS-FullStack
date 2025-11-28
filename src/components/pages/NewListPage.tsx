@@ -7,6 +7,8 @@ import Auth from "@/components/Auth";
 import { Textarea } from "@/components/ui/Textarea";
 import { UrlEnhancer } from "@/components/ai/UrlEnhancer";
 import { useToast } from "@/components/ui/Toaster";
+import { useQueryClient } from "@tanstack/react-query";
+import { listQueryKeys } from "@/hooks/useListQueries";
 import {
   LinkIcon,
   ArrowTopRightOnSquareIcon,
@@ -21,6 +23,7 @@ export default function NewListPageClient() {
   const router = useRouter();
   const { user: session, isLoading: sessionLoading } = useSession();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const loading = sessionLoading;
   const [error, setError] = useState("");
   const [formData, setFormData] = useState({
@@ -73,6 +76,10 @@ export default function NewListPageClient() {
       }
 
       const { list } = await response.json();
+
+      // Invalidate React Query cache so new list appears in lists page
+      queryClient.invalidateQueries({ queryKey: listQueryKeys.allLists() });
+      queryClient.invalidateQueries({ queryKey: listQueryKeys.unified(list.slug) });
 
       // Show success toast notification
       toast({
