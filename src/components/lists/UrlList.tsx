@@ -373,9 +373,11 @@ export function UrlList() {
     if (typeof window !== "undefined") {
       const skipFlag = sessionStorage.getItem("skipMetadataAfterBulkImport");
       if (skipFlag === "true") {
-        console.log(
-          `⏭️ [BATCH] Skipping ALL metadata fetches after bulk import (dev server workaround)`
-        );
+        if (process.env.NODE_ENV === "development") {
+          console.log(
+            `⏭️ [BATCH] Skipping ALL metadata fetches after bulk import (dev server workaround)`
+          );
+        }
         // Keep flag set for entire session - don't clear it
         return;
       }
@@ -431,6 +433,10 @@ export function UrlList() {
       prefetchedMetadataRef.current = prefetchKey;
 
       try {
+        // CRITICAL: Defer metadata fetch to avoid blocking page load
+        // Wait 2 seconds after page load to let unified query and page render complete first
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
         // OPTIMIZATION: Fetch metadata in background - don't block page render
         // This is a background prefetch that happens after page is visible
         // The page will show URLs immediately, metadata loads progressively
@@ -1778,10 +1784,12 @@ export function UrlList() {
       // - SortableContext remounts with new key and new items array
       setSortableContextKey((prev) => prev + 1);
 
-      console.log(
-        "✅ [DRAG] Store updated, sortableContextKey will increment on next render",
-        currentList.get().urls?.map((u: UrlItem) => u.id)
-      );
+      if (process.env.NODE_ENV === "development") {
+        console.log(
+          "✅ [DRAG] Store updated, sortableContextKey will increment on next render",
+          currentList.get().urls?.map((u: UrlItem) => u.id)
+        );
+      }
 
       // Use unified PATCH endpoint for reorder (same pattern as other URL actions)
       // CRITICAL: Always use the preserved order from ref, not from store after API response
@@ -1845,10 +1853,12 @@ export function UrlList() {
           // Increment key after store update to ensure SortableContext remounts with new items array
           setSortableContextKey((prev) => prev + 1);
 
-          console.log(
-            "✅ [DRAG] Final store state",
-            currentList.get().urls?.map((u: UrlItem) => u.id)
-          );
+          if (process.env.NODE_ENV === "development") {
+            console.log(
+              "✅ [DRAG] Final store state",
+              currentList.get().urls?.map((u: UrlItem) => u.id)
+            );
+          }
 
           // Dispatch activity-added event for optimistic feed update (no redundant fetch)
           if (activityData) {

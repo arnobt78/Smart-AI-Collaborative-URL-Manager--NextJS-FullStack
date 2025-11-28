@@ -27,7 +27,11 @@ import { PermissionManager } from "@/components/collaboration/PermissionManager"
 import { SmartCollections } from "@/components/collections/SmartCollections";
 import { useListPermissions } from "@/hooks/useListPermissions";
 import { useSession } from "@/hooks/useSession";
-import { useUnifiedListQuery, setupSSECacheSync, listQueryKeys } from "@/hooks/useListQueries";
+import {
+  useUnifiedListQuery,
+  setupSSECacheSync,
+  listQueryKeys,
+} from "@/hooks/useListQueries";
 import { useQueryClient } from "@tanstack/react-query";
 
 export default function ListPageClient() {
@@ -39,19 +43,22 @@ export default function ListPageClient() {
   const permissions = useListPermissions(); // Get permissions for current list and user
   const listSlug = typeof slug === "string" ? slug : "";
   const queryClient = useQueryClient();
-  
+
   // Setup SSE cache sync for React Query
   useEffect(() => {
     return setupSSECacheSync();
   }, []);
-  
+
   // Use React Query for unified list data
-  const { data: unifiedData, isLoading: isLoadingQuery, refetch } = useUnifiedListQuery(
-    listSlug,
-    !!listSlug
-  );
-  
-  const [isLoading, setIsLoading] = useState(true);
+  const {
+    data: unifiedData,
+    isLoading: isLoadingQuery,
+    refetch,
+  } = useUnifiedListQuery(listSlug, !!listSlug);
+
+  // CRITICAL: Start with loading=false to show cached data immediately
+  // Only show loading if we truly have no data
+  const [isLoading, setIsLoading] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
   const [isToggling, setIsToggling] = useState(false);
   // inviteDialogOpen removed - PermissionManager handles dialogs internally
@@ -62,23 +69,22 @@ export default function ListPageClient() {
   const hasFetchedRef = useRef<string | null>(null);
   const hasRedirectedRef = useRef<boolean>(false); // Track if we've already redirected to prevent duplicate redirects
 
-  // Update loading state based on React Query
-  // CRITICAL: Check React Query first (most reliable), then fall back to store
+  // Update loading state - only show loading if we truly have NO data at all
   useEffect(() => {
-    // If React Query has data for this slug, we're done loading
-    if (unifiedData?.list && unifiedData.list.slug === listSlug) {
+    // If we have data (from React Query or store), we're not loading
+    if (
+      unifiedData?.list?.slug === listSlug ||
+      (list && list.slug === listSlug && list.id)
+    ) {
       setIsLoading(false);
       return;
     }
-    
-    // If React Query is still loading and we have a slug, show loading
-    if (isLoadingQuery && listSlug) {
+
+    // Only show loading if we have a slug but absolutely no data yet
+    // And React Query is actively fetching (not just checking cache)
+    if (listSlug && isLoadingQuery && !unifiedData && !list?.id) {
       setIsLoading(true);
-      return;
-    }
-    
-    // Fallback: Check store for list data matching current slug
-    if (typeof slug === "string" && list && list.slug === slug) {
+    } else {
       setIsLoading(false);
     }
   }, [unifiedData, isLoadingQuery, listSlug, list, slug]);
@@ -99,7 +105,12 @@ export default function ListPageClient() {
   // Listen for collaborator removal and redirect if current user is removed
   // Only trigger if user currently has access (not on initial load or stale events)
   useEffect(() => {
-    if (!sessionUser?.email || !list?.id || hasRedirectedRef.current || isLoading) {
+    if (
+      !sessionUser?.email ||
+      !list?.id ||
+      hasRedirectedRef.current ||
+      isLoading
+    ) {
       return;
     }
 
@@ -133,7 +144,10 @@ export default function ListPageClient() {
         const ownerEmail = activity?.user?.email;
 
         // Check if the removed collaborator is the current user
-        if (removedEmail && removedEmail.toLowerCase() === sessionUser.email.toLowerCase()) {
+        if (
+          removedEmail &&
+          removedEmail.toLowerCase() === sessionUser.email.toLowerCase()
+        ) {
           // Store this event info for 401 handling
           recentCollaboratorRemovedRef.current = {
             email: removedEmail,
@@ -150,7 +164,7 @@ export default function ListPageClient() {
           setTimeout(() => {
             // Check current permissions (from ref, which updates via useEffect above)
             const currentRole = permissionsRef.current.role;
-            
+
             // Only redirect if they actually lost access
             if (currentRole === "none" && !hasRedirectedRef.current) {
               handleRedirect(ownerEmail || "the owner");
@@ -162,8 +176,11 @@ export default function ListPageClient() {
 
     // Handle 401 Unauthorized from unified endpoint (indicates access was removed)
     const handleUnauthorized = (event: Event) => {
-      const customEvent = event as CustomEvent<{ listId?: string; slug?: string }>;
-      
+      const customEvent = event as CustomEvent<{
+        listId?: string;
+        slug?: string;
+      }>;
+
       // Check if this is for our list and we have a recent collaborator_removed event
       if (
         customEvent.detail?.listId === list.id &&
@@ -171,9 +188,11 @@ export default function ListPageClient() {
         Date.now() - recentCollaboratorRemovedRef.current.timestamp < 5000 // Within last 5 seconds
       ) {
         const removedInfo = recentCollaboratorRemovedRef.current;
-        
+
         // Verify this is for the current user
-        if (removedInfo.email.toLowerCase() === sessionUser.email.toLowerCase()) {
+        if (
+          removedInfo.email.toLowerCase() === sessionUser.email.toLowerCase()
+        ) {
           // 401 + recent collaborator_removed event = user was definitely removed
           if (!hasRedirectedRef.current) {
             handleRedirect(removedInfo.ownerEmail);
@@ -184,7 +203,7 @@ export default function ListPageClient() {
 
     const handleRedirect = (ownerEmail: string) => {
       hasRedirectedRef.current = true;
-      
+
       // Get list name
       const listName = list.title || "this list";
 
@@ -207,9 +226,20 @@ export default function ListPageClient() {
 
     return () => {
       window.removeEventListener("unified-update", handleUnifiedUpdate);
-      window.removeEventListener("unified-update-unauthorized", handleUnauthorized);
+      window.removeEventListener(
+        "unified-update-unauthorized",
+        handleUnauthorized
+      );
     };
-  }, [list?.id, list?.title, sessionUser?.email, router, toast, isLoading, permissions.role]);
+  }, [
+    list?.id,
+    list?.title,
+    sessionUser?.email,
+    router,
+    toast,
+    isLoading,
+    permissions.role,
+  ]);
 
   // Auto-sync vectors for existing URLs when list loads (background, non-blocking)
   useEffect(() => {
@@ -247,13 +277,11 @@ export default function ListPageClient() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [list?.id]); // Only run when list ID changes
 
-  // Show skeleton if loading OR if list doesn't have valid slug yet
-  // This prevents "List: undefined" flash on initial load
-  const shouldShowLoading =
-    isLoading ||
-    !list ||
-    !list.slug ||
-    (slug && typeof slug === "string" && list.slug !== slug);
+  // CRITICAL: Only show skeleton if we have NO data AND are actively fetching
+  // Show cached data immediately from store or React Query cache
+  const hasAnyData =
+    unifiedData?.list?.id || (list && list.id && list.slug === listSlug);
+  const shouldShowLoading = !hasAnyData && isLoadingQuery && listSlug;
 
   if (shouldShowLoading) {
     return (
@@ -499,7 +527,9 @@ export default function ListPageClient() {
                       } else {
                         // Refetch via React Query invalidation - triggers unified endpoint refetch
                         if (typeof slug === "string") {
-                          queryClient.invalidateQueries({ queryKey: listQueryKeys.unified(slug) });
+                          queryClient.invalidateQueries({
+                            queryKey: listQueryKeys.unified(slug),
+                          });
                         }
                         toast({
                           title: newValue
@@ -634,7 +664,9 @@ export default function ListPageClient() {
 
                       // Refetch via React Query invalidation - triggers unified endpoint refetch
                       if (typeof slug === "string") {
-                        queryClient.invalidateQueries({ queryKey: listQueryKeys.unified(slug) });
+                        queryClient.invalidateQueries({
+                          queryKey: listQueryKeys.unified(slug),
+                        });
                       }
 
                       toast({
@@ -702,7 +734,9 @@ export default function ListPageClient() {
                         // No local dispatch needed - prevents duplicate API calls
                       } else if (typeof slug === "string") {
                         // Fallback: use React Query invalidation - triggers unified endpoint refetch
-                        queryClient.invalidateQueries({ queryKey: listQueryKeys.unified(slug) });
+                        queryClient.invalidateQueries({
+                          queryKey: listQueryKeys.unified(slug),
+                        });
                       }
 
                       toast({

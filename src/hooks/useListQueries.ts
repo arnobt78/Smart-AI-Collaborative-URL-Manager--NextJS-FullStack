@@ -13,29 +13,26 @@ export const listQueryKeys = {
   all: ["lists"] as const,
   lists: () => [...listQueryKeys.all, "list"] as const,
   list: (id: string) => [...listQueryKeys.lists(), id] as const,
-  listBySlug: (slug: string) => [...listQueryKeys.lists(), "slug", slug] as const,
-  
+  listBySlug: (slug: string) =>
+    [...listQueryKeys.lists(), "slug", slug] as const,
+
   // Unified list data
   unified: (slug: string) => ["unified-list", slug] as const,
-  
+
   // Activities
-  activities: (listId: string, limit?: number) => 
+  activities: (listId: string, limit?: number) =>
     ["activities", listId, limit || 30] as const,
-  
+
   // Collaborators
-  collaborators: (listId: string) => 
-    ["collaborators", listId] as const,
-  
+  collaborators: (listId: string) => ["collaborators", listId] as const,
+
   // Collections
-  collections: (listId: string) => 
-    ["collections-suggestions", listId] as const,
-  duplicates: (listId: string) => 
-    ["collections-duplicates", listId] as const,
-  
+  collections: (listId: string) => ["collections-suggestions", listId] as const,
+  duplicates: (listId: string) => ["collections-duplicates", listId] as const,
+
   // URL metadata
-  urlMetadata: (url: string) => 
-    ["url-metadata", url] as const,
-  
+  urlMetadata: (url: string) => ["url-metadata", url] as const,
+
   // User's all lists
   allLists: () => [...listQueryKeys.all, "all"] as const,
 };
@@ -56,10 +53,14 @@ interface UnifiedListData {
 }
 
 export function useUnifiedListQuery(slug: string, enabled: boolean = true) {
+  const queryClient = useQueryClient();
+
   return useQuery<UnifiedListData>({
     queryKey: listQueryKeys.unified(slug),
     queryFn: async () => {
-      const response = await fetch(`/api/lists/${slug}/updates?activityLimit=30`);
+      const response = await fetch(
+        `/api/lists/${slug}/updates?activityLimit=30`
+      );
       if (!response.ok) {
         if (response.status === 401) {
           window.dispatchEvent(
@@ -72,20 +73,19 @@ export function useUnifiedListQuery(slug: string, enabled: boolean = true) {
         throw new Error(`Failed to fetch: ${response.status}`);
       }
       const data = await response.json();
-      
+
       // Update store immediately
       if (data.list) {
         currentList.set(data.list);
       }
-      
+
       // Populate React Query cache for collaborators
       if (data.list?.id && data.collaborators) {
-        queryClient.setQueryData(
-          listQueryKeys.collaborators(data.list.id),
-          { collaborators: data.collaborators }
-        );
+        queryClient.setQueryData(listQueryKeys.collaborators(data.list.id), {
+          collaborators: data.collaborators,
+        });
       }
-      
+
       // Dispatch events for components
       if (data.list?.id) {
         window.dispatchEvent(
@@ -96,7 +96,7 @@ export function useUnifiedListQuery(slug: string, enabled: boolean = true) {
             },
           })
         );
-        
+
         window.dispatchEvent(
           new CustomEvent("unified-collaborators-updated", {
             detail: {
@@ -106,7 +106,7 @@ export function useUnifiedListQuery(slug: string, enabled: boolean = true) {
           })
         );
       }
-      
+
       return {
         list: data.list || null,
         activities: data.activities || [],
@@ -114,10 +114,13 @@ export function useUnifiedListQuery(slug: string, enabled: boolean = true) {
       };
     },
     enabled: enabled && !!slug,
-    staleTime: 30 * 1000, // 30 seconds
-    gcTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 5 * 60 * 1000, // 5 minutes - data stays fresh longer
+    gcTime: 30 * 60 * 1000, // 30 minutes - keep in cache much longer
     refetchOnWindowFocus: false,
-    refetchOnMount: false,
+    refetchOnMount: false, // CRITICAL: Use cache if available, don't refetch on mount
+    refetchOnReconnect: false, // Don't refetch on reconnect
+    // CRITICAL: Use stale data immediately if available, fetch fresh in background
+    placeholderData: (previousData) => previousData, // Keep previous data visible while refetching
   });
 }
 
@@ -127,9 +130,15 @@ export function useUnifiedListQuery(slug: string, enabled: boolean = true) {
 export function useAddCollaborator(listId: string, listSlug?: string) {
   const queryClient = useQueryClient();
   const { toast } = useToast();
-  
+
   return useMutation({
-    mutationFn: async ({ email, role }: { email: string; role: "editor" | "viewer" }) => {
+    mutationFn: async ({
+      email,
+      role,
+    }: {
+      email: string;
+      role: "editor" | "viewer";
+    }) => {
       // Use slug if available, otherwise use ID
       const identifier = listSlug || listId;
       const response = await fetch(`/api/lists/${identifier}/collaborators`, {
@@ -147,14 +156,18 @@ export function useAddCollaborator(listId: string, listSlug?: string) {
       // Optimistic update
       const queryKey = listQueryKeys.collaborators(listId);
       await queryClient.cancelQueries({ queryKey });
-      
-      const previous = queryClient.getQueryData<{ collaborators: Array<{ email: string; role: string }> }>(queryKey);
-      
+
+      const previous = queryClient.getQueryData<{
+        collaborators: Array<{ email: string; role: string }>;
+      }>(queryKey);
+
       queryClient.setQueryData(queryKey, (old: any) => {
         const existing = old?.collaborators || [];
         const trimmedEmail = email.trim().toLowerCase();
-        const exists = existing.some((c: any) => c.email.toLowerCase() === trimmedEmail);
-        
+        const exists = existing.some(
+          (c: any) => c.email.toLowerCase() === trimmedEmail
+        );
+
         if (exists) {
           return {
             collaborators: existing.map((c: any) =>
@@ -162,26 +175,28 @@ export function useAddCollaborator(listId: string, listSlug?: string) {
             ),
           };
         }
-        
+
         return {
           collaborators: [...existing, { email: email.trim(), role }],
         };
       });
-      
+
       return { previous };
     },
     onSuccess: (data, variables) => {
       toast({
         title: "Collaborator Added! ✅",
-        description: `${variables.email.trim()} has been added as ${variables.role}.${
-          data.emailSent ? " An invitation email has been sent." : ""
-        }`,
+        description: `${variables.email.trim()} has been added as ${
+          variables.role
+        }.${data.emailSent ? " An invitation email has been sent." : ""}`,
         variant: "success",
       });
-      
+
       // Invalidate unified query and all lists to refresh
       if (listSlug) {
-        queryClient.invalidateQueries({ queryKey: listQueryKeys.unified(listSlug) });
+        queryClient.invalidateQueries({
+          queryKey: listQueryKeys.unified(listSlug),
+        });
       }
       queryClient.invalidateQueries({ queryKey: listQueryKeys.allLists() });
     },
@@ -193,10 +208,11 @@ export function useAddCollaborator(listId: string, listSlug?: string) {
           context.previous
         );
       }
-      
+
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to add collaborator",
+        description:
+          error instanceof Error ? error.message : "Failed to add collaborator",
         variant: "error",
       });
     },
@@ -206,9 +222,15 @@ export function useAddCollaborator(listId: string, listSlug?: string) {
 export function useUpdateCollaboratorRole(listId: string, listSlug?: string) {
   const queryClient = useQueryClient();
   const { toast } = useToast();
-  
+
   return useMutation({
-    mutationFn: async ({ email, role }: { email: string; role: "editor" | "viewer" }) => {
+    mutationFn: async ({
+      email,
+      role,
+    }: {
+      email: string;
+      role: "editor" | "viewer";
+    }) => {
       // Use slug if available, otherwise use ID
       const identifier = listSlug || listId;
       const response = await fetch(`/api/lists/${identifier}/collaborators`, {
@@ -225,9 +247,11 @@ export function useUpdateCollaboratorRole(listId: string, listSlug?: string) {
     onMutate: async ({ email, role }) => {
       const queryKey = listQueryKeys.collaborators(listId);
       await queryClient.cancelQueries({ queryKey });
-      
-      const previous = queryClient.getQueryData<{ collaborators: Array<{ email: string; role: string }> }>(queryKey);
-      
+
+      const previous = queryClient.getQueryData<{
+        collaborators: Array<{ email: string; role: string }>;
+      }>(queryKey);
+
       queryClient.setQueryData(queryKey, (old: any) => {
         const existing = old?.collaborators || [];
         const emailLower = email.toLowerCase();
@@ -237,7 +261,7 @@ export function useUpdateCollaboratorRole(listId: string, listSlug?: string) {
           ),
         };
       });
-      
+
       return { previous };
     },
     onSuccess: (data, variables) => {
@@ -246,9 +270,11 @@ export function useUpdateCollaboratorRole(listId: string, listSlug?: string) {
         description: `${variables.email} is now a ${variables.role}.`,
         variant: "success",
       });
-      
+
       if (listSlug) {
-        queryClient.invalidateQueries({ queryKey: listQueryKeys.unified(listSlug) });
+        queryClient.invalidateQueries({
+          queryKey: listQueryKeys.unified(listSlug),
+        });
       }
       queryClient.invalidateQueries({ queryKey: listQueryKeys.allLists() });
     },
@@ -259,10 +285,11 @@ export function useUpdateCollaboratorRole(listId: string, listSlug?: string) {
           context.previous
         );
       }
-      
+
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to update role",
+        description:
+          error instanceof Error ? error.message : "Failed to update role",
         variant: "error",
       });
     },
@@ -272,13 +299,15 @@ export function useUpdateCollaboratorRole(listId: string, listSlug?: string) {
 export function useRemoveCollaborator(listId: string, listSlug?: string) {
   const queryClient = useQueryClient();
   const { toast } = useToast();
-  
+
   return useMutation({
     mutationFn: async (email: string) => {
       // Use slug if available, otherwise use ID
       const identifier = listSlug || listId;
       const response = await fetch(
-        `/api/lists/${identifier}/collaborators?email=${encodeURIComponent(email)}`,
+        `/api/lists/${identifier}/collaborators?email=${encodeURIComponent(
+          email
+        )}`,
         { method: "DELETE" }
       );
       if (!response.ok) {
@@ -290,17 +319,21 @@ export function useRemoveCollaborator(listId: string, listSlug?: string) {
     onMutate: async (email) => {
       const queryKey = listQueryKeys.collaborators(listId);
       await queryClient.cancelQueries({ queryKey });
-      
-      const previous = queryClient.getQueryData<{ collaborators: Array<{ email: string; role: string }> }>(queryKey);
-      
+
+      const previous = queryClient.getQueryData<{
+        collaborators: Array<{ email: string; role: string }>;
+      }>(queryKey);
+
       queryClient.setQueryData(queryKey, (old: any) => {
         const existing = old?.collaborators || [];
         const emailLower = email.toLowerCase();
         return {
-          collaborators: existing.filter((c: any) => c.email.toLowerCase() !== emailLower),
+          collaborators: existing.filter(
+            (c: any) => c.email.toLowerCase() !== emailLower
+          ),
         };
       });
-      
+
       return { previous };
     },
     onSuccess: (data, email) => {
@@ -309,9 +342,11 @@ export function useRemoveCollaborator(listId: string, listSlug?: string) {
         description: `${email} has been removed from this list.`,
         variant: "success",
       });
-      
+
       if (listSlug) {
-        queryClient.invalidateQueries({ queryKey: listQueryKeys.unified(listSlug) });
+        queryClient.invalidateQueries({
+          queryKey: listQueryKeys.unified(listSlug),
+        });
       }
       queryClient.invalidateQueries({ queryKey: listQueryKeys.allLists() });
     },
@@ -322,10 +357,13 @@ export function useRemoveCollaborator(listId: string, listSlug?: string) {
           context.previous
         );
       }
-      
+
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to remove collaborator",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Failed to remove collaborator",
         variant: "error",
       });
     },
@@ -338,7 +376,7 @@ export function useRemoveCollaborator(listId: string, listSlug?: string) {
 export function useAddUrl(listId: string, listSlug: string) {
   const queryClient = useQueryClient();
   const { toast } = useToast();
-  
+
   return useMutation({
     mutationFn: async (urlData: {
       url: string;
@@ -378,26 +416,30 @@ export function useAddUrl(listId: string, listSlug: string) {
           clickCount: 0,
           position: urls.length,
         };
-        
+
         currentList.set({
           ...current,
           urls: [...urls, newUrl],
         });
       }
-      
+
       // Cancel queries to prevent overwriting
-      await queryClient.cancelQueries({ queryKey: listQueryKeys.unified(listSlug) });
+      await queryClient.cancelQueries({
+        queryKey: listQueryKeys.unified(listSlug),
+      });
     },
     onSuccess: (data) => {
       // Update store with server response
       if (data.list) {
         currentList.set(data.list);
       }
-      
+
       // Invalidate queries
-      queryClient.invalidateQueries({ queryKey: listQueryKeys.unified(listSlug) });
+      queryClient.invalidateQueries({
+        queryKey: listQueryKeys.unified(listSlug),
+      });
       queryClient.invalidateQueries({ queryKey: listQueryKeys.all });
-      
+
       toast({
         title: "URL Added! ✅",
         description: "The URL has been added to your list.",
@@ -406,11 +448,14 @@ export function useAddUrl(listId: string, listSlug: string) {
     },
     onError: (error) => {
       // Rollback - refetch to get correct state
-      queryClient.invalidateQueries({ queryKey: listQueryKeys.unified(listSlug) });
-      
+      queryClient.invalidateQueries({
+        queryKey: listQueryKeys.unified(listSlug),
+      });
+
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to add URL",
+        description:
+          error instanceof Error ? error.message : "Failed to add URL",
         variant: "error",
       });
     },
@@ -420,12 +465,15 @@ export function useAddUrl(listId: string, listSlug: string) {
 export function useDeleteUrl(listId: string, listSlug: string) {
   const queryClient = useQueryClient();
   const { toast } = useToast();
-  
+
   return useMutation({
     mutationFn: async (urlId: string) => {
-      const response = await fetch(`/api/lists/${listSlug}/urls?urlId=${urlId}`, {
-        method: "DELETE",
-      });
+      const response = await fetch(
+        `/api/lists/${listSlug}/urls?urlId=${urlId}`,
+        {
+          method: "DELETE",
+        }
+      );
       if (!response.ok) {
         throw new Error("Failed to delete URL");
       }
@@ -437,15 +485,17 @@ export function useDeleteUrl(listId: string, listSlug: string) {
       if (current?.id === listId && current.urls) {
         const urls = current.urls as unknown as UrlItem[];
         const filtered = urls.filter((u) => u.id !== urlId);
-        
+
         currentList.set({
           ...current,
           urls: filtered,
         });
       }
-      
-      await queryClient.cancelQueries({ queryKey: listQueryKeys.unified(listSlug) });
-      
+
+      await queryClient.cancelQueries({
+        queryKey: listQueryKeys.unified(listSlug),
+      });
+
       const previous = currentList.get();
       return { previous };
     },
@@ -454,17 +504,25 @@ export function useDeleteUrl(listId: string, listSlug: string) {
       if (data.list) {
         currentList.set(data.list);
       }
-      
+
       // Invalidate queries
-      queryClient.invalidateQueries({ queryKey: listQueryKeys.unified(listSlug) });
-      queryClient.invalidateQueries({ queryKey: listQueryKeys.collections(listId) });
-      queryClient.invalidateQueries({ queryKey: listQueryKeys.duplicates(listId) });
+      queryClient.invalidateQueries({
+        queryKey: listQueryKeys.unified(listSlug),
+      });
+      queryClient.invalidateQueries({
+        queryKey: listQueryKeys.collections(listId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: listQueryKeys.duplicates(listId),
+      });
       queryClient.invalidateQueries({ queryKey: listQueryKeys.all });
-      
+
       const deletedUrl = data.deletedUrl;
       toast({
         title: "URL Removed",
-        description: `"${deletedUrl?.title || deletedUrl?.url || "URL"}" has been removed.`,
+        description: `"${
+          deletedUrl?.title || deletedUrl?.url || "URL"
+        }" has been removed.`,
         variant: "success",
       });
     },
@@ -473,12 +531,15 @@ export function useDeleteUrl(listId: string, listSlug: string) {
       if (context?.previous) {
         currentList.set(context.previous);
       }
-      
-      queryClient.invalidateQueries({ queryKey: listQueryKeys.unified(listSlug) });
-      
+
+      queryClient.invalidateQueries({
+        queryKey: listQueryKeys.unified(listSlug),
+      });
+
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to delete URL",
+        description:
+          error instanceof Error ? error.message : "Failed to delete URL",
         variant: "error",
       });
     },
@@ -488,9 +549,15 @@ export function useDeleteUrl(listId: string, listSlug: string) {
 export function useUpdateUrl(listId: string, listSlug: string) {
   const queryClient = useQueryClient();
   const { toast } = useToast();
-  
+
   return useMutation({
-    mutationFn: async ({ urlId, updates }: { urlId: string; updates: Partial<UrlItem> }) => {
+    mutationFn: async ({
+      urlId,
+      updates,
+    }: {
+      urlId: string;
+      updates: Partial<UrlItem>;
+    }) => {
       const response = await fetch(`/api/lists/${listSlug}/urls`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -508,25 +575,31 @@ export function useUpdateUrl(listId: string, listSlug: string) {
       if (current?.id === listId && current.urls) {
         const urls = current.urls as unknown as UrlItem[];
         const updated = urls.map((u) =>
-          u.id === urlId ? { ...u, ...updates, updatedAt: new Date().toISOString() } : u
+          u.id === urlId
+            ? { ...u, ...updates, updatedAt: new Date().toISOString() }
+            : u
         );
-        
+
         currentList.set({
           ...current,
           urls: updated,
         });
       }
-      
-      await queryClient.cancelQueries({ queryKey: listQueryKeys.unified(listSlug) });
+
+      await queryClient.cancelQueries({
+        queryKey: listQueryKeys.unified(listSlug),
+      });
     },
     onSuccess: (data) => {
       if (data.list) {
         currentList.set(data.list);
       }
-      
-      queryClient.invalidateQueries({ queryKey: listQueryKeys.unified(listSlug) });
+
+      queryClient.invalidateQueries({
+        queryKey: listQueryKeys.unified(listSlug),
+      });
       queryClient.invalidateQueries({ queryKey: listQueryKeys.all });
-      
+
       toast({
         title: "URL Updated! ✅",
         description: "The URL has been updated successfully.",
@@ -534,11 +607,14 @@ export function useUpdateUrl(listId: string, listSlug: string) {
       });
     },
     onError: (error) => {
-      queryClient.invalidateQueries({ queryKey: listQueryKeys.unified(listSlug) });
-      
+      queryClient.invalidateQueries({
+        queryKey: listQueryKeys.unified(listSlug),
+      });
+
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to update URL",
+        description:
+          error instanceof Error ? error.message : "Failed to update URL",
         variant: "error",
       });
     },
@@ -591,7 +667,7 @@ export function useAllListsQuery() {
 export function useDeleteList() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
-  
+
   return useMutation({
     mutationFn: async (listId: string) => {
       const response = await fetch(`/api/lists/${listId}`, {
@@ -606,29 +682,31 @@ export function useDeleteList() {
     onMutate: async (listId) => {
       // Optimistic update - remove from cache immediately
       await queryClient.cancelQueries({ queryKey: listQueryKeys.allLists() });
-      
-      const previous = queryClient.getQueryData<{ lists: UserList[] }>(listQueryKeys.allLists());
-      
+
+      const previous = queryClient.getQueryData<{ lists: UserList[] }>(
+        listQueryKeys.allLists()
+      );
+
       // Get list title before removing from cache
       const deletedList = previous?.lists?.find((l) => l.id === listId);
       const listTitle = deletedList?.title || deletedList?.slug || "List";
-      
+
       queryClient.setQueryData(listQueryKeys.allLists(), (old: any) => {
         if (!old?.lists) return old;
         return {
           lists: old.lists.filter((list: UserList) => list.id !== listId),
         };
       });
-      
+
       return { previous, deletedListTitle: listTitle };
     },
     onSuccess: (data, listId, context) => {
       // Invalidate all list-related queries
       queryClient.invalidateQueries({ queryKey: listQueryKeys.all });
-      
+
       // Use list title from context (captured before deletion)
       const listTitle = context?.deletedListTitle || "List";
-      
+
       toast({
         title: "List Deleted 🗑️",
         description: `"${listTitle}" has been successfully deleted.`,
@@ -640,10 +718,11 @@ export function useDeleteList() {
       if (context?.previous) {
         queryClient.setQueryData(listQueryKeys.allLists(), context.previous);
       }
-      
+
       toast({
         title: "Delete Failed",
-        description: error instanceof Error ? error.message : "Failed to delete list",
+        description:
+          error instanceof Error ? error.message : "Failed to delete list",
         variant: "error",
       });
     },
@@ -661,25 +740,24 @@ export function setupSSECacheSync() {
       action?: string;
       slug?: string;
     }>;
-    
+
     const listId = customEvent.detail?.listId;
     const slug = customEvent.detail?.slug;
     const action = customEvent.detail?.action || "";
-    
+
     if (!listId) return;
-    
+
     // REMOVED: Aggressive invalidations causing duplicate API calls
     // React Query's staleTime handles cache freshness
     // SSE events already trigger unified-update which ListPage handles
     // Only mutations need explicit invalidations (handled in mutation callbacks)
   };
-  
+
   if (typeof window !== "undefined") {
     window.addEventListener("unified-update", handleUnifiedUpdate);
-    
+
     return () => {
       window.removeEventListener("unified-update", handleUnifiedUpdate);
     };
   }
 }
-

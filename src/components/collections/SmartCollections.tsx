@@ -51,6 +51,17 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
 
   // OPTIMIZATION: Use React Query for collection suggestions with automatic caching
   // React Query handles browser session caching, memoization, and background refetching
+  // CRITICAL: Defer fetch until after page is visible to avoid blocking initial render
+  const [shouldFetchCollections, setShouldFetchCollections] = useState(false);
+
+  useEffect(() => {
+    // Defer collections fetch by 3 seconds to let page render first
+    const timer = setTimeout(() => {
+      setShouldFetchCollections(true);
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, []);
+
   const {
     data: suggestionsData,
     isLoading: isLoadingSuggestions,
@@ -76,13 +87,20 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
       const data = await response.json();
       return { suggestions: data.suggestions || [] };
     },
-    enabled: !!listSlug && !!list?.urls && list.urls.length >= 2,
+    enabled:
+      shouldFetchCollections &&
+      !!listSlug &&
+      !!list?.urls &&
+      list.urls.length >= 2,
     staleTime: 60 * 60 * 1000, // 1 hour - suggestions stay fresh for 1 hour (server cache is also 1 hour)
     gcTime: 2 * 60 * 60 * 1000, // 2 hours - cache kept for 2 hours in browser session
     refetchOnWindowFocus: false, // Don't refetch on window focus
     refetchOnReconnect: false, // Don't refetch on network reconnect
+    refetchOnMount: false, // CRITICAL: Use cache if available, don't block page load
     retry: false, // Don't retry on error (let user manually refresh)
-    // React Query will use cached data immediately if available, no skeleton needed
+    // CRITICAL: Defer fetch until after page is visible - don't block initial render
+    // Use cached data immediately if available
+    placeholderData: (previousData) => previousData,
   });
 
   const suggestions = suggestionsData?.suggestions || [];
