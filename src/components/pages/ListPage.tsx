@@ -261,7 +261,9 @@ export default function ListPageClient() {
         method: "POST",
       }).catch((error) => {
         // Silently fail - vector sync is optional enhancement
-        console.warn("Vector sync failed (non-critical):", error);
+        if (process.env.NODE_ENV === "development") {
+          console.warn("Vector sync failed (non-critical):", error);
+        }
       });
     }
 
@@ -597,10 +599,12 @@ export default function ListPageClient() {
                           "Scheduled jobs require a public URL. Deploy to production or set up manually in QStash dashboard. Check console for details.",
                         variant: "info",
                       });
-                      console.log(
-                        "📋 Manual Setup Instructions:",
-                        data.instructions
-                      );
+                      if (process.env.NODE_ENV === "development") {
+                        console.log(
+                          "📋 Manual Setup Instructions:",
+                          data.instructions
+                        );
+                      }
                     } else {
                       toast({
                         title: "Setup Failed",

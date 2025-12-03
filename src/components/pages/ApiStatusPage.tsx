@@ -1,46 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { CheckCircle2, AlertCircle, Clock, Activity } from "lucide-react";
-
-interface ApiStatus {
-  status: {
-    overall: string;
-    database: string;
-    uptime: number;
-    timestamp: string;
-  };
-  endpoints: Array<{
-    name: string;
-    endpoint: string;
-    status: string;
-    responseTime: number;
-  }>;
-}
+import { useApiStatusQuery } from "@/hooks/useBrowseQueries";
 
 export default function ApiStatusPage() {
-  const [statusData, setStatusData] = useState<ApiStatus | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    fetchStatus();
-    const interval = setInterval(fetchStatus, 30000); // Refresh every 30s
-    return () => clearInterval(interval);
-  }, []);
-
-  const fetchStatus = async () => {
-    try {
-      const response = await fetch("/api/business-insights/status");
-      const data = await response.json();
-      setStatusData(data);
-    } catch (error) {
-      console.error("Failed to fetch status:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  // CRITICAL: Use React Query with refetchInterval for real-time status monitoring
+  // This polls every 30 seconds automatically - no manual setInterval needed
+  const { data: statusData, isLoading } = useApiStatusQuery();
 
   const formatUptime = (seconds: number) => {
     if (seconds < 60) {
@@ -52,7 +20,7 @@ export default function ApiStatusPage() {
     return `${days}d ${hours}h ${minutes}m`;
   };
 
-  if (isLoading || !statusData) {
+  if (isLoading || !statusData?.status) {
     return (
       <div className="min-h-screen w-full">
         {/* Header Skeleton */}
@@ -160,7 +128,7 @@ export default function ApiStatusPage() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle>System Status</CardTitle>
-            {getStatusBadge(statusData.status.overall)}
+            {statusData?.status && getStatusBadge(statusData.status.overall)}
           </div>
         </CardHeader>
         <CardContent>
@@ -168,13 +136,13 @@ export default function ApiStatusPage() {
             <div>
               <p className="text-white/60 text-sm mb-1">Database</p>
               <div className="flex items-center gap-2">
-                {statusData.status.database === "operational" ? (
+                {statusData?.status?.database === "operational" ? (
                   <CheckCircle2 className="h-4 w-4 text-green-400" />
                 ) : (
                   <AlertCircle className="h-4 w-4 text-yellow-400" />
                 )}
                 <span className="text-white font-medium capitalize">
-                  {statusData.status.database}
+                  {statusData?.status?.database || "unknown"}
                 </span>
               </div>
             </div>
@@ -183,14 +151,18 @@ export default function ApiStatusPage() {
               <div className="flex items-center gap-2">
                 <Clock className="h-4 w-4 text-blue-400" />
                 <span className="text-white font-medium">
-                  {formatUptime(statusData.status.uptime)}
+                  {statusData?.status?.uptime
+                    ? formatUptime(statusData.status.uptime)
+                    : "N/A"}
                 </span>
               </div>
             </div>
             <div>
               <p className="text-white/60 text-sm mb-1">Last Updated</p>
               <span className="text-white font-medium text-sm">
-                {new Date(statusData.status.timestamp).toLocaleTimeString()}
+                {statusData?.status?.timestamp
+                  ? new Date(statusData.status.timestamp).toLocaleTimeString()
+                  : "N/A"}
               </span>
             </div>
           </div>
@@ -204,7 +176,7 @@ export default function ApiStatusPage() {
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
-            {statusData.endpoints.map((endpoint) => (
+            {statusData?.endpoints?.map((endpoint) => (
               <div
                 key={endpoint.endpoint}
                 className="flex items-center justify-between p-4 rounded-lg bg-white/5 border border-white/10"

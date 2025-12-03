@@ -25,11 +25,19 @@ export function useSession() {
       }
       return response.json();
     },
-    staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
-    gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes (formerly cacheTime)
+    // CRITICAL: Cache forever until invalidated (after login/logout)
+    // With staleTime: Infinity, data never becomes stale automatically
+    // Only becomes stale when manually invalidated (login/logout), then refetches once
+    staleTime: Infinity, // Cache forever until invalidated
+    gcTime: 10 * 60 * 1000, // 10 minutes - keep in cache after component unmounts
     refetchOnWindowFocus: false, // Don't refetch on window focus
-    refetchOnMount: false, // Don't refetch on mount if data exists
-    refetchOnReconnect: true, // Refetch on reconnect
+    // CRITICAL: Refetch only when stale (invalidated)
+    // With staleTime: Infinity, this only triggers after invalidation
+    // Normal usage uses cache instantly (no API calls)
+    refetchOnMount: true, // Refetch only when stale (after invalidation)
+    refetchOnReconnect: false, // Don't refetch on reconnect (use cache, invalidate on login/logout instead)
+    // CRITICAL: Use stale data immediately if available, fetch fresh in background
+    placeholderData: (previousData) => previousData, // Keep previous data visible while refetching
   });
 
   return {

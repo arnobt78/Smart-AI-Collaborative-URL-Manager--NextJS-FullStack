@@ -9,10 +9,12 @@ import {
 } from "@heroicons/react/24/outline";
 import { useTypewriter } from "@/hooks/useTypewriter";
 import { IconButton } from "@/components/ui/HoverTooltip";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function Navbar() {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { displayText, isComplete } = useTypewriter({
     text: "Daily Urlist",
     speed: 200,
@@ -111,15 +113,27 @@ export default function Navbar() {
       });
 
       if (response.ok) {
+        // CRITICAL: Clear ALL React Query cache before logout
+        // This ensures no user-specific data remains cached for the next user
+        queryClient.clear(); // Remove all queries from cache
+        
+        // Clear localStorage cache as well (if used)
+        if (typeof window !== "undefined") {
+          const keys = Object.keys(localStorage);
+          keys.forEach((key) => {
+            if (key.startsWith("react-query:")) {
+              localStorage.removeItem(key);
+            }
+          });
+        }
+        
         // Clear browser session/cookies and redirect to home (which will show Auth page)
         // Use window.location.href to force a full page reload and clear all state
         window.location.href = "/";
       } else {
-        console.error("Logout failed");
         setIsLoggingOut(false);
       }
     } catch (error) {
-      console.error("Logout error:", error);
       setIsLoggingOut(false);
     }
   };

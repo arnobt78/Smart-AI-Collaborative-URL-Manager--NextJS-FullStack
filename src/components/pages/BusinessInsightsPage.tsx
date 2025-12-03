@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/Tabs";
 import { OverviewCards } from "@/components/business-insights/OverviewCards";
 import { ActivityChart } from "@/components/business-insights/ActivityChart";
@@ -10,6 +10,13 @@ import { GlobalStats } from "@/components/business-insights/GlobalStats";
 // Card components imported for type checking and potential future use
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { BarChart3, TrendingUp, Star, Zap, Globe } from "lucide-react";
+import {
+  useBusinessOverviewQuery,
+  useBusinessActivityQuery,
+  useBusinessPopularQuery,
+  useBusinessPerformanceQuery,
+  useBusinessGlobalQuery,
+} from "@/hooks/useBrowseQueries";
 
 // Type definitions for all data structures
 interface OverviewData {
@@ -96,65 +103,51 @@ const _cardTypeCheck: CardComponentTypes[] = [];
 export default function BusinessInsightsPage(
   props: BusinessInsightsPageProps = {}
 ) {
-  const [overviewData, setOverviewData] = useState<OverviewData | null>(null);
-  const [activityData, setActivityData] = useState<ActivityData[] | undefined>(
-    undefined
-  );
-  const [popularData, setPopularData] = useState<PopularData | null>(null);
-  const [performanceData, setPerformanceData] =
-    useState<PerformanceData | null>(null);
-  const [globalData, setGlobalData] = useState<GlobalStatsData | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("overview");
+
+  // CRITICAL: Use React Query with Infinity cache - only refetches when invalidated
+  const { data: overviewResult, isLoading: isLoadingOverview } =
+    useBusinessOverviewQuery();
+  const { data: activityResult, isLoading: isLoadingActivity } =
+    useBusinessActivityQuery(30);
+  const { data: popularResult, isLoading: isLoadingPopular } =
+    useBusinessPopularQuery();
+  const { data: performanceResult, isLoading: isLoadingPerformance } =
+    useBusinessPerformanceQuery();
+  const { data: globalResult, isLoading: isLoadingGlobal } =
+    useBusinessGlobalQuery();
+
+  // Extract data from query results
+  const overviewData = overviewResult?.overview || null;
+  const activityData = activityResult?.activity;
+  const popularData =
+    popularResult?.popularUrls && popularResult?.activeLists
+      ? {
+          popularUrls: popularResult.popularUrls,
+          activeLists: popularResult.activeLists,
+        }
+      : null;
+  const performanceData = performanceResult?.performance || null;
+  const globalData = globalResult?.global || null;
+
+  // Check if any query is loading
+  const isLoading =
+    isLoadingOverview ||
+    isLoadingActivity ||
+    isLoadingPopular ||
+    isLoadingPerformance ||
+    isLoadingGlobal;
 
   // Ensure props and Card imports are considered used (for future extensibility)
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const _propsReference = {};
+  const _propsReference = props;
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const _cardReference = _cardTypeCheck;
+  // References used to prevent unused warnings while keeping imports available
+  void _propsReference;
+  void _cardReference;
 
-  useEffect(() => {
-    fetchData();
-    // References used to prevent unused warnings while keeping imports available
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    void _propsReference;
-    void _cardReference;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const fetchData = async () => {
-    setIsLoading(true);
-    try {
-      const [overview, activity, popular, performance, global] =
-        await Promise.all([
-          fetch("/api/business-insights/overview").then((r) => r.json()),
-          fetch("/api/business-insights/activity?days=30").then((r) =>
-            r.json()
-          ),
-          fetch("/api/business-insights/popular").then((r) => r.json()),
-          fetch("/api/business-insights/performance").then((r) => r.json()),
-          fetch("/api/business-insights/global").then((r) => r.json()),
-        ]);
-
-      if (overview.overview) setOverviewData(overview.overview);
-      if (activity.activity)
-        setActivityData(activity.activity as ActivityData[]);
-      if (popular.popularUrls && popular.activeLists) {
-        setPopularData({
-          popularUrls: popular.popularUrls,
-          activeLists: popular.activeLists,
-        });
-      }
-      if (performance.performance) setPerformanceData(performance.performance);
-      if (global.global) setGlobalData(global.global);
-    } catch (error) {
-      console.error("Failed to fetch business insights:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  if (isLoading) {
+  if (isLoading && !overviewData && !activityData && !popularData) {
     return (
       <div className="min-h-screen w-full">
         {/* Header Skeleton */}

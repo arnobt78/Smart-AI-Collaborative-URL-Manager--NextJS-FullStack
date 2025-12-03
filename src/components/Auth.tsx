@@ -85,10 +85,22 @@ export default function Auth() {
           variant: "success",
         });
         
-        // Invalidate session cache to trigger refetch and start prefetching user data immediately
-        queryClient.invalidateQueries({ queryKey: ["session"] });
-        // Dispatch event for components that listen
+        // CRITICAL: Clear all old user data cache before new signup
+        // This ensures no data from previous user remains cached
+        queryClient.clear(); // Remove all queries from cache
+        
+        // Clear localStorage cache as well (if used)
         if (typeof window !== "undefined") {
+          const keys = Object.keys(localStorage);
+          keys.forEach((key) => {
+            if (key.startsWith("react-query:")) {
+              localStorage.removeItem(key);
+            }
+          });
+          
+          // Invalidate session cache to trigger refetch for new user
+          queryClient.invalidateQueries({ queryKey: ["session"] });
+          // Dispatch event for components that listen
           window.dispatchEvent(new CustomEvent("session-updated"));
         }
         
@@ -144,10 +156,22 @@ export default function Auth() {
           variant: "success",
         });
         
-        // Invalidate session cache to trigger refetch and start prefetching user data immediately
-        queryClient.invalidateQueries({ queryKey: ["session"] });
-        // Dispatch event for components that listen
+        // CRITICAL: Clear all old user data cache before new login
+        // This ensures no data from previous user remains cached
+        queryClient.clear(); // Remove all queries from cache
+        
+        // Clear localStorage cache as well (if used)
         if (typeof window !== "undefined") {
+          const keys = Object.keys(localStorage);
+          keys.forEach((key) => {
+            if (key.startsWith("react-query:")) {
+              localStorage.removeItem(key);
+            }
+          });
+          
+          // Invalidate session cache to trigger refetch for new user
+          queryClient.invalidateQueries({ queryKey: ["session"] });
+          // Dispatch event for components that listen
           window.dispatchEvent(new CustomEvent("session-updated"));
         }
         

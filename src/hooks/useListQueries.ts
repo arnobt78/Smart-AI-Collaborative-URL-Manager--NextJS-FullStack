@@ -4,6 +4,12 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { currentList, type UrlList, type UrlItem } from "@/stores/urlListStore";
 import { queryClient } from "@/lib/react-query";
 import { useToast } from "@/components/ui/Toaster";
+import {
+  invalidateCollaboratorQueries,
+  invalidateUrlQueries,
+  invalidateAllListsQueries,
+  invalidateListQueries,
+} from "@/utils/queryInvalidation";
 
 // ============================================
 // QUERY KEYS - Centralized for consistency
@@ -114,10 +120,16 @@ export function useUnifiedListQuery(slug: string, enabled: boolean = true) {
       };
     },
     enabled: enabled && !!slug,
-    staleTime: 5 * 60 * 1000, // 5 minutes - data stays fresh longer
-    gcTime: 30 * 60 * 1000, // 30 minutes - keep in cache much longer
-    refetchOnWindowFocus: false,
-    refetchOnMount: false, // CRITICAL: Use cache if available, don't refetch on mount
+    // CRITICAL: Cache forever until invalidated (after mutations/SSE)
+    // With staleTime: Infinity, data never becomes stale automatically
+    // Only becomes stale when manually invalidated, then refetches once
+    staleTime: Infinity, // Cache forever until invalidated
+    gcTime: 30 * 60 * 1000, // 30 minutes - keep in cache after component unmounts
+    refetchOnWindowFocus: false, // Don't refetch on window focus
+    // CRITICAL: Refetch only when stale (invalidated)
+    // With staleTime: Infinity, this only triggers after invalidation
+    // Normal navigation uses cache instantly (no API calls)
+    refetchOnMount: true, // Refetch only when stale (after invalidation)
     refetchOnReconnect: false, // Don't refetch on reconnect
     // CRITICAL: Use stale data immediately if available, fetch fresh in background
     placeholderData: (previousData) => previousData, // Keep previous data visible while refetching
@@ -192,13 +204,11 @@ export function useAddCollaborator(listId: string, listSlug?: string) {
         variant: "success",
       });
 
-      // Invalidate unified query and all lists to refresh
+      // CRITICAL: Use centralized invalidation for consistency
+      // Invalidates unified query and all lists query
       if (listSlug) {
-        queryClient.invalidateQueries({
-          queryKey: listQueryKeys.unified(listSlug),
-        });
+        invalidateCollaboratorQueries(queryClient, listSlug);
       }
-      queryClient.invalidateQueries({ queryKey: listQueryKeys.allLists() });
     },
     onError: (error, variables, context) => {
       // Rollback
@@ -271,12 +281,11 @@ export function useUpdateCollaboratorRole(listId: string, listSlug?: string) {
         variant: "success",
       });
 
+      // CRITICAL: Use centralized invalidation for consistency
+      // Invalidates unified query and all lists query
       if (listSlug) {
-        queryClient.invalidateQueries({
-          queryKey: listQueryKeys.unified(listSlug),
-        });
+        invalidateCollaboratorQueries(queryClient, listSlug);
       }
-      queryClient.invalidateQueries({ queryKey: listQueryKeys.allLists() });
     },
     onError: (error, variables, context) => {
       if (context?.previous) {
@@ -343,12 +352,11 @@ export function useRemoveCollaborator(listId: string, listSlug?: string) {
         variant: "success",
       });
 
+      // CRITICAL: Use centralized invalidation for consistency
+      // Invalidates unified query and all lists query
       if (listSlug) {
-        queryClient.invalidateQueries({
-          queryKey: listQueryKeys.unified(listSlug),
-        });
+        invalidateCollaboratorQueries(queryClient, listSlug);
       }
-      queryClient.invalidateQueries({ queryKey: listQueryKeys.allLists() });
     },
     onError: (error, email, context) => {
       if (context?.previous) {
@@ -434,11 +442,9 @@ export function useAddUrl(listId: string, listSlug: string) {
         currentList.set(data.list);
       }
 
-      // Invalidate queries
-      queryClient.invalidateQueries({
-        queryKey: listQueryKeys.unified(listSlug),
-      });
-      queryClient.invalidateQueries({ queryKey: listQueryKeys.all });
+      // CRITICAL: Use centralized invalidation for consistency
+      // Invalidates unified query, all lists, collections, and duplicates
+      invalidateUrlQueries(queryClient, listSlug, listId, false);
 
       toast({
         title: "URL Added! ✅",
@@ -447,10 +453,8 @@ export function useAddUrl(listId: string, listSlug: string) {
       });
     },
     onError: (error) => {
-      // Rollback - refetch to get correct state
-      queryClient.invalidateQueries({
-        queryKey: listQueryKeys.unified(listSlug),
-      });
+      // Rollback - refetch to get correct state using centralized invalidation
+      invalidateListQueries(queryClient, listSlug, listId);
 
       toast({
         title: "Error",
@@ -505,17 +509,9 @@ export function useDeleteUrl(listId: string, listSlug: string) {
         currentList.set(data.list);
       }
 
-      // Invalidate queries
-      queryClient.invalidateQueries({
-        queryKey: listQueryKeys.unified(listSlug),
-      });
-      queryClient.invalidateQueries({
-        queryKey: listQueryKeys.collections(listId),
-      });
-      queryClient.invalidateQueries({
-        queryKey: listQueryKeys.duplicates(listId),
-      });
-      queryClient.invalidateQueries({ queryKey: listQueryKeys.all });
+      // CRITICAL: Use centralized invalidation for consistency
+      // Invalidates unified query, all lists, collections, and duplicates
+      invalidateUrlQueries(queryClient, listSlug, listId, false);
 
       const deletedUrl = data.deletedUrl;
       toast({
@@ -532,9 +528,8 @@ export function useDeleteUrl(listId: string, listSlug: string) {
         currentList.set(context.previous);
       }
 
-      queryClient.invalidateQueries({
-        queryKey: listQueryKeys.unified(listSlug),
-      });
+      // Rollback - refetch to get correct state using centralized invalidation
+      invalidateListQueries(queryClient, listSlug, listId);
 
       toast({
         title: "Error",
@@ -595,10 +590,9 @@ export function useUpdateUrl(listId: string, listSlug: string) {
         currentList.set(data.list);
       }
 
-      queryClient.invalidateQueries({
-        queryKey: listQueryKeys.unified(listSlug),
-      });
-      queryClient.invalidateQueries({ queryKey: listQueryKeys.all });
+      // CRITICAL: Use centralized invalidation for consistency
+      // Invalidates unified query, all lists, collections, and duplicates
+      invalidateUrlQueries(queryClient, listSlug, listId, false);
 
       toast({
         title: "URL Updated! ✅",
@@ -607,9 +601,8 @@ export function useUpdateUrl(listId: string, listSlug: string) {
       });
     },
     onError: (error) => {
-      queryClient.invalidateQueries({
-        queryKey: listQueryKeys.unified(listSlug),
-      });
+      // Rollback - refetch to get correct state using centralized invalidation
+      invalidateListQueries(queryClient, listSlug, listId);
 
       toast({
         title: "Error",
@@ -652,12 +645,20 @@ export function useAllListsQuery() {
       const data = await response.json();
       return { lists: data.lists || [] };
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes - data is fresh for 5 minutes
-    gcTime: 10 * 60 * 1000, // 10 minutes - cache kept for 10 minutes
-    refetchOnWindowFocus: false, // Don't refetch on tab switch - causes unnecessary API calls
-    refetchOnMount: false, // Don't refetch on mount if data is fresh (use cache if available)
+    // CRITICAL: Cache forever until invalidated (after mutations/SSE)
+    // With staleTime: Infinity, data never becomes stale automatically
+    // Only becomes stale when manually invalidated, then refetches once
+    staleTime: Infinity, // Cache forever until invalidated
+    gcTime: 10 * 60 * 1000, // 10 minutes - keep in cache after component unmounts
+    refetchOnWindowFocus: false, // Don't refetch on tab switch
+    // CRITICAL: Refetch only when stale (invalidated)
+    // With staleTime: Infinity, this only triggers after invalidation
+    // Normal navigation uses cache instantly (no API calls)
+    refetchOnMount: true, // Refetch only when stale (after invalidation)
     refetchInterval: false, // Disable automatic refetching - SSE events handle updates
     retry: 1,
+    // CRITICAL: Use stale data immediately if available, fetch fresh in background
+    placeholderData: (previousData) => previousData, // Keep previous data visible while refetching
   });
 }
 
@@ -701,8 +702,9 @@ export function useDeleteList() {
       return { previous, deletedListTitle: listTitle };
     },
     onSuccess: (data, listId, context) => {
-      // Invalidate all list-related queries
-      queryClient.invalidateQueries({ queryKey: listQueryKeys.all });
+      // CRITICAL: Use centralized invalidation for consistency
+      // Invalidates all list-related queries
+      invalidateAllListsQueries(queryClient);
 
       // Use list title from context (captured before deletion)
       const listTitle = context?.deletedListTitle || "List";

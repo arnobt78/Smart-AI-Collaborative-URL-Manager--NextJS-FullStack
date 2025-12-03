@@ -1,13 +1,15 @@
 import { QueryClient } from "@tanstack/react-query";
 
 // Create a query client with caching configuration
+// CRITICAL: Default to Infinity cache - individual queries can override if needed
+// This ensures consistent caching behavior across the application
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 1000 * 60 * 60 * 24, // 24 hours - data is fresh for 24 hours
+      staleTime: Infinity, // Cache forever until invalidated (default)
       gcTime: 1000 * 60 * 60 * 24 * 7, // 7 days - cache persists for 7 days
       refetchOnWindowFocus: false, // Don't refetch on window focus
-      refetchOnMount: false, // Don't refetch on mount if data exists
+      refetchOnMount: true, // Refetch only when stale (after invalidation)
       retry: 1, // Only retry once on failure
     },
   },
@@ -22,7 +24,9 @@ export const saveQueryDataToLocalStorage = (
     const key = `react-query:${queryKey.join(":")}`;
     localStorage.setItem(key, JSON.stringify({ data, timestamp: Date.now() }));
   } catch (error) {
-    console.error("Failed to save query data to localStorage:", error);
+    if (process.env.NODE_ENV === "development") {
+      console.error("Failed to save query data to localStorage:", error);
+    }
   }
 };
 
@@ -42,7 +46,15 @@ export const loadQueryDataFromLocalStorage = (queryKey: readonly string[]) => {
       localStorage.removeItem(key);
     }
   } catch (error) {
-    console.error("Failed to load query data from localStorage:", error);
+    if (process.env.NODE_ENV === "development") {
+      console.error("Failed to load query data from localStorage:", error);
+    }
+  }
+  return undefined;
+};
+
+      console.error("Failed to load query data from localStorage:", error);
+    }
   }
   return undefined;
 };

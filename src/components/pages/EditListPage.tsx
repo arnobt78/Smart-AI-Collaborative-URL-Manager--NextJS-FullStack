@@ -9,7 +9,7 @@ import { useToast } from "@/components/ui/Toaster";
 import { PencilIcon } from "@heroicons/react/24/outline";
 import { useUnifiedListQuery } from "@/hooks/useListQueries";
 import { useQueryClient } from "@tanstack/react-query";
-import { listQueryKeys } from "@/hooks/useListQueries";
+import { invalidateListQueries } from "@/utils/queryInvalidation";
 
 export default function EditListPageClient() {
   const { slug } = useParams();
@@ -69,9 +69,9 @@ export default function EditListPageClient() {
         throw new Error(errorData.error || "Failed to update list");
       }
 
-      // Invalidate React Query cache to ensure fresh data when navigating back
-      queryClient.invalidateQueries({ queryKey: listQueryKeys.unified(listSlug) });
-      queryClient.invalidateQueries({ queryKey: listQueryKeys.allLists() });
+      // Invalidate React Query cache using centralized invalidation
+      // This ensures all related queries (unified, all lists, collections, etc.) update together
+      invalidateListQueries(queryClient, listSlug, listId);
       
       // Show success toast notification
       toast({

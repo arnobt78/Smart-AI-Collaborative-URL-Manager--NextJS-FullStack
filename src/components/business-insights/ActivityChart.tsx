@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   LineChart,
   Line,
@@ -13,6 +13,7 @@ import {
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/Tabs";
+import { useBusinessActivityQuery } from "@/hooks/useBrowseQueries";
 
 interface ActivityData {
   date: string;
@@ -66,31 +67,13 @@ export function ActivityChart({
   initialLoading,
 }: ActivityChartProps) {
   const [activeTab, setActiveTab] = useState<string>("30");
-  const [data, setData] = useState<ActivityData[]>(initialData || []);
-  const [isLoading, setIsLoading] = useState(initialLoading || false);
+  const days = parseInt(activeTab);
 
-  // Fetch data when tab changes
-  useEffect(() => {
-    const fetchData = async () => {
-      setIsLoading(true);
-      try {
-        const days = parseInt(activeTab);
-        const response = await fetch(
-          `/api/business-insights/activity?days=${days}`
-        );
-        if (response.ok) {
-          const result = await response.json();
-          setData(result.activity || []);
-        }
-      } catch (error) {
-        console.error("Failed to fetch activity data:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchData();
-  }, [activeTab]);
+  // CRITICAL: Use React Query with Infinity cache - only refetches when invalidated
+  const { data: activityResult, isLoading: isLoadingQuery } =
+    useBusinessActivityQuery(days);
+  const data = activityResult?.activity || initialData || [];
+  const isLoading = isLoadingQuery && !initialData;
 
   // Format dates for display
   const formattedData =

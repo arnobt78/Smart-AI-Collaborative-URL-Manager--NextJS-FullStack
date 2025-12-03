@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Badge } from "@/components/ui/Badge";
 import { Search, Globe, Eye, Users } from "lucide-react";
+import { usePublicListsQuery } from "@/hooks/useBrowseQueries";
 
 interface UrlItem {
   id: string;
@@ -37,17 +38,18 @@ interface PublicList {
 export default function BrowsePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [lists, setLists] = useState<PublicList[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState(searchParams.get("search") || "");
   const [page, setPage] = useState(
     parseInt(searchParams.get("page") || "1", 10)
   );
-  const [totalPages, setTotalPages] = useState(1);
 
+  // CRITICAL: Use React Query with Infinity cache - only refetches when invalidated
+  const { data, isLoading } = usePublicListsQuery(page, search || undefined);
+  const lists = data?.lists || [];
+  const totalPages = data?.pagination?.totalPages || 1;
+
+  // Update URL query params when search or page changes
   useEffect(() => {
-    fetchPublicLists();
-    // Update URL query params when search or page changes
     const params = new URLSearchParams();
     if (search) {
       params.set("search", search);
@@ -61,34 +63,9 @@ export default function BrowsePage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, search]);
 
-  const fetchPublicLists = async () => {
-    setIsLoading(true);
-    try {
-      const params = new URLSearchParams({
-        page: page.toString(),
-        limit: "20",
-      });
-      if (search) {
-        params.append("search", search);
-      }
-
-      const response = await fetch(`/api/lists/public?${params}`);
-      if (response.ok) {
-        const data = await response.json();
-        setLists(data.lists || []);
-        setTotalPages(data.pagination?.totalPages || 1);
-      }
-    } catch (error) {
-      console.error("Failed to fetch public lists:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     setPage(1);
-    fetchPublicLists();
   };
 
   return (

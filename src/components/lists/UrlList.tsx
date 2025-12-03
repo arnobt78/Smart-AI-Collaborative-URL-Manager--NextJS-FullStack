@@ -433,13 +433,11 @@ export function UrlList() {
       prefetchedMetadataRef.current = prefetchKey;
 
       try {
-        // CRITICAL: Defer metadata fetch to avoid blocking page load
-        // Wait 2 seconds after page load to let unified query and page render complete first
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        
-        // OPTIMIZATION: Fetch metadata in background - don't block page render
-        // This is a background prefetch that happens after page is visible
-        // The page will show URLs immediately, metadata loads progressively
+        // OPTIMIZATION: Fetch metadata in background - React Query handles caching automatically
+        // With staleTime: Infinity, cached data shows instantly on subsequent visits
+        // First visit: Fetches in background (non-blocking), page shows immediately
+        // Subsequent visits: Uses cache instantly (no API call)
+        // After invalidation: Refetches once, then cached again
         const response = await fetch(`/api/lists/${listId}/metadata`);
 
         if (response.ok) {
@@ -594,7 +592,8 @@ export function UrlList() {
                 .prefetchQuery({
                   queryKey: ["url-metadata", url] as const,
                   queryFn: () => fetchUrlMetadata(url),
-                  staleTime: 1000 * 60 * 60 * 24,
+                  // CRITICAL: Use Infinity for consistency with useUrlMetadata hook
+                  staleTime: Infinity, // Cache forever until invalidated
                 })
                 .catch(() => {
                   // Silently fail
@@ -1678,7 +1677,9 @@ export function UrlList() {
           }, 60000); // Keep for 60 seconds to survive Fast Refresh cycles
         }
       } catch (err) {
-        console.error(`❌ [API] PATCH /api/lists/${current.id}/urls - reorder failed:`, err);
+        if (process.env.NODE_ENV === "development") {
+          console.error(`❌ [API] PATCH /api/lists/${current.id}/urls - reorder failed:`, err);
+        }
         // Revert on error - fetch the current list
         finalDragOrderRef.current = null; // Clear ref on error
         // Clear localStorage on error (using localStorage instead of sessionStorage)
@@ -1909,7 +1910,9 @@ export function UrlList() {
           }, 60000); // Keep for 60 seconds to survive Fast Refresh cycles
         }
       } catch (err) {
-        console.error(`❌ [API] PATCH /api/lists/${current.id}/urls - reorder failed:`, err);
+        if (process.env.NODE_ENV === "development") {
+          console.error(`❌ [API] PATCH /api/lists/${current.id}/urls - reorder failed:`, err);
+        }
         // Revert on error - fetch the current list
         finalDragOrderRef.current = null; // Clear ref on error
         // Clear localStorage on error (using localStorage instead of sessionStorage)
@@ -2813,6 +2816,10 @@ export function UrlList() {
           handleEditUrl={handleEditUrl}
         />
       )}
+    </div>
+  );
+}
+
     </div>
   );
 }

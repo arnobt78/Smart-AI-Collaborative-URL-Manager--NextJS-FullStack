@@ -52,7 +52,19 @@ export function Comments({ listId, urlId, currentUserId }: CommentsProps) {
       }
       return response.json();
     },
-    staleTime: 1000 * 60 * 30, // 30 minutes
+    // CRITICAL: Cache forever until invalidated (after comment add/update/delete)
+    // With staleTime: Infinity, data never becomes stale automatically
+    // Only becomes stale when manually invalidated, then refetches once
+    staleTime: Infinity, // Cache forever until invalidated
+    gcTime: 10 * 60 * 1000, // 10 minutes - keep in cache after component unmounts
+    refetchOnWindowFocus: false, // Don't refetch on tab switch
+    // CRITICAL: Refetch only when stale (invalidated)
+    // With staleTime: Infinity, this only triggers after invalidation
+    // Normal usage uses cache instantly (no API calls)
+    refetchOnMount: true, // Refetch only when stale (after invalidation)
+    retry: 1,
+    // CRITICAL: Use stale data immediately if available, fetch fresh in background
+    placeholderData: (previousData) => previousData, // Keep previous data visible while refetching
   });
 
   const comments = commentsData?.comments || [];

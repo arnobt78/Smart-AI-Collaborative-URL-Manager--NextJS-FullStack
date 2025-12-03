@@ -40,8 +40,8 @@ export function useUrlMetadata(url: string, enabled: boolean = true) {
   const cachedData = queryClient.getQueryData<UrlMetadata>(queryKey);
   const hasCachedData = !!cachedData || !!initialData;
 
-  // Log cache status when hook is enabled
-  if (enabled && url) {
+  // Log cache status when hook is enabled (development only)
+  if (process.env.NODE_ENV === "development" && enabled && url) {
     if (cachedData) {
       console.log(`✅ [HOOK ${url.slice(0, 30)}...] React Query cache HIT - using cached data`);
     } else if (initialData) {
@@ -56,15 +56,15 @@ export function useUrlMetadata(url: string, enabled: boolean = true) {
   const query = useQuery<UrlMetadata>({
     queryKey,
     queryFn: async () => {
-      // Log when actually fetching (only if enabled and no cache)
-      if (enabled && !hasCachedData) {
+      // Log when actually fetching (development only, only if enabled and no cache)
+      const startTime = process.env.NODE_ENV === "development" ? performance.now() : 0;
+      if (process.env.NODE_ENV === "development" && enabled && !hasCachedData) {
         console.log(`🌐 [HOOK FETCH ${url.slice(0, 30)}...] Fetching metadata from API...`);
       }
-      const startTime = performance.now();
       const metadata = await fetchUrlMetadata(url);
-      const endTime = performance.now();
       
-      if (enabled && !hasCachedData) {
+      if (process.env.NODE_ENV === "development" && enabled && !hasCachedData) {
+        const endTime = performance.now();
         console.log(
           `✅ [HOOK FETCH ${url.slice(0, 30)}...] Metadata fetched in ${(endTime - startTime).toFixed(2)}ms`
         );
@@ -75,11 +75,17 @@ export function useUrlMetadata(url: string, enabled: boolean = true) {
       return metadata;
     },
     enabled: enabled && !!url,
-    staleTime: 1000 * 60 * 60 * 24, // 24 hours - data is fresh for 24 hours
-    gcTime: 1000 * 60 * 60 * 24 * 7, // 7 days - cache persists for 7 days
+    // CRITICAL: Cache forever until invalidated (after mutations/SSE)
+    // With staleTime: Infinity, data never becomes stale automatically
+    // Only becomes stale when manually invalidated, then refetches once
+    staleTime: Infinity, // Cache forever until invalidated
+    gcTime: 1000 * 60 * 60 * 24 * 7, // 7 days - keep in cache after component unmounts
     initialData: cachedData || initialData, // Use React Query cache or localStorage data
     placeholderData: cachedData || initialData, // Also use as placeholder while loading
-    refetchOnMount: false, // Don't refetch on mount if data exists
+    // CRITICAL: Refetch only when stale (invalidated)
+    // With staleTime: Infinity, this only triggers after invalidation
+    // Normal navigation uses cache instantly (no API calls)
+    refetchOnMount: true, // Refetch only when stale (after invalidation)
     refetchOnWindowFocus: false, // Don't refetch on window focus
     // Only show loading state if we truly don't have data (not even cached)
     // This prevents skeletons from showing when data exists in React Query cache

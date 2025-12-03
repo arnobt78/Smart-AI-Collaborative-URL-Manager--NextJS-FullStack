@@ -51,17 +51,11 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
 
   // OPTIMIZATION: Use React Query for collection suggestions with automatic caching
   // React Query handles browser session caching, memoization, and background refetching
-  // CRITICAL: Defer fetch until after page is visible to avoid blocking initial render
-  const [shouldFetchCollections, setShouldFetchCollections] = useState(false);
-
-  useEffect(() => {
-    // Defer collections fetch by 3 seconds to let page render first
-    const timer = setTimeout(() => {
-      setShouldFetchCollections(true);
-    }, 3000);
-    return () => clearTimeout(timer);
-  }, []);
-
+  // OPTIMIZATION: React Query handles caching automatically - no artificial delays needed
+  // With staleTime: Infinity, cached data shows instantly on subsequent visits
+  // First visit: Fetches in background (non-blocking with placeholderData), page shows immediately
+  // Subsequent visits: Uses cache instantly (no API call)
+  // After invalidation: Refetches once, then cached again
   const {
     data: suggestionsData,
     isLoading: isLoadingSuggestions,
@@ -87,20 +81,22 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
       const data = await response.json();
       return { suggestions: data.suggestions || [] };
     },
-    enabled:
-      shouldFetchCollections &&
-      !!listSlug &&
-      !!list?.urls &&
-      list.urls.length >= 2,
-    staleTime: 60 * 60 * 1000, // 1 hour - suggestions stay fresh for 1 hour (server cache is also 1 hour)
-    gcTime: 2 * 60 * 60 * 1000, // 2 hours - cache kept for 2 hours in browser session
+    // Enable immediately - React Query handles caching and non-blocking behavior
+    enabled: !!listSlug && !!list?.urls && list.urls.length >= 2,
+    // CRITICAL: Cache forever until invalidated (after mutations/SSE)
+    // With staleTime: Infinity, data never becomes stale automatically
+    // Only becomes stale when manually invalidated, then refetches once
+    staleTime: Infinity, // Cache forever until invalidated
+    gcTime: 2 * 60 * 60 * 1000, // 2 hours - keep in cache after component unmounts
     refetchOnWindowFocus: false, // Don't refetch on window focus
     refetchOnReconnect: false, // Don't refetch on network reconnect
-    refetchOnMount: false, // CRITICAL: Use cache if available, don't block page load
+    // CRITICAL: Refetch only when stale (invalidated)
+    // With staleTime: Infinity, this only triggers after invalidation
+    // Normal navigation uses cache instantly (no API calls)
+    refetchOnMount: true, // Refetch only when stale (after invalidation)
     retry: false, // Don't retry on error (let user manually refresh)
-    // CRITICAL: Defer fetch until after page is visible - don't block initial render
-    // Use cached data immediately if available
-    placeholderData: (previousData) => previousData,
+    // CRITICAL: Use stale data immediately if available, fetch fresh in background
+    placeholderData: (previousData) => previousData, // Keep previous data visible while refetching
   });
 
   const suggestions = suggestionsData?.suggestions || [];
@@ -127,10 +123,15 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
       return { duplicates: data.duplicates || [] };
     },
     enabled: shouldFetchDuplicates && !!listSlug && !!list?.urls, // Only fetch when explicitly requested
-    staleTime: 5 * 60 * 1000, // 5 minutes - data stays fresh for 5 minutes (allows refetch on demand but uses cache)
+    // CRITICAL: Cache forever until invalidated (after URL add/remove)
+    // Duplicates only change when URLs are added/removed, which invalidates cache
+    staleTime: Infinity, // Cache forever until invalidated
     gcTime: 10 * 60 * 1000, // 10 minutes - cache kept for 10 minutes
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
+    // CRITICAL: Refetch only when stale (invalidated)
+    // With staleTime: Infinity, this only triggers after invalidation
+    refetchOnMount: true, // Refetch only when stale (after invalidation)
     retry: false, // Don't retry on error to prevent infinite loops
     // React Query will use cached data if available, preventing duplicate API calls
   });
