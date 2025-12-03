@@ -2819,7 +2819,3 @@ export function UrlList() {
     </div>
   );
 }
-
-    </div>
-  );
-}

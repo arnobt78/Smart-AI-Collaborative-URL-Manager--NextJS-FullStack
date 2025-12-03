@@ -52,9 +52,3 @@ export const loadQueryDataFromLocalStorage = (queryKey: readonly string[]) => {
   }
   return undefined;
 };
-
-      console.error("Failed to load query data from localStorage:", error);
-    }
-  }
-  return undefined;
-};
