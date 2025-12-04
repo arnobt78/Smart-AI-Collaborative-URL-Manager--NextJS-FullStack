@@ -283,30 +283,28 @@ export default function ListPageClient() {
         return;
       }
 
-      // Mark as synced in both ref and localStorage
+      // Mark in-memory ref immediately to prevent duplicate syncs in same session
       hasSyncedVectors.current = list.id;
-      markListVectorSynced(list.id);
 
       // Sync vectors in background (don't block UI)
+      // CRITICAL: Only mark as synced in localStorage AFTER successful sync
+      // This ensures we retry if sync fails and user navigates away
       fetch(`/api/lists/${list.id}/sync-vectors`, {
         method: "POST",
       })
         .then(() => {
-          // Sync succeeded - already marked as synced above
-          if (process.env.NODE_ENV === "development") {
-            console.log(`✅ [VECTOR] Synced list ${list.id} - will not sync again`);
+          // Sync succeeded - mark as synced in localStorage now (persists across visits)
+          // Type guard: list.id is guaranteed to exist at this point (checked above)
+          if (list.id) {
+            markListVectorSynced(list.id);
+            if (process.env.NODE_ENV === "development") {
+              console.log(`✅ [VECTOR] Synced list ${list.id} - will not sync again`);
+            }
           }
         })
         .catch((error) => {
-          // On failure, remove from localStorage so we can retry later
-          if (typeof window !== "undefined") {
-            const syncedLists = JSON.parse(
-              localStorage.getItem("vector-synced-lists") || "[]"
-            );
-            const filtered = syncedLists.filter((id: string) => id !== list.id);
-            localStorage.setItem("vector-synced-lists", JSON.stringify(filtered));
-            hasSyncedVectors.current = null; // Reset ref on error
-          }
+          // On failure, reset ref so we can retry on next visit
+          hasSyncedVectors.current = null;
 
           // Silently fail - vector sync is optional enhancement
           if (process.env.NODE_ENV === "development") {
