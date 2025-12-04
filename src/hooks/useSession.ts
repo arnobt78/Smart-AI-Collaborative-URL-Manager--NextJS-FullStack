@@ -29,7 +29,7 @@ export function useSession() {
     // With staleTime: Infinity, data never becomes stale automatically
     // Only becomes stale when manually invalidated (login/logout), then refetches once
     staleTime: Infinity, // Cache forever until invalidated
-    gcTime: 10 * 60 * 1000, // 10 minutes - keep in cache after component unmounts
+    gcTime: 1000 * 60 * 60 * 24 * 7, // 7 days - keep in cache after component unmounts (matches default)
     refetchOnWindowFocus: false, // Don't refetch on window focus
     // CRITICAL: Refetch only when stale (invalidated)
     // With staleTime: Infinity, this only triggers after invalidation

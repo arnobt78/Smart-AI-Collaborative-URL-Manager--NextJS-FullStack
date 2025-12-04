@@ -1,19 +1,33 @@
 import { QueryClient } from "@tanstack/react-query";
 
+// CRITICAL: Create QueryClient as a singleton that persists across Next.js App Router navigations
+// This pattern ensures the same QueryClient instance is used throughout the app lifecycle
+const globalForQueryClient = globalThis as unknown as {
+  queryClient: QueryClient | undefined;
+};
+
 // Create a query client with caching configuration
 // CRITICAL: Default to Infinity cache - individual queries can override if needed
 // This ensures consistent caching behavior across the application
-export const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: Infinity, // Cache forever until invalidated (default)
-      gcTime: 1000 * 60 * 60 * 24 * 7, // 7 days - cache persists for 7 days
-      refetchOnWindowFocus: false, // Don't refetch on window focus
-      refetchOnMount: true, // Refetch only when stale (after invalidation)
-      retry: 1, // Only retry once on failure
+export const queryClient =
+  globalForQueryClient.queryClient ??
+  new QueryClient({
+    defaultOptions: {
+      queries: {
+        staleTime: Infinity, // Cache forever until invalidated (default)
+        gcTime: 1000 * 60 * 60 * 24 * 7, // 7 days - cache persists for 7 days
+        refetchOnWindowFocus: false, // Don't refetch on window focus
+        refetchOnMount: true, // Refetch only when stale (after invalidation) - with staleTime: Infinity, uses cache
+        refetchOnReconnect: false, // Don't refetch on reconnect
+        retry: 1, // Only retry once on failure
+      },
     },
-  },
-});
+  });
+
+// Store in global for Next.js App Router (client-side only)
+if (typeof window !== "undefined") {
+  globalForQueryClient.queryClient = queryClient;
+}
 
 // Helper function to save query data to localStorage
 export const saveQueryDataToLocalStorage = (

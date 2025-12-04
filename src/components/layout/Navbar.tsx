@@ -158,36 +158,36 @@ export default function Navbar() {
             </div>
           </Link>
           <div className="flex items-center gap-4 flex-wrap">
-            <a
+            <Link
               href="/browse"
               className="text-white/80 hover:text-white font-medium transition-colors font-mono text-md"
             >
               Public URL
-            </a>
-            <a
+            </Link>
+            <Link
               href="/business-insights"
               className="text-white/80 hover:text-white font-medium transition-colors font-mono text-md"
             >
               Analytics
-            </a>
-            <a
+            </Link>
+            <Link
               href="/api-status"
               className="text-white/80 hover:text-white font-medium transition-colors font-mono text-md"
             >
               API Status
-            </a>
-            <a
+            </Link>
+            <Link
               href="/api-docs"
               className="text-white/80 hover:text-white font-medium transition-colors font-mono text-md"
             >
               API Docs
-            </a>
-            <a
+            </Link>
+            <Link
               href="/lists"
               className="text-white/80 hover:text-white font-medium transition-colors font-mono text-md"
             >
               My Lists
-            </a>
+            </Link>
 
             <div className="pl-12">
               <IconButton

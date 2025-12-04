@@ -50,17 +50,19 @@ export async function GET(
 
     const urlOrder = urlsWithPositions.map((u) => u.id).join(",");
     // Log click counts for debugging
-    const clickCounts = urlsWithPositions.map((u) => ({
-      urlId: u.id,
-      clickCount: u.clickCount || 0,
-    }));
-    console.log(`📋 [GET /api/lists/${id}] Returning list from database`, {
-      listId: list.id,
-      slug: list.slug,
-      urlCount: urlsWithPositions.length,
-      urlOrder: urlOrder,
-      clickCounts: clickCounts,
-    });
+    if (process.env.NODE_ENV === "development") {
+      const clickCounts = urlsWithPositions.map((u) => ({
+        urlId: u.id,
+        clickCount: u.clickCount || 0,
+      }));
+      console.log(`📋 [GET /api/lists/${id}] Returning list from database`, {
+        listId: list.id,
+        slug: list.slug,
+        urlCount: urlsWithPositions.length,
+        urlOrder: urlOrder,
+        clickCounts: clickCounts,
+      });
+    }
 
     return NextResponse.json({ list });
   } catch (error) {

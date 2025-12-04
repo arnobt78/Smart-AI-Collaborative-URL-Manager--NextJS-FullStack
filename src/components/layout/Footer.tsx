@@ -1,3 +1,6 @@
+"use client";
+
+import Link from "next/link";
 // import { LinkIcon } from "@heroicons/react/24/outline";
 
 export default function Footer() {
@@ -14,24 +17,24 @@ export default function Footer() {
             </span>
           </div>
           <div className="flex items-center gap-6">
-            <a
+            <Link
               href="/about"
               className="text-white/80 hover:text-white transition-colors font-mono"
             >
               About
-            </a>
-            <a
+            </Link>
+            <Link
               href="/privacy"
               className="text-white/80 hover:text-white transition-colors font-mono"
             >
               Privacy
-            </a>
-            <a
+            </Link>
+            <Link
               href="/terms"
               className="text-white/80 hover:text-white transition-colors font-mono"
             >
               Terms
-            </a>
+            </Link>
           </div>
         </div>
       </div>
