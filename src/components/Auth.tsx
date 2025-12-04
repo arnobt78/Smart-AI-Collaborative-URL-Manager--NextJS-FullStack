@@ -98,19 +98,33 @@ export default function Auth() {
             }
           });
           
-          // Invalidate session cache to trigger refetch for new user
-          queryClient.invalidateQueries({ queryKey: ["session"] });
-          // Dispatch event for components that listen
+          // Dispatch event for components that listen to session updates
           window.dispatchEvent(new CustomEvent("session-updated"));
-        }
-        
-        // Check if there's a redirect URL (user was trying to access a protected resource)
-        const redirectUrl = getRedirectUrl();
-        if (redirectUrl && typeof window !== "undefined") {
-          // Redirect to the original destination after successful signup
-          setTimeout(() => {
-            window.location.href = redirectUrl;
-          }, 1500);
+          
+          // Wait a moment for the session cookie to be set on the server
+          // Then invalidate and refetch the session to ensure it's properly loaded
+          setTimeout(async () => {
+            try {
+              // Invalidate session cache to trigger refetch with new cookie
+              await queryClient.invalidateQueries({ queryKey: ["session"] });
+              // Refetch session to ensure it's updated with new cookie
+              await queryClient.refetchQueries({ queryKey: ["session"] });
+            } catch (error) {
+              // Non-critical - session will be refetched on next page load
+              if (process.env.NODE_ENV === "development") {
+                console.error("Session refetch error (non-critical):", error);
+              }
+            }
+            
+            // Check if there's a redirect URL (user was trying to access a protected resource)
+            const redirectUrl = getRedirectUrl();
+            const finalRedirectUrl = redirectUrl || "/"; // Default to homepage if no redirect URL
+            
+            // Redirect to the destination after successful signup
+            // Use full page reload to ensure session is properly recognized by HomePage
+            // This ensures the session cookie is included in the request
+            window.location.href = finalRedirectUrl;
+          }, 1500); // Give time for cookie to be set and session to be ready
         }
       }
     } catch {
@@ -169,19 +183,33 @@ export default function Auth() {
             }
           });
           
-          // Invalidate session cache to trigger refetch for new user
-          queryClient.invalidateQueries({ queryKey: ["session"] });
-          // Dispatch event for components that listen
+          // Dispatch event for components that listen to session updates
           window.dispatchEvent(new CustomEvent("session-updated"));
-        }
-        
-        // Check if there's a redirect URL (user was trying to access a protected resource)
-        const redirectUrl = getRedirectUrl();
-        if (redirectUrl && typeof window !== "undefined") {
-          // Redirect to the original destination after successful login
-          setTimeout(() => {
-            window.location.href = redirectUrl;
-          }, 1000);
+          
+          // Wait a moment for the session cookie to be set on the server
+          // Then invalidate and refetch the session to ensure it's properly loaded
+          setTimeout(async () => {
+            try {
+              // Invalidate session cache to trigger refetch with new cookie
+              await queryClient.invalidateQueries({ queryKey: ["session"] });
+              // Refetch session to ensure it's updated with new cookie
+              await queryClient.refetchQueries({ queryKey: ["session"] });
+            } catch (error) {
+              // Non-critical - session will be refetched on next page load
+              if (process.env.NODE_ENV === "development") {
+                console.error("Session refetch error (non-critical):", error);
+              }
+            }
+            
+            // Check if there's a redirect URL (user was trying to access a protected resource)
+            const redirectUrl = getRedirectUrl();
+            const finalRedirectUrl = redirectUrl || "/"; // Default to homepage if no redirect URL
+            
+            // Redirect to the destination after successful login
+            // Use full page reload to ensure session is properly recognized by HomePage
+            // This ensures the session cookie is included in the request
+            window.location.href = finalRedirectUrl;
+          }, 1200); // Give time for cookie to be set and session to be ready
         }
       }
     } catch {

@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import { useSession } from "./useSession";
 import { useStore } from "@nanostores/react";
-import { currentList } from "@/stores/urlListStore";
+import { currentList, type UrlList } from "@/stores/urlListStore";
 
 export type UserRole = "owner" | "editor" | "viewer" | "none";
 
@@ -36,7 +36,14 @@ export function useListPermissions(): PermissionCheck {
     }
 
     // Type-safe access to list properties
-    const listData = list as any; // Use any to access properties that may exist
+    // UrlList interface includes userId, collaboratorRoles, collaborators, and isPublic
+    interface ListWithPermissions extends Partial<UrlList> {
+      userId?: string;
+      collaboratorRoles?: Record<string, "editor" | "viewer">;
+      collaborators?: string[];
+      isPublic?: boolean;
+    }
+    const listData = list as ListWithPermissions;
 
     // Check if user is the owner
     if (listData.userId === user.id) {

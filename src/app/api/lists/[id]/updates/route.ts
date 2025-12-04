@@ -81,7 +81,9 @@ export async function GET(
     // Extract results safely
     // Note: Position init result is ignored - it's a background operation
     if (positionInitResult.status === "rejected") {
-      console.warn("Failed to initialize positions (non-critical):", positionInitResult.reason);
+      if (process.env.NODE_ENV === "development") {
+        console.warn("Failed to initialize positions (non-critical):", positionInitResult.reason);
+      }
     }
 
     const activities = activitiesResult.status === "fulfilled" ? activitiesResult.value : [];
@@ -90,7 +92,9 @@ export async function GET(
         ? collaboratorsResult.value 
         : (() => {
             // If collaborator fetch fails, log but continue without them (non-critical)
-            console.warn("Failed to fetch collaborators in unified endpoint:", collaboratorsResult.reason);
+            if (process.env.NODE_ENV === "development") {
+              console.warn("Failed to fetch collaborators in unified endpoint:", collaboratorsResult.reason);
+            }
             return [];
           })();
 

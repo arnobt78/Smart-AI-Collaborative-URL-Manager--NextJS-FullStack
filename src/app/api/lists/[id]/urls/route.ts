@@ -77,7 +77,9 @@ export async function GET(req: NextRequest, context: RouteContext) {
 
           if (urlsMatch && cached.metadata) {
             // Cache is valid, return instantly
-            console.log(`✅ [GET] URLs with metadata loaded from cache`);
+            if (process.env.NODE_ENV === "development") {
+              console.log(`✅ [GET] URLs with metadata loaded from cache`);
+            }
             return NextResponse.json({
               urls: cached.urls,
               metadata: cached.metadata,
@@ -163,14 +165,18 @@ export async function GET(req: NextRequest, context: RouteContext) {
       }
     }
 
-    console.log(`✅ [GET] URLs fetched and cached (${urls.length} URLs)`);
+    if (process.env.NODE_ENV === "development") {
+      console.log(`✅ [GET] URLs fetched and cached (${urls.length} URLs)`);
+    }
     return NextResponse.json({
       urls,
       metadata: metadataMap,
       cached: false,
     });
   } catch (error) {
-    console.error("❌ [GET] Error:", error);
+    if (process.env.NODE_ENV === "development") {
+      console.error("❌ [GET] Error:", error);
+    }
     const message =
       error instanceof Error ? error.message : "Failed to fetch URLs";
     return NextResponse.json({ error: message }, { status: 500 });
@@ -285,12 +291,14 @@ export async function POST(req: NextRequest, context: RouteContext) {
             const cached = await redis.get<UrlMetadata>(urlCacheKey);
             if (cached) {
               finalMetadata = cached;
-              console.log(
-                `✅ [POST] Using cached metadata from Redis for: ${url.slice(
-                  0,
-                  40
-                )}...`
-              );
+              if (process.env.NODE_ENV === "development") {
+                console.log(
+                  `✅ [POST] Using cached metadata from Redis for: ${url.slice(
+                    0,
+                    40
+                  )}...`
+                );
+              }
             }
           } catch {
             // Ignore Redis errors
@@ -366,12 +374,16 @@ export async function POST(req: NextRequest, context: RouteContext) {
                         const updatedUrls = currentUrls.map((u) =>
                           u.id === newUrl.id ? updatedUrl : u
                         );
-                        await updateList(refreshedList.id, { urls: updatedUrls });
+                        await updateList(refreshedList.id, {
+                          urls: updatedUrls,
+                        });
 
                         // Invalidate list metadata cache so unified endpoint refetches
                         if (redis) {
                           try {
-                            await redis.del(cacheKeys.listMetadata(refreshedList.id));
+                            await redis.del(
+                              cacheKeys.listMetadata(refreshedList.id)
+                            );
                           } catch {
                             // Ignore Redis errors
                           }
@@ -380,10 +392,12 @@ export async function POST(req: NextRequest, context: RouteContext) {
                     }
                   } catch (error) {
                     // Silently fail - metadata is cached, that's the main thing
-                    console.warn(
-                      "Failed to update URL object with background metadata:",
-                      error
-                    );
+                    if (process.env.NODE_ENV === "development") {
+                      console.warn(
+                        "Failed to update URL object with background metadata:",
+                        error
+                      );
+                    }
                   }
                 }
               }
@@ -402,12 +416,14 @@ export async function POST(req: NextRequest, context: RouteContext) {
         };
       }
     } else {
-      console.log(
-        `✅ [POST] Using provided metadata (from cache) for: ${url.slice(
-          0,
-          40
-        )}...`
-      );
+      if (process.env.NODE_ENV === "development") {
+        console.log(
+          `✅ [POST] Using provided metadata (from cache) for: ${url.slice(
+            0,
+            40
+          )}...`
+        );
+      }
 
       // CRITICAL: Cache provided metadata in Redis for unified endpoint
       // This ensures metadata is available for the batch metadata endpoint
@@ -428,7 +444,9 @@ export async function POST(req: NextRequest, context: RouteContext) {
           }
         } catch (error) {
           // Ignore Redis errors (non-critical)
-          console.warn("Failed to cache provided metadata:", error);
+          if (process.env.NODE_ENV === "development") {
+            console.warn("Failed to cache provided metadata:", error);
+          }
         }
       }
     }
@@ -502,9 +520,11 @@ export async function POST(req: NextRequest, context: RouteContext) {
       });
     }
 
-    console.log(
-      `✅ [POST] URL added: ${url}${isDuplicate ? " (duplicated)" : ""}`
-    );
+    if (process.env.NODE_ENV === "development") {
+      console.log(
+        `✅ [POST] URL added: ${url}${isDuplicate ? " (duplicated)" : ""}`
+      );
+    }
     // Return unified response
     return NextResponse.json({
       success: true,
@@ -523,7 +543,9 @@ export async function POST(req: NextRequest, context: RouteContext) {
       },
     });
   } catch (error) {
-    console.error("❌ [POST] Error:", error);
+    if (process.env.NODE_ENV === "development") {
+      console.error("❌ [POST] Error:", error);
+    }
     const message =
       error instanceof Error ? error.message : "Failed to add URL";
     return NextResponse.json({ error: message }, { status: 500 });

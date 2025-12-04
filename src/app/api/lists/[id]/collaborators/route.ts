@@ -175,13 +175,17 @@ export async function POST(
 
       if (result.success) {
         emailSent = true;
-        console.log(
-          `✅ Collaborator invite email sent to ${email}:`,
-          result.messageId
-        );
+        if (process.env.NODE_ENV === "development") {
+          console.log(
+            `✅ Collaborator invite email sent to ${email}:`,
+            result.messageId
+          );
+        }
       } else {
         emailError = result.error || "Failed to send email";
-        console.error(`❌ Failed to send email to ${email}:`, emailError);
+        if (process.env.NODE_ENV === "development") {
+          console.error(`❌ Failed to send email to ${email}:`, emailError);
+        }
       }
     } catch (emailErr: unknown) {
       emailError =
