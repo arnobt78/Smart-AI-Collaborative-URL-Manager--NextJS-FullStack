@@ -110,17 +110,18 @@ export function invalidateListQueries(
 export function invalidateAllListsQueries(
   queryClient: QueryClient
 ): void {
-  // Invalidate all list-related queries
-  // Use exact: false to match all variations
+  // CRITICAL: Invalidate all list-related queries
+  // Use predicate to match all "lists" queries at once (prevents duplicate invalidations)
+  // This ensures a single invalidation event instead of multiple separate ones
   queryClient.invalidateQueries({
-    queryKey: listQueryKeys.allLists(),
-    exact: false,
-  });
-
-  // Also invalidate the base "lists" query key to catch all variations
-  queryClient.invalidateQueries({
-    queryKey: listQueryKeys.all,
-    exact: false,
+    predicate: (query) => {
+      const key = query.queryKey;
+      return (
+        Array.isArray(key) &&
+        (key[0] === "lists" || 
+         (key.length > 1 && key[0] === "list" && key[1] === "all"))
+      );
+    },
   });
 }
 

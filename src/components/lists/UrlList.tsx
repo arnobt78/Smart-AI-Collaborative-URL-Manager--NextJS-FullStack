@@ -2330,8 +2330,8 @@ export function UrlList() {
         const q = normalizedCurrentSearch;
         urls = urlsToUse.filter((u) => {
           return (
-            (u.title && u.title.toLowerCase().includes(q)) ||
-            (u.url && u.url.toLowerCase().includes(q)) ||
+          (u.title && u.title.toLowerCase().includes(q)) ||
+          (u.url && u.url.toLowerCase().includes(q)) ||
             (u.description && u.description.toLowerCase().includes(q)) ||
             u.tags?.some((tag) => tag.toLowerCase().includes(q)) ||
             (u.category && u.category.toLowerCase().includes(q))
@@ -2379,7 +2379,7 @@ export function UrlList() {
         if (b.position !== undefined) return 1;
         return (
           new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        );
+      );
       });
       pinnedUrls.sort((a, b) => {
         if (a.position !== undefined && b.position !== undefined) {
@@ -2601,7 +2601,7 @@ export function UrlList() {
                   <div className="flex items-center gap-2 text-blue-400">
                     <div className="w-4 h-4 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
                     <span className="text-xs font-medium">AI Search...</span>
-                  </div>
+        </div>
                 ) : searchCacheIndicator ? (
                   <span className="text-xs text-green-400 font-medium flex items-center gap-1">
                     <span className="w-2 h-2 bg-green-400 rounded-full" />
@@ -2707,12 +2707,12 @@ export function UrlList() {
             items={filteredAndSortedUrls.map((u) => u.id)}
             strategy={verticalListSortingStrategy}
           >
-            <div className="space-y-8">
+      <div className="space-y-8">
               {filteredAndSortedUrls.map((url) => {
                 return (
                 <UrlCardWrapper
-                  key={url.id}
-                  url={url}
+            key={url.id}
+            url={url}
                   onEdit={(urlObj) => {
                     setEditingUrl(urlObj);
                     setEditingTags(urlObj.tags?.join(", ") || "");
@@ -2754,19 +2754,19 @@ export function UrlList() {
                         }, 2000);
                       });
                   }}
-                  onToggleFavorite={handleToggleFavorite}
-                  onShare={handleShare}
+            onToggleFavorite={handleToggleFavorite}
+            onShare={handleShare}
                   onUrlClick={handleUrlClick}
                   onDuplicate={handleDuplicate}
                   onArchive={handleArchive}
                   onPin={handlePin}
-                  shareTooltip={shareTooltip}
+            shareTooltip={shareTooltip}
                   isMetadataReady={isMetadataReady}
                   canEdit={permissions.canEdit}
-                />
+          />
               );
               })}
-            </div>
+      </div>
           </SortableContext>
         </DndContext>
       )}
@@ -2778,15 +2778,15 @@ export function UrlList() {
             <div className="rounded-2xl border-2 border-dashed border-white/30 p-16 text-center bg-white/5 backdrop-blur-sm">
               <div className="mx-auto w-32 h-32 bg-gradient-to-br from-gray-500/20 via-gray-500/20 to-transparent rounded-full flex items-center justify-center shadow-inner border border-gray-400/30">
                 <ArchiveBoxIcon className="h-16 w-16 text-gray-400" />
-              </div>
+          </div>
               <h3 className="mt-6 text-2xl font-semibold text-white">
                 No Archived URLs
-              </h3>
+          </h3>
               <p className="mt-3 text-lg text-white/60 max-w-md mx-auto">
                 Archived URLs will appear here. You can restore them at any
                 time.
-              </p>
-            </div>
+          </p>
+        </div>
           ) : (
             archivedUrlsList.map((url) => (
               <div
@@ -2814,9 +2814,9 @@ export function UrlList() {
                         ).toLocaleDateString()}
                       </p>
                     )}
-                  </div>
-                  <Button
-                    type="button"
+              </div>
+                <Button
+                  type="button"
                     disabled={!permissions.canEdit}
                     onClick={() => {
                       if (!permissions.canEdit) return; // Prevent action if disabled
@@ -2827,9 +2827,9 @@ export function UrlList() {
                     }`}
                   >
                     Restore
-                  </Button>
-                </div>
+                </Button>
               </div>
+          </div>
             ))
           )}
         </div>

@@ -787,8 +787,9 @@ export function useDeleteList() {
       return { previous, deletedListTitle: listTitle };
     },
     onSuccess: (data, listId, context) => {
-      // CRITICAL: Use centralized invalidation for consistency
-      // Invalidates all list-related queries
+      // OPTIMIZATION: We already did optimistic update with setQueryData
+      // Only invalidate if we need to ensure server consistency
+      // React Query will dedupe multiple invalidations, but we use predicate for efficiency
       invalidateAllListsQueries(queryClient);
 
       // Use list title from context (captured before deletion)
