@@ -52,62 +52,61 @@ export function ActivityFeed({ listId, limit = 50 }: ActivityFeedProps) {
   const lastLocalOperationRef = React.useRef<number>(0);
   // Track last activity-updated event timestamp to deduplicate rapid events
   const lastActivityUpdateEventRef = React.useRef<number>(0);
-  // Track if we've initialized from unified data to prevent clearing on refresh
-  const initializedRef = React.useRef<boolean>(false);
 
   // ActivityFeed now relies ONLY on events from unified endpoint
   // No separate API calls - ListPage's useUnifiedListQuery handles all fetching
 
-  // CRITICAL: Initialize activities from React Query cache on mount/refresh
-  // This prevents activities from clearing on page refresh
-  // Check cache directly first, then listen for events
+  // CRITICAL: Subscribe to unified query data to get activities on mount and when data changes
+  // This ensures activities are populated immediately when query completes, even on page refresh
+  // Using React Query's subscription mechanism ensures we get data whenever it's available
   useEffect(() => {
-    if (initializedRef.current) return;
+    if (!slug) return;
 
-    // First, try to get activities from React Query cache
-    if (slug) {
-      const cacheKey = listQueryKeys.unified(slug);
-      const cachedData = queryClient.getQueryData<{
+    const cacheKey = listQueryKeys.unified(slug);
+
+    // Function to check and update activities from query data
+    const updateActivitiesFromCache = () => {
+      const queryState = queryClient.getQueryState<{
         list: { id: string } | null;
         activities: ActivityItem[];
       }>(cacheKey);
 
-      if (cachedData?.activities && Array.isArray(cachedData.activities)) {
-        // Found cached data - use it immediately
-        setActivities(cachedData.activities);
-        initializedRef.current = true;
-        return;
-      }
-    }
-
-    // If no cache, listen for unified-activities-updated event to initialize
-    const handleInitialActivities = (event: Event) => {
-      const customEvent = event as CustomEvent<{
-        listId: string;
-        activities: ActivityItem[];
-      }>;
-
-      if (
-        customEvent.detail?.listId === listId &&
-        customEvent.detail.activities
-      ) {
-        setActivities(customEvent.detail.activities || []);
-        initializedRef.current = true;
+      if (queryState?.data?.activities && Array.isArray(queryState.data.activities)) {
+        setActivities(queryState.data.activities);
       }
     };
 
-    // Listen for unified-activities-updated event
-    const oneTimeHandler = (event: Event) => {
-      handleInitialActivities(event);
-      window.removeEventListener("unified-activities-updated", oneTimeHandler);
-    };
-    window.addEventListener("unified-activities-updated", oneTimeHandler);
+    // Check immediately if data is already in cache
+    updateActivitiesFromCache();
 
-    // Cleanup on unmount
+    // Subscribe to query cache updates to detect when data becomes available
+    const unsubscribe = queryClient.getQueryCache().subscribe((event) => {
+      // Check if this event is for our query and if data is available
+      if (event?.query?.queryKey && 
+          JSON.stringify(event.query.queryKey) === JSON.stringify(cacheKey) &&
+          event.query.state.status === 'success' &&
+          event.query.state.data) {
+        updateActivitiesFromCache();
+      }
+    });
+
+    // Also set up a fallback interval to check for data (in case subscription misses it)
+    // This ensures we catch the data even if the subscription doesn't fire correctly
+    const intervalId = setInterval(() => {
+      updateActivitiesFromCache();
+    }, 100); // Check every 100ms
+
+    // Clear interval after 5 seconds (query should complete by then)
+    const timeoutId = setTimeout(() => {
+      clearInterval(intervalId);
+    }, 5000);
+
     return () => {
-      window.removeEventListener("unified-activities-updated", oneTimeHandler);
+      unsubscribe();
+      clearInterval(intervalId);
+      clearTimeout(timeoutId);
     };
-  }, [listId, slug, queryClient]);
+  }, [slug, queryClient]);
 
   // Listen for unified-update events (UNIFIED APPROACH: One event, one API call)
   useEffect(() => {
@@ -122,9 +121,8 @@ export function ActivityFeed({ listId, limit = 50 }: ActivityFeedProps) {
         return;
       }
 
-      // Update activities and mark as initialized
+      // Update activities when unified query dispatches event
       setActivities(customEvent.detail.activities || []);
-      initializedRef.current = true;
     };
 
     window.addEventListener(
