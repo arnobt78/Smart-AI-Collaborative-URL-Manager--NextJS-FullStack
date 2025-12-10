@@ -61,4 +61,4 @@ db-data
 # Documentation files - COMMIT these (they're part of the project)
 # Uncomment below if you want to ignore them:
 DEVELOPMENT_RULES.md
-FEATURES_PLAN_PROJECT_SUMMARY.md
+PLAN_PROJECT.md

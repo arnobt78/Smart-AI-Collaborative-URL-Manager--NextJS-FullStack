@@ -3,6 +3,9 @@
 import React, { useState, useEffect } from "react";
 import { useStore } from "@nanostores/react";
 import { currentList } from "@/stores/urlListStore";
+import { useQueryClient } from "@tanstack/react-query";
+import { useParams } from "next/navigation";
+import { listQueryKeys } from "@/hooks/useListQueries";
 import {
   Activity,
   MessageSquare,
@@ -39,6 +42,9 @@ export function ActivityFeed({ listId, limit = 50 }: ActivityFeedProps) {
   const [activities, setActivities] = useState<ActivityItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const list = useStore(currentList);
+  const queryClient = useQueryClient();
+  const params = useParams();
+  const slug = typeof params?.slug === "string" ? params.slug : null;
 
   // Track refresh timeout to debounce rapid updates
   const refreshTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
@@ -46,9 +52,62 @@ export function ActivityFeed({ listId, limit = 50 }: ActivityFeedProps) {
   const lastLocalOperationRef = React.useRef<number>(0);
   // Track last activity-updated event timestamp to deduplicate rapid events
   const lastActivityUpdateEventRef = React.useRef<number>(0);
+  // Track if we've initialized from unified data to prevent clearing on refresh
+  const initializedRef = React.useRef<boolean>(false);
 
   // ActivityFeed now relies ONLY on events from unified endpoint
   // No separate API calls - ListPage's useUnifiedListQuery handles all fetching
+
+  // CRITICAL: Initialize activities from React Query cache on mount/refresh
+  // This prevents activities from clearing on page refresh
+  // Check cache directly first, then listen for events
+  useEffect(() => {
+    if (initializedRef.current) return;
+
+    // First, try to get activities from React Query cache
+    if (slug) {
+      const cacheKey = listQueryKeys.unified(slug);
+      const cachedData = queryClient.getQueryData<{
+        list: { id: string } | null;
+        activities: ActivityItem[];
+      }>(cacheKey);
+
+      if (cachedData?.activities && Array.isArray(cachedData.activities)) {
+        // Found cached data - use it immediately
+        setActivities(cachedData.activities);
+        initializedRef.current = true;
+        return;
+      }
+    }
+
+    // If no cache, listen for unified-activities-updated event to initialize
+    const handleInitialActivities = (event: Event) => {
+      const customEvent = event as CustomEvent<{
+        listId: string;
+        activities: ActivityItem[];
+      }>;
+
+      if (
+        customEvent.detail?.listId === listId &&
+        customEvent.detail.activities
+      ) {
+        setActivities(customEvent.detail.activities || []);
+        initializedRef.current = true;
+      }
+    };
+
+    // Listen for unified-activities-updated event
+    const oneTimeHandler = (event: Event) => {
+      handleInitialActivities(event);
+      window.removeEventListener("unified-activities-updated", oneTimeHandler);
+    };
+    window.addEventListener("unified-activities-updated", oneTimeHandler);
+
+    // Cleanup on unmount
+    return () => {
+      window.removeEventListener("unified-activities-updated", oneTimeHandler);
+    };
+  }, [listId, slug, queryClient]);
 
   // Listen for unified-update events (UNIFIED APPROACH: One event, one API call)
   useEffect(() => {
@@ -58,16 +117,21 @@ export function ActivityFeed({ listId, limit = 50 }: ActivityFeedProps) {
         listId: string;
         activities: ActivityItem[];
       }>;
-      
+
       if (customEvent.detail?.listId !== listId) {
         return;
       }
-      
+
+      // Update activities and mark as initialized
       setActivities(customEvent.detail.activities || []);
+      initializedRef.current = true;
     };
-    
-    window.addEventListener("unified-activities-updated", handleUnifiedActivitiesUpdate);
-    
+
+    window.addEventListener(
+      "unified-activities-updated",
+      handleUnifiedActivitiesUpdate
+    );
+
     // Listen for unified-update events (from SSE)
     // OPTIMIZATION: Don't call fetchUnifiedUpdates here - unified-update events are dispatched AFTER server updates
     // The unified-activities-updated event will be dispatched by ListPage's fetchUnifiedUpdates
@@ -79,12 +143,12 @@ export function ActivityFeed({ listId, limit = 50 }: ActivityFeedProps) {
         timestamp?: string;
         activity?: ActivityItem;
       }>;
-      
+
       // Only handle if it's for this list
       if (customEvent.detail?.listId && customEvent.detail.listId !== listId) {
         return;
       }
-      
+
       // Note: We don't call fetchUnifiedUpdates here because:
       // 1. Unified-update events are dispatched AFTER server updates (data is already fresh)
       // 2. ListPage will handle unified fetch on mount or when needed
@@ -92,12 +156,12 @@ export function ActivityFeed({ listId, limit = 50 }: ActivityFeedProps) {
       // 4. Calling fetchUnifiedUpdates here causes duplicate API calls
       // We just wait for unified-activities-updated event to update activities
     };
-    
+
     window.addEventListener("unified-update", handleUnifiedUpdate);
-    
+
     // Keep old activity-updated listener for backward compatibility during transition
     const handleActivityUpdate = (event: Event) => {
-      const customEvent = event as CustomEvent<{ 
+      const customEvent = event as CustomEvent<{
         listId?: string;
         isRemote?: boolean; // Flag to indicate if this is from another screen
         activity?: ActivityItem; // Optional activity object for optimistic updates
@@ -111,10 +175,10 @@ export function ActivityFeed({ listId, limit = 50 }: ActivityFeedProps) {
 
       const now = Date.now();
       const activityData = customEvent.detail?.activity;
-      
+
       // UNIFIED APPROACH: All activity-updated events come from SSE
       // isRemote flag is no longer needed since we use single source of truth
-      
+
       // UNIFIED APPROACH: All activity-updated events come from SSE (single source of truth)
       // If we have activity data, optimistically add it immediately for instant feedback
       if (activityData) {
@@ -123,7 +187,7 @@ export function ActivityFeed({ listId, limit = 50 }: ActivityFeedProps) {
           if (prev.some((a) => a.id === activityData.id)) {
             return prev;
           }
-          
+
           // Add to beginning (newest first)
           return [activityData, ...prev].slice(0, limit); // Keep within limit
         });
@@ -136,44 +200,47 @@ export function ActivityFeed({ listId, limit = 50 }: ActivityFeedProps) {
 
     // Listen to activity-updated events (for real-time updates)
     window.addEventListener("activity-updated", handleActivityUpdate);
-    
+
     // Listen for activity-added events (for optimistic updates from POST/PATCH/DELETE responses)
     const handleActivityAdded = (event: Event) => {
       const customEvent = event as CustomEvent<{
         listId: string;
         activity: ActivityItem;
       }>;
-      
+
       // Only add if it's for this list
       if (customEvent.detail?.listId !== listId) {
         return;
       }
 
       const newActivity = customEvent.detail.activity;
-      
+
       // Optimistically add activity to feed immediately
       setActivities((prev) => {
         // Check if activity already exists (prevent duplicates)
         if (prev.some((a) => a.id === newActivity.id)) {
           return prev;
         }
-        
+
         // Add to beginning (newest first)
         // Optimistically added activity
         return [newActivity, ...prev].slice(0, limit); // Keep within limit
       });
     };
     window.addEventListener("activity-added", handleActivityAdded);
-    
+
     // Listen for local-operation events to track when we perform actions
     const handleLocalOperation = () => {
       lastLocalOperationRef.current = Date.now();
     };
     window.addEventListener("local-operation", handleLocalOperation);
-    
+
     return () => {
       window.removeEventListener("unified-update", handleUnifiedUpdate);
-      window.removeEventListener("unified-activities-updated", handleUnifiedActivitiesUpdate);
+      window.removeEventListener(
+        "unified-activities-updated",
+        handleUnifiedActivitiesUpdate
+      );
       window.removeEventListener("activity-updated", handleActivityUpdate);
       window.removeEventListener("activity-added", handleActivityAdded);
       window.removeEventListener("local-operation", handleLocalOperation);

@@ -30,14 +30,14 @@ const Switch = React.forwardRef<HTMLInputElement, SwitchProps>(
           />
           <div
             className={cn(
-              "absolute inset-0 rounded-full transition-colors duration-200 ease-in-out",
+              "absolute inset-0 rounded-full transition-colors duration-300 ease-in-out",
               checked ? "bg-blue-600" : "bg-white/20",
               disabled && "opacity-50"
             )}
           />
           <div
             className={cn(
-              "absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200 ease-in-out",
+              "absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-300 ease-in-out",
               checked ? "translate-x-5" : "translate-x-0",
               disabled && "opacity-50"
             )}

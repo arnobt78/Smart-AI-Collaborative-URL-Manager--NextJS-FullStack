@@ -93,12 +93,15 @@ function UrlCardWrapper({
     isDragging,
   } = useSortable({ id: url.id });
 
-  // CRITICAL: Disable transition when not dragging to prevent bounce-back animation
-  // When drag ends, dnd-kit tries to animate items back to original positions
-  // By disabling transition when not dragging, items stay in their new positions
+  // CRITICAL: Transition handling to prevent bounce-back
+  // When drag ends, dnd-kit uses transform to animate items
+  // By controlling transition timing, we ensure smooth drag and prevent bounce-back
   const style = {
     transform: CSS.Transform.toString(transform),
-    transition: isDragging ? transition : undefined, // Only allow transitions during drag
+    // Only allow transitions during drag (isDragging = true)
+    // After drag ends (isDragging = false), transition is disabled to prevent bounce-back
+    // The transform is already set to final position by dnd-kit, so no animation needed
+    transition: isDragging ? transition : "none", // Use "none" instead of undefined for explicit no-transition
     opacity: isDragging ? 0.5 : 1,
   };
 
@@ -1616,21 +1619,21 @@ export function UrlList() {
             urls: preservedOrder, // Always use preserved order (prevents card jumping)
           };
 
-          // CRITICAL: Update store first, then increment key in same render cycle
-          // This ensures SortableContext remounts with the NEW items array from updated store
-          // The flushSync forces synchronous store update, then key increment schedules re-render
-          // with both new store value AND new key, so SortableContext gets correct items array
+          // CRITICAL: Update store AND increment key in same flushSync cycle
+          // This ensures SortableContext remounts immediately with the NEW items array
+          // Without flushSync, the component might re-render with old order, causing bounce-back
+          // The key increment forces SortableContext to remount with new items array
           flushSync(() => {
             currentList.set(mergedList);
+            // Force immediate re-render by incrementing key in same flushSync
+            // This ensures SortableContext sees the new order immediately before any other render
+            setSortableContextKey((prev) => prev + 1);
           });
 
-          // Increment key AFTER store update to force SortableContext remount with new items
-          // This happens in the same render cycle, so when component re-renders, it has:
-          // - New store value (from flushSync above)
-          // - New sortableContextKey (from this state update)
-          // - filteredAndSortedUrls recalculates with new store value
-          // - SortableContext remounts with new key and new items array
-          setSortableContextKey((prev) => prev + 1);
+          // NOTE: The order is now preserved in both store AND ref
+          // The ref ensures urlsToUse memo uses preserved order
+          // The store ensures other parts of the app see the updated order
+          // The key increment forces SortableContext to remount with new items
 
           // Dispatch activity-added event for optimistic feed update (no redundant fetch)
           if (activityData) {
@@ -1773,21 +1776,19 @@ export function UrlList() {
       // Optimistically update the UI immediately - this is critical for UX
       // Use a synchronous update to ensure React sees it immediately
 
-      // CRITICAL: Update store first, then increment key in same render cycle
-      // This ensures SortableContext remounts with the NEW items array from updated store
-      // The flushSync forces synchronous store update, then key increment schedules re-render
-      // with both new store value AND new key, so SortableContext gets correct items array
+      // CRITICAL: Update store AND increment key in same flushSync cycle
+      // This ensures SortableContext remounts immediately with the NEW items array
+      // Without flushSync, the component might re-render with old order, causing bounce-back
       flushSync(() => {
         currentList.set({ ...current, urls: reorderedUrls });
+        // Force immediate re-render by incrementing key in same flushSync
+        // This ensures SortableContext sees the new order immediately before any other render
+        setSortableContextKey((prev) => prev + 1);
       });
 
-      // Increment key AFTER store update to force SortableContext remount with new items
-      // This happens in the same render cycle, so when component re-renders, it has:
-      // - New store value (from flushSync above)
-      // - New sortableContextKey (from this state update)
-      // - filteredAndSortedUrls recalculates with new store value
-      // - SortableContext remounts with new key and new items array
-      setSortableContextKey((prev) => prev + 1);
+      // NOTE: The order is now preserved in both store AND ref
+      // The ref ensures urlsToUse memo uses preserved order during drag
+      // The store ensures the final order is persisted after drag completes
 
       if (process.env.NODE_ENV === "development") {
         console.log(
@@ -1837,9 +1838,10 @@ export function UrlList() {
             urls: preservedOrder, // Always use preserved order (prevents card jumping)
           };
 
-          // Use flushSync to ensure React sees the update immediately
-          // CRITICAL: Update the store AND ensure ref is synced BEFORE flushSync completes
-          // This ensures urlsToUse memo sees the correct order on the next render
+          // CRITICAL: Update the store AND increment key in same flushSync cycle
+          // This ensures SortableContext remounts immediately with the NEW items array
+          // Without flushSync, the component might re-render with old order, causing bounce-back
+          // The key increment forces SortableContext to remount with new items array
           finalDragOrderRef.current = preservedOrder; // Ensure ref is synced
 
           // Update cache using centralized function (handles both localStorage and global cache)
@@ -1847,16 +1849,18 @@ export function UrlList() {
             updateDragOrderCache(current.id, preservedOrder, false);
           }
 
-          // CRITICAL: Force SortableContext remount IMMEDIATELY AFTER store update
-          // This ensures dnd-kit uses the new items array for its final animation calculations
-          // The store update already happened optimistically above, so we just need to remount
-          // with the confirmed order from API response
+          // CRITICAL: Update store AND increment key in same flushSync
+          // This ensures SortableContext remounts immediately with new order
           flushSync(() => {
             currentList.set(mergedList);
+            // Force immediate re-render by incrementing key in same flushSync
+            // This ensures SortableContext sees the new order immediately before any other render
+            setSortableContextKey((prev) => prev + 1);
           });
 
-          // Increment key after store update to ensure SortableContext remounts with new items array
-          setSortableContextKey((prev) => prev + 1);
+          // NOTE: The order is now preserved in both store AND ref
+          // The ref ensures urlsToUse memo uses preserved order during drag
+          // The store ensures the final order is persisted after drag completes
 
           if (process.env.NODE_ENV === "development") {
             console.log(

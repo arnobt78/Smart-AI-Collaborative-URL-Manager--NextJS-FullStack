@@ -681,6 +681,18 @@ export default function ListPageClient() {
                           currentList.set(updatedList);
                         });
 
+                        // CRITICAL: Invalidate both unified list query AND allLists query
+                        // This ensures ListsPage updates immediately without refresh
+                        if (typeof slug === "string") {
+                          queryClient.invalidateQueries({
+                            queryKey: listQueryKeys.unified(slug),
+                          });
+                        }
+                        // Invalidate allLists query so ListsPage shows updated visibility
+                        queryClient.invalidateQueries({
+                          queryKey: listQueryKeys.allLists(),
+                        });
+
                         // UNIFIED APPROACH: SSE handles ALL activity-updated events (single source of truth)
                         // No local dispatch needed - prevents duplicate API calls
 
@@ -700,6 +712,10 @@ export default function ListPageClient() {
                             queryKey: listQueryKeys.unified(slug),
                           });
                         }
+                        // Also invalidate allLists query
+                        queryClient.invalidateQueries({
+                          queryKey: listQueryKeys.allLists(),
+                        });
                         toast({
                           title: newValue
                             ? "Made Public 🌐"

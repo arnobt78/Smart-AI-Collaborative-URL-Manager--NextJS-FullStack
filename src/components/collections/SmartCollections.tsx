@@ -152,6 +152,9 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
   const processedEventsRef = useRef<Set<string>>(new Set());
   const INVALIDATION_DEBOUNCE_MS = 1000; // Debounce invalidations by 1 second
 
+  // Track refresh loading state separately from query loading
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
   // Force refresh (clears React Query cache and refetches)
   const refreshCollections = useCallback(async () => {
     if (!listSlug || !list?.urls || list.urls.length < 2) {
@@ -166,6 +169,7 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
     // Store previous suggestions count to show in toast
     const previousSuggestionsCount = suggestions.length;
 
+    setIsRefreshing(true);
     try {
       // Clear server-side Redis cache first (use GET with clearCache=true, not DELETE)
       try {
@@ -227,6 +231,8 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
           variant: "error",
         });
       }
+    } finally {
+      setIsRefreshing(false);
     }
   }, [
     listSlug,
@@ -753,13 +759,15 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
           <button
             type="button"
             onClick={refreshCollections}
-            disabled={isLoading}
+            disabled={isLoading || isRefreshing}
             className="inline-flex items-center justify-center rounded-md border border-white/20 bg-transparent px-3 py-1.5 text-sm font-medium text-white hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 disabled:opacity-50 disabled:pointer-events-none disabled:cursor-not-allowed transition-colors"
           >
             <Loader2
-              className={`h-4 w-4 mr-2 ${isLoading ? "animate-spin" : ""}`}
+              className={`h-4 w-4 mr-2 ${
+                isLoading || isRefreshing ? "animate-spin" : ""
+              }`}
             />
-            Refresh Suggestions
+            {isRefreshing ? "Refreshing..." : "Refresh Suggestions"}
           </button>
         </div>
       </CardContent>
