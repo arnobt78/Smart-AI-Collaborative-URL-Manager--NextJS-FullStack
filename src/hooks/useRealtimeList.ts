@@ -8,6 +8,16 @@ interface RealtimeEvent {
   listId: string;
   action?: string;
   timestamp?: string;
+  activity?: {
+    id: string;
+    action: string;
+    details: Record<string, unknown> | null;
+    createdAt: string;
+    user: {
+      id: string;
+      email: string;
+    };
+  };
   [key: string]: unknown;
 }
 
@@ -218,10 +228,12 @@ export function useRealtimeList(listId: string | null) {
             const current = currentList.get();
             if (current?.slug) {
               // Dispatch unified event that will trigger the unified endpoint
+              // CRITICAL: Include slug in event so setupSSECacheSync can invalidate the unified query
               window.dispatchEvent(
                 new CustomEvent("unified-update", {
                   detail: {
                     listId,
+                    slug: current.slug, // Include slug for query invalidation
                     timestamp: data.timestamp || new Date().toISOString(),
                     action: data.action || "list_updated",
                   },
@@ -231,15 +243,21 @@ export function useRealtimeList(listId: string | null) {
           } else if (data.type === "activity_created") {
             // UNIFIED APPROACH: Dispatch unified event that triggers ONE API call for both list + activities
             // This ensures consistency - one API endpoint returns everything needed
-            const activityData = data.activity as any;
+            const activityData = data.activity;
             const action = activityData?.action || "unknown";
             // Activity created - dispatching unified-update
+            
+            // Get current list slug and dispatch unified event
+            // CRITICAL: Include slug in event so setupSSECacheSync can invalidate the unified query
+            const current = currentList.get();
+            const slug = current?.slug;
             
             // Dispatch unified event that will trigger the unified endpoint
             window.dispatchEvent(
               new CustomEvent("unified-update", { 
                 detail: { 
                   listId,
+                  slug, // Include slug for query invalidation
                   action, // Include action at top level for logging/debugging
                   activity: activityData ? {
                     id: activityData.id,

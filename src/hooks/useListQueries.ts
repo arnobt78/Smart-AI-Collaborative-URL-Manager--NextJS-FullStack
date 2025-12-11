@@ -839,7 +839,8 @@ export function useDeleteList() {
 // SSE CACHE UPDATES - Real-time sync
 // ============================================
 export function setupSSECacheSync() {
-  // Sync React Query cache when SSE events fire
+  // CRITICAL: Sync React Query cache when SSE events fire
+  // This ensures collaborators see real-time updates when owner makes changes
   const handleUnifiedUpdate = (event: Event) => {
     const customEvent = event as CustomEvent<{
       listId?: string;
@@ -853,10 +854,23 @@ export function setupSSECacheSync() {
 
     if (!listId) return;
 
-    // REMOVED: Aggressive invalidations causing duplicate API calls
-    // React Query's staleTime handles cache freshness
-    // SSE events already trigger unified-update which ListPage handles
-    // Only mutations need explicit invalidations (handled in mutation callbacks)
+    // CRITICAL: Get slug from currentList store if not provided in event
+    // This ensures we can invalidate the unified query even if slug is missing from event
+    let listSlug = slug;
+    if (!listSlug && typeof window !== "undefined") {
+      const current = currentList.get();
+      if (current?.id === listId && current?.slug) {
+        listSlug = current.slug;
+      }
+    }
+
+    // CRITICAL: Invalidate unified query to trigger refetch
+    // This ensures collaborators see real-time updates (SSE -> unified-update event -> invalidation -> refetch)
+    if (listSlug) {
+      queryClient.invalidateQueries({
+        queryKey: listQueryKeys.unified(listSlug),
+      });
+    }
   };
 
   if (typeof window !== "undefined") {
@@ -866,4 +880,6 @@ export function setupSSECacheSync() {
       window.removeEventListener("unified-update", handleUnifiedUpdate);
     };
   }
+
+  return () => {}; // Return cleanup function for consistency
 }

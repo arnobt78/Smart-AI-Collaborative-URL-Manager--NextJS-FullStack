@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { getListById, updateList } from "@/lib/db";
 import type { UrlItem } from "@/stores/urlListStore";
 import { uploadExternalImage } from "@/lib/cloudinary-server";
+import { createActivity } from "@/lib/db/activities";
+import { publishMessage, CHANNELS } from "@/lib/realtime/redis";
+import { getCurrentUser } from "@/lib/auth";
 
 /**
  * POST /api/jobs/refresh-metadata
@@ -99,12 +102,70 @@ export async function POST(request: NextRequest) {
     }
 
     // Update the list in database
-    await updateList(listId, { urls: updatedUrls });
+    const updatedList = await updateList(listId, { urls: updatedUrls });
 
     const duration = Date.now() - startTime;
     console.log(
       `✅ [METADATA REFRESH] Completed in ${duration}ms - Success: ${successCount}, Errors: ${errorCount}`
     );
+
+    // CRITICAL: Publish real-time updates so collaborators see metadata refresh immediately
+    // Get user for activity log (if available - may be null for scheduled jobs)
+    try {
+      const user = await getCurrentUser();
+      if (user) {
+        // Create activity log
+        const activity = await createActivity(listId, user.id, "metadata_refreshed", {
+          refreshed: urls.length,
+          success: successCount,
+          errors: errorCount,
+          duration,
+        });
+
+        // Publish real-time update
+        await publishMessage(CHANNELS.listUpdate(listId), {
+          type: "list_updated",
+          listId,
+          action: "metadata_refreshed",
+          timestamp: new Date().toISOString(),
+        });
+
+        // Publish activity update
+        await publishMessage(CHANNELS.listActivity(listId), {
+          type: "activity_created",
+          listId,
+          action: "metadata_refreshed",
+          timestamp: new Date().toISOString(),
+          activity: {
+            id: activity.id,
+            action: activity.action,
+            details: activity.details,
+            createdAt: activity.createdAt.toISOString(),
+            user: activity.user ? {
+              id: activity.user.id,
+              email: activity.user.email,
+            } : {
+              id: user.id,
+              email: user.email,
+            },
+          },
+        });
+      }
+    } catch (error) {
+      // Ignore errors if user not available (scheduled job case)
+      // Still publish list update even without activity
+      try {
+        await publishMessage(CHANNELS.listUpdate(listId), {
+          type: "list_updated",
+          listId,
+          action: "metadata_refreshed",
+          timestamp: new Date().toISOString(),
+        });
+      } catch (publishError) {
+        // Ignore publish errors - not critical
+        console.error("❌ [METADATA REFRESH] Failed to publish SSE update:", publishError);
+      }
+    }
 
     return NextResponse.json({
       success: true,

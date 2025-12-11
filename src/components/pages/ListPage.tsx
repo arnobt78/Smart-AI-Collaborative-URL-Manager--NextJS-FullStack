@@ -33,7 +33,7 @@ import {
   listQueryKeys,
 } from "@/hooks/useListQueries";
 import { useQueryClient } from "@tanstack/react-query";
-import { invalidateBrowseQueries } from "@/utils/queryInvalidation";
+import { invalidateBrowseQueries, invalidateListQueries } from "@/utils/queryInvalidation";
 
 export default function ListPageClient() {
   const { toast } = useToast();
@@ -764,17 +764,12 @@ export default function ListPageClient() {
 
                         // CRITICAL: Invalidate ALL related queries to ensure all pages update immediately
                         // This ensures ListsPage, BrowsePage, and current page all update without refresh
-                        if (typeof slug === "string") {
-                          queryClient.invalidateQueries({
-                            queryKey: listQueryKeys.unified(slug),
-                          });
-                        }
-                        // Invalidate allLists query so ListsPage shows updated visibility
-                        queryClient.invalidateQueries({
-                          queryKey: listQueryKeys.allLists(),
-                        });
-                        // CRITICAL: Invalidate browse/public lists queries so BrowsePage updates immediately
                         // Use centralized invalidation function for consistency
+                        if (typeof slug === "string" && list?.id) {
+                          invalidateListQueries(queryClient, slug, list.id);
+                        }
+                        // CRITICAL: Invalidate browse/public lists queries so BrowsePage updates immediately
+                        // This is additional to list queries invalidation above
                         invalidateBrowseQueries(queryClient);
 
                         // UNIFIED APPROACH: SSE handles ALL activity-updated events (single source of truth)
@@ -791,17 +786,12 @@ export default function ListPageClient() {
                         });
                       } else {
                         // Refetch via React Query invalidation - triggers unified endpoint refetch
-                        if (typeof slug === "string") {
-                          queryClient.invalidateQueries({
-                            queryKey: listQueryKeys.unified(slug),
-                          });
-                        }
-                        // Also invalidate allLists query
-                        queryClient.invalidateQueries({
-                          queryKey: listQueryKeys.allLists(),
-                        });
-                        // CRITICAL: Invalidate browse/public lists queries so BrowsePage updates immediately
                         // Use centralized invalidation function for consistency
+                        if (typeof slug === "string" && list?.id) {
+                          invalidateListQueries(queryClient, slug, list.id);
+                        }
+                        // CRITICAL: Invalidate browse/public lists queries so BrowsePage updates immediately
+                        // This is additional to list queries invalidation above
                         invalidateBrowseQueries(queryClient);
                         toast({
                           title: newValue
