@@ -39,7 +39,7 @@ export default function ListPageClient() {
   const { toast } = useToast();
   const router = useRouter();
   const { slug } = useParams();
-  const { user: sessionUser } = useSession();
+  const { user: sessionUser, isLoading: sessionLoading, isAuthenticated } = useSession();
   const list = useStore(currentList);
   const permissions = useListPermissions(); // Get permissions for current list and user
   const listSlug = typeof slug === "string" ? slug : "";
@@ -55,11 +55,12 @@ export default function ListPageClient() {
     data: unifiedData,
     isLoading: isLoadingQuery,
     refetch,
-  } = useUnifiedListQuery(listSlug, !!listSlug);
+  } = useUnifiedListQuery(listSlug, !!listSlug && !sessionLoading);
 
   // CRITICAL: Start with loading=false to show cached data immediately
   // Only show loading if we truly have no data
   const [isLoading, setIsLoading] = useState(false);
+  const [mounted, setMounted] = useState(false); // Track if component is mounted (prevents hydration errors)
   const [isCopied, setIsCopied] = useState(false);
   const [isToggling, setIsToggling] = useState(false);
   // inviteDialogOpen removed - PermissionManager handles dialogs internally
@@ -70,6 +71,12 @@ export default function ListPageClient() {
   const syncInProgress = useRef<string | null>(null); // Track if sync is currently in progress for a list
   const hasFetchedRef = useRef<string | null>(null);
   const hasRedirectedRef = useRef<boolean>(false); // Track if we've already redirected to prevent duplicate redirects
+  const hasCheckedAuthRef = useRef<boolean>(false); // Track if we've checked authentication to prevent duplicate redirects
+
+  // CRITICAL: Set mounted state after component mounts (prevents hydration errors)
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Check localStorage and sessionStorage for persistent vector sync status
   // Uses both localStorage (persists across sessions) and sessionStorage (persists in current session)
@@ -119,6 +126,65 @@ export default function ListPageClient() {
     }
   };
 
+  // CRITICAL: Check authentication and redirect to login if user is not logged in
+  // This handles the case where a collaborator clicks an invitation link without being logged in
+  // Show skeleton while checking, then redirect if user is not authenticated and query failed with 401
+  // This prevents flicker by showing skeleton instead of list content before redirect
+  useEffect(() => {
+    // Don't check if we've already redirected or are still loading session
+    if (hasCheckedAuthRef.current || sessionLoading || hasRedirectedRef.current || !mounted) {
+      return;
+    }
+
+    // Wait for query to complete before checking (public lists allow unauthenticated access)
+    // But show skeleton during this time to prevent flicker
+    if (isLoadingQuery) {
+      return;
+    }
+
+    // Check if user is not authenticated and list query returned null (401 unauthorized)
+    // This indicates the user needs to log in to access the list
+    // Note: Public lists will return data even for unauthenticated users, so we only redirect on 401
+    if (
+      !isAuthenticated &&
+      !unifiedData?.list &&
+      !list?.id &&
+      listSlug &&
+      typeof window !== "undefined"
+    ) {
+      hasCheckedAuthRef.current = true;
+      hasRedirectedRef.current = true;
+
+      // Store current URL in sessionStorage for redirect after login
+      const currentPath = window.location.pathname + window.location.search;
+      sessionStorage.setItem("authRedirect", currentPath);
+
+      // Show toast notification
+      toast({
+        title: "Login Required",
+        description: "You need to be logged in to view this list. Please sign in to continue.",
+        variant: "info",
+        duration: 5000,
+      });
+
+      // Redirect to login page immediately (no delay to prevent flicker)
+      router.push("/");
+    } else {
+      // User is authenticated or list is available (including public lists for unauthenticated users)
+      hasCheckedAuthRef.current = true;
+    }
+  }, [
+    isAuthenticated,
+    sessionLoading,
+    unifiedData,
+    list,
+    listSlug,
+    isLoadingQuery,
+    router,
+    toast,
+    mounted,
+  ]);
+
   // Update loading state - only show loading if we truly have NO data at all
   useEffect(() => {
     // If we have data (from React Query or store), we're not loading
@@ -132,12 +198,16 @@ export default function ListPageClient() {
 
     // Only show loading if we have a slug but absolutely no data yet
     // And React Query is actively fetching (not just checking cache)
-    if (listSlug && isLoadingQuery && !unifiedData && !list?.id) {
+    // Also show loading if session is loading (waiting for authentication check)
+    if (
+      listSlug &&
+      ((isLoadingQuery && !unifiedData && !list?.id) || sessionLoading)
+    ) {
       setIsLoading(true);
     } else {
       setIsLoading(false);
     }
-  }, [unifiedData, isLoadingQuery, listSlug, list, slug]);
+  }, [unifiedData, isLoadingQuery, listSlug, list, slug, sessionLoading]);
 
   // Track current permissions with a ref to check in callbacks
   const permissionsRef = useRef(permissions);
@@ -447,11 +517,21 @@ export default function ListPageClient() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [list?.id]); // Only run when list ID changes
 
-  // CRITICAL: Only show skeleton if we have NO data AND are actively fetching
-  // Show cached data immediately from store or React Query cache
+  // CRITICAL: Show skeleton immediately if:
+  // 1. Session is loading (waiting for authentication check)
+  // 2. User is not authenticated and query is still loading (waiting to confirm 401)
+  // 3. No data available and query is loading
+  // This prevents flicker by showing skeleton before redirect happens
   const hasAnyData =
     unifiedData?.list?.id || (list && list.id && list.slug === listSlug);
-  const shouldShowLoading = !hasAnyData && isLoadingQuery && listSlug;
+  
+  // Show skeleton if session is loading OR if not authenticated and query is still loading
+  // This prevents showing list content before redirect happens
+  const shouldShowLoading = 
+    !mounted || // Not mounted yet (prevent hydration mismatch)
+    sessionLoading || // Session is loading (waiting for auth check)
+    (!isAuthenticated && isLoadingQuery && !hasAnyData && listSlug) || // Not authenticated and query loading (likely 401)
+    (!hasAnyData && isLoadingQuery && listSlug); // No data and query loading
 
   if (shouldShowLoading) {
     return (
@@ -1000,14 +1080,21 @@ export default function ListPageClient() {
           </span>
           <div className="flex items-center gap-1.5 flex-1 min-w-0">
             <span className="text-xs sm:text-sm text-white/90 truncate">
-              {typeof window !== "undefined"
+              {mounted && list?.slug
                 ? `${window.location.origin}/list/${list.slug}`
+                : list?.slug
+                ? `/list/${list.slug}`
                 : ""}
             </span>
             <button
               type="button"
               onClick={async () => {
-                const url = `${window.location.origin}/list/${list.slug}`;
+                const url = mounted && list?.slug
+                  ? `${window.location.origin}/list/${list.slug}`
+                  : list?.slug
+                  ? `/list/${list.slug}`
+                  : "";
+                if (!url) return;
                 try {
                   await navigator.clipboard.writeText(url);
                   setIsCopied(true);
