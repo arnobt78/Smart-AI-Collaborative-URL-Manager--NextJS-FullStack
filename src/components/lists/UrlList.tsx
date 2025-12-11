@@ -41,6 +41,7 @@ import { Textarea } from "@/components/ui/Textarea";
 import { useUrlMetadata } from "@/hooks/useUrlMetadata";
 import { useQueryClient } from "@tanstack/react-query";
 import { listQueryKeys } from "@/hooks/useListQueries";
+import { invalidateUrlQueries } from "@/utils/queryInvalidation";
 import { fetchUrlMetadata, type UrlMetadata } from "@/utils/urlMetadata";
 import { UrlCard } from "./UrlCard";
 import { UrlEditModal } from "./UrlEditModal";
@@ -1685,6 +1686,12 @@ export function UrlList() {
             );
           }
 
+          // CRITICAL: Invalidate unified query to trigger updates?activityLimit=30 API call
+          // This ensures activity feed updates immediately after reorder (same pattern as other URL actions)
+          if (current.slug && current.id) {
+            invalidateUrlQueries(queryClient, current.slug, current.id, false);
+          }
+
           // DON'T clear localStorage immediately - keep it much longer to survive Fast Refresh
           // Fast Refresh can happen multiple times during development, so we need a longer window
           // Clear ref after a shorter time, but keep localStorage for 60 seconds
@@ -1917,6 +1924,12 @@ export function UrlList() {
                 },
               })
             );
+          }
+
+          // CRITICAL: Invalidate unified query to trigger updates?activityLimit=30 API call
+          // This ensures activity feed updates immediately after reorder (same pattern as other URL actions)
+          if (current.slug && current.id) {
+            invalidateUrlQueries(queryClient, current.slug, current.id, false);
           }
 
           // DON'T clear localStorage immediately - keep it much longer to survive Fast Refresh
