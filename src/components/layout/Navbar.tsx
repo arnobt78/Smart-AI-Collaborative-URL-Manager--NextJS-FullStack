@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 import {
   LinkIcon,
   ArrowRightStartOnRectangleIcon,
+  Bars3Icon,
+  XMarkIcon,
 } from "@heroicons/react/24/outline";
 import { useTypewriter } from "@/hooks/useTypewriter";
 import { IconButton } from "@/components/ui/HoverTooltip";
@@ -13,6 +15,7 @@ import { useQueryClient } from "@tanstack/react-query";
 
 export default function Navbar() {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const router = useRouter();
   const queryClient = useQueryClient();
   const { displayText, isComplete } = useTypewriter({
@@ -140,60 +143,68 @@ export default function Navbar() {
 
   return (
     <nav className="bg-transparent backdrop-blur-md sticky top-0 z-50">
-      <div className="mx-auto max-w-7xl px-2 sm:px-0 py-3">
+      <div className="mx-auto max-w-7xl px-2 sm:px-4 lg:px-6 py-2 sm:py-3">
         <div className="flex items-center justify-between">
+          {/* Logo/Brand - Responsive sizing */}
           <Link
             href="/"
             onClick={(e) => handleNavigation(e, "/")}
-            className="flex items-center gap-3 text-xl font-bold text-white hover:text-blue-400 transition-all duration-300 font-mono group"
+            className="flex items-center gap-2 sm:gap-3 text-base sm:text-xl font-bold text-white hover:text-blue-400 transition-all duration-300 font-mono group"
           >
             <div className="bg-transparent transition-transform duration-300 group-hover:scale-110">
-              <LinkIcon className="h-8 w-8 text-blue-600 stroke-[2.5px] drop-shadow-[0_0_10px_rgba(59,130,246,0.5)]" />
+              <LinkIcon className="h-6 w-6 sm:h-8 sm:w-8 text-blue-600 stroke-[2.5px] drop-shadow-[0_0_10px_rgba(59,130,246,0.5)]" />
             </div>
             <div className="animate-ease-in-out" suppressHydrationWarning>
-              <span className="gradient-color drop-shadow-[0_0_15px_rgba(59,130,246,0.3)] text-2xl font-extrabold tracking-tight">
+              <span className="gradient-color drop-shadow-[0_0_15px_rgba(59,130,246,0.3)] text-lg sm:text-xl lg:text-2xl font-extrabold tracking-tight">
                 {displayText}
                 {!isComplete && <span className="typewriter-cursor" />}
               </span>
             </div>
           </Link>
-          <div className="flex items-center gap-4 flex-wrap">
+
+          {/* Desktop Navigation - Hidden on mobile */}
+          <div className="hidden sm:flex items-center gap-3 lg:gap-4 flex-wrap">
             <Link
               href="/browse"
-              className="text-white/80 hover:text-white font-medium transition-colors font-mono text-md"
+              onClick={(e) => handleNavigation(e, "/browse")}
+              className="text-white/80 hover:text-white font-medium transition-colors font-mono text-sm lg:text-base"
             >
               Public URL
             </Link>
             <Link
               href="/business-insights"
-              className="text-white/80 hover:text-white font-medium transition-colors font-mono text-md"
+              onClick={(e) => handleNavigation(e, "/business-insights")}
+              className="text-white/80 hover:text-white font-medium transition-colors font-mono text-sm lg:text-base"
             >
               Analytics
             </Link>
             <Link
               href="/api-status"
-              className="text-white/80 hover:text-white font-medium transition-colors font-mono text-md"
+              onClick={(e) => handleNavigation(e, "/api-status")}
+              className="text-white/80 hover:text-white font-medium transition-colors font-mono text-sm lg:text-base"
             >
               API Status
             </Link>
             <Link
               href="/api-docs"
-              className="text-white/80 hover:text-white font-medium transition-colors font-mono text-md"
+              onClick={(e) => handleNavigation(e, "/api-docs")}
+              className="text-white/80 hover:text-white font-medium transition-colors font-mono text-sm lg:text-base"
             >
               API Docs
             </Link>
             <Link
               href="/lists"
-              className="text-white/80 hover:text-white font-medium transition-colors font-mono text-md"
+              onClick={(e) => handleNavigation(e, "/lists")}
+              className="text-white/80 hover:text-white font-medium transition-colors font-mono text-sm lg:text-base"
             >
               My Lists
             </Link>
 
-            <div className="pl-12">
+            <div className="pl-4 lg:pl-8">
               <IconButton
                 icon={
                   <ArrowRightStartOnRectangleIcon
-                    className={`h-5 w-5 ${isLoggingOut ? "animate-pulse" : ""}`}
+                    className={`h-4 w-4 sm:h-5 sm:w-5 ${isLoggingOut ? "animate-pulse" : ""}`}
                   />
                 }
                 onClick={handleLogout}
@@ -202,7 +213,90 @@ export default function Navbar() {
               />
             </div>
           </div>
+
+          {/* Mobile Menu Button - Visible only on mobile */}
+          <div className="flex items-center gap-2 sm:hidden">
+            <IconButton
+              icon={
+                <ArrowRightStartOnRectangleIcon
+                  className={`h-5 w-5 ${isLoggingOut ? "animate-pulse" : ""}`}
+                />
+              }
+              onClick={handleLogout}
+              tooltip={isLoggingOut ? "Logging out..." : "Logout"}
+              variant="default"
+            />
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="p-2 text-white/80 hover:text-white transition-colors"
+              aria-label="Toggle menu"
+            >
+              {isMobileMenuOpen ? (
+                <XMarkIcon className="h-6 w-6" />
+              ) : (
+                <Bars3Icon className="h-6 w-6" />
+              )}
+            </button>
+          </div>
         </div>
+
+        {/* Mobile Menu - Dropdown on mobile */}
+        {isMobileMenuOpen && (
+          <div className="sm:hidden mt-3 pb-3 border-t border-white/10 pt-3">
+            <div className="flex flex-col gap-3">
+              <Link
+                href="/browse"
+                onClick={(e) => {
+                  handleNavigation(e, "/browse");
+                  setIsMobileMenuOpen(false);
+                }}
+                className="text-white/80 hover:text-white font-medium transition-colors font-mono text-sm py-2 px-2 rounded-lg hover:bg-white/5"
+              >
+                Public URL
+              </Link>
+              <Link
+                href="/business-insights"
+                onClick={(e) => {
+                  handleNavigation(e, "/business-insights");
+                  setIsMobileMenuOpen(false);
+                }}
+                className="text-white/80 hover:text-white font-medium transition-colors font-mono text-sm py-2 px-2 rounded-lg hover:bg-white/5"
+              >
+                Analytics
+              </Link>
+              <Link
+                href="/api-status"
+                onClick={(e) => {
+                  handleNavigation(e, "/api-status");
+                  setIsMobileMenuOpen(false);
+                }}
+                className="text-white/80 hover:text-white font-medium transition-colors font-mono text-sm py-2 px-2 rounded-lg hover:bg-white/5"
+              >
+                API Status
+              </Link>
+              <Link
+                href="/api-docs"
+                onClick={(e) => {
+                  handleNavigation(e, "/api-docs");
+                  setIsMobileMenuOpen(false);
+                }}
+                className="text-white/80 hover:text-white font-medium transition-colors font-mono text-sm py-2 px-2 rounded-lg hover:bg-white/5"
+              >
+                API Docs
+              </Link>
+              <Link
+                href="/lists"
+                onClick={(e) => {
+                  handleNavigation(e, "/lists");
+                  setIsMobileMenuOpen(false);
+                }}
+                className="text-white/80 hover:text-white font-medium transition-colors font-mono text-sm py-2 px-2 rounded-lg hover:bg-white/5"
+              >
+                My Lists
+              </Link>
+            </div>
+          </div>
+        )}
       </div>
     </nav>
   );

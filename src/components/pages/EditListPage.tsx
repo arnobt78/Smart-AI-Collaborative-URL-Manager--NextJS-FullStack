@@ -161,30 +161,27 @@ export default function EditListPageClient() {
   return (
     <div className="min-h-screen w-full">
       {/* Header Section */}
-      <div className="text-left mb-4">
-        {/* <div className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-blue-500/20 via-purple-500/20 to-indigo-500/20 border border-blue-400/30 mb-4 shadow-lg">
-            <PencilIcon className="h-8 w-8 sm:h-10 sm:w-10 text-blue-400" />
-          </div> */}
-        <h1 className="text-xl sm:text-2xl md:text-3xl font-semibold bg-gradient-to-r from-blue-300 via-purple-300 to-indigo-300 bg-clip-text text-transparent">
+      <div className="text-left mb-4 sm:mb-6">
+        <h1 className="text-xl sm:text-2xl lg:text-3xl font-semibold bg-gradient-to-r from-blue-300 via-purple-300 to-indigo-300 bg-clip-text text-transparent">
           Edit List
         </h1>
-        <p className="text-white/70 text-base sm:text-lg max-w-7xl mx-auto">
+        <p className="text-white/70 text-sm sm:text-base lg:text-lg max-w-7xl mx-auto mt-1 sm:mt-2">
           Update your list details and settings
         </p>
       </div>
 
       {/* Form Card */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-white/10 via-white/5 to-white/3 backdrop-blur-md border border-white/20 rounded-2xl shadow-2xl p-6 sm:p-8 md:p-10">
+      <div className="relative overflow-hidden bg-gradient-to-br from-white/10 via-white/5 to-white/3 backdrop-blur-md border border-white/20 rounded-xl sm:rounded-2xl shadow-2xl p-4 sm:p-6 lg:p-8 xl:p-10">
         {/* Animated background effect */}
         <div className="absolute inset-0 bg-gradient-to-r from-blue-500/0 via-purple-500/5 to-indigo-500/0 animate-pulse pointer-events-none" />
 
         <div className="relative z-10">
-          <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-8">
+          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6 lg:space-y-8">
             {/* Title Field */}
             <div className="space-y-2">
               <label
                 htmlFor="title"
-                className="flex text-base sm:text-lg font-semibold text-white mb-2 items-center gap-2"
+                className="flex text-sm sm:text-base lg:text-lg font-semibold text-white mb-2 items-center gap-2"
               >
                 <span className="w-1.5 h-1.5 rounded-full bg-blue-400"></span>
                 Title <span className="text-red-400">*</span>
@@ -196,7 +193,7 @@ export default function EditListPageClient() {
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="e.g., My Favorite Resources"
                 required
-                className="w-full border border-white/20 bg-white/10 backdrop-blur-sm rounded-xl px-4 sm:px-5 py-3 sm:py-3.5 text-base sm:text-lg text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-400/50 transition-all duration-200 shadow-inner"
+                className="w-full border border-white/20 bg-white/10 backdrop-blur-sm rounded-lg sm:rounded-xl px-3 sm:px-4 lg:px-5 py-2.5 sm:py-3 lg:py-3.5 text-sm sm:text-base lg:text-lg text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-400/50 transition-all duration-200 shadow-inner"
               />
               <p className="text-xs sm:text-sm text-white/50">
                 Give your list a memorable name
@@ -207,7 +204,7 @@ export default function EditListPageClient() {
             <div className="space-y-2">
               <label
                 htmlFor="description"
-                className="flex text-base sm:text-lg font-semibold text-white mb-2 items-center gap-2"
+                className="flex text-sm sm:text-base lg:text-lg font-semibold text-white mb-2 items-center gap-2"
               >
                 <span className="w-1.5 h-1.5 rounded-full bg-pink-400"></span>
                 Description{" "}
@@ -219,7 +216,7 @@ export default function EditListPageClient() {
                 id="description"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                className="text-base sm:text-lg shadow-inner font-delicious rounded-xl border border-white/20 bg-white/10 backdrop-blur-sm focus:ring-2 focus:ring-pink-500 focus:border-pink-400/50 transition-all duration-200"
+                className="text-sm sm:text-base lg:text-lg shadow-inner font-delicious rounded-lg sm:rounded-xl border border-white/20 bg-white/10 backdrop-blur-sm focus:ring-2 focus:ring-pink-500 focus:border-pink-400/50 transition-all duration-200 px-3 sm:px-4 py-2.5 sm:py-3"
                 placeholder="Describe what this list is about..."
                 rows={4}
               />
@@ -229,19 +226,19 @@ export default function EditListPageClient() {
             </div>
 
             {/* Visibility Toggle */}
-            <div className="bg-white/5 border border-white/10 rounded-xl p-4 sm:p-5">
-              <div className="flex items-start gap-3">
+            <div className="bg-white/5 border border-white/10 rounded-lg sm:rounded-xl p-3 sm:p-4 lg:p-5">
+              <div className="flex items-start gap-2 sm:gap-3">
                 <input
                   type="checkbox"
                   checked={isPublic}
                   onChange={(e) => setIsPublic(e.target.checked)}
-                  className="h-5 w-5 mt-0.5 text-blue-600 border-white/30 rounded bg-white/10 focus:ring-2 focus:ring-blue-500 focus:ring-offset-0 focus:ring-offset-transparent cursor-pointer"
+                  className="h-4 w-4 sm:h-5 sm:w-5 mt-0.5 text-blue-600 border-white/30 rounded bg-white/10 focus:ring-2 focus:ring-blue-500 focus:ring-offset-0 focus:ring-offset-transparent cursor-pointer flex-shrink-0"
                   id="is_public"
                 />
                 <div className="flex-1">
                   <label
                     htmlFor="is_public"
-                    className="text-white font-medium text-base sm:text-lg cursor-pointer mb-1"
+                    className="text-white font-medium text-sm sm:text-base lg:text-lg cursor-pointer mb-1 block"
                   >
                     Make this list public
                   </label>
@@ -255,7 +252,7 @@ export default function EditListPageClient() {
 
             {/* Error Display */}
             {error && (
-              <div className="bg-red-500/10 border border-red-400/30 rounded-xl p-4 text-red-300 text-sm sm:text-base flex items-start gap-2">
+              <div className="bg-red-500/10 border border-red-400/30 rounded-lg sm:rounded-xl p-3 sm:p-4 text-red-300 text-xs sm:text-sm lg:text-base flex items-start gap-2">
                 <span className="text-red-400 font-bold">⚠</span>
                 <span>{error}</span>
               </div>
@@ -267,14 +264,14 @@ export default function EditListPageClient() {
                 type="button"
                 variant="outline"
                 onClick={() => router.back()}
-                className="text-white border-white/30 hover:bg-white/10 transition-all duration-200 order-2 sm:order-1"
+                className="text-white border-white/30 hover:bg-white/10 transition-all duration-200 order-2 sm:order-1 text-sm sm:text-base py-2.5 sm:py-3 w-full sm:w-auto"
               >
                 Cancel
               </Button>
               <Button
                 type="submit"
                 isLoading={isSaving}
-                className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 hover:from-blue-700 hover:via-purple-700 hover:to-indigo-700 text-white font-bold py-4 sm:py-4.5 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 text-base sm:text-lg order-1 sm:order-2"
+                className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 hover:from-blue-700 hover:via-purple-700 hover:to-indigo-700 text-white font-bold py-2.5 sm:py-3 lg:py-4 rounded-lg sm:rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 text-sm sm:text-base lg:text-lg order-1 sm:order-2 w-full sm:w-auto"
               >
                 {isSaving ? "Saving..." : "Save Changes"}
               </Button>

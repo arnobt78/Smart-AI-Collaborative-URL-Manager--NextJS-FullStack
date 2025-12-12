@@ -140,19 +140,19 @@ export default function ListsPageClient() {
 
   return (
     <div className="min-h-screen w-full">
-      <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4 md:gap-0">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 sm:mb-8 gap-4">
         <div>
-          <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-blue-300 to-purple-300 bg-clip-text text-transparent">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-blue-300 to-purple-300 bg-clip-text text-transparent">
             My Lists
           </h1>
-          <p className="mt-2 text-white/70">
+          <p className="mt-1 sm:mt-2 text-sm sm:text-base text-white/70">
             Manage and organize your URL collections
           </p>
         </div>
         {!isLoading && (
           <Button
             href="/new"
-            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 w-full md:w-auto"
+            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white text-sm sm:text-base shadow-lg hover:shadow-xl transition-all duration-200 w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-2.5"
           >
             Create New List
           </Button>
@@ -255,23 +255,23 @@ export default function ListsPageClient() {
                     <div className="flex-1 min-w-0">
                       {/* Title with badges */}
                       <div className="flex items-start gap-2 sm:gap-3 flex-wrap mb-2">
-                        <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-white group-hover:text-blue-300 transition-colors truncate">
+                        <h2 className="text-base sm:text-lg lg:text-xl xl:text-2xl font-bold text-white group-hover:text-blue-300 transition-colors truncate">
                           {list.title || `List: ${list.slug}`}
                         </h2>
                         {/* Visibility Badge */}
                         {list.isPublic !== undefined && (
                           <Badge
                             variant={list.isPublic ? "success" : "secondary"}
-                            className="text-xs flex items-center gap-1 shrink-0"
+                            className="text-xs sm:text-sm flex items-center gap-1 shrink-0"
                           >
                             {list.isPublic ? (
                               <>
-                                <Globe className="w-3 h-3" />
+                                <Globe className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                                 <span className="hidden sm:inline">Public</span>
                               </>
                             ) : (
                               <>
-                                <Lock className="w-3 h-3" />
+                                <Lock className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                                 <span className="hidden sm:inline">
                                   Private
                                 </span>
@@ -350,7 +350,7 @@ export default function ListsPageClient() {
                       <Button
                         onClick={() => handleEditClick(list)}
                         variant="ghost"
-                        className="text-white/80 hover:text-blue-400 hover:bg-blue-500/20 transition-all duration-200 border border-transparent hover:border-blue-400/30"
+                        className="text-white/80 hover:text-blue-400 hover:bg-blue-500/20 transition-all duration-200 border border-transparent hover:border-blue-400/30 p-2 sm:p-2.5"
                         title="Edit List"
                       >
                         <PencilIcon className="h-4 w-4 sm:h-5 sm:w-5" />
@@ -358,7 +358,7 @@ export default function ListsPageClient() {
                       <Button
                         onClick={() => handleDeleteClick(list)}
                         variant="ghost"
-                        className="text-white/80 hover:text-red-400 hover:bg-red-500/20 transition-all duration-200 border border-transparent hover:border-red-400/30"
+                        className="text-white/80 hover:text-red-400 hover:bg-red-500/20 transition-all duration-200 border border-transparent hover:border-red-400/30 p-2 sm:p-2.5"
                         disabled={
                           deleteListMutation.isPending &&
                           listToDelete?.id === list.id
@@ -369,7 +369,7 @@ export default function ListsPageClient() {
                       </Button>
                       <Button
                         onClick={() => router.push(`/list/${list.slug}`)}
-                        className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 hover:from-blue-700 hover:via-purple-700 hover:to-indigo-700 text-white font-semibold shadow-md hover:shadow-lg transition-all duration-200 w-full sm:w-auto flex items-center gap-2 group/btn"
+                        className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 hover:from-blue-700 hover:via-purple-700 hover:to-indigo-700 text-white text-xs sm:text-sm font-semibold shadow-md hover:shadow-lg transition-all duration-200 w-full sm:w-auto flex items-center gap-1.5 sm:gap-2 group/btn px-3 sm:px-4 py-2 sm:py-2.5"
                       >
                         <span>View List</span>
                         <ExternalLink className="h-3.5 w-3.5 sm:h-4 sm:w-4 group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5 transition-transform" />
@@ -381,20 +381,20 @@ export default function ListsPageClient() {
             );
           })
         ) : (
-          <div className="rounded-xl border-2 border-dashed border-white/30 p-8 sm:p-12 text-center bg-white/5 backdrop-blur-sm">
-            <div className="mx-auto w-20 h-20 sm:w-24 sm:h-24 bg-gradient-to-r from-blue-500/20 to-purple-500/20 border border-blue-400/30 rounded-full flex items-center justify-center">
-              <LinkIcon className="h-10 w-10 sm:h-12 sm:w-12 text-blue-400" />
+          <div className="rounded-xl border-2 border-dashed border-white/30 p-6 sm:p-8 lg:p-12 text-center bg-white/5 backdrop-blur-sm">
+            <div className="mx-auto w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 bg-gradient-to-r from-blue-500/20 to-purple-500/20 border border-blue-400/30 rounded-full flex items-center justify-center">
+              <LinkIcon className="h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12 text-blue-400" />
             </div>
             <h3 className="mt-4 text-base sm:text-lg font-medium text-white">
               No Lists Yet
             </h3>
-            <p className="mt-2 text-white/60">
+            <p className="mt-2 text-sm sm:text-base text-white/60 px-2">
               Start organizing your URLs by creating your first list
             </p>
-            <div className="mt-8">
+            <div className="mt-6 sm:mt-8">
               <Button
                 href="/new"
-                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 w-full sm:w-auto"
+                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white text-sm sm:text-base shadow-lg hover:shadow-xl transition-all duration-200 w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-2.5"
               >
                 Create New List
               </Button>
