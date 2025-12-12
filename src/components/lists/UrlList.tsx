@@ -1,6 +1,12 @@
 "use client";
 
-import React, { useState, useMemo, useEffect, useLayoutEffect, useRef } from "react";
+import React, {
+  useState,
+  useMemo,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+} from "react";
 import { flushSync } from "react-dom";
 import {
   DndContext,
@@ -172,12 +178,14 @@ export function UrlList() {
   const permissions = useListPermissions(); // Get permissions for current list and user
   const listSlug = list?.slug; // Get slug for React Query invalidations
   const [newUrl, setNewUrl] = useState("");
-  
+
   // Debug logging for list store updates to verify re-renders
   React.useEffect(() => {
     if (process.env.NODE_ENV === "development" && list?.urls) {
       const urls = (list.urls as unknown as UrlItem[]) || [];
-      const urlWithClickCount = urls.find(u => u.clickCount !== undefined && u.clickCount > 0);
+      const urlWithClickCount = urls.find(
+        (u) => u.clickCount !== undefined && u.clickCount > 0
+      );
       if (urlWithClickCount) {
       }
     }
@@ -187,7 +195,10 @@ export function UrlList() {
   useEffect(() => {
     const handleMetadataRefresh = () => {
       // Invalidate all metadata queries to force re-fetch with improved extractor
-      queryClient.invalidateQueries({ queryKey: ["url-metadata"], exact: false });
+      queryClient.invalidateQueries({
+        queryKey: ["url-metadata"],
+        exact: false,
+      });
       // Also clear localStorage cache for metadata
       if (typeof window !== "undefined" && window.localStorage) {
         const keys = Object.keys(window.localStorage);
@@ -774,7 +785,7 @@ export function UrlList() {
         const isCollaboratorActionToSkip =
           customEvent.detail.action === "collaborator_added" ||
           customEvent.detail.action === "collaborator_removed";
-        
+
         if (isCollaboratorActionToSkip) {
           // console.log(
           //   "⏭️ [REALTIME] Skipping refresh - collaborator action (handled optimistically)"
@@ -825,7 +836,9 @@ export function UrlList() {
             ) {
               lastRefreshRef.current = now;
               // Use React Query invalidation instead of getList() - triggers unified endpoint refetch
-              queryClient.invalidateQueries({ queryKey: listQueryKeys.unified(current.slug) });
+              queryClient.invalidateQueries({
+                queryKey: listQueryKeys.unified(current.slug),
+              });
             }
           }, remainingTime + 100); // Add 100ms buffer
           return;
@@ -853,7 +866,9 @@ export function UrlList() {
         if (isMetadataChange) {
           lastRefreshRef.current = now;
           // Use React Query invalidation instead of getList() - triggers unified endpoint refetch
-          queryClient.invalidateQueries({ queryKey: listQueryKeys.unified(current.slug) });
+          queryClient.invalidateQueries({
+            queryKey: listQueryKeys.unified(current.slug),
+          });
           return;
         }
 
@@ -880,7 +895,9 @@ export function UrlList() {
           ) {
             lastRefreshRef.current = now;
             // Use React Query invalidation instead of getList() - triggers unified endpoint refetch
-            queryClient.invalidateQueries({ queryKey: listQueryKeys.unified(current.slug) });
+            queryClient.invalidateQueries({
+              queryKey: listQueryKeys.unified(current.slug),
+            });
           }
         }, 1000); // 1 second delay to batch multiple rapid updates
       }
@@ -897,28 +914,31 @@ export function UrlList() {
         action?: string;
         timestamp?: string;
       }>;
-      
+
       const current = currentList.get();
       if (!current?.id) {
         return;
       }
-      
+
       // Only handle if it's for this list
-      if (customEvent.detail?.listId && customEvent.detail.listId !== current.id) {
+      if (
+        customEvent.detail?.listId &&
+        customEvent.detail.listId !== current.id
+      ) {
         return;
       }
-      
+
       // Skip collaborator actions (handled optimistically)
       const isCollaboratorActionToSkip =
         customEvent.detail?.action === "collaborator_added" ||
         customEvent.detail?.action === "collaborator_removed";
-      
+
       if (isCollaboratorActionToSkip) {
         return;
       }
-      
-      const action = customEvent.detail?.action || 'unknown';
-      
+
+      const action = customEvent.detail?.action || "unknown";
+
       // CRITICAL: If this is a reorder action, clear local drag order cache on remote screens
       // This ensures we use the server's order instead of any stale local cache
       if (action === "url_reordered") {
@@ -934,12 +954,12 @@ export function UrlList() {
         // Force re-render to show updated order
         setSortableContextKey((prev) => prev + 1);
       }
-      
+
       // Note: Unified-update events are dispatched AFTER server updates (data is already fresh on server)
       // ListPage handles unified fetch on mount and will refetch when needed via React Query
       // The store will be updated by ListPage's unified query or via other mechanisms
     };
-    
+
     window.addEventListener("list-updated", handleListUpdate);
     window.addEventListener("unified-update", handleUnifiedUpdate);
     return () => {
@@ -1016,14 +1036,14 @@ export function UrlList() {
   // Track URL clicks
   const handleUrlClick = async (urlId: string) => {
     const current = currentList.get();
-    
+
     if (!current.id || !current.urls) {
       return;
     }
 
     const currentUrls = current.urls as unknown as UrlItem[];
     const urlToUpdate = currentUrls.find((u) => u.id === urlId);
-    
+
     if (!urlToUpdate) {
       return;
     }
@@ -1034,10 +1054,11 @@ export function UrlList() {
     const newClickCount = oldClickCount + 1;
 
     // Create a new array with completely new object references to ensure React re-renders
-    const updatedUrls = currentUrls.map((u) =>
-      u.id === urlId 
-        ? { ...u, clickCount: newClickCount } // Create new object with updated clickCount
-        : { ...u } // Create new object for all URLs to ensure React detects the change
+    const updatedUrls = currentUrls.map(
+      (u) =>
+        u.id === urlId
+          ? { ...u, clickCount: newClickCount } // Create new object with updated clickCount
+          : { ...u } // Create new object for all URLs to ensure React detects the change
     );
 
     // Update store immediately for instant feedback with new object references
@@ -1056,36 +1077,43 @@ export function UrlList() {
       if (response.ok) {
         const data = await response.json();
         if (process.env.NODE_ENV === "development") {
-          console.log(`✅ [API] POST /api/lists/${current.id}/urls/${urlId}/click - success`);
+          console.log(
+            `✅ [API] POST /api/lists/${current.id}/urls/${urlId}/click - success`
+          );
         }
 
         // Update with server response to ensure accuracy
         if (data.list) {
           const serverUrls = (data.list.urls as unknown as UrlItem[]) || [];
-          const serverUrlMap = new Map(serverUrls.map((u: UrlItem) => [u.id, u]));
+          const serverUrlMap = new Map(
+            serverUrls.map((u: UrlItem) => [u.id, u])
+          );
 
           // Create completely new URLs array ensuring server clickCount is used
           const finalUrls = updatedUrls.map((url) => {
             const serverUrl = serverUrlMap.get(url.id);
             // CRITICAL: Always create new object reference, use server clickCount if available
             if (serverUrl) {
-              return { ...url, clickCount: serverUrl.clickCount ?? url.clickCount };
+              return {
+                ...url,
+                clickCount: serverUrl.clickCount ?? url.clickCount,
+              };
             }
             return { ...url }; // Create new reference even if no server update
           });
-          
+
           // Get current list state to preserve all fields
           const currentListState = currentList.get();
-          
+
           // Create completely new list object with new array references
           // Adding updatedAt timestamp ensures nanostores detects the change
           const updatedListData = {
             ...currentListState, // Preserve existing fields
             ...data.list, // Override with server data
-            urls: finalUrls.map(u => ({ ...u })), // Create completely new object references
+            urls: finalUrls.map((u) => ({ ...u })), // Create completely new object references
             updatedAt: new Date().toISOString(), // Timestamp to force change detection
           };
-          
+
           // Use flushSync to ensure store update triggers immediate re-render
           flushSync(() => {
             currentList.set(updatedListData);
@@ -1291,7 +1319,9 @@ export function UrlList() {
       // console.error("Failed to toggle favorite:", err);
       // Revert on error - use React Query invalidation to trigger unified endpoint refetch
       if (current.slug) {
-        queryClient.invalidateQueries({ queryKey: listQueryKeys.unified(current.slug) });
+        queryClient.invalidateQueries({
+          queryKey: listQueryKeys.unified(current.slug),
+        });
       }
     } finally {
       setTimeout(() => {
@@ -1365,7 +1395,9 @@ export function UrlList() {
       // console.error("Failed to duplicate URL:", err);
       // Revert on error - use React Query invalidation to trigger unified endpoint refetch
       if (current.slug) {
-        queryClient.invalidateQueries({ queryKey: listQueryKeys.unified(current.slug) });
+        queryClient.invalidateQueries({
+          queryKey: listQueryKeys.unified(current.slug),
+        });
       }
       // Show error toast
       toast({
@@ -1419,7 +1451,9 @@ export function UrlList() {
       // console.error("Failed to archive URL:", err);
       // Revert on error - use React Query invalidation to trigger unified endpoint refetch
       if (current?.slug) {
-        queryClient.invalidateQueries({ queryKey: listQueryKeys.unified(current.slug) });
+        queryClient.invalidateQueries({
+          queryKey: listQueryKeys.unified(current.slug),
+        });
       }
       // Show error toast
       toast({
@@ -1480,7 +1514,9 @@ export function UrlList() {
       // console.error("Failed to pin URL:", err);
       // Revert on error - use React Query invalidation to trigger unified endpoint refetch
       if (current.slug) {
-        queryClient.invalidateQueries({ queryKey: listQueryKeys.unified(current.slug) });
+        queryClient.invalidateQueries({
+          queryKey: listQueryKeys.unified(current.slug),
+        });
       }
     } finally {
       setTimeout(() => {
@@ -1612,7 +1648,6 @@ export function UrlList() {
           const storageKey = getDragOrderStorageKey(current.id);
           const storageValue = JSON.stringify(reorderedUrls);
           localStorage.setItem(storageKey, storageValue);
-
         } catch (err) {
           // Ignore localStorage errors
         }
@@ -1724,7 +1759,10 @@ export function UrlList() {
         }
       } catch (err) {
         if (process.env.NODE_ENV === "development") {
-          console.error(`❌ [API] PATCH /api/lists/${current.id}/urls - reorder failed:`, err);
+          console.error(
+            `❌ [API] PATCH /api/lists/${current.id}/urls - reorder failed:`,
+            err
+          );
         }
         // Revert on error - fetch the current list
         finalDragOrderRef.current = null; // Clear ref on error
@@ -1739,7 +1777,9 @@ export function UrlList() {
         const currentSlug = currentList.get().slug;
         if (currentSlug) {
           // Use React Query invalidation instead of getList() - triggers unified endpoint refetch
-          queryClient.invalidateQueries({ queryKey: listQueryKeys.unified(currentSlug) });
+          queryClient.invalidateQueries({
+            queryKey: listQueryKeys.unified(currentSlug),
+          });
         }
       } finally {
         // Clear flags IMMEDIATELY after API call completes
@@ -1857,7 +1897,9 @@ export function UrlList() {
         if (response.ok) {
           const { list, activity: activityData } = await response.json();
           if (process.env.NODE_ENV === "development") {
-            console.log(`✅ [API] PATCH /api/lists/${current.id}/urls - reorder success`);
+            console.log(
+              `✅ [API] PATCH /api/lists/${current.id}/urls - reorder success`
+            );
           }
 
           // CRITICAL: Always use the preserved order from ref (survives re-renders)
@@ -1964,7 +2006,10 @@ export function UrlList() {
         }
       } catch (err) {
         if (process.env.NODE_ENV === "development") {
-          console.error(`❌ [API] PATCH /api/lists/${current.id}/urls - reorder failed:`, err);
+          console.error(
+            `❌ [API] PATCH /api/lists/${current.id}/urls - reorder failed:`,
+            err
+          );
         }
         // Revert on error - fetch the current list
         finalDragOrderRef.current = null; // Clear ref on error
@@ -1979,7 +2024,9 @@ export function UrlList() {
         const currentSlug = currentList.get().slug;
         if (currentSlug) {
           // Use React Query invalidation instead of getList() - triggers unified endpoint refetch
-          queryClient.invalidateQueries({ queryKey: listQueryKeys.unified(currentSlug) });
+          queryClient.invalidateQueries({
+            queryKey: listQueryKeys.unified(currentSlug),
+          });
         }
       } finally {
         // Clear flags IMMEDIATELY after API call completes
@@ -2343,8 +2390,8 @@ export function UrlList() {
         const q = normalizedCurrentSearch;
         urls = urlsToUse.filter((u) => {
           return (
-          (u.title && u.title.toLowerCase().includes(q)) ||
-          (u.url && u.url.toLowerCase().includes(q)) ||
+            (u.title && u.title.toLowerCase().includes(q)) ||
+            (u.url && u.url.toLowerCase().includes(q)) ||
             (u.description && u.description.toLowerCase().includes(q)) ||
             u.tags?.some((tag) => tag.toLowerCase().includes(q)) ||
             (u.category && u.category.toLowerCase().includes(q))
@@ -2392,7 +2439,7 @@ export function UrlList() {
         if (b.position !== undefined) return 1;
         return (
           new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-      );
+        );
       });
       pinnedUrls.sort((a, b) => {
         if (a.position !== undefined && b.position !== undefined) {
@@ -2431,10 +2478,12 @@ export function UrlList() {
 
     // Always show pinned URLs at the top, then unpinned
     const result = [...pinnedUrls, ...unpinnedUrls];
-    
+
     // Debug logging for click count updates in filtered URLs
     if (process.env.NODE_ENV === "development") {
-      const urlWithClickCount = result.find(u => u.clickCount !== undefined && u.clickCount > 0);
+      const urlWithClickCount = result.find(
+        (u) => u.clickCount !== undefined && u.clickCount > 0
+      );
       if (urlWithClickCount) {
         console.log("🔍 [FILTERED_URLS] filteredAndSortedUrls computed:", {
           totalUrls: result.length,
@@ -2443,11 +2492,13 @@ export function UrlList() {
             title: urlWithClickCount.title?.substring(0, 30),
             clickCount: urlWithClickCount.clickCount,
           },
-          listUrlsLength: list?.urls ? (list.urls as unknown as UrlItem[]).length : 0,
+          listUrlsLength: list?.urls
+            ? (list.urls as unknown as UrlItem[]).length
+            : 0,
         });
       }
     }
-    
+
     return result;
     // urlsToUse is derived from optimisticUrls and list?.urls, which are already in dependencies
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -2503,7 +2554,9 @@ export function UrlList() {
       console.error("Failed to restore URL:", err);
       // Revert on error - use React Query invalidation to trigger unified endpoint refetch
       if (current?.slug) {
-        queryClient.invalidateQueries({ queryKey: listQueryKeys.unified(current.slug) });
+        queryClient.invalidateQueries({
+          queryKey: listQueryKeys.unified(current.slug),
+        });
       }
       // Show error toast
       toast({
@@ -2598,7 +2651,7 @@ export function UrlList() {
 
       {/* Search, Filter, and Import/Export bar - Same Row, Responsive */}
       {!showArchived && (
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-3 mb-4 w-full">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 mb-4 w-full">
           {/* Search Input */}
           <div className="relative flex-1 min-w-0">
             <Input
@@ -2606,7 +2659,7 @@ export function UrlList() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search URLs, titles, or descriptions... (AI-powered)"
-              className="w-full text-lg shadow-md font-delicious min-w-[180px] bg-transparent pr-20"
+              className="w-full text-sm sm:text-base lg:text-lg shadow-md font-delicious min-w-[180px] bg-transparent pr-16 sm:pr-20 py-2 sm:py-2.5"
             />
             {search.trim() && (
               <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
@@ -2614,7 +2667,7 @@ export function UrlList() {
                   <div className="flex items-center gap-2 text-blue-400">
                     <div className="w-4 h-4 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
                     <span className="text-xs font-medium">AI Search...</span>
-        </div>
+                  </div>
                 ) : searchCacheIndicator ? (
                   <span className="text-xs text-green-400 font-medium flex items-center gap-1">
                     <span className="w-2 h-2 bg-green-400 rounded-full" />
@@ -2720,66 +2773,69 @@ export function UrlList() {
             items={filteredAndSortedUrls.map((u) => u.id)}
             strategy={verticalListSortingStrategy}
           >
-      <div className="space-y-8">
+            <div className="space-y-8">
               {filteredAndSortedUrls.map((url) => {
                 return (
-                <UrlCardWrapper
-            key={url.id}
-            url={url}
-                  onEdit={(urlObj) => {
-                    setEditingUrl(urlObj);
-                    setEditingTags(urlObj.tags?.join(", ") || "");
-                    setEditingNotes(urlObj.notes || "");
-                    setEditingReminder(urlObj.reminder || "");
-                  }}
-                  onDelete={(urlId) => {
-                    // Set flag to prevent real-time refresh and metadata batch fetch during delete
-                    isLocalOperationRef.current = true;
-                    lastDeleteTimeRef.current = Date.now(); // Track delete time to prevent real-time refresh
+                  <UrlCardWrapper
+                    key={url.id}
+                    url={url}
+                    onEdit={(urlObj) => {
+                      setEditingUrl(urlObj);
+                      setEditingTags(urlObj.tags?.join(", ") || "");
+                      setEditingNotes(urlObj.notes || "");
+                      setEditingReminder(urlObj.reminder || "");
+                    }}
+                    onDelete={(urlId) => {
+                      // Set flag to prevent real-time refresh and metadata batch fetch during delete
+                      isLocalOperationRef.current = true;
+                      lastDeleteTimeRef.current = Date.now(); // Track delete time to prevent real-time refresh
 
-                    // Clean up React Query cache for deleted URL before delete
-                    const current = currentList.get();
-                    if (current?.urls) {
-                      const currentUrls = current.urls as unknown as UrlItem[];
-                      const deletedUrl = currentUrls.find(
-                        (url) => url.id === urlId
-                      );
-                      if (deletedUrl) {
-                        queryClient.removeQueries({
-                          queryKey: listQueryKeys.urlMetadata(deletedUrl.url),
-                        });
-                      }
-                    }
-
-                    // Perform delete (it does optimistic update internally)
-                    removeUrlFromList(urlId)
-                      .catch((err) => {
-                        console.error("Failed to delete URL:", err);
-                        // Revert on error - use React Query invalidation to trigger unified endpoint refetch
-                        if (current?.slug) {
-                          queryClient.invalidateQueries({ queryKey: listQueryKeys.unified(current.slug) });
+                      // Clean up React Query cache for deleted URL before delete
+                      const current = currentList.get();
+                      if (current?.urls) {
+                        const currentUrls =
+                          current.urls as unknown as UrlItem[];
+                        const deletedUrl = currentUrls.find(
+                          (url) => url.id === urlId
+                        );
+                        if (deletedUrl) {
+                          queryClient.removeQueries({
+                            queryKey: listQueryKeys.urlMetadata(deletedUrl.url),
+                          });
                         }
-                      })
-                      .finally(() => {
-                        // Clear flag after operation completes
-                        setTimeout(() => {
-                          isLocalOperationRef.current = false;
-                        }, 2000);
-                      });
-                  }}
-            onToggleFavorite={handleToggleFavorite}
-            onShare={handleShare}
-                  onUrlClick={handleUrlClick}
-                  onDuplicate={handleDuplicate}
-                  onArchive={handleArchive}
-                  onPin={handlePin}
-            shareTooltip={shareTooltip}
-                  isMetadataReady={isMetadataReady}
-                  canEdit={permissions.canEdit}
-          />
-              );
+                      }
+
+                      // Perform delete (it does optimistic update internally)
+                      removeUrlFromList(urlId)
+                        .catch((err) => {
+                          console.error("Failed to delete URL:", err);
+                          // Revert on error - use React Query invalidation to trigger unified endpoint refetch
+                          if (current?.slug) {
+                            queryClient.invalidateQueries({
+                              queryKey: listQueryKeys.unified(current.slug),
+                            });
+                          }
+                        })
+                        .finally(() => {
+                          // Clear flag after operation completes
+                          setTimeout(() => {
+                            isLocalOperationRef.current = false;
+                          }, 2000);
+                        });
+                    }}
+                    onToggleFavorite={handleToggleFavorite}
+                    onShare={handleShare}
+                    onUrlClick={handleUrlClick}
+                    onDuplicate={handleDuplicate}
+                    onArchive={handleArchive}
+                    onPin={handlePin}
+                    shareTooltip={shareTooltip}
+                    isMetadataReady={isMetadataReady}
+                    canEdit={permissions.canEdit}
+                  />
+                );
               })}
-      </div>
+            </div>
           </SortableContext>
         </DndContext>
       )}
@@ -2791,20 +2847,20 @@ export function UrlList() {
             <div className="rounded-2xl border-2 border-dashed border-white/30 p-16 text-center bg-white/5 backdrop-blur-sm">
               <div className="mx-auto w-32 h-32 bg-gradient-to-br from-gray-500/20 via-gray-500/20 to-transparent rounded-full flex items-center justify-center shadow-inner border border-gray-400/30">
                 <ArchiveBoxIcon className="h-16 w-16 text-gray-400" />
-          </div>
+              </div>
               <h3 className="mt-6 text-2xl font-semibold text-white">
                 No Archived URLs
-          </h3>
+              </h3>
               <p className="mt-3 text-lg text-white/60 max-w-md mx-auto">
                 Archived URLs will appear here. You can restore them at any
                 time.
-          </p>
-        </div>
+              </p>
+            </div>
           ) : (
             archivedUrlsList.map((url) => (
               <div
                 key={url.id}
-                className="bg-white/5 backdrop-blur-sm rounded-xl border border-white/20 p-6"
+                className="bg-white/5 backdrop-blur-sm rounded-xl border border-white/20 p-4 sm:p-6"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
@@ -2827,22 +2883,24 @@ export function UrlList() {
                         ).toLocaleDateString()}
                       </p>
                     )}
-              </div>
-                <Button
-                  type="button"
+                  </div>
+                  <Button
+                    type="button"
                     disabled={!permissions.canEdit}
                     onClick={() => {
                       if (!permissions.canEdit) return; // Prevent action if disabled
                       handleRestore(url.id);
                     }}
                     className={`bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg ${
-                      !permissions.canEdit ? "opacity-50 cursor-not-allowed" : ""
+                      !permissions.canEdit
+                        ? "opacity-50 cursor-not-allowed"
+                        : ""
                     }`}
                   >
                     Restore
-                </Button>
+                  </Button>
+                </div>
               </div>
-          </div>
             ))
           )}
         </div>

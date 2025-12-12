@@ -356,12 +356,12 @@ export default function ApiDocsPage() {
   return (
     <div className="min-h-screen w-full">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2 flex items-center gap-3">
-          <BookOpen className="h-8 w-8 text-blue-400" />
-          API Documentation
+      <div className="mb-6 sm:mb-8">
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-2 flex items-center gap-2 sm:gap-3 flex-wrap">
+          <BookOpen className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-blue-400 flex-shrink-0" />
+          <span>API Documentation</span>
         </h1>
-        <p className="text-white/60 text-sm sm:text-base">
+        <p className="text-white/60 text-xs sm:text-sm lg:text-base">
           Complete API reference for The Daily Urlist
         </p>
       </div>
@@ -393,28 +393,30 @@ export default function ApiDocsPage() {
 
       {/* API Endpoints by Category */}
       <Tabs defaultValue="Authentication" className="w-full">
-        <TabsList className="grid w-full grid-cols-4 mb-6">
+        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 mb-4 sm:mb-6 gap-1 sm:gap-2">
           <TabsTrigger
             value="Authentication"
-            className="flex items-center gap-2"
+            className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2"
           >
-            <Lock className="h-4 w-4" />
-            Auth
+            <Lock className="h-3 w-3 sm:h-4 sm:w-4" />
+            <span className="hidden sm:inline">Auth</span>
+            <span className="sm:hidden">Auth</span>
           </TabsTrigger>
-          <TabsTrigger value="Lists" className="flex items-center gap-2">
-            <Link2 className="h-4 w-4" />
+          <TabsTrigger value="Lists" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2">
+            <Link2 className="h-3 w-3 sm:h-4 sm:w-4" />
             Lists
           </TabsTrigger>
-          <TabsTrigger value="Utility" className="flex items-center gap-2">
-            <Code className="h-4 w-4" />
+          <TabsTrigger value="Utility" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2">
+            <Code className="h-3 w-3 sm:h-4 sm:w-4" />
             Utility
           </TabsTrigger>
           <TabsTrigger
             value="Business Insights"
-            className="flex items-center gap-2"
+            className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2"
           >
-            <Globe className="h-4 w-4" />
-            Insights
+            <Globe className="h-3 w-3 sm:h-4 sm:w-4" />
+            <span className="hidden sm:inline">Insights</span>
+            <span className="sm:hidden">Insights</span>
           </TabsTrigger>
         </TabsList>
 
@@ -423,9 +425,9 @@ export default function ApiDocsPage() {
             {endpoints.map((endpoint, index) => (
               <Card key={index}>
                 <CardHeader>
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2 flex-wrap">
+                  <div className="flex items-start justify-between gap-3 sm:gap-4">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 sm:gap-3 mb-2 flex-wrap">
                         <Badge
                           variant={
                             endpoint.method === "GET"
@@ -436,17 +438,18 @@ export default function ApiDocsPage() {
                               ? "secondary"
                               : "destructive"
                           }
-                          className="font-mono"
+                          className="font-mono text-xs sm:text-sm"
                         >
                           {endpoint.method}
                         </Badge>
-                        <code className="text-white font-mono text-sm">
+                        <code className="text-white font-mono text-xs sm:text-sm break-all">
                           {endpoint.path}
                         </code>
                         {endpoint.auth && (
                           <Badge variant="secondary" className="text-xs">
                             <Lock className="h-3 w-3 mr-1" />
-                            Auth Required
+                            <span className="hidden sm:inline">Auth Required</span>
+                            <span className="sm:hidden">Auth</span>
                           </Badge>
                         )}
                         {!endpoint.auth && (
@@ -456,7 +459,7 @@ export default function ApiDocsPage() {
                           </Badge>
                         )}
                       </div>
-                      <p className="text-white/70 text-sm">
+                      <p className="text-white/70 text-xs sm:text-sm">
                         {endpoint.description}
                       </p>
                     </div>

@@ -8,7 +8,10 @@ import { Textarea } from "@/components/ui/Textarea";
 import { UrlEnhancer } from "@/components/ai/UrlEnhancer";
 import { useToast } from "@/components/ui/Toaster";
 import { useQueryClient } from "@tanstack/react-query";
-import { invalidateAllListsQueries, invalidateListQueries } from "@/utils/queryInvalidation";
+import {
+  invalidateAllListsQueries,
+  invalidateListQueries,
+} from "@/utils/queryInvalidation";
 import {
   LinkIcon,
   ArrowTopRightOnSquareIcon,
@@ -117,7 +120,7 @@ export default function NewListPageClient() {
         </div>
 
         {/* Form Card Skeleton */}
-        <div className="relative overflow-hidden bg-gradient-to-br from-white/10 via-white/5 to-white/3 backdrop-blur-md border border-white/20 rounded-2xl shadow-2xl p-6 sm:p-8 md:p-10">
+        <div className="relative overflow-hidden bg-gradient-to-br from-white/10 via-white/5 to-white/3 backdrop-blur-md border border-white/20 rounded-2xl shadow-2xl p-4 sm:p-6 lg:p-8">
           <div className="relative z-10">
             <div className="space-y-6 sm:space-y-8 animate-pulse">
               {/* Title Field Skeleton */}
@@ -206,12 +209,15 @@ export default function NewListPageClient() {
       </div>
 
       {/* Form Card */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-white/10 via-white/5 to-white/3 backdrop-blur-md border border-white/20 rounded-xl sm:rounded-2xl shadow-2xl p-4 sm:p-6 lg:p-8 xl:p-10">
+      <div className="relative overflow-hidden bg-gradient-to-br from-white/10 via-white/5 to-white/3 backdrop-blur-md border border-white/20 rounded-xl sm:rounded-2xl shadow-2xl p-4 sm:p-6 lg:p-8">
         {/* Animated background effect */}
         <div className="absolute inset-0 bg-gradient-to-r from-blue-500/0 via-purple-500/5 to-indigo-500/0 animate-pulse pointer-events-none" />
 
         <div className="relative z-10">
-          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6 lg:space-y-8">
+          <form
+            onSubmit={handleSubmit}
+            className="space-y-4 sm:space-y-6 lg:space-y-8"
+          >
             <div className="space-y-2">
               <label className="flex text-sm sm:text-base lg:text-lg font-semibold text-white mb-2 items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-blue-400"></span>

@@ -225,11 +225,11 @@ export function UrlAddForm({
     <form
       onSubmit={handleSubmit}
       className={`
-        flex flex-col gap-4 bg-white/5 backdrop-blur-sm rounded-xl shadow-xl border border-white/20 mx-auto
+        flex flex-col gap-3 sm:gap-4 bg-white/5 backdrop-blur-sm rounded-xl shadow-xl border border-white/20 mx-auto
         transition-all duration-300 ease-in-out overflow-hidden
         ${
           isExpanded
-            ? "p-8 max-h-[1000px] opacity-100"
+            ? "p-4 sm:p-6 lg:p-8 max-h-[1000px] opacity-100"
             : "p-0 max-h-0 opacity-0"
         }
       `}
@@ -243,7 +243,7 @@ export function UrlAddForm({
           onBlur={handleBlur}
           placeholder="Enter a URL to add to your list..."
           error={error}
-          className="text-lg shadow-md font-delicious bg-transparent"
+          className="text-sm sm:text-base lg:text-lg shadow-md font-delicious bg-transparent"
         />
 
         {/* AI Enhancement - Compact mode for inline use */}
@@ -275,26 +275,26 @@ export function UrlAddForm({
               value={newTags}
               onChange={(e) => setNewTags(e.target.value)}
               placeholder="Tags (comma separated) - AI will suggest some!"
-              className="text-lg shadow-md font-delicious bg-transparent"
+              className="text-sm sm:text-base lg:text-lg shadow-md font-delicious bg-transparent"
             />
 
             <Textarea
               value={newNote}
               onChange={(e) => setNewNote(e.target.value)}
               placeholder="Note (optional) - AI will suggest a summary!"
-              className="text-lg shadow-md font-delicious rounded-xl min-h-[40px]"
+              className="text-sm sm:text-base lg:text-lg shadow-md font-delicious rounded-xl min-h-[40px]"
               rows={2}
             />
           </div>
         </div>
       )}
 
-      <div className="flex justify-end gap-3">
+      <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-3">
         {newUrl && (
           <Button
             type="button"
             onClick={handleClear}
-            className="bg-gray-600 hover:bg-gray-700 text-white text-sm font-semibold px-4 py-2 rounded-lg shadow-md hover:shadow-xl transition-all duration-200"
+            className="bg-gray-600 hover:bg-gray-700 text-white text-xs sm:text-sm font-semibold px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg shadow-md hover:shadow-xl transition-all duration-200 w-full sm:w-auto"
           >
             Clear
           </Button>
@@ -302,9 +302,9 @@ export function UrlAddForm({
         <Button
           type="submit"
           isLoading={isLoading}
-          className="bg-blue-600 hover:bg-blue-700 text-white text-lg font-semibold px-8 py-2.5 rounded-xl shadow-md hover:shadow-xl transition-all duration-200 whitespace-nowrap flex items-center justify-center gap-2 cursor-pointer font-delicious"
+          className="bg-blue-600 hover:bg-blue-700 text-white text-sm sm:text-base lg:text-lg font-semibold px-6 sm:px-8 py-2 sm:py-2.5 rounded-lg sm:rounded-xl shadow-md hover:shadow-xl transition-all duration-200 whitespace-nowrap flex items-center justify-center gap-2 cursor-pointer font-delicious w-full sm:w-auto"
         >
-          <CirclePlus className="h-5 w-5" />
+          <CirclePlus className="h-4 w-4 sm:h-5 sm:w-5" />
           Add URL
         </Button>
       </div>

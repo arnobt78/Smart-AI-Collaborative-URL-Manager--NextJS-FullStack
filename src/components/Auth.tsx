@@ -122,11 +122,11 @@ export default function Auth() {
             "Account created successfully! Check your email for a welcome message.",
           variant: "success",
         });
-        
+
         // CRITICAL: Clear all old user data cache before new signup
         // This ensures no data from previous user remains cached
         queryClient.clear(); // Remove all queries from cache
-        
+
         // Clear localStorage cache as well (if used)
         if (typeof window !== "undefined") {
           const keys = Object.keys(localStorage);
@@ -135,10 +135,10 @@ export default function Auth() {
               localStorage.removeItem(key);
             }
           });
-          
+
           // Dispatch event for components that listen to session updates
           window.dispatchEvent(new CustomEvent("session-updated"));
-          
+
           // Wait a moment for the session cookie to be set on the server
           // Then invalidate and refetch the session to ensure it's properly loaded
           setTimeout(async () => {
@@ -153,11 +153,11 @@ export default function Auth() {
                 console.error("Session refetch error (non-critical):", error);
               }
             }
-            
+
             // Check if there's a redirect URL (user was trying to access a protected resource)
             const redirectUrl = getRedirectUrl();
             const finalRedirectUrl = redirectUrl || "/"; // Default to homepage if no redirect URL
-            
+
             // Redirect to the destination after successful signup
             // Use full page reload to ensure session is properly recognized by HomePage
             // This ensures the session cookie is included in the request
@@ -207,11 +207,11 @@ export default function Auth() {
           description: "Signed in successfully!",
           variant: "success",
         });
-        
+
         // CRITICAL: Clear all old user data cache before new login
         // This ensures no data from previous user remains cached
         queryClient.clear(); // Remove all queries from cache
-        
+
         // Clear localStorage cache as well (if used)
         if (typeof window !== "undefined") {
           const keys = Object.keys(localStorage);
@@ -220,10 +220,10 @@ export default function Auth() {
               localStorage.removeItem(key);
             }
           });
-          
+
           // Dispatch event for components that listen to session updates
           window.dispatchEvent(new CustomEvent("session-updated"));
-          
+
           // Wait a moment for the session cookie to be set on the server
           // Then invalidate and refetch the session to ensure it's properly loaded
           setTimeout(async () => {
@@ -238,11 +238,11 @@ export default function Auth() {
                 console.error("Session refetch error (non-critical):", error);
               }
             }
-            
+
             // Check if there's a redirect URL (user was trying to access a protected resource)
             const redirectUrl = getRedirectUrl();
             const finalRedirectUrl = redirectUrl || "/"; // Default to homepage if no redirect URL
-            
+
             // Redirect to the destination after successful login
             // Use full page reload to ensure session is properly recognized by HomePage
             // This ensures the session cookie is included in the request
@@ -282,13 +282,13 @@ export default function Auth() {
         <div className="absolute inset-0 z-50 flex flex-col items-center justify-center">
           <div className="relative z-[2] flex flex-col items-center justify-center w-full">
             {/* Welcome Content */}
-            <div className="flex flex-col items-center mb-8">
-              <div className="text-center mb-6 animate-fade-in">
-                <h1 className="text-4xl sm:text-5xl font-bold text-[#00ff99] drop-shadow-[0_0_15px_rgba(0,255,153,0.6)]">
+            <div className="flex flex-col items-center mb-6 sm:mb-8">
+              <div className="text-center mb-4 sm:mb-6 animate-fade-in">
+                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[#00ff99] drop-shadow-[0_0_15px_rgba(0,255,153,0.6)]">
                   Welcome!
                 </h1>
               </div>
-              <div className="w-32 h-32 mb-6">
+              <div className="w-24 h-24 sm:w-32 sm:h-32 mb-4 sm:mb-6">
                 <OptimizedImage
                   src="/favicon.ico"
                   alt="Urlist Logo"
@@ -302,21 +302,21 @@ export default function Auth() {
             </div>
 
             {/* Typewriter Container */}
-            <div className="flex flex-col items-center gap-4 px-4">
-              <div className="bg-[rgba(20,20,30,0.8)] border-2 border-[#7b8ebc] rounded-2xl px-6 py-4 shadow-[0_8px_32px_rgba(0,0,0,0.3)] backdrop-blur-md max-w-2xl">
-                <pre className="font-mono text-xl sm:text-2xl text-[#00ff99] drop-shadow-[0_0_10px_rgba(0,255,153,0.5)] whitespace-pre-wrap leading-tight">
+            <div className="flex flex-col items-center gap-3 sm:gap-4 px-3 sm:px-4">
+              <div className="bg-[rgba(20,20,30,0.8)] border-2 border-[#7b8ebc] rounded-xl sm:rounded-2xl px-4 sm:px-6 py-3 sm:py-4 shadow-[0_8px_32px_rgba(0,0,0,0.3)] backdrop-blur-md max-w-2xl w-full">
+                <pre className="font-mono text-base sm:text-lg lg:text-xl xl:text-2xl text-[#00ff99] drop-shadow-[0_0_10px_rgba(0,255,153,0.5)] whitespace-pre-wrap leading-tight">
                   {typewriterText}
                   {isMainComplete && (
-                    <span className="inline-block text-[#00ff99] font-bold text-2xl animate-cursor-blink">
+                    <span className="inline-block text-[#00ff99] font-bold text-lg sm:text-xl lg:text-2xl animate-cursor-blink">
                       _
                     </span>
                   )}
                 </pre>
               </div>
               {showSubtitle && (
-                <div className="font-sans text-lg sm:text-xl text-[#7b8ebc] text-center animate-slide-up">
+                <div className="font-sans text-sm sm:text-base lg:text-lg xl:text-xl text-[#7b8ebc] text-center animate-slide-up px-2">
                   {subtitleText}
-                  <span className="inline-block text-[#7b8ebc] font-bold text-xl animate-cursor-blink">
+                  <span className="inline-block text-[#7b8ebc] font-bold text-base sm:text-lg lg:text-xl animate-cursor-blink">
                     _
                   </span>
                 </div>
@@ -328,27 +328,31 @@ export default function Auth() {
 
       {/* Auth Form */}
       <div
-        className={`relative z-10 w-full max-w-md mx-auto p-8 transition-opacity duration-1000 ${
+        className={`relative z-10 w-full max-w-md mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 transition-opacity duration-1000 ${
           showWelcome ? "opacity-0 pointer-events-none" : "opacity-100"
         }`}
       >
-        <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-8 shadow-2xl">
-          <div className="text-center mb-8">
-            <div className="flex justify-center mb-4">
+        <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 shadow-2xl">
+          <div className="text-center mb-6 sm:mb-8">
+            <div className="flex justify-center mb-3 sm:mb-4">
               <OptimizedImage
                 src="/favicon.ico"
                 alt="Logo"
                 width={64}
                 height={64}
-                className="rounded-full"
+                className="w-12 h-12 sm:w-16 sm:h-16 rounded-full"
                 publicAsset
               />
             </div>
-            <h2 className="text-3xl font-bold text-white mb-2">Sign In</h2>
-            <p className="text-gray-300">Enter your credentials to continue</p>
+            <h2 className="text-2xl sm:text-3xl font-bold text-white mb-1 sm:mb-2">
+              Sign In
+            </h2>
+            <p className="text-sm sm:text-base text-gray-300">
+              Enter your credentials to continue
+            </p>
           </div>
 
-          <form className="space-y-6">
+          <form className="space-y-4 sm:space-y-6">
             {/* Guest User Selection Dropdown - Demo Feature */}
             {/* Allows recruiters/reviewers to quickly test the application with pre-filled credentials */}
             {/* Button always displays "Select as Guest User" regardless of selection */}
@@ -356,7 +360,7 @@ export default function Auth() {
               <button
                 type="button"
                 onClick={() => setIsGuestDropdownOpen(!isGuestDropdownOpen)}
-                className="w-full rounded-xl border border-white/20 bg-white/10 backdrop-blur-sm px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-[#00ff99] focus:border-transparent transition-all min-h-[48px] flex items-center justify-between cursor-pointer"
+                className="w-full rounded-lg sm:rounded-xl border border-white/20 bg-white/10 backdrop-blur-sm px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base text-white focus:outline-none focus:ring-2 focus:ring-[#00ff99] focus:border-transparent transition-all min-h-[44px] sm:min-h-[48px] flex items-center justify-between cursor-pointer"
               >
                 <span className="text-white">Select as Guest User</span>
                 <ChevronDown
@@ -391,7 +395,7 @@ export default function Auth() {
                   >
                     <span>Guest User</span>
                   </button>
-                  
+
                   {/* Clear Input Option - Clears guest user credentials */}
                   <button
                     type="button"
@@ -416,7 +420,7 @@ export default function Auth() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full rounded-xl border border-white/20 bg-white/10 backdrop-blur-sm px-4 py-3 text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00ff99] focus:border-transparent transition-all"
+                className="w-full rounded-lg sm:rounded-xl border border-white/20 bg-white/10 backdrop-blur-sm px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00ff99] focus:border-transparent transition-all"
                 placeholder="Email address"
               />
             </div>
@@ -426,28 +430,28 @@ export default function Auth() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full rounded-xl border border-white/20 bg-white/10 backdrop-blur-sm px-4 py-3 text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00ff99] focus:border-transparent transition-all"
+                className="w-full rounded-lg sm:rounded-xl border border-white/20 bg-white/10 backdrop-blur-sm px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00ff99] focus:border-transparent transition-all"
                 placeholder="Password"
               />
             </div>
 
             {message && (
-              <div className="text-center font-medium text-[#00ff99] animate-fade-in">
+              <div className="text-center text-sm sm:text-base font-medium text-[#00ff99] animate-fade-in px-2">
                 {message}
               </div>
             )}
 
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               <button
                 type="submit"
                 onClick={handleSignIn}
                 disabled={loading}
-                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white text-sm sm:text-base font-semibold py-2.5 sm:py-3 rounded-lg sm:rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? "Loading..." : "Sign in"}
               </button>
 
-              <div className="text-center text-sm">
+              <div className="text-center text-xs sm:text-sm">
                 <span className="text-gray-300">
                   Don&apos;t have an account?{" "}
                 </span>

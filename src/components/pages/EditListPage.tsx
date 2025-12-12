@@ -17,13 +17,13 @@ export default function EditListPageClient() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const listSlug = typeof slug === "string" ? slug : "";
-  
+
   // Use React Query to fetch list data (checks cache first)
   const { data: unifiedData, isLoading: isLoadingQuery } = useUnifiedListQuery(
     listSlug,
     !!listSlug
   );
-  
+
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [isPublic, setIsPublic] = useState(false);
@@ -72,7 +72,7 @@ export default function EditListPageClient() {
       // Invalidate React Query cache using centralized invalidation
       // This ensures all related queries (unified, all lists, collections, etc.) update together
       invalidateListQueries(queryClient, listSlug, listId);
-      
+
       // Show success toast notification
       toast({
         title: "List Updated! ✅",
@@ -110,7 +110,7 @@ export default function EditListPageClient() {
         </div>
 
         {/* Form Card Skeleton */}
-        <div className="relative overflow-hidden bg-gradient-to-br from-white/10 via-white/5 to-white/3 backdrop-blur-md border border-white/20 rounded-2xl shadow-2xl p-6 sm:p-8 md:p-10">
+        <div className="relative overflow-hidden bg-gradient-to-br from-white/10 via-white/5 to-white/3 backdrop-blur-md border border-white/20 rounded-2xl shadow-2xl p-4 sm:p-6 lg:p-8">
           <div className="relative z-10">
             <div className="space-y-6 sm:space-y-8 animate-pulse">
               {/* Title Field Skeleton */}
@@ -176,7 +176,10 @@ export default function EditListPageClient() {
         <div className="absolute inset-0 bg-gradient-to-r from-blue-500/0 via-purple-500/5 to-indigo-500/0 animate-pulse pointer-events-none" />
 
         <div className="relative z-10">
-          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6 lg:space-y-8">
+          <form
+            onSubmit={handleSubmit}
+            className="space-y-4 sm:space-y-6 lg:space-y-8"
+          >
             {/* Title Field */}
             <div className="space-y-2">
               <label

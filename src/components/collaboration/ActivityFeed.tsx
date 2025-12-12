@@ -365,36 +365,36 @@ export function ActivityFeed({ listId, limit = 50 }: ActivityFeedProps) {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3 sm:space-y-4">
       {/* Header */}
       <div className="flex items-center gap-2">
-        <Activity className="w-4 h-4 text-white/70" />
-        <h3 className="text-sm font-medium text-white/90">
+        <Activity className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white/70" />
+        <h3 className="text-xs sm:text-sm font-medium text-white/90">
           Activity Feed ({activities.length})
         </h3>
       </div>
 
       {/* Activities List */}
-      <div className="space-y-3 max-h-[500px] overflow-y-auto custom-scrollbar">
+      <div className="space-y-2 sm:space-y-3 max-h-[400px] sm:max-h-[500px] overflow-y-auto custom-scrollbar">
         {isLoading ? (
-          <div className="text-sm text-white/50 text-center py-4">
+          <div className="text-xs sm:text-sm text-white/50 text-center py-3 sm:py-4">
             Loading activities...
           </div>
         ) : activities.length === 0 ? (
-          <div className="text-sm text-white/50 text-center py-4">
+          <div className="text-xs sm:text-sm text-white/50 text-center py-3 sm:py-4 px-2">
             No activity yet. Start adding URLs to see activity here!
           </div>
         ) : (
           activities.map((activity) => (
             <div
               key={activity.id}
-              className="flex items-start gap-3 bg-white/5 rounded-lg p-3 border border-white/10"
+              className="flex items-start gap-2 sm:gap-3 bg-white/5 rounded-lg p-2.5 sm:p-3 border border-white/10"
             >
               <div className="flex-shrink-0 mt-0.5">
                 {getActionIcon(activity.action)}
               </div>
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
+                <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
                   <span className="text-xs font-medium text-white/90 truncate">
                     {activity.user.email}
                   </span>
@@ -402,7 +402,7 @@ export function ActivityFeed({ listId, limit = 50 }: ActivityFeedProps) {
                     {getActionLabel(activity)}
                   </span>
                 </div>
-                <div className="text-xs text-white/50 mt-1">
+                <div className="text-xs text-white/50 mt-0.5 sm:mt-1">
                   {formatDate(activity.createdAt)}
                 </div>
               </div>

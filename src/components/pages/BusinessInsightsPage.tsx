@@ -208,38 +208,43 @@ export default function BusinessInsightsPage(
   return (
     <div className="min-h-screen w-full">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2 flex items-center gap-3">
-          <BarChart3 className="h-8 w-8 text-blue-400" />
-          Business Insights
+      <div className="mb-6 sm:mb-8">
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-2 flex items-center gap-2 sm:gap-3 flex-wrap">
+          <BarChart3 className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-blue-400 flex-shrink-0" />
+          <span>Business Insights</span>
         </h1>
-        <p className="text-white/60 text-sm sm:text-base">
+        <p className="text-white/60 text-xs sm:text-sm lg:text-base">
           Track your URLs, lists, and engagement metrics
         </p>
       </div>
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-5 mb-6">
-          <TabsTrigger value="overview" className="flex items-center gap-2">
-            <TrendingUp className="h-4 w-4" />
-            Overview
+        <TabsList className="grid w-full grid-cols-5 mb-4 sm:mb-6 gap-1 sm:gap-2">
+          <TabsTrigger value="overview" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2">
+            <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4" />
+            <span className="hidden sm:inline">Overview</span>
+            <span className="sm:hidden">Overview</span>
           </TabsTrigger>
-          <TabsTrigger value="activity" className="flex items-center gap-2">
-            <BarChart3 className="h-4 w-4" />
-            Activity
+          <TabsTrigger value="activity" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2">
+            <BarChart3 className="h-3 w-3 sm:h-4 sm:w-4" />
+            <span className="hidden sm:inline">Activity</span>
+            <span className="sm:hidden">Activity</span>
           </TabsTrigger>
-          <TabsTrigger value="popular" className="flex items-center gap-2">
-            <Star className="h-4 w-4" />
-            Popular
+          <TabsTrigger value="popular" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2">
+            <Star className="h-3 w-3 sm:h-4 sm:w-4" />
+            <span className="hidden sm:inline">Popular</span>
+            <span className="sm:hidden">Popular</span>
           </TabsTrigger>
-          <TabsTrigger value="performance" className="flex items-center gap-2">
-            <Zap className="h-4 w-4" />
-            Performance
+          <TabsTrigger value="performance" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2">
+            <Zap className="h-3 w-3 sm:h-4 sm:w-4" />
+            <span className="hidden sm:inline">Performance</span>
+            <span className="sm:hidden">Perf</span>
           </TabsTrigger>
-          <TabsTrigger value="global" className="flex items-center gap-2">
-            <Globe className="h-4 w-4" />
-            Global
+          <TabsTrigger value="global" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2">
+            <Globe className="h-3 w-3 sm:h-4 sm:w-4" />
+            <span className="hidden sm:inline">Global</span>
+            <span className="sm:hidden">Global</span>
           </TabsTrigger>
         </TabsList>
 

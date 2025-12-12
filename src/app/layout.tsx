@@ -140,7 +140,7 @@ export default function RootLayout({
             <FloatingBackground />
             <div className="flex flex-col min-h-screen bg-transparent">
               <Navbar />
-              <main className="flex-grow mx-auto max-w-7xl w-full py-8 sm:py-12">
+              <main className="flex-grow mx-auto max-w-7xl w-full px-1 sm:px-0 py-8 sm:py-12">
                 {children}
               </main>
               <Footer />

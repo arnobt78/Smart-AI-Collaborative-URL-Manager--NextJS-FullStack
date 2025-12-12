@@ -159,10 +159,10 @@ export function UrlEditModal({
 
   if (!editingUrl) return null;
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4 backdrop-blur-sm overflow-y-auto">
-      <div className="w-full max-w-xl max-h-[90vh] my-8 rounded-2xl bg-gradient-to-br from-zinc-900 to-zinc-800 p-8 shadow-2xl border border-white/20 overflow-y-auto">
-        <h2 className="text-2xl font-bold text-white flex items-center gap-2">
-          <PencilIcon className="h-6 w-6 text-blue-400" />
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-3 sm:p-4 backdrop-blur-sm overflow-y-auto">
+      <div className="w-full max-w-xl max-h-[90vh] my-4 sm:my-8 rounded-xl sm:rounded-2xl bg-gradient-to-br from-zinc-900 to-zinc-800 p-4 sm:p-6 lg:p-8 shadow-2xl border border-white/20 overflow-y-auto">
+        <h2 className="text-xl sm:text-2xl font-bold text-white flex items-center gap-2">
+          <PencilIcon className="h-5 w-5 sm:h-6 sm:w-6 text-blue-400" />
           Edit URL
         </h2>
         <form
@@ -184,10 +184,10 @@ export function UrlEditModal({
               editingReminder || undefined
             );
           }}
-          className="mt-8 space-y-6"
+          className="mt-4 sm:mt-6 lg:mt-8 space-y-4 sm:space-y-6"
         >
           <div>
-            <label className="block text-base font-medium text-white">
+            <label className="block text-sm sm:text-base font-medium text-white">
               Title
             </label>
             <Input
@@ -197,11 +197,11 @@ export function UrlEditModal({
                 setEditingUrl({ ...editingUrl, title: e.target.value })
               }
               placeholder="URL Title"
-              className="mt-2 text-lg shadow-sm"
+              className="mt-2 text-sm sm:text-base lg:text-lg shadow-sm"
             />
           </div>
           <div>
-            <label className="block text-base font-medium text-white">
+            <label className="block text-sm sm:text-base font-medium text-white">
               URL
             </label>
             <Input
@@ -211,11 +211,11 @@ export function UrlEditModal({
                 setEditingUrl({ ...editingUrl, url: e.target.value })
               }
               placeholder="https://example.com"
-              className="mt-2 text-lg shadow-sm"
+              className="mt-2 text-sm sm:text-base lg:text-lg shadow-sm"
             />
           </div>
           <div>
-            <label className="block text-base font-medium text-white">
+            <label className="block text-sm sm:text-base font-medium text-white">
               Tags (comma separated)
             </label>
             <Input
@@ -223,7 +223,7 @@ export function UrlEditModal({
               value={editingTags}
               onChange={(e) => setEditingTags(e.target.value)}
               placeholder="e.g. work, reading, ai"
-              className="mt-2 text-lg shadow-sm"
+              className="mt-2 text-sm sm:text-base lg:text-lg shadow-sm"
             />
             {editingUrl?.url && (
               <div className="mt-3">
@@ -253,7 +253,7 @@ export function UrlEditModal({
             )}
           </div>
           <div>
-            <label className="block text-base font-medium text-white">
+            <label className="block text-sm sm:text-base font-medium text-white">
               Notes (optional)
             </label>
             <Input
@@ -261,33 +261,33 @@ export function UrlEditModal({
               value={editingNotes}
               onChange={(e) => setEditingNotes(e.target.value)}
               placeholder="Add a note..."
-              className="mt-2 text-lg shadow-sm"
+              className="mt-2 text-sm sm:text-base lg:text-lg shadow-sm"
             />
           </div>
           <div>
-            <label className="block text-base font-medium text-white">
+            <label className="block text-sm sm:text-base font-medium text-white">
               Reminder (optional)
             </label>
             <Input
               type="date"
               value={editingReminder}
               onChange={(e) => setEditingReminder(e.target.value)}
-              className="mt-2 text-lg shadow-sm"
+              className="mt-2 text-sm sm:text-base lg:text-lg shadow-sm"
             />
           </div>
-          <div className="flex justify-end gap-3 mt-8">
+          <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-3 mt-6 sm:mt-8">
             <Button
               type="button"
               variant="outline"
               onClick={() => setEditingUrl(null)}
-              className="text-white border-white/30 hover:bg-white/10 text-lg px-6 py-2.5 rounded-xl"
+              className="text-white border-white/30 hover:bg-white/10 text-sm sm:text-base lg:text-lg px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg sm:rounded-xl w-full sm:w-auto"
             >
               Cancel
             </Button>
             <Button
               type="submit"
               disabled={isEditing}
-              className="bg-blue-600 hover:bg-blue-700 text-white text-lg font-semibold px-6 py-2.5 rounded-xl shadow-md hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-blue-600 hover:bg-blue-700 text-white text-sm sm:text-base lg:text-lg font-semibold px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg sm:rounded-xl shadow-md hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto"
             >
               {isEditing ? "Saving..." : "Save Changes"}
             </Button>

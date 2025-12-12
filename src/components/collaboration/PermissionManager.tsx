@@ -215,16 +215,16 @@ export function PermissionManager({
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3 sm:space-y-4">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
         <div className="flex items-center gap-2">
-          <Shield className="h-5 w-5 text-white" />
-          <h3 className="text-lg font-semibold text-white">Collaborators</h3>
+          <Shield className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
+          <h3 className="text-base sm:text-lg font-semibold text-white">Collaborators</h3>
           {collaborators.length > 0 && (
             <Badge
               variant="secondary"
-              className="ml-2 bg-blue-500/30 text-blue-200 border-blue-400/50"
+              className="ml-1 sm:ml-2 bg-blue-500/30 text-blue-200 border-blue-400/50 text-xs sm:text-sm"
             >
               {collaborators.length}
             </Badge>
@@ -235,10 +235,10 @@ export function PermissionManager({
           size="sm"
           onClick={() => setInviteDialogOpen(true)}
           disabled={!canInvite} // Disable for viewers
-          className="flex items-center gap-2 border-white/20 bg-white/5 text-white hover:bg-white/10 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed"
+          className="flex items-center gap-1.5 sm:gap-2 border-white/20 bg-white/5 text-white hover:bg-white/10 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed text-xs sm:text-sm px-3 sm:px-4 py-1.5 sm:py-2 w-full sm:w-auto"
         >
-          <UserPlus className="h-4 w-4" />
-          Add Collaborator
+          <UserPlus className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+          <span>Add Collaborator</span>
         </Button>
       </div>
 
@@ -253,10 +253,10 @@ export function PermissionManager({
           ))}
         </div>
       ) : collaborators.length === 0 ? (
-        <div className="text-center py-8">
-          <UserPlus className="h-12 w-12 mx-auto mb-3 text-white/40" />
-          <p className="text-white/70">No collaborators yet</p>
-          <p className="text-sm mt-1 text-white/50">
+        <div className="text-center py-6 sm:py-8">
+          <UserPlus className="h-10 w-10 sm:h-12 sm:w-12 mx-auto mb-2 sm:mb-3 text-white/40" />
+          <p className="text-sm sm:text-base text-white/70">No collaborators yet</p>
+          <p className="text-xs sm:text-sm mt-1 text-white/50 px-2">
             Invite others to collaborate on this list
           </p>
         </div>
@@ -275,15 +275,15 @@ export function PermissionManager({
             .map((collaborator, index) => (
             <div
               key={`${collaborator.email.toLowerCase()}-${index}`}
-              className="bg-white/5 border border-white/10 rounded-lg p-4 hover:bg-white/10 transition-colors"
+              className="bg-white/5 border border-white/10 rounded-lg p-3 sm:p-4 hover:bg-white/10 transition-colors"
             >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3 flex-1 min-w-0">
-                  <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-purple-500/30 to-blue-500/30 border border-purple-400/50 flex items-center justify-center">
-                    <Mail className="h-5 w-5 text-purple-200" />
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
+                <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+                  <div className="flex-shrink-0 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-purple-500/30 to-blue-500/30 border border-purple-400/50 flex items-center justify-center">
+                    <Mail className="h-4 w-4 sm:h-5 sm:w-5 text-purple-200" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-white font-medium truncate">
+                    <p className="text-sm sm:text-base text-white font-medium truncate">
                       {collaborator.email}
                     </p>
                     <div className="flex items-center gap-2 mt-1">
@@ -298,9 +298,9 @@ export function PermissionManager({
                     </div>
                   </div>
                 </div>
-                <div className="flex items-center gap-2 flex-shrink-0">
+                <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0 flex-wrap">
                   {expandedCollaborator === collaborator.email ? (
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
                       <Button
                         variant="ghost"
                         size="sm"

@@ -33,13 +33,20 @@ import {
   listQueryKeys,
 } from "@/hooks/useListQueries";
 import { useQueryClient } from "@tanstack/react-query";
-import { invalidateBrowseQueries, invalidateListQueries } from "@/utils/queryInvalidation";
+import {
+  invalidateBrowseQueries,
+  invalidateListQueries,
+} from "@/utils/queryInvalidation";
 
 export default function ListPageClient() {
   const { toast } = useToast();
   const router = useRouter();
   const { slug } = useParams();
-  const { user: sessionUser, isLoading: sessionLoading, isAuthenticated } = useSession();
+  const {
+    user: sessionUser,
+    isLoading: sessionLoading,
+    isAuthenticated,
+  } = useSession();
   const list = useStore(currentList);
   const permissions = useListPermissions(); // Get permissions for current list and user
   const listSlug = typeof slug === "string" ? slug : "";
@@ -83,7 +90,7 @@ export default function ListPageClient() {
   // This provides redundancy in case localStorage is cleared (e.g., by Fast Refresh in development)
   const hasListSyncedVectors = (listId: string): boolean => {
     if (typeof window === "undefined") return false;
-    
+
     // Check localStorage (persists across sessions)
     const localSyncedLists = JSON.parse(
       localStorage.getItem("vector-synced-lists") || "[]"
@@ -91,7 +98,7 @@ export default function ListPageClient() {
     if (localSyncedLists.includes(listId)) {
       return true;
     }
-    
+
     // Check sessionStorage as backup (persists in current session, survives Fast Refresh better)
     const sessionSyncedLists = JSON.parse(
       sessionStorage.getItem("vector-synced-lists") || "[]"
@@ -102,7 +109,7 @@ export default function ListPageClient() {
   // Mark list as vector synced in both localStorage and sessionStorage
   const markListVectorSynced = (listId: string) => {
     if (typeof window === "undefined") return;
-    
+
     // Mark in localStorage (persists across sessions)
     const localSyncedLists = JSON.parse(
       localStorage.getItem("vector-synced-lists") || "[]"
@@ -113,7 +120,7 @@ export default function ListPageClient() {
       const trimmed = localSyncedLists.slice(-100);
       localStorage.setItem("vector-synced-lists", JSON.stringify(trimmed));
     }
-    
+
     // Also mark in sessionStorage as backup (survives Fast Refresh better)
     const sessionSyncedLists = JSON.parse(
       sessionStorage.getItem("vector-synced-lists") || "[]"
@@ -132,7 +139,12 @@ export default function ListPageClient() {
   // This prevents flicker by showing skeleton instead of list content before redirect
   useEffect(() => {
     // Don't check if we've already redirected or are still loading session
-    if (hasCheckedAuthRef.current || sessionLoading || hasRedirectedRef.current || !mounted) {
+    if (
+      hasCheckedAuthRef.current ||
+      sessionLoading ||
+      hasRedirectedRef.current ||
+      !mounted
+    ) {
       return;
     }
 
@@ -162,7 +174,8 @@ export default function ListPageClient() {
       // Show toast notification
       toast({
         title: "Login Required",
-        description: "You need to be logged in to view this list. Please sign in to continue.",
+        description:
+          "You need to be logged in to view this list. Please sign in to continue.",
         variant: "info",
         duration: 5000,
       });
@@ -262,21 +275,25 @@ export default function ListPageClient() {
         // Get collaborator email from activity details (from activity_created SSE event)
         // If not available, we'll still track the removal event and check permissions after 401
         const activity = customEvent.detail?.activity;
-        const removedEmail = activity?.details?.collaboratorEmail as string | undefined;
+        const removedEmail = activity?.details?.collaboratorEmail as
+          | string
+          | undefined;
         const ownerEmail = activity?.user?.email as string | undefined;
 
         // CRITICAL: If we have the email and it matches current user, track it
         // If we don't have email, still track the event (we'll check permissions after 401)
-        const isCurrentUser = removedEmail && 
+        const isCurrentUser =
+          removedEmail &&
           removedEmail.toLowerCase() === sessionUser.email.toLowerCase();
-        
+
         // Track removal event if:
         // 1. Email matches current user, OR
         // 2. No email provided but user currently has access (will verify after 401)
         if (isCurrentUser || (!removedEmail && permissions.role !== "none")) {
           // Only track if user currently has access (about to lose it) or if we don't have recent removal tracked
           // This prevents overwriting recent removal tracking with stale historical events
-          const hasRecentRemoval = recentCollaboratorRemovedRef.current &&
+          const hasRecentRemoval =
+            recentCollaboratorRemovedRef.current &&
             Date.now() - recentCollaboratorRemovedRef.current.timestamp < 10000; // Within last 10 seconds
 
           if (permissions.role !== "none" || !hasRecentRemoval) {
@@ -315,10 +332,10 @@ export default function ListPageClient() {
       // The event might have slug as listId if listId wasn't available
       const eventListId = customEvent.detail?.listId;
       const eventSlug = customEvent.detail?.slug;
-      const isOurList = 
-        (eventListId && eventListId === list.id) || 
+      const isOurList =
+        (eventListId && eventListId === list.id) ||
         (eventSlug && eventSlug === list.slug) ||
-        (eventListId === list.slug); // Handle case where slug is used as listId
+        eventListId === list.slug; // Handle case where slug is used as listId
 
       if (!isOurList || hasRedirectedRef.current) {
         return;
@@ -423,12 +440,14 @@ export default function ListPageClient() {
     // DEBUG: Log localStorage and sessionStorage check for vector sync debugging
     if (process.env.NODE_ENV === "development") {
       const isSynced = hasListSyncedVectors(listId);
-      const localSyncedLists = typeof window !== "undefined" 
-        ? JSON.parse(localStorage.getItem("vector-synced-lists") || "[]")
-        : [];
-      const sessionSyncedLists = typeof window !== "undefined" 
-        ? JSON.parse(sessionStorage.getItem("vector-synced-lists") || "[]")
-        : [];
+      const localSyncedLists =
+        typeof window !== "undefined"
+          ? JSON.parse(localStorage.getItem("vector-synced-lists") || "[]")
+          : [];
+      const sessionSyncedLists =
+        typeof window !== "undefined"
+          ? JSON.parse(sessionStorage.getItem("vector-synced-lists") || "[]")
+          : [];
       console.log(`🔍 [VECTOR DEBUG] List ${listId}:`, {
         isSynced,
         localSyncedLists,
@@ -444,7 +463,9 @@ export default function ListPageClient() {
     if (hasListSyncedVectors(listId)) {
       hasSyncedVectors.current = listId; // Update ref for in-memory check
       if (process.env.NODE_ENV === "development") {
-        console.log(`⏭️ [VECTOR] ✅ SKIPPING sync for list ${listId} - already synced (localStorage check passed)`);
+        console.log(
+          `⏭️ [VECTOR] ✅ SKIPPING sync for list ${listId} - already synced (localStorage check passed)`
+        );
       }
       return; // Already synced - skip entirely
     }
@@ -452,7 +473,9 @@ export default function ListPageClient() {
     // Also check in-memory ref (for same session)
     if (hasSyncedVectors.current === listId) {
       if (process.env.NODE_ENV === "development") {
-        console.log(`⏭️ [VECTOR] ✅ SKIPPING sync for list ${listId} - already synced (in-memory check passed)`);
+        console.log(
+          `⏭️ [VECTOR] ✅ SKIPPING sync for list ${listId} - already synced (in-memory check passed)`
+        );
       }
       return; // Already synced in this session
     }
@@ -460,13 +483,17 @@ export default function ListPageClient() {
     // Check if sync is already in progress for this list
     if (syncInProgress.current === listId) {
       if (process.env.NODE_ENV === "development") {
-        console.log(`⏭️ [VECTOR] ✅ SKIPPING sync for list ${listId} - sync already in progress`);
+        console.log(
+          `⏭️ [VECTOR] ✅ SKIPPING sync for list ${listId} - sync already in progress`
+        );
       }
       return; // Sync already in progress
     }
 
     if (process.env.NODE_ENV === "development") {
-      console.log(`🔄 [VECTOR] Will sync list ${listId} - not found in localStorage or in-memory ref`);
+      console.log(
+        `🔄 [VECTOR] Will sync list ${listId} - not found in localStorage or in-memory ref`
+      );
     }
 
     async function syncVectors() {
@@ -486,16 +513,19 @@ export default function ListPageClient() {
       // This prevents duplicate syncs on second visit even if user navigates away quickly
       // The localStorage is set synchronously and persists across page visits
       if (process.env.NODE_ENV === "development") {
-        console.log(`📝 [VECTOR] Marking list ${listId} as synced in localStorage (optimistic, before API call)`);
+        console.log(
+          `📝 [VECTOR] Marking list ${listId} as synced in localStorage (optimistic, before API call)`
+        );
       }
       markListVectorSynced(listId);
 
       // DEBUG: Verify localStorage was set correctly
       if (process.env.NODE_ENV === "development") {
         const verifySynced = hasListSyncedVectors(listId);
-        const syncedLists = typeof window !== "undefined" 
-          ? JSON.parse(localStorage.getItem("vector-synced-lists") || "[]")
-          : [];
+        const syncedLists =
+          typeof window !== "undefined"
+            ? JSON.parse(localStorage.getItem("vector-synced-lists") || "[]")
+            : [];
         console.log(`📝 [VECTOR DEBUG] Marked list ${listId} as synced:`, {
           verifySynced,
           syncedLists,
@@ -505,14 +535,18 @@ export default function ListPageClient() {
       // Double-check localStorage was set correctly (defensive check)
       if (!hasListSyncedVectors(listId)) {
         if (process.env.NODE_ENV === "development") {
-          console.warn(`⚠️ [VECTOR] Failed to persist sync status for list ${listId}`);
+          console.warn(
+            `⚠️ [VECTOR] Failed to persist sync status for list ${listId}`
+          );
         }
         // If localStorage failed, we'll still try to sync, but mark again after success
       }
 
       // Sync vectors in background (don't block UI)
       if (process.env.NODE_ENV === "development") {
-        console.log(`🚀 [VECTOR] Starting API call to sync vectors for list ${listId}`);
+        console.log(
+          `🚀 [VECTOR] Starting API call to sync vectors for list ${listId}`
+        );
       }
       fetch(`/api/lists/${listId}/sync-vectors`, {
         method: "POST",
@@ -522,16 +556,20 @@ export default function ListPageClient() {
           // Double-check it's still marked (defensive)
           if (!hasListSyncedVectors(listId)) {
             if (process.env.NODE_ENV === "development") {
-              console.warn(`⚠️ [VECTOR] localStorage was cleared, re-marking list ${listId}`);
+              console.warn(
+                `⚠️ [VECTOR] localStorage was cleared, re-marking list ${listId}`
+              );
             }
             markListVectorSynced(listId);
           }
 
           if (process.env.NODE_ENV === "development") {
             const finalCheck = hasListSyncedVectors(listId);
-            console.log(`✅ [VECTOR] Synced list ${listId} - localStorage check: ${finalCheck} - will not sync again`);
+            console.log(
+              `✅ [VECTOR] Synced list ${listId} - localStorage check: ${finalCheck} - will not sync again`
+            );
           }
-          
+
           // Clear sync in progress flag
           syncInProgress.current = null;
         })
@@ -542,7 +580,10 @@ export default function ListPageClient() {
               localStorage.getItem("vector-synced-lists") || "[]"
             );
             const filtered = syncedLists.filter((id: string) => id !== listId);
-            localStorage.setItem("vector-synced-lists", JSON.stringify(filtered));
+            localStorage.setItem(
+              "vector-synced-lists",
+              JSON.stringify(filtered)
+            );
           }
 
           // Reset refs so we can retry in same session
@@ -575,10 +616,10 @@ export default function ListPageClient() {
   // This prevents flicker by showing skeleton before redirect happens
   const hasAnyData =
     unifiedData?.list?.id || (list && list.id && list.slug === listSlug);
-  
+
   // Show skeleton if session is loading OR if not authenticated and query is still loading
   // This prevents showing list content before redirect happens
-  const shouldShowLoading = 
+  const shouldShowLoading =
     !mounted || // Not mounted yet (prevent hydration mismatch)
     sessionLoading || // Session is loading (waiting for auth check)
     (!isAuthenticated && isLoadingQuery && !hasAnyData && listSlug) || // Not authenticated and query loading (likely 401)
@@ -656,7 +697,7 @@ export default function ListPageClient() {
           </div>
 
           {/* Activity Feed Section Skeleton */}
-          <div className="mt-6 bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6 shadow-xl">
+          <div className="mt-6 bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-4 sm:p-6 shadow-xl">
             <Skeleton className="h-6 w-32 mb-4" />
             <div className="space-y-3">
               {[1, 2, 3].map((i) => (
@@ -687,7 +728,7 @@ export default function ListPageClient() {
           </div>
 
           {/* Add URL Form Skeleton */}
-          <div className="bg-white/5 backdrop-blur-sm p-8 rounded-xl border border-white/20">
+          <div className="bg-white/5 backdrop-blur-sm p-4 sm:p-6 lg:p-8 rounded-xl border border-white/20">
             <Skeleton className="h-12 w-full mb-3" />
             <Skeleton className="h-24 w-full mb-4" />
             <div className="flex justify-end gap-3">
@@ -701,7 +742,7 @@ export default function ListPageClient() {
             {[1, 2, 3].map((i) => (
               <div
                 key={i}
-                className="bg-white/5 backdrop-blur-sm rounded-xl border border-white/20 p-6"
+                className="bg-white/5 backdrop-blur-sm rounded-xl border border-white/20 p-4 sm:p-6 lg:p-8"
               >
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex-1 space-y-2">
@@ -748,13 +789,13 @@ export default function ListPageClient() {
   return (
     <div className="min-h-screen w-full">
       {/* Header Card */}
-      <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-4 sm:p-6 mb-6 shadow-xl">
+      <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 mb-4 sm:mb-6 shadow-xl">
         {/* First Row: Title/Info on Left, Buttons on Right */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-3 sm:mb-4">
           {/* Left Side: Title, URL Count, Visibility Badge, Toggle */}
           <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 flex-wrap">
             {/* Title */}
-            <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-white">
+            <h1 className="text-base sm:text-lg lg:text-xl xl:text-2xl font-bold text-white break-words">
               {list.title || `List: ${list.slug}`}
             </h1>
 
@@ -881,7 +922,7 @@ export default function ListPageClient() {
           </div>
 
           {/* Right Side: Setup Schedule and Health Check Buttons */}
-          <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
             {/* Setup Schedule Button */}
             <button
               type="button"
@@ -938,17 +979,18 @@ export default function ListPageClient() {
                 }
               }}
               disabled={isSettingUpSchedule}
-              className="flex-shrink-0 px-3 py-1.5 rounded-lg bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/30 text-white/90 text-xs font-medium transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
+              className="flex-shrink-0 px-2 sm:px-3 py-1 sm:py-1.5 rounded-md sm:rounded-lg bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/30 text-white/90 text-xs font-medium transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 sm:gap-1.5"
               title="Setup scheduled jobs (daily health checks, weekly metadata refresh)"
             >
               <Activity
-                className={`w-4 h-4 ${
+                className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${
                   isSettingUpSchedule ? "animate-spin" : ""
                 }`}
               />
-              <span>
+              <span className="hidden sm:inline">
                 {isSettingUpSchedule ? "Setting up..." : "Setup Schedule"}
               </span>
+              <span className="sm:hidden">Schedule</span>
             </button>
             {/* Refresh Metadata Button */}
             {list.urls && list.urls.length > 0 && (
@@ -1009,17 +1051,18 @@ export default function ListPageClient() {
                   }
                 }}
                 disabled={isRefreshingMetadata}
-                className="flex-shrink-0 px-3 py-1.5 rounded-lg bg-green-600/20 hover:bg-green-600/30 border border-green-500/30 text-white/90 text-xs font-medium transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
+                className="flex-shrink-0 px-2 sm:px-3 py-1 sm:py-1.5 rounded-md sm:rounded-lg bg-green-600/20 hover:bg-green-600/30 border border-green-500/30 text-white/90 text-xs font-medium transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 sm:gap-1.5"
                 title="Refresh metadata for all URLs with improved extractor"
               >
                 <RefreshCw
-                  className={`w-4 h-4 ${
+                  className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${
                     isRefreshingMetadata ? "animate-spin" : ""
                   }`}
                 />
-                <span>
+                <span className="hidden sm:inline">
                   {isRefreshingMetadata ? "Refreshing..." : "Refresh Metadata"}
                 </span>
+                <span className="sm:hidden">Refresh</span>
               </button>
             )}
             {/* Health Check Button */}
@@ -1100,22 +1143,25 @@ export default function ListPageClient() {
                   }
                 }}
                 disabled={isCheckingHealth}
-                className="flex-shrink-0 px-3 py-1.5 rounded-lg bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30 text-white/90 text-xs font-medium transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
+                className="flex-shrink-0 px-2 sm:px-3 py-1 sm:py-1.5 rounded-md sm:rounded-lg bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30 text-white/90 text-xs font-medium transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 sm:gap-1.5"
                 title="Check URL health status for this list"
               >
                 <Activity
-                  className={`w-4 h-4 ${
+                  className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${
                     isCheckingHealth ? "animate-spin" : ""
                   }`}
                 />
-                <span>{isCheckingHealth ? "Checking..." : "Health Check"}</span>
+                <span className="hidden sm:inline">
+                  {isCheckingHealth ? "Checking..." : "Health Check"}
+                </span>
+                <span className="sm:hidden">Health</span>
               </button>
             )}
           </div>
         </div>
 
         {/* Second Row: Shareable Link */}
-        <div className="flex items-center gap-2 flex-wrap pt-2 sm:pt-0 border-t border-white/10 sm:border-t-0">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-2 flex-wrap pt-3 sm:pt-0 border-t border-white/10 sm:border-t-0">
           <span className="text-xs sm:text-sm font-light text-white/70 whitespace-nowrap">
             Shareable Link:
           </span>
@@ -1130,11 +1176,12 @@ export default function ListPageClient() {
             <button
               type="button"
               onClick={async () => {
-                const url = mounted && list?.slug
-                  ? `${window.location.origin}/list/${list.slug}`
-                  : list?.slug
-                  ? `/list/${list.slug}`
-                  : "";
+                const url =
+                  mounted && list?.slug
+                    ? `${window.location.origin}/list/${list.slug}`
+                    : list?.slug
+                    ? `/list/${list.slug}`
+                    : "";
                 if (!url) return;
                 try {
                   await navigator.clipboard.writeText(url);
@@ -1153,13 +1200,13 @@ export default function ListPageClient() {
                   });
                 }
               }}
-              className="flex-shrink-0 p-1.5 rounded-lg hover:bg-white/10 transition-colors duration-200 group"
+              className="flex-shrink-0 p-1.5 rounded-md sm:rounded-lg hover:bg-white/10 transition-colors duration-200 group"
               aria-label="Copy link"
             >
               {isCopied ? (
-                <Check className="w-4 h-4 text-green-400 group-hover:scale-110 transition-transform duration-200" />
+                <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-green-400 group-hover:scale-110 transition-transform duration-200" />
               ) : (
-                <Copy className="w-4 h-4 text-white/70 group-hover:text-white group-hover:scale-110 transition-all duration-200" />
+                <Copy className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white/70 group-hover:text-white group-hover:scale-110 transition-all duration-200" />
               )}
             </button>
           </div>
@@ -1167,7 +1214,7 @@ export default function ListPageClient() {
 
         {/* Collaborators Section - PermissionManager */}
         {list.id && list.slug && (
-          <div className="mt-4 bg-gradient-to-br from-white/5 to-white/3 backdrop-blur-md border border-white/10 rounded-2xl p-6 shadow-xl">
+          <div className="mt-3 sm:mt-4 bg-gradient-to-br from-white/5 to-white/3 backdrop-blur-md border border-white/10 rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 shadow-xl">
             <PermissionManager
               listId={list.id}
               listTitle={list.title || "Untitled List"}
@@ -1178,14 +1225,14 @@ export default function ListPageClient() {
 
         {/* Smart Collections Section */}
         {list.id && list.slug && (
-          <div className="mt-6">
+          <div className="mt-4 sm:mt-6">
             <SmartCollections listId={list.id} listSlug={list.slug} />
           </div>
         )}
 
         {/* Activity Feed Section */}
         {list.id && (
-          <div className="mt-6 bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6 shadow-xl">
+          <div className="mt-4 sm:mt-6 bg-white/5 backdrop-blur-md border border-white/10 rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 shadow-xl">
             <ActivityFeed listId={list.id} limit={30} />
           </div>
         )}

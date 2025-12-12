@@ -113,26 +113,26 @@ export default function ApiStatusPage() {
   return (
     <div className="min-h-screen w-full">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2 flex items-center gap-3">
-          <Activity className="h-8 w-8 text-blue-400" />
-          API Status
+      <div className="mb-6 sm:mb-8">
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-2 flex items-center gap-2 sm:gap-3 flex-wrap">
+          <Activity className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-blue-400 flex-shrink-0" />
+          <span>API Status</span>
         </h1>
-        <p className="text-white/60 text-sm sm:text-base">
+        <p className="text-white/60 text-xs sm:text-sm lg:text-base">
           Real-time monitoring of all API endpoints
         </p>
       </div>
 
       {/* Overall Status */}
-      <Card className="mb-6">
+      <Card className="mb-4 sm:mb-6">
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle>System Status</CardTitle>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
+            <CardTitle className="text-base sm:text-lg">System Status</CardTitle>
             {statusData?.status && getStatusBadge(statusData.status.overall)}
           </div>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
             <div>
               <p className="text-white/60 text-sm mb-1">Database</p>
               <div className="flex items-center gap-2">
@@ -179,20 +179,20 @@ export default function ApiStatusPage() {
             {statusData?.endpoints?.map((endpoint) => (
               <div
                 key={endpoint.endpoint}
-                className="flex items-center justify-between p-4 rounded-lg bg-white/5 border border-white/10"
+                className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0 p-3 sm:p-4 rounded-lg bg-white/5 border border-white/10"
               >
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-1">
-                    <h3 className="text-white font-medium">{endpoint.name}</h3>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 sm:gap-3 mb-1 flex-wrap">
+                    <h3 className="text-sm sm:text-base text-white font-medium">{endpoint.name}</h3>
                     {getStatusBadge(endpoint.status)}
                   </div>
-                  <p className="text-white/60 text-sm font-mono">
+                  <p className="text-white/60 text-xs sm:text-sm font-mono break-all">
                     {endpoint.endpoint}
                   </p>
                 </div>
-                <div className="text-right">
+                <div className="text-left sm:text-right">
                   <p className="text-white/60 text-xs mb-1">Response Time</p>
-                  <p className="text-white font-semibold">
+                  <p className="text-sm sm:text-base text-white font-semibold">
                     {endpoint.responseTime}ms
                   </p>
                 </div>

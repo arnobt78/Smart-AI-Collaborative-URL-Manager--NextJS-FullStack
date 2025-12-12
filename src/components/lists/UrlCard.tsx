@@ -85,7 +85,10 @@ export const UrlCard: React.FC<UrlCardProps> = ({
 }) => {
   // Log click count changes for debugging
   React.useEffect(() => {
-    if (process.env.NODE_ENV === "development" && url.clickCount !== undefined) {
+    if (
+      process.env.NODE_ENV === "development" &&
+      url.clickCount !== undefined
+    ) {
       // Removed excessive console log for URL card rendering
     }
   }, [url.id, url.clickCount, url.title]);
@@ -330,10 +333,10 @@ export const UrlCard: React.FC<UrlCardProps> = ({
           <Grip className="h-5 w-5 text-white/40 hover:text-blue-400 transition-colors pointer-events-none" />
         </div>
       )}
-      <div className="flex flex-col sm:flex-row p-4 gap-4">
+      <div className="flex flex-col sm:flex-row p-3 sm:p-4 gap-3 sm:gap-4">
         {/* Image Section */}
         <div className="md:w-1/5 w-full flex-shrink-0 flex items-center justify-center">
-          <div className="relative w-28 h-28 md:w-full md:h-full aspect-square overflow-hidden rounded-xl shadow-sm bg-gray-900/30 backdrop-blur-sm border border-white/10 flex items-center justify-center">
+          <div className="relative w-24 h-24 sm:w-28 sm:h-28 md:w-full md:h-full aspect-square overflow-hidden rounded-lg sm:rounded-xl shadow-sm bg-gray-900/30 backdrop-blur-sm border border-white/10 flex items-center justify-center">
             {shouldShowSkeleton ? (
               <div className="absolute inset-0 bg-gray-800/40 rounded-xl animate-pulse" />
             ) : !currentImageUrl || imageError ? (
@@ -429,7 +432,7 @@ export const UrlCard: React.FC<UrlCardProps> = ({
                 {/* Title with Health Status directly after text */}
                 <div className="flex items-center gap-2 mb-2 flex-wrap min-w-0">
                   <h3
-                    className="font-bold text-xl text-white group-hover:text-blue-400 transition-colors font-joti inline-block"
+                    className="font-bold text-base sm:text-lg lg:text-xl text-white group-hover:text-blue-400 transition-colors font-joti inline-block break-words"
                     title={title}
                   >
                     {title}
@@ -509,12 +512,12 @@ export const UrlCard: React.FC<UrlCardProps> = ({
                 )}
 
                 {isNoPreview ? (
-                  <p className="text-md text-white/40 italic font-delicious">
+                  <p className="text-sm sm:text-base text-white/40 italic font-delicious">
                     No preview available for this site.
                   </p>
                 ) : (
                   description && (
-                    <p className="text-md text-white/60 leading-relaxed font-delicious line-clamp-5 break-words overflow-hidden">
+                    <p className="text-sm sm:text-base text-white/60 leading-relaxed font-delicious line-clamp-5 break-words overflow-hidden">
                       {description}
                     </p>
                   )
@@ -724,7 +727,7 @@ export const UrlCard: React.FC<UrlCardProps> = ({
             style={{ position: "fixed" }}
           >
             <div
-              className="relative w-full max-w-2xl bg-gradient-to-br from-zinc-900 to-zinc-800 rounded-2xl shadow-2xl border border-white/20 flex flex-col"
+              className="relative w-full max-w-2xl bg-gradient-to-br from-zinc-900 to-zinc-800 rounded-xl sm:rounded-2xl shadow-2xl border border-white/20 flex flex-col"
               style={{
                 maxHeight: "85vh",
                 display: "flex",
@@ -735,7 +738,7 @@ export const UrlCard: React.FC<UrlCardProps> = ({
               onClick={(e) => e.stopPropagation()}
             >
               {/* Header - Fixed */}
-              <div className="flex items-start justify-between p-6 border-b border-white/10 flex-shrink-0 bg-gradient-to-br from-zinc-900 to-zinc-800">
+              <div className="flex items-start justify-between p-4 sm:p-6 border-b border-white/10 flex-shrink-0 bg-gradient-to-br from-zinc-900 to-zinc-800">
                 <div className="flex-1 min-w-0 pr-4">
                   <h3 className="text-xl font-bold text-white line-clamp-2 break-words">
                     Similar URLs to &quot;{url.title || url.url}&quot;
@@ -755,7 +758,7 @@ export const UrlCard: React.FC<UrlCardProps> = ({
 
               {/* Content - Scrollable */}
               <div
-                className="overflow-y-scroll overflow-x-hidden p-6 custom-scrollbar"
+                className="overflow-y-scroll overflow-x-hidden p-4 sm:p-6 custom-scrollbar"
                 style={{
                   flex: "1 1 auto",
                   minHeight: 0,
@@ -775,7 +778,7 @@ export const UrlCard: React.FC<UrlCardProps> = ({
                 ) : similarUrls.length === 0 ? (
                   <div className="text-center py-12">
                     <MagnifyingGlassIcon className="h-16 w-16 text-white/40 mx-auto mb-4" />
-                    <p className="text-white/60 text-lg font-medium">
+                    <p className="text-white/60 text-sm sm:text-base lg:text-lg font-medium">
                       No similar URLs found
                     </p>
                     <p className="text-sm text-white/40 mt-2 max-w-md mx-auto">
@@ -855,7 +858,7 @@ export const UrlCard: React.FC<UrlCardProps> = ({
             style={{ position: "fixed" }}
           >
             <div
-              className="relative w-full max-w-2xl bg-gradient-to-br from-zinc-900 to-zinc-800 rounded-2xl shadow-2xl border border-white/20 flex flex-col"
+              className="relative w-full max-w-2xl bg-gradient-to-br from-zinc-900 to-zinc-800 rounded-xl sm:rounded-2xl shadow-2xl border border-white/20 flex flex-col"
               style={{
                 maxHeight: "85vh",
                 display: "flex",
@@ -866,9 +869,9 @@ export const UrlCard: React.FC<UrlCardProps> = ({
               onClick={(e) => e.stopPropagation()}
             >
               {/* Header - Fixed */}
-              <div className="flex items-start justify-between p-6 border-b border-white/10 flex-shrink-0 bg-gradient-to-br from-zinc-900 to-zinc-800">
+              <div className="flex items-start justify-between p-4 sm:p-6 border-b border-white/10 flex-shrink-0 bg-gradient-to-br from-zinc-900 to-zinc-800">
                 <div className="flex-1 min-w-0 pr-4">
-                  <h3 className="text-xl font-bold text-white line-clamp-2 break-words">
+                  <h3 className="text-base sm:text-lg lg:text-xl font-bold text-white line-clamp-2 break-words">
                     Comments
                   </h3>
                   <p className="text-sm text-white/60 mt-1">
@@ -886,7 +889,7 @@ export const UrlCard: React.FC<UrlCardProps> = ({
 
               {/* Content - Scrollable */}
               <div
-                className="overflow-y-scroll overflow-x-hidden p-6 custom-scrollbar"
+                className="overflow-y-scroll overflow-x-hidden p-4 sm:p-6 custom-scrollbar"
                 style={{
                   flex: "1 1 auto",
                   minHeight: 0,
