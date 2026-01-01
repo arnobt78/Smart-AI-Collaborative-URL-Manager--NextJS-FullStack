@@ -64,8 +64,9 @@ DEVELOPMENT_RULES.md
 PLAN_PROJECT.md
 NEONDB_TO_SUPABASE_MIGRATION_GUIDE.md
 DEPLOYMENT_GUIDE.md
-# Keep migration guide - it's useful documentation
+# Ignore migration guides - keep local but don't commit to GitHub
 HETZNER_VPS_MIGRATION_GUIDE.md
+REACT_QUERY_SETUP_GUIDE.md
 # Keep seed script - useful for future migrations/testing
 # prisma/seed.ts
 
