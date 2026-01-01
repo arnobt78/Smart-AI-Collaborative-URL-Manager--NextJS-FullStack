@@ -14,15 +14,30 @@ export const useTypewriter = ({
   const [displayText, setDisplayText] = useState("");
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isComplete, setIsComplete] = useState(false);
+  // CRITICAL: Track if component has mounted on client-side
+  // This prevents hydration mismatches by ensuring animation only starts after hydration
+  const [mounted, setMounted] = useState(false);
+
+  // Set mounted to true after client-side hydration completes
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
-    // Reset state when text changes
-    setDisplayText("");
-    setCurrentIndex(0);
-    setIsComplete(false);
-  }, [text]);
+    // Reset state when text changes (but only if mounted)
+    if (mounted) {
+      setDisplayText("");
+      setCurrentIndex(0);
+      setIsComplete(false);
+    }
+  }, [text, mounted]);
 
   useEffect(() => {
+    // CRITICAL: Don't start animation until after client-side mount
+    // This ensures server and client both render empty string initially
+    // Preventing React Error #418 (hydration mismatch)
+    if (!mounted) return;
+
     // Initial delay before starting to type
     if (currentIndex === 0 && delay > 0) {
       const delayTimeout = setTimeout(() => {
@@ -44,8 +59,7 @@ export const useTypewriter = ({
     if (currentIndex > text.length && !isComplete) {
       setIsComplete(true);
     }
-  }, [currentIndex, text, speed, delay, isComplete]);
+  }, [currentIndex, text, speed, delay, isComplete, mounted]);
 
   return { displayText, isComplete };
 };
-
