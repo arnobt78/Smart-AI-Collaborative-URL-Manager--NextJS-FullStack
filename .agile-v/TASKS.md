@@ -1,10 +1,10 @@
 # TASKS.md — C1
 
 ## Done
-Bootstrap · AI · guardrails · SafeImage · observability · deps audit 0 · README/SECURITY/SEO · Portable Auth UI (Robohash Select + ProfileDropdown)
+AI · guardrails · SafeImage · observability · deps · SEO · Portable Auth UI · educational README/SECURITY
 
 ## Open (human)
-HA-0001 Firewall · Sentry org/token verify
+HA-0001 Firewall · Sentry org/token
 
 ## Deferred
-RSC shells · densify/Zod/SHA/Next16 unless new cycle
+RSC shells · densify/Zod/SHA/Next16

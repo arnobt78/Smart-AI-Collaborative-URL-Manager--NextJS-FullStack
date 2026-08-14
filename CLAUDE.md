@@ -5,15 +5,15 @@
 Live: https://daily-urlist.vercel.app/ · Resume: `.agile-v/STATE.md`
 
 ## Status (C1)
-Done: AI/guardrails/SafeImage/observability/deps/docs/SEO · Portable Auth UI (Robohash guest Select + ProfileDropdown with API Docs/Status/Logout).  
+Done: AI/guardrails/SafeImage/observability/deps/SEO · Portable Auth UI · educational README (+ SECURITY link).  
 Human: HA-0001 Firewall; Sentry org/token.  
-Out of scope: densify/JWT SSR gateway, Zod/SHA, Next 16.
+Out of scope: densify/JWT SSR, Zod/SHA, Next 16.
 
 ## Stack
 Next 15.5.23 · React 18 · RQ Infinity · Prisma 6.19 · cookie auth · Upstash · multi-AI · Sentry `/api/monitoring` · PostHog · Jest
 
 ## Auth UI
-`UserAvatar` + `robohashUrl` · `TEST_ACCOUNTS` / `UTILITY_NAVIGATION_ITEMS` · `ProfileDropdown` (no Radix modal) · `urlist:wasAuthed` flicker guard
+`UserAvatar` · `robohashUrl` · `TEST_ACCOUNTS` · `ProfileDropdown` · `urlist:wasAuthed`
 
 ## Validate
 `tsc` · `lint` · `test` · `build` · `npm audit` → `.agile-v/VALIDATION_SUMMARY.md`

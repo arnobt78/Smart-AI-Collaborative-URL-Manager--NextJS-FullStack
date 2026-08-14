@@ -1,9 +1,9 @@
 # VALIDATION_SUMMARY.md
 
-## 2026-08-14 Portable Auth UI
-| Check | Result |
-|-------|--------|
-| tsc | PASS |
-| lint | PASS (0 errors) |
+## 2026-08-14
+| Scope | tsc | lint | Notes |
+|-------|-----|------|-------|
+| Portable Auth UI | PASS | PASS | ProfileDropdown + Robohash |
+| README educational rewrite | — | — | title/screenshots preserved |
 
-Scope: guest Select avatars · ProfileDropdown · wasAuthed skeleton. Routes `/api-docs` `/api-status` unchanged.
+Out of scope: densify/JWT SSR, Zod/SHA, Next 16.

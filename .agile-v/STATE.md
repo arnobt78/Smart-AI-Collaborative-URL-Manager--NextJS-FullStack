@@ -3,8 +3,9 @@
 **C1** | 2026-08-14
 
 ## Done
-- AI / guardrails / SafeImage / Redis-Sentry-PostHog / deps audit 0 / README-SECURITY / SEO
-- Portable Auth UI: Robohash guest Select · ProfileDropdown (API Docs/Status/Logout) · wasAuthed skeleton
+- AI / guardrails / SafeImage / observability / deps audit 0 / SEO
+- Portable Auth UI (Robohash Select + ProfileDropdown)
+- Educational README rewrite (title/screenshots kept) · SECURITY.md linked
 
 ## Human
 - HA-0001 Firewall Challenge + AI Deny
@@ -12,5 +13,5 @@
 
 ## Next
 ```text
-Load .agile-v/STATE.md. Auth UI ported. HA-0001. No densify/Zod/Next16 unless new REQ.
+Load .agile-v/STATE.md. C1+auth UI+README done. HA-0001. No densify/Zod/Next16 unless new REQ.
 ```

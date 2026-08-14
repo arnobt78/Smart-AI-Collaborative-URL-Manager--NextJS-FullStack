@@ -8,7 +8,7 @@
 [![React Query](https://img.shields.io/badge/TanStack%20Query-5-FF4154)](https://tanstack.com/query)
 [![launch with diploi badge](https://diploi.com/launch.svg)](https://diploi.com/launch/arnobt78/Daily-URL-Bookmark-Notes-Dairy--NextJS-FullStack)
 
-A production-ready, full-stack URL bookmarking and sharing platform (**The Daily Urlist**, package `urlist` v0.2.1). Built with **Next.js 15 App Router**, **React 18**, **TypeScript**, **Prisma**, and **PostgreSQL**. Features AI-powered enhancements, real-time collaboration, vector search, Redis caching, and intelligent URL organization.
+A production-ready, full-stack URL bookmarking and sharing platform (**The Daily Urlist**, package `urlist` v0.2.1). Built with **Next.js 15 App Router**, **React 18**, **TypeScript**, **Prisma**, and **PostgreSQL**. Features AI-powered enhancements, real-time collaboration, vector search, Redis caching, portable auth UI (Robohash avatars + profile menu), and intelligent URL organization.
 
 - **Live Demo:** [https://daily-urlist.vercel.app/](https://daily-urlist.vercel.app/)
 - **Security:** Private reports → [SECURITY.md](./SECURITY.md) · [contact@arnobmahmud.com](mailto:contact@arnobmahmud.com)
@@ -34,19 +34,19 @@ A production-ready, full-stack URL bookmarking and sharing platform (**The Daily
 - [Technology Stack](#technology-stack)
 - [Keywords Glossary](#keywords-glossary)
 - [Project Structure](#project-structure)
-- [How the App Works (Architecture)](#how-the-app-works-architecture)
+- [How the App Works](#how-the-app-works)
 - [Getting Started](#getting-started)
 - [Environment Variables](#environment-variables)
-- [Pages & Routes](#pages--routes)
+- [Pages and Routes](#pages-and-routes)
 - [API Endpoints](#api-endpoints)
-- [Authentication](#authentication)
+- [Authentication and Auth UI](#authentication-and-auth-ui)
 - [Data Model](#data-model)
-- [Frontend: Components & Reuse](#frontend-components--reuse)
-- [Hooks, Cache & Invalidation](#hooks-cache--invalidation)
+- [Frontend Components and Reuse](#frontend-components-and-reuse)
+- [Hooks, Cache, and Invalidation](#hooks-cache-and-invalidation)
 - [Backend Libraries](#backend-libraries)
-- [AI, Redis, Vector & Jobs](#ai-redis-vector--jobs)
-- [Code Snippets (Learning)](#code-snippets-learning)
-- [Testing, Lint & Build](#testing-lint--build)
+- [AI, Redis, Vector, and Jobs](#ai-redis-vector-and-jobs)
+- [Code Snippets for Learners](#code-snippets-for-learners)
+- [Testing, Lint, and Build](#testing-lint-and-build)
 - [Deploying](#deploying)
 - [Learning Path](#learning-path)
 - [Related Docs](#related-docs)
@@ -57,25 +57,26 @@ A production-ready, full-stack URL bookmarking and sharing platform (**The Daily
 
 ## Overview
 
-**The Daily Urlist** is more than a bookmark list. Users create **lists**, add **URLs** with metadata, collaborate with roles, get **AI** help (enhance / collections / smart search), and see **live updates** over SSE when collaborators change a list.
+**The Daily Urlist** is a modern bookmark platform: users create **lists**, add **URLs** with rich metadata, collaborate with roles, use **AI** (enhance / collections / smart search), and get **live updates** over SSE when collaborators change a list.
 
-| Layer                               | Role in this project                                     |
-| ----------------------------------- | -------------------------------------------------------- |
-| **Next.js App Router**              | Pages + API Route Handlers in one app                    |
-| **Prisma + PostgreSQL**             | Users, sessions, lists, comments, activities             |
-| **TanStack React Query**            | Client cache with long `staleTime` (“Infinity” strategy) |
-| **Upstash Redis / Vector / QStash** | Optional cache, semantic search, background jobs         |
-| **Multi-provider AI**               | Gemini → Groq → OpenRouter → Hugging Face fallbacks      |
-| **Cloudinary**                      | Optional image hosting / optimization                    |
-| **Sentry / PostHog**                | Optional error tracking & analytics (env-gated)          |
+| Layer                               | Role                                         |
+| ----------------------------------- | -------------------------------------------- |
+| **Next.js App Router**              | Pages + API Route Handlers                   |
+| **Prisma + PostgreSQL**             | Users, sessions, lists, comments, activities |
+| **TanStack React Query**            | Client cache with long `staleTime`           |
+| **Upstash Redis / Vector / QStash** | Optional cache, semantic search, jobs        |
+| **Multi-provider AI**               | Gemini → Groq → OpenRouter → Hugging Face    |
+| **Cloudinary**                      | Optional image hosting                       |
+| **Sentry / PostHog**                | Optional errors & analytics (env-gated)      |
+| **Portable Auth UI**                | Guest Select + Robohash + ProfileDropdown    |
 
 ---
 
 ## Who This README Is For
 
-- **Beginners** learning Next.js full-stack patterns (App Router, Route Handlers, Prisma)
-- **Intermediate** developers studying React Query cache + mutation invalidation
-- **Anyone** forking the repo to build a similar SaaS-style bookmark/collab product
+- Beginners learning Next.js full-stack (App Router, Route Handlers, Prisma)
+- Intermediate developers studying React Query cache + mutation invalidation
+- Anyone forking a SaaS-style bookmark / collab product
 
 You do **not** need every third-party key to learn the codebase. See [Environment Variables](#environment-variables).
 
@@ -83,94 +84,103 @@ You do **not** need every third-party key to learn the codebase. See [Environmen
 
 ## Features
 
-### Core URL & list management
+### Core URL and list management
 
 - Create / edit / delete lists and URL items
 - Metadata fetch (title, description, image, favicon)
 - Drag-and-drop reorder (`@dnd-kit`)
-- Favorites, pins, reminders, archive/restore
+- Favorites, pins, reminders, archive / restore
 - Public vs private lists + shareable `slug`
 - Bulk import (Chrome / Pocket / Pinboard) and export (JSON / CSV / Markdown)
 
 ### AI-powered tools (optional keys)
 
 - URL enhancement (`/api/ai/enhance-url`)
-- Smart collections & duplicate hints
+- Smart collections and duplicate hints
 - Semantic / smart search (vector + LLM when configured)
 
-### Collaboration & realtime
+### Collaboration and realtime
 
 - Collaborator emails + roles (owner / editor / viewer)
 - Comments on URL items
 - Activity feed
 - Server-Sent Events (SSE) for live list sync
 
-### Insights & ops
+### Auth UI (portable guide)
+
+- Guest / demo credential **Select** with Robohash avatar + name + email
+- Navbar **ProfileDropdown**: name/email → API Documentation → API Status → Logout
+- `urlist:wasAuthed` localStorage hint to avoid Login flash on refresh
+- See [docs/PORTABLE_AUTH_UI_GUIDE.md](./docs/PORTABLE_AUTH_UI_GUIDE.md)
+
+### Insights and ops
 
 - Business insights charts (Recharts)
-- API status / docs pages in the app
+- In-app API docs and status pages
 - QStash jobs: metadata refresh, URL health, session cleanup
 
-### UX & resilience
+### UX and resilience
 
 - `SafeImage` fallback for broken remote previews
-- React Query invalidation so CRUD updates UI without full reload (including back navigation when cache is correct)
-- Security headers + `robots.ts` + Sentry tunnel `/api/monitoring`
+- React Query invalidation after mutations
+- Security headers + `robots.ts` + `sitemap.ts` + Sentry tunnel `/api/monitoring`
 
 ---
 
 ## Technology Stack
 
-### Runtime & UI
+### Runtime and UI
 
-| Tech                   | Version (approx.) | Why it’s here                      |
+| Tech                   | Version (approx.) | Why                                |
 | ---------------------- | ----------------- | ---------------------------------- |
 | **Next.js**            | 15.5.x            | App Router, SSR shells, API routes |
 | **React**              | 18.3              | UI + client islands                |
-| **TypeScript**         | 5.7.x             | Typed app & API                    |
+| **TypeScript**         | 5.7.x             | Typed app and API                  |
 | **Tailwind CSS**       | 3.4               | Utility styling                    |
 | **TanStack Query**     | 5.x               | Server-state cache                 |
-| **NanoStores**         | 1.x               | Lightweight client list state      |
-| **@dnd-kit**           | 6.x / 10.x        | Accessible drag-and-drop           |
+| **NanoStores**         | 1.x               | Lightweight list state             |
+| **@dnd-kit**           | 6.x / 10.x        | Drag-and-drop                      |
 | **Recharts**           | 3.x               | Insights charts                    |
 | **Lucide / Heroicons** | —                 | Icons                              |
 
-### Data & infra
+### Data and infra
 
 | Tech                    | Role                              |
 | ----------------------- | --------------------------------- |
 | **PostgreSQL**          | Primary database                  |
 | **Prisma 6.19**         | ORM + migrations                  |
 | **bcryptjs**            | Password hashing                  |
-| **Upstash Redis**       | Cache + realtime pub/sub helpers  |
+| **Upstash Redis**       | Cache + realtime helpers          |
 | **Upstash Vector**      | Embeddings / semantic search      |
-| **QStash**              | Scheduled / queued HTTP jobs      |
+| **QStash**              | Scheduled HTTP jobs               |
 | **Cloudinary**          | Media                             |
 | **Nodemailer / Resend** | Email                             |
-| **Cheerio**             | HTML parsing (imports / metadata) |
+| **Cheerio**             | HTML parsing                      |
 | **Sentry**              | Errors (tunnel `/api/monitoring`) |
 | **PostHog**             | Analytics (no-op without key)     |
-| **Jest**                | Unit / component tests            |
+| **Jest**                | Tests                             |
 
-> Auth is **custom cookie sessions** in `src/lib/auth.ts` — **not** NextAuth (removed as unused).
+> Auth is **custom cookie sessions** in `src/lib/auth.ts` — **not** NextAuth.
 
 ---
 
 ## Keywords Glossary
 
-| Keyword                  | Meaning here                                                 |
-| ------------------------ | ------------------------------------------------------------ |
-| **App Router**           | Next.js `src/app` file-based routing                         |
-| **Route Handler**        | `route.ts` API under `src/app/api`                           |
-| **SSR-first**            | Layouts/pages start on server; interactivity is client       |
-| **Client island**        | `"use client"` component for hooks / DnD / forms             |
-| **React Query Infinity** | Very long `staleTime` so cached list data feels instant      |
-| **Invalidation**         | Mark queries stale after mutation so UI refetches            |
-| **SSE**                  | Server pushes events over a long-lived HTTP stream           |
-| **JSON URLs column**     | `List.urls` stores URL objects as JSON, not a separate table |
-| **Slug**                 | Public path segment, e.g. `/list/my-travel-links`            |
-| **Env-gated**            | Feature idle until env vars exist (Sentry, PostHog, AI)      |
-| **Model chain**          | AI tries providers/models in order on failure / rate limit   |
+| Keyword                  | Meaning here                                            |
+| ------------------------ | ------------------------------------------------------- |
+| **App Router**           | Next.js `src/app` file-based routing                    |
+| **Route Handler**        | `route.ts` under `src/app/api`                          |
+| **SSR-first**            | Layouts start on server; interactivity is client        |
+| **Client island**        | `"use client"` for hooks / DnD / forms                  |
+| **React Query Infinity** | Very long `staleTime` so cached list data feels instant |
+| **Invalidation**         | Mark queries stale after mutation so UI refetches       |
+| **SSE**                  | Server pushes events over a long-lived HTTP stream      |
+| **JSON URLs column**     | `List.urls` stores URL objects as JSON                  |
+| **Slug**                 | Public path, e.g. `/list/my-travel-links`               |
+| **Env-gated**            | Feature idle until env vars exist                       |
+| **Robohash**             | Deterministic avatar from email (`robohash.org`)        |
+| **ProfileDropdown**      | Sticky-safe custom menu (no body scroll-lock)           |
+| **Model chain**          | AI tries providers/models in order on failure           |
 
 ---
 
@@ -179,39 +189,33 @@ You do **not** need every third-party key to learn the codebase. See [Environmen
 ```text
 daily-urlist/
 ├── src/
-│   ├── app/                    # Next.js App Router
-│   │   ├── api/                # Backend Route Handlers
-│   │   ├── list/[slug]/        # Public/shared list + edit
-│   │   ├── lists/, browse/, new/, business-insights/, …
-│   │   ├── layout.tsx          # Root layout (providers)
-│   │   ├── robots.ts
-│   │   └── global-error.tsx    # Sentry-aware error UI
+│   ├── app/                 # App Router pages + api/** + layout SEO
 │   ├── components/
-│   │   ├── pages/              # Large page clients
-│   │   ├── lists/, urls/, ui/  # Domain + primitives
-│   │   ├── collaboration/, ai/, collections/
-│   │   ├── business-insights/, layout/, providers/
-│   ├── hooks/                  # React Query + session + SSE
-│   ├── lib/                    # auth, prisma, redis, ai, email, …
-│   ├── stores/                 # NanoStores (current list, drag cache)
-│   └── utils/                  # queryInvalidation, urlMetadata, …
-├── prisma/                     # schema.prisma + migrations
-├── docs/                       # Deep guides (AI, Sentry, SafeImage, …)
-├── .agile-v/                   # Agent / cycle memory (optional for humans)
-├── .env.example                # Placeholder env template (safe to commit)
-├── SECURITY.md                 # Private vulnerability reporting
-├── vercel.json                 # Deploy headers / config
+│   │   ├── pages/           # Large page clients
+│   │   ├── lists/, urls/, ui/, layout/
+│   │   ├── Auth.tsx         # Sign-in / sign-up + guest Select
+│   │   └── layout/ProfileDropdown.tsx
+│   ├── constants/auth.ts    # TEST_ACCOUNTS, UTILITY_NAVIGATION_ITEMS
+│   ├── hooks/               # useSession, useListQueries, SSE, …
+│   ├── lib/                 # auth, prisma, redis, ai, robohash, …
+│   ├── stores/              # NanoStores (current list, drag cache)
+│   └── utils/               # queryInvalidation, urlMetadata, …
+├── prisma/                  # schema + migrations
+├── docs/                    # Guides (auth UI, AI, Sentry, SafeImage, …)
+├── .agile-v/                # Agent cycle memory
+├── .env.example             # Safe placeholders
+├── SECURITY.md              # Private vulnerability reporting
 └── package.json
 ```
 
-**Teaching tip:** `src/app/**/page.tsx` files are often thin; heavy UI lives in `src/components/pages/*` so routing stays clean.
+**Teaching tip:** `src/app/**/page.tsx` files are often thin; heavy UI lives in `src/components/pages/*`.
 
 ---
 
-## How the App Works (Architecture)
+## How the App Works
 
 ```text
-Browser (React Query + NanoStores)
+Browser (React Query + NanoStores + ProfileDropdown)
     │  fetch / mutate
     ▼
 Next.js Route Handlers (src/app/api/**)
@@ -219,18 +223,18 @@ Next.js Route Handlers (src/app/api/**)
     ▼
 Prisma → PostgreSQL
     │
-    ├─ optional Redis cache (metadata / list payloads)
-    ├─ optional Vector index (semantic search)
-    ├─ optional AI providers (enhance / collections / search)
-    └─ optional QStash → /api/jobs/* (background work)
+    ├─ optional Redis cache
+    ├─ optional Vector index
+    ├─ optional AI providers
+    └─ optional QStash → /api/jobs/*
 
-Collaborators ←── SSE /api/realtime/list/[listId]/events ←── Redis pub/sub helpers
+Collaborators ←── SSE /api/realtime/list/[listId]/events
 ```
 
-1. User signs up/in → server sets **httpOnly** `session_token` cookie.
+1. Sign up / in → httpOnly `session_token` cookie + `urlist:wasAuthed` hint for Navbar.
 2. List CRUD writes Postgres (`List.urls` JSON).
-3. Client mutations call APIs, then **`invalidateUrlQueries` / list keys** so every subscribed page updates.
-4. If Redis/AI/QStash keys are missing, those paths no-op or degrade gracefully where coded.
+3. Client mutations call APIs, then invalidate React Query keys.
+4. Missing Redis/AI/QStash keys → those paths no-op or degrade gracefully.
 
 ---
 
@@ -240,9 +244,9 @@ Collaborators ←── SSE /api/realtime/list/[listId]/events ←── Redis p
 
 - **Node.js** 20+ recommended
 - **npm**
-- A **PostgreSQL** database (local Docker, Neon, Supabase, Hetzner, etc.)
+- A **PostgreSQL** database
 
-### 1. Clone & install
+### 1. Clone and install
 
 ```bash
 git clone https://github.com/arnobt78/Daily-URL-Bookmark-Notes-Dairy--NextJS-FullStack.git
@@ -256,13 +260,13 @@ npm install
 cp .env.example .env.local
 ```
 
-Fill at least the **minimum** variables (next section). You do **not** need every key to run core CRUD.
+Fill at least the **minimum** variables below. You do **not** need every key for core CRUD.
 
 ### 3. Database
 
 ```bash
 npx prisma migrate dev
-# optional sample data:
+# optional:
 npm run db:seed
 ```
 
@@ -287,25 +291,23 @@ npm run build
 
 ## Environment Variables
 
-Committed template: **[`.env.example`](./.env.example)**.  
-Real secrets go only in **`.env.local`** (gitignored) or your host (Vercel).
+Template: **[`.env.example`](./.env.example)**.  
+Secrets only in **`.env.local`** (gitignored) or Vercel.
 
 ### Do we need a `.env` to run?
 
-| Answer                | Detail                                                                                              |
-| --------------------- | --------------------------------------------------------------------------------------------------- |
-| **Minimum yes**       | You need Postgres URLs + base URL for a working app.                                                |
-| **Optional services** | Redis, Vector, QStash, Cloudinary, AI, email, Sentry, PostHog — leave blank to skip those features. |
+| Answer          | Detail                                                                              |
+| --------------- | ----------------------------------------------------------------------------------- |
+| **Minimum yes** | Postgres URLs + base URL for a working app                                          |
+| **Optional**    | Redis, Vector, QStash, Cloudinary, AI, email, Sentry, PostHog — leave blank to skip |
 
 ### Minimum (core app)
 
-| Variable               | Purpose                        | How to get it                                                      |
-| ---------------------- | ------------------------------ | ------------------------------------------------------------------ |
-| `NEXT_PUBLIC_BASE_URL` | Absolute app URL               | Local: `http://localhost:3000`                                     |
-| `DATABASE_URL`         | Prisma pooled URL              | From your Postgres host (often port `6543` with `?pgbouncer=true`) |
-| `DIRECT_URL`           | Direct Postgres for migrations | Same host, usually port `5432`                                     |
-
-**Example (placeholders only):**
+| Variable               | Purpose                   | How to get it                                         |
+| ---------------------- | ------------------------- | ----------------------------------------------------- |
+| `NEXT_PUBLIC_BASE_URL` | Absolute app URL          | Local: `http://localhost:3000`                        |
+| `DATABASE_URL`         | Prisma pooled URL         | Postgres host (often port `6543` + `?pgbouncer=true`) |
+| `DIRECT_URL`           | Direct URL for migrations | Usually port `5432`                                   |
 
 ```bash
 NEXT_PUBLIC_BASE_URL=http://localhost:3000
@@ -315,258 +317,223 @@ DIRECT_URL=postgresql://USER:PASSWORD@HOST:5432/postgres
 
 ### Optional — Email
 
-| Variable         | Purpose      | How to get it                    |
-| ---------------- | ------------ | -------------------------------- |
-| `SMTP_*`         | Classic SMTP | Gmail / provider SMTP settings   |
-| `RESEND_API_KEY` | Resend API   | [resend.com](https://resend.com) |
+| Variable         | How to get it                    |
+| ---------------- | -------------------------------- |
+| `SMTP_*`         | Provider SMTP settings           |
+| `RESEND_API_KEY` | [resend.com](https://resend.com) |
 
 ### Optional — Upstash
 
-| Variable                            | Purpose                  | How to get it                                                   |
-| ----------------------------------- | ------------------------ | --------------------------------------------------------------- |
-| `UPSTASH_REDIS_REST_URL` / `TOKEN`  | Cache + realtime helpers | [console.upstash.com](https://console.upstash.com) → Redis REST |
-| `UPSTASH_VECTOR_REST_URL` / `TOKEN` | Semantic search          | Upstash Vector index                                            |
-| `QSTASH_TOKEN`                      | Job scheduling           | Upstash QStash                                                  |
+| Variable                            | How to get it                                                 |
+| ----------------------------------- | ------------------------------------------------------------- |
+| `UPSTASH_REDIS_REST_URL` / `TOKEN`  | [console.upstash.com](https://console.upstash.com) Redis REST |
+| `UPSTASH_VECTOR_REST_URL` / `TOKEN` | Upstash Vector                                                |
+| `QSTASH_TOKEN`                      | Upstash QStash                                                |
 
 ### Optional — Cloudinary
 
-| Variable                                           | Purpose                   |
-| -------------------------------------------------- | ------------------------- |
-| `CLOUDINARY_CLOUD_NAME` / `API_KEY` / `API_SECRET` | Upload & transform images |
+`CLOUDINARY_CLOUD_NAME` / `API_KEY` / `API_SECRET` — [cloudinary.com](https://cloudinary.com)
 
-Create a free cloud at [cloudinary.com](https://cloudinary.com).
-
-### Optional — AI providers
+### Optional — AI
 
 | Variable                         | Provider         |
 | -------------------------------- | ---------------- |
 | `GOOGLE_GEMINI_API_KEY`          | Google AI Studio |
-| `GROQ_LLAMA_API_KEY`             | Groq Console     |
+| `GROQ_LLAMA_API_KEY`             | Groq             |
 | `OPENROUTER_API_KEY`             | OpenRouter       |
 | `HUGGING_FACE_INFERENCE_API_KEY` | Hugging Face     |
 
-Without these, AI routes will fail or skip; list/URL CRUD still works.
+Without these, AI routes skip/fail; list/URL CRUD still works.
 
 ### Optional — Observability
 
-| Variable                                              | Purpose                 |
-| ----------------------------------------------------- | ----------------------- |
-| `NEXT_PUBLIC_SENTRY_DSN` / `SENTRY_DSN`               | Browser + server errors |
-| `SENTRY_ORG` / `SENTRY_PROJECT` / `SENTRY_AUTH_TOKEN` | Source maps / CI upload |
-| `NEXT_PUBLIC_POSTHOG_KEY` / `HOST`                    | Product analytics       |
+| Variable                                              | Purpose          |
+| ----------------------------------------------------- | ---------------- |
+| `NEXT_PUBLIC_SENTRY_DSN` / `SENTRY_DSN`               | Errors           |
+| `SENTRY_ORG` / `SENTRY_PROJECT` / `SENTRY_AUTH_TOKEN` | Source maps / CI |
+| `NEXT_PUBLIC_POSTHOG_KEY` / `HOST`                    | Analytics        |
 
-Sentry browser traffic can use the same-origin tunnel **`/api/monitoring`** (see `next.config.js`) to reduce ad-block drops. PostHog is a **no-op** until the key is set.
+Sentry browser traffic can use same-origin tunnel **`/api/monitoring`**. PostHog is a **no-op** until the key is set.
 
 ### Legacy names
 
-`NEXTAUTH_SECRET` / `NEXTAUTH_URL` may appear in older docs or status checks — **this app does not use NextAuth**. Prefer cookie auth in `src/lib/auth.ts`.
+`NEXTAUTH_*` may appear in older notes — this app does **not** use NextAuth. Prefer `src/lib/auth.ts` cookies.
 
 ---
 
-## Pages & Routes
+## Pages and Routes
 
 | Route                          | Purpose                  |
 | ------------------------------ | ------------------------ |
 | `/`                            | Home / auth entry        |
 | `/lists`                       | Your lists               |
 | `/new`                         | Create list              |
-| `/browse`                      | Discover public lists    |
-| `/list/[slug]`                 | View list + URLs         |
-| `/list/[slug]/edit`            | Edit list settings       |
-| `/business-insights`           | Analytics dashboards     |
+| `/browse`                      | Public lists             |
+| `/list/[slug]`                 | View list                |
+| `/list/[slug]/edit`            | Edit list                |
+| `/business-insights`           | Analytics                |
 | `/api-docs`                    | In-app API documentation |
 | `/api-status`                  | Integration status       |
-| `/about`, `/privacy`, `/terms` | Static/info              |
+| `/about`, `/privacy`, `/terms` | Info                     |
 
-Each `page.tsx` typically renders a client from `src/components/pages/`.
+Authenticated Navbar: Public URL · Analytics · My Lists · **ProfileDropdown** (API Docs / API Status / Logout).
 
 ---
 
 ## API Endpoints
 
-All under `src/app/api/**`. Auth endpoints set/clear cookies; list routes usually require a session (except public reads).
+Under `src/app/api/**`. Auth sets cookies; most list routes need a session.
 
 ### Auth
 
-| Method | Path                | Notes                  |
-| ------ | ------------------- | ---------------------- |
-| POST   | `/api/auth/signup`  | Create user + session  |
-| POST   | `/api/auth/signin`  | Login + session cookie |
-| POST   | `/api/auth/signout` | Clear session          |
-| GET    | `/api/auth/session` | Current user/session   |
+| Method | Path                |
+| ------ | ------------------- |
+| POST   | `/api/auth/signup`  |
+| POST   | `/api/auth/signin`  |
+| POST   | `/api/auth/signout` |
+| GET    | `/api/auth/session` |
 
-### Lists & URLs
+### Lists and URLs
 
-| Method                | Path                                 | Notes             |
-| --------------------- | ------------------------------------ | ----------------- |
-| GET/POST              | `/api/lists`                         | List all / create |
-| GET/PATCH/DELETE      | `/api/lists/[id]`                    | One list          |
-| GET                   | `/api/lists/public`                  | Public discovery  |
-| GET/POST/PATCH/DELETE | `/api/lists/[id]/urls`               | URL items         |
-| PATCH                 | `/api/lists/[id]/reorder`            | Order             |
-| POST                  | `/api/lists/[id]/archive-url`        | Archive           |
-| POST                  | `/api/lists/[id]/bulk-import`        | Bulk import       |
-| GET/POST              | `/api/lists/[id]/collaborators`      | Sharing           |
-| GET/POST/DELETE       | `/api/lists/[id]/comments`           | Comments          |
-| GET                   | `/api/lists/[id]/activities`         | Activity          |
-| GET                   | `/api/lists/[id]/collections`        | AI collections    |
-| PATCH                 | `/api/lists/[id]/visibility`         | Public flag       |
-| GET                   | `/api/lists/[id]/metadata`           | Cached metadata   |
-| POST                  | `/api/lists/[id]/sync-vectors`       | Vector sync       |
-| GET                   | `/api/realtime/list/[listId]/events` | SSE stream        |
+| Method                | Path                                 |
+| --------------------- | ------------------------------------ |
+| GET/POST              | `/api/lists`                         |
+| GET/PATCH/DELETE      | `/api/lists/[id]`                    |
+| GET                   | `/api/lists/public`                  |
+| GET/POST/PATCH/DELETE | `/api/lists/[id]/urls`               |
+| PATCH                 | `/api/lists/[id]/reorder`            |
+| POST                  | `/api/lists/[id]/archive-url`        |
+| POST                  | `/api/lists/[id]/bulk-import`        |
+| GET/POST              | `/api/lists/[id]/collaborators`      |
+| GET/POST/DELETE       | `/api/lists/[id]/comments`           |
+| GET                   | `/api/realtime/list/[listId]/events` |
 
-### AI, search, metadata, jobs, insights
+### AI, search, jobs, insights
 
-| Area     | Examples                                                                                    |
-| -------- | ------------------------------------------------------------------------------------------- |
-| AI       | `POST /api/ai/enhance-url`                                                                  |
-| Search   | `POST /api/search/smart`                                                                    |
-| Metadata | `GET/POST /api/metadata`                                                                    |
-| Email    | `POST /api/email/send`                                                                      |
-| Jobs     | `/api/jobs/refresh-metadata`, `check-urls`, `cleanup-sessions`, …                           |
-| Insights | `/api/business-insights/overview`, `activity`, `global`, `popular`, `performance`, `status` |
+Examples: `POST /api/ai/enhance-url`, `POST /api/search/smart`, `/api/metadata`, `/api/jobs/*`, `/api/business-insights/*`.
 
-**Learner tip:** Open any `route.ts`, find `getCurrentUser()`, then follow the Prisma call — that is the backend pattern everywhere.
+**Learner tip:** Open any `route.ts`, find `getCurrentUser()`, then follow the Prisma call.
 
 ---
 
-## Authentication
+## Authentication and Auth UI
 
 ```text
-signUp / signIn
-  → bcrypt hash/verify
-  → Prisma Session row
-  → Set-Cookie: session_token (httpOnly)
-  → getCurrentUser() reads cookie on later requests
+signUp / signIn → bcrypt → Prisma Session → Cookie session_token
+Navbar useSession → ProfileDropdown (Robohash avatar)
+Guest Select → TEST_ACCOUNTS fill email/password
 ```
 
-Key file: [`src/lib/auth.ts`](./src/lib/auth.ts)
+| File                                        | Role                                                          |
+| ------------------------------------------- | ------------------------------------------------------------- |
+| `src/lib/auth.ts`                           | Hash, session create/read, sign in/out                        |
+| `src/constants/auth.ts`                     | `TEST_ACCOUNTS`, `UTILITY_NAVIGATION_ITEMS`, `WAS_AUTHED_KEY` |
+| `src/lib/robohash.ts`                       | `robohashUrl`, `displayNameFromEmail`                         |
+| `src/components/ui/UserAvatar.tsx`          | Image → Robohash → initials                                   |
+| `src/components/Auth.tsx`                   | Sign-in form + guest Select                                   |
+| `src/components/layout/ProfileDropdown.tsx` | Profile menu                                                  |
 
-```ts
-// Conceptual usage inside a Route Handler
-import { getCurrentUser } from "@/lib/auth";
-
-export async function GET() {
-  const user = await getCurrentUser();
-  if (!user) return Response.json({ error: "Unauthorized" }, { status: 401 });
-  // ...
-}
-```
-
-**Reuse in another project:** copy `auth.ts` + `User`/`Session` models + the four `/api/auth/*` routes; keep cookies httpOnly and rotate secrets if you add signing later.
+Demo Select accounts are for **local / staging** only — do not ship weak shared passwords in production.
 
 ---
 
 ## Data Model
 
-Simplified Prisma view:
-
 - **User** — email + hashed password
 - **Session** — token, expiry, last activity
-- **List** — title, slug, `isPublic`, `urls` (JSON array), `archivedUrls` (JSON), collaborators / roles
-- **Comment** — tied to `listId` + `urlId`
-- **Activity** — audit trail for list actions
+- **List** — title, slug, `isPublic`, `urls` (JSON), `archivedUrls`, collaborators / roles
+- **Comment** — `listId` + `urlId`
+- **Activity** — audit trail
 
-URL objects live **inside** `List.urls` (not a separate `Url` table). That keeps reads simple and matches the NanoStores `UrlItem` shape in `src/stores/urlListStore.ts`.
+URL objects live inside `List.urls` (no separate `Url` table). Display name in UI = email local-part (no `name`/`image` columns).
 
 ---
 
-## Frontend: Components & Reuse
+## Frontend Components and Reuse
 
 ### UI primitives (`src/components/ui/`)
 
-| Component                               | Use when                                              |
-| --------------------------------------- | ----------------------------------------------------- |
-| `Button`, `Input`, `Textarea`, `Select` | Forms                                                 |
-| `Card`, `Badge`, `Tabs`, `Switch`       | Layout / toggles                                      |
-| `Toast` / `Toaster`                     | Feedback (`useToast`)                                 |
-| `AlertDialog`, `InputDialog`            | Confirms / prompts                                    |
-| `SafeImage`                             | Remote URLs that may 404 (optimizer → native `<img>`) |
-| `OptimizedImage`                        | Trusted/Cloudinary assets                             |
+| Component                               | Use when                      |
+| --------------------------------------- | ----------------------------- |
+| `Button`, `Input`, `Textarea`, `Select` | Forms                         |
+| `Card`, `Badge`, `Tabs`, `Switch`       | Layout                        |
+| `Toast` / `Toaster`                     | Feedback                      |
+| `SafeImage`                             | Remote URLs that may 404      |
+| `OptimizedImage`                        | Trusted / Cloudinary assets   |
+| `UserAvatar`                            | Profile / demo Select avatars |
 
-**Reuse example — SafeImage:**
+### Domain
+
+| Path                            | Role              |
+| ------------------------------- | ----------------- |
+| `lists/UrlList.tsx`             | Sortable URL list |
+| `lists/UrlCard.tsx`             | Single URL card   |
+| `lists/UrlBulkImportExport.tsx` | Import / export   |
+| `collaboration/Comments.tsx`    | Comments          |
+| `pages/*Page.tsx`               | Full screens      |
+
+**Reuse `UserAvatar` in another app:**
 
 ```tsx
-import { SafeImage } from "@/components/ui/safe-image";
+import { UserAvatar } from "@/components/ui/UserAvatar";
 
-<SafeImage
-  src={url.image}
-  alt={url.title}
-  width={120}
-  height={80}
-  className="rounded-md object-cover"
-/>;
+<UserAvatar seed={user.email} size={40} />;
 ```
 
-Copy `safe-image.tsx` into another Next app that already allows remote image hosts in `next.config`.
-
-### Domain components
-
-| Path                            | Role                        |
-| ------------------------------- | --------------------------- |
-| `lists/UrlList.tsx`             | Sortable URL list + filters |
-| `lists/UrlCard.tsx`             | Single URL card             |
-| `lists/UrlBulkImportExport.tsx` | Import/export UI            |
-| `collaboration/Comments.tsx`    | Thread UI                   |
-| `pages/*Page.tsx`               | Full screens wired to hooks |
-
-**Reuse pattern:** keep presentational UI dumb; pass data/mutations from hooks (`useListQueries`) so the same card works in list view and browse view.
+Copy `robohash.ts` + `UserAvatar.tsx`; allow `robohash.org` in image config if using `next/image`.
 
 ---
 
-## Hooks, Cache & Invalidation
+## Hooks, Cache, and Invalidation
 
-| Hook / util            | Responsibility                                                     |
-| ---------------------- | ------------------------------------------------------------------ |
-| `useListQueries`       | Query keys, list/URL mutations, unified list fetch                 |
-| `useBrowseQueries`     | Public browse data                                                 |
-| `useRealtimeList`      | SSE subscription                                                   |
-| `useSession`           | Client session helper                                              |
-| `queryInvalidation.ts` | After CRUD: invalidate list, URLs, metadata, browse, collaborators |
-
-**Why it matters:** with long `staleTime`, forgetting invalidation causes “stale UI until refresh.” This project centralizes invalidation so create/update/delete stays consistent across pages and back-button navigation.
+| Hook / util            | Responsibility                                          |
+| ---------------------- | ------------------------------------------------------- |
+| `useSession`           | Cached session (`staleTime: Infinity` until invalidate) |
+| `useListQueries`       | List / URL mutations and unified fetch                  |
+| `useRealtimeList`      | SSE subscription                                        |
+| `queryInvalidation.ts` | After CRUD: invalidate list, URLs, metadata, browse     |
 
 ```ts
-// After a successful mutation (conceptual)
 import { invalidateUrlQueries } from "@/utils/queryInvalidation";
 
 await invalidateUrlQueries(queryClient, listId);
 ```
 
+Logout clears React Query cache + `urlist:wasAuthed` then hard-redirects home.
+
 ---
 
 ## Backend Libraries
 
-| Module        | Path                                   | Teaches                                    |
-| ------------- | -------------------------------------- | ------------------------------------------ |
-| Prisma client | `src/lib/prisma.ts`                    | Singleton DB client                        |
-| Redis helpers | `src/lib/redis.ts`                     | `getCache` / `setCache` / `deleteCache`    |
-| AI            | `src/lib/ai/*`                         | Provider registry + shared client fallback |
-| Vector        | `src/lib/vector.ts`                    | Upstash Vector                             |
-| Import/export | `src/lib/import`, `src/lib/export`     | Chrome/Pocket/Pinboard parsers             |
-| Email         | `src/lib/email`                        | SMTP / Resend                              |
-| Permissions   | `src/lib/collaboration/permissions.ts` | Role checks                                |
-| Jobs          | `src/lib/jobs`                         | QStash wiring                              |
+| Module          | Path                                   |
+| --------------- | -------------------------------------- |
+| Prisma          | `src/lib/prisma.ts`                    |
+| Redis           | `src/lib/redis.ts`                     |
+| AI              | `src/lib/ai/*`                         |
+| Vector          | `src/lib/vector.ts`                    |
+| Import / export | `src/lib/import`, `src/lib/export`     |
+| Email           | `src/lib/email`                        |
+| Permissions     | `src/lib/collaboration/permissions.ts` |
+| Jobs            | `src/lib/jobs`                         |
 
 ---
 
-## AI, Redis, Vector & Jobs
+## AI, Redis, Vector, and Jobs
 
-1. **AI** — `providers.ts` defines `models[]` chains; `client.ts` walks them and skips hard rate limits.
-2. **Redis** — speeds metadata/list payloads when Upstash REST env is set.
-3. **Vector** — powers smarter search when vector env is set.
-4. **QStash** — calls your own `/api/jobs/*` on a schedule (health checks, metadata refresh, session cleanup).
+1. **AI** — `providers.ts` `models[]` chains; `client.ts` walks them on rate limits.
+2. **Redis** — speeds metadata/list payloads when Upstash REST is set.
+3. **Vector** — smarter search when vector env is set.
+4. **QStash** — calls `/api/jobs/*` on a schedule.
 
 Deep dives: `docs/LLM_MODEL_SELECTION.md`, `docs/Redis_Sentry_PostHog_INTEGRATION_GUIDE.md`.
 
 ---
 
-## Code Snippets (Learning)
+## Code Snippets for Learners
 
-### App Router page → client page
+### Page → client page
 
 ```tsx
-// src/app/lists/page.tsx (pattern)
 import ListsPageClient from "@/components/pages/ListsPage";
 
 export default function ListsPage() {
@@ -574,11 +541,17 @@ export default function ListsPage() {
 }
 ```
 
-### React Query provider
+### Robohash helper
 
-Configured in root layout / providers so every page shares one `QueryClient` (`src/lib/react-query.ts`).
+```ts
+export function robohashUrl(emailOrSeed: string, size = 80): string {
+  const seed = encodeURIComponent(emailOrSeed.trim().toLowerCase());
+  const px = Math.max(40, Math.min(size, 256));
+  return `https://robohash.org/${seed}?set=set1&size=${px}x${px}`;
+}
+```
 
-### Tailwind class merge (`src/lib/utils.ts`)
+### Tailwind `cn`
 
 ```ts
 import { type ClassValue, clsx } from "clsx";
@@ -589,18 +562,17 @@ export function cn(...inputs: ClassValue[]) {
 }
 ```
 
-Use `cn("px-2", condition && "bg-white/10")` in UI components the same way as typical shadcn-style apps.
-
 ---
 
-## Testing, Lint & Build
+## Testing, Lint, and Build
 
 ```bash
-npm run lint          # next lint (eslint-config-next 15)
-npm test              # Jest (canonical — Vitest removed)
-npx tsc --noEmit      # types
-npm run build         # prisma generate && next build
-npm audit             # keep at 0 when possible
+npm run lint
+npm run lint:fix
+npm test
+npx tsc --noEmit
+npm run build
+npm audit
 ```
 
 ---
@@ -610,21 +582,21 @@ npm audit             # keep at 0 when possible
 Typical target: **Vercel**.
 
 1. Import the GitHub repo.
-2. Set the same env vars as `.env.example` (Production + Preview as needed).
-3. Ensure `DATABASE_URL` / `DIRECT_URL` point at production Postgres.
-4. Optional: Sentry org/project/token; Firewall bot settings (human dashboard).
+2. Set env vars from `.env.example`.
+3. Point `DATABASE_URL` / `DIRECT_URL` at production Postgres.
+4. Optional: Sentry + Firewall bot settings.
 5. Deploy — `postinstall` runs `prisma generate`.
 
-Also see `docs/VERCEL_PRODUCTION_GUARDRAILS.md` and `vercel.json`.
+Also: `docs/VERCEL_PRODUCTION_GUARDRAILS.md`, `vercel.json`.
 
 ---
 
 ## Learning Path
 
-1. Run with **minimum env** → sign up → create a list → add a URL.
-2. Read `src/lib/auth.ts` + one `lists` route.
-3. Trace a mutation in `useListQueries` → API → `queryInvalidation`.
-4. Open `UrlList` / `UrlCard` / `SafeImage`.
+1. Run with **minimum env** → guest Select → sign in → create a list → add a URL.
+2. Read `src/lib/auth.ts` + one lists route.
+3. Open ProfileDropdown / UserAvatar / Robohash helpers.
+4. Trace a mutation in `useListQueries` → API → `queryInvalidation`.
 5. Add Redis or one AI key and watch optional features light up.
 6. Read SSE (`useRealtimeList` + realtime route).
 
@@ -632,24 +604,24 @@ Also see `docs/VERCEL_PRODUCTION_GUARDRAILS.md` and `vercel.json`.
 
 ## Related Docs
 
-| Doc                                                                                                | Topic                         |
-| -------------------------------------------------------------------------------------------------- | ----------------------------- |
-| [SECURITY.md](./SECURITY.md)                                                                       | Private vulnerability reports |
-| [docs/PROJECT_WALKTHROUGH.md](./docs/PROJECT_WALKTHROUGH.md)                                       | Compact agent/human map       |
-| [docs/LLM_MODEL_SELECTION.md](./docs/LLM_MODEL_SELECTION.md)                                       | AI model chains               |
-| [docs/SAFE_IMAGE_REUSABLE_COMPONENT.md](./docs/SAFE_IMAGE_REUSABLE_COMPONENT.md)                   | SafeImage design              |
-| [docs/Redis_Sentry_PostHog_INTEGRATION_GUIDE.md](./docs/Redis_Sentry_PostHog_INTEGRATION_GUIDE.md) | Observability + Redis         |
-| [docs/VERCEL_PRODUCTION_GUARDRAILS.md](./docs/VERCEL_PRODUCTION_GUARDRAILS.md)                     | Production hardening          |
-| [docs/AGILE_V_PROTOCOL.md](./docs/AGILE_V_PROTOCOL.md)                                             | Multi-agent delivery protocol |
-| [CLAUDE.md](./CLAUDE.md) / [AGENTS.md](./AGENTS.md)                                                | AI coding agent entrypoints   |
+| Doc                                                                                                | Topic                                        |
+| -------------------------------------------------------------------------------------------------- | -------------------------------------------- |
+| [SECURITY.md](./SECURITY.md)                                                                       | Private vulnerability reports                |
+| [docs/PORTABLE_AUTH_UI_GUIDE.md](./docs/PORTABLE_AUTH_UI_GUIDE.md)                                 | Auth UI contracts (Select + ProfileDropdown) |
+| [docs/PROJECT_WALKTHROUGH.md](./docs/PROJECT_WALKTHROUGH.md)                                       | Compact map                                  |
+| [docs/LLM_MODEL_SELECTION.md](./docs/LLM_MODEL_SELECTION.md)                                       | AI model chains                              |
+| [docs/SAFE_IMAGE_REUSABLE_COMPONENT.md](./docs/SAFE_IMAGE_REUSABLE_COMPONENT.md)                   | SafeImage                                    |
+| [docs/Redis_Sentry_PostHog_INTEGRATION_GUIDE.md](./docs/Redis_Sentry_PostHog_INTEGRATION_GUIDE.md) | Observability + Redis                        |
+| [docs/VERCEL_PRODUCTION_GUARDRAILS.md](./docs/VERCEL_PRODUCTION_GUARDRAILS.md)                     | Production hardening                         |
+| [CLAUDE.md](./CLAUDE.md) / [AGENTS.md](./AGENTS.md)                                                | AI agent entrypoints                         |
 
 ---
 
 ## Conclusion
 
-This repository is a **complete teaching example** of a modern Next.js full-stack product: cookie auth, JSON-embedded list items, React Query cache discipline, optional Redis/AI/Vector/QStash, and collaboration over SSE. Start with Postgres + local env, then layer services as you learn each subsystem.
+This repository is a **complete teaching example** of a Next.js full-stack product: cookie auth with portable Robohash UI, JSON-embedded list items, React Query cache discipline, optional Redis/AI/Vector/QStash, and collaboration over SSE.
 
-Fork it, strip features you do not need, or lift individual modules (`SafeImage`, `auth.ts`, `queryInvalidation`, AI client) into your own apps.
+Fork it, strip features you do not need, or lift modules (`UserAvatar`, `SafeImage`, `auth.ts`, `queryInvalidation`, AI client) into your own apps.
 
 ---
 
@@ -661,7 +633,7 @@ This project is licensed under the [MIT License](https://opensource.org/licenses
 
 ## Happy Coding! 🎉
 
-This is an **open-source project** — feel free to use, enhance, and extend this project further!
+This is an **open-source project** - feel free to use, enhance, and extend this project further!
 
 If you have any questions or want to share your work, reach out via GitHub or my portfolio at [https://www.arnobmahmud.com](https://www.arnobmahmud.com).
 
