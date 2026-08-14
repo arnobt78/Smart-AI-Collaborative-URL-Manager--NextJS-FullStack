@@ -96,32 +96,32 @@ export function PermissionManager({
           (acc, collaborator) => {
             const emailLower = collaborator.email.toLowerCase();
             const exists = acc.some(
-              (c) => c.email.toLowerCase() === emailLower
+              (c) => c.email.toLowerCase() === emailLower,
             );
             if (!exists) {
               acc.push(collaborator);
             }
             return acc;
           },
-          []
+          [],
         );
 
         queryClient.setQueryData<{ collaborators: Collaborator[] }>(
           listQueryKeys.collaborators(listId),
-          { collaborators: uniqueCollaborators }
+          { collaborators: uniqueCollaborators },
         );
       }
     };
 
     window.addEventListener(
       "unified-collaborators-updated",
-      handleUnifiedCollaborators
+      handleUnifiedCollaborators,
     );
 
     return () => {
       window.removeEventListener(
         "unified-collaborators-updated",
-        handleUnifiedCollaborators
+        handleUnifiedCollaborators,
       );
     };
   }, [listId, queryClient]);
@@ -164,7 +164,7 @@ export function PermissionManager({
           setInviteDialogOpen(false);
           onUpdate?.();
         },
-      }
+      },
     );
   };
 
@@ -186,7 +186,7 @@ export function PermissionManager({
           });
           onUpdate?.();
         },
-      }
+      },
     );
   };
 
@@ -226,7 +226,7 @@ export function PermissionManager({
       size="sm"
       onClick={() => setInviteDialogOpen(true)}
       disabled={!canInvite} // Disable for viewers
-      className="flex items-center gap-1.5 sm:gap-2 border-white/20 bg-white/5 text-white hover:bg-white/10 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed text-xs sm:text-sm px-3 sm:px-4 py-1.5 sm:py-2 w-full sm:w-auto shrink-0"
+      className="flex items-center gap-1.5 sm:gap-2 border-white/20 bg-white/5 text-white hover:bg-white/10 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed text-xs sm:text-sm px-2 sm:px-4 py-1 sm:py-2 w-full sm:w-auto shrink-0"
     >
       <UserPlus className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
       <span>Add Collaborator</span>
@@ -287,7 +287,7 @@ export function PermissionManager({
                 .reduce<Collaborator[]>((acc, collaborator) => {
                   const emailLower = collaborator.email.toLowerCase();
                   const exists = acc.some(
-                    (c) => c.email.toLowerCase() === emailLower
+                    (c) => c.email.toLowerCase() === emailLower,
                   );
                   if (!exists) {
                     acc.push(collaborator);
@@ -295,106 +295,106 @@ export function PermissionManager({
                   return acc;
                 }, [])
                 .map((collaborator, index) => (
-              <div
-                key={`${collaborator.email.toLowerCase()}-${index}`}
-                className="bg-white/5 border border-white/10 rounded-lg p-3 sm:p-4 hover:bg-white/10 transition-colors"
-              >
-                <div className="flex items-center justify-between gap-2 sm:gap-0">
-                  <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
-                    <div className="flex-shrink-0 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-purple-500/30 to-blue-500/30 border border-purple-400/50 flex items-center justify-center">
-                      <Mail className="h-4 w-4 sm:h-5 sm:w-5 text-purple-200" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm sm:text-base text-white font-medium truncate">
-                        {collaborator.email}
-                      </p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <div
-                          className={`${getRoleBadgeColor(
-                            collaborator.role
-                          )} inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold border`}
-                        >
-                          {getRoleIcon(collaborator.role)}
-                          <span className="capitalize">
-                            {collaborator.role}
-                          </span>
+                  <div
+                    key={`${collaborator.email.toLowerCase()}-${index}`}
+                    className="bg-white/5 border border-white/10 rounded-lg p-3 sm:p-4 hover:bg-white/10 transition-colors"
+                  >
+                    <div className="flex items-center justify-between gap-2 sm:gap-0">
+                      <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+                        <div className="flex-shrink-0 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-purple-500/30 to-blue-500/30 border border-purple-400/50 flex items-center justify-center">
+                          <Mail className="h-4 w-4 sm:h-5 sm:w-5 text-purple-200" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm sm:text-base text-white font-medium truncate">
+                            {collaborator.email}
+                          </p>
+                          <div className="flex items-center gap-2 mt-1">
+                            <div
+                              className={`${getRoleBadgeColor(
+                                collaborator.role,
+                              )} inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold border`}
+                            >
+                              {getRoleIcon(collaborator.role)}
+                              <span className="capitalize">
+                                {collaborator.role}
+                              </span>
+                            </div>
+                          </div>
                         </div>
                       </div>
+                      <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
+                        {expandedCollaborator === collaborator.email ? (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setExpandedCollaborator(null)}
+                            className="text-white/80 hover:text-white hover:bg-white/10"
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        ) : (
+                          <div className="relative">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() =>
+                                setExpandedCollaborator(collaborator.email)
+                              }
+                              className="text-white/80 hover:text-white hover:bg-white/10"
+                            >
+                              <MoreVertical className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
-                    {expandedCollaborator === collaborator.email ? (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setExpandedCollaborator(null)}
-                        className="text-white/80 hover:text-white hover:bg-white/10"
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    ) : (
-                      <div className="relative">
+                    {expandedCollaborator === collaborator.email && (
+                      <div className="mt-3 pt-3 border-t border-white/10 flex items-center justify-end gap-2">
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() =>
-                            setExpandedCollaborator(collaborator.email)
-                          }
-                          className="text-white/80 hover:text-white hover:bg-white/10"
+                          disabled={!canInvite}
+                          onClick={() => {
+                            if (!canInvite) return; // Prevent action if disabled
+                            setRoleChangeDialog({
+                              open: true,
+                              email: collaborator.email,
+                              currentRole: collaborator.role,
+                            });
+                          }}
+                          className={`text-xs hover:text-white hover:bg-white/10 ${
+                            !canInvite
+                              ? "text-white/40 cursor-not-allowed opacity-50"
+                              : "text-white/80"
+                          }`}
                         >
-                          <MoreVertical className="h-4 w-4" />
+                          <Edit3 className="h-3 w-3 mr-1" />
+                          Change Role
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          disabled={!canInvite}
+                          onClick={() => {
+                            if (!canInvite) return; // Prevent action if disabled
+                            setDeleteDialog({
+                              open: true,
+                              email: collaborator.email,
+                            });
+                          }}
+                          className={`text-xs hover:bg-red-500/10 ${
+                            !canInvite
+                              ? "text-red-400/40 cursor-not-allowed opacity-50"
+                              : "text-red-400 hover:text-red-300"
+                          }`}
+                        >
+                          <Trash2 className="h-3 w-3 mr-1" />
+                          Remove
                         </Button>
                       </div>
                     )}
                   </div>
-                </div>
-                {expandedCollaborator === collaborator.email && (
-                  <div className="mt-3 pt-3 border-t border-white/10 flex items-center justify-end gap-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      disabled={!canInvite}
-                      onClick={() => {
-                        if (!canInvite) return; // Prevent action if disabled
-                        setRoleChangeDialog({
-                          open: true,
-                          email: collaborator.email,
-                          currentRole: collaborator.role,
-                        });
-                      }}
-                      className={`text-xs hover:text-white hover:bg-white/10 ${
-                        !canInvite
-                          ? "text-white/40 cursor-not-allowed opacity-50"
-                          : "text-white/80"
-                      }`}
-                    >
-                      <Edit3 className="h-3 w-3 mr-1" />
-                      Change Role
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      disabled={!canInvite}
-                      onClick={() => {
-                        if (!canInvite) return; // Prevent action if disabled
-                        setDeleteDialog({
-                          open: true,
-                          email: collaborator.email,
-                        });
-                      }}
-                      className={`text-xs hover:bg-red-500/10 ${
-                        !canInvite
-                          ? "text-red-400/40 cursor-not-allowed opacity-50"
-                          : "text-red-400 hover:text-red-300"
-                      }`}
-                    >
-                      <Trash2 className="h-3 w-3 mr-1" />
-                      Remove
-                    </Button>
-                  </div>
-                )}
-              </div>
-            ))}
+                ))}
             </div>
           )}
         </>
@@ -404,7 +404,7 @@ export function PermissionManager({
       {inviteDialogOpen && typeof window !== "undefined" && document.body
         ? ReactDOM.createPortal(
             <div
-              className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm"
+              className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-md"
               onClick={() => {
                 if (!addCollaboratorMutation.isPending) {
                   setInviteDialogOpen(false);
@@ -531,14 +531,14 @@ export function PermissionManager({
                 </div>
               </div>
             </div>,
-            document.body
+            document.body,
           )
         : null}
 
       {/* Role Change Dialog */}
       {roleChangeDialog.open && typeof window !== "undefined" && document.body
         ? ReactDOM.createPortal(
-            <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm">
+            <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-md">
               <div className="relative w-full max-w-md mx-4 bg-gradient-to-br from-zinc-900 to-zinc-800 rounded-2xl shadow-2xl border border-white/20 p-6">
                 <button
                   onClick={() =>
@@ -653,7 +653,7 @@ export function PermissionManager({
                 </div>
               </div>
             </div>,
-            document.body
+            document.body,
           )
         : null}
 

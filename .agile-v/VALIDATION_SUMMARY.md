@@ -14,5 +14,7 @@
 | List switch + collections UX | PASS | PASS | slug-safe placeholder; title nav; silent create; warm-cache skeletons |
 | Visit Site open external URL | PASS | PASS | ensureAbsoluteHttpUrl + openExternalUrl; UrlCard card+dialog |
 | Collaborators row + Card pad | PASS | PASS | empty one-row; Card p-2 sm:p-4; SmartCollections no stacked pt |
+| HomePage no spinner | PASS | PASS | NeutralWait removed; wasAuthed → Auth/Marketing only |
+| Smart Collections single pad | PASS | PASS | one p-2 sm:p-4 shell; title pb-1 sm:pb-4 |
 
 Out of scope: densify/JWT SSR, Zod/SHA, Next 16, Prisma 7.

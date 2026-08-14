@@ -40,11 +40,14 @@ export default function BrowsePage() {
   const searchParams = useSearchParams();
   const [search, setSearch] = useState(searchParams.get("search") || "");
   const [page, setPage] = useState(
-    parseInt(searchParams.get("page") || "1", 10)
+    parseInt(searchParams.get("page") || "1", 10),
   );
 
   // CRITICAL: Use React Query with Infinity cache - only refetches when invalidated
-  const { data, isLoading, isFetching } = usePublicListsQuery(page, search || undefined);
+  const { data, isLoading, isFetching } = usePublicListsQuery(
+    page,
+    search || undefined,
+  );
   const lists = data?.lists || [];
   const totalPages = data?.pagination?.totalPages || 1;
 
@@ -103,12 +106,12 @@ export default function BrowsePage() {
               placeholder="Search lists by title or description..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-9 sm:pl-10 bg-white/5 border-white/10 text-white placeholder:text-white/40 text-sm sm:text-base py-2 sm:py-2.5"
+              className="pl-9 sm:pl-10 bg-white/5 border-white/10 text-white placeholder:text-white/40 text-sm sm:text-base py-2 sm:py-2"
             />
           </div>
           <Button
             type="submit"
-            className="px-4 sm:px-6 bg-blue-600 hover:bg-blue-700 text-white text-sm sm:text-base py-2 sm:py-2.5 w-full sm:w-auto"
+            className="px-4 sm:px-6 bg-blue-600 hover:bg-blue-700 text-white text-sm sm:text-base py-2 sm:py-2 w-full sm:w-auto"
           >
             Search
           </Button>
@@ -207,7 +210,7 @@ export default function BrowsePage() {
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page === 1}
                 variant="outline"
-                className="text-white border-white/20 text-xs sm:text-sm px-3 sm:px-4 py-1.5 sm:py-2"
+                className="text-white border-white/20 text-xs sm:text-sm px-2 sm:px-4 py-1 sm:py-2"
               >
                 Previous
               </Button>
@@ -218,7 +221,7 @@ export default function BrowsePage() {
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                 disabled={page === totalPages}
                 variant="outline"
-                className="text-white border-white/20 text-xs sm:text-sm px-3 sm:px-4 py-1.5 sm:py-2"
+                className="text-white border-white/20 text-xs sm:text-sm px-2 sm:px-4 py-1 sm:py-2"
               >
                 Next
               </Button>

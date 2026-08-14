@@ -8,7 +8,7 @@ Next 15 URL bookmark manager. Demo: https://daily-urlist.vercel.app/
 ## Layout
 - Pages → `components/pages/*` · `app/api/**` · SEO `layout.tsx` + sitemap
 - Auth UI: `Auth.tsx` · `ProfileDropdown` · `UserAvatar` · `lib/robohash.ts` · `constants/auth.ts`
-- Flash gate: `HomePage` + `urlist:wasAuthed` → Auth immediately when logged out (no marketing skeleton)
+- Flash gate: `HomePage` + `urlist:wasAuthed` → Auth for guests; Marketing when session/wasAuthed (no NeutralWait spinner)
 - Navbar: static `Daily Urlist` · fixed `size-10` profile slot · guest Select fixed `size-7` lead + always Clear
 - Auth toasts: `lib/auth-toast.ts` + `AuthToastBridge` (welcome/goodbye after hard redirect); Sparkles CTA
 - Layout: `html { scrollbar-gutter: stable }` — no horizontal jump; Auth overlay `inset-0` (no `w-screen`)
@@ -19,6 +19,7 @@ Next 15 URL bookmark manager. Demo: https://daily-urlist.vercel.app/
 - Lists UX: unified placeholder same-slug only · ListPage syncs `currentList` from RQ · My Lists title → `/list/[slug]` · Smart Collections create stays on page
 - Visit: `lib/utils.ts` `ensureAbsoluteHttpUrl` + `openExternalUrl` (UrlCard Visit Site + Similar URLs dialog)
 - Collaborators: empty state one-row; Card `p-2 sm:p-4` (no lg:p-8)
+- Smart Collections: one outer `p-2 sm:p-4` shell; title row `pb-1 sm:pb-4`
 - Docs: `README.md` · `SECURITY.md` · `PORTABLE_AUTH_UI_GUIDE.md`
 - Out of scope (separate REQ): densify/Zod/SHA/JWT-null SSR
 

@@ -11,3 +11,5 @@
 | 2026-08-14 | List-switch slug-safe placeholder + currentList sync; My Lists title nav; silent Smart Collections. No densify. |
 | 2026-08-14 | Visit Site/dialog: ensureAbsoluteHttpUrl + openExternalUrl (schemeless → https). |
 | 2026-08-14 | Collaborators empty one-row; Card/SmartCollections pad p-2 sm:p-4 (no double gutter). |
+| 2026-08-14 | HomePage: removed NeutralWait; Auth/Marketing branch, no full-page spinner. |
+| 2026-08-14 | Smart Collections: single p-2 sm:p-4 shell + title pb-1 sm:pb-4. |

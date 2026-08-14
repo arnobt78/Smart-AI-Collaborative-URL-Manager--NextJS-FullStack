@@ -752,7 +752,7 @@ export default function ListPageClient() {
           </div>
 
           {/* Add URL Form Skeleton */}
-          <div className="bg-white/5 backdrop-blur-sm p-2 sm:p-4 rounded-xl border border-white/20">
+          <div className="bg-white/5 backdrop-blur-md p-2 sm:p-4 rounded-xl border border-white/20">
             <Skeleton className="h-12 w-full mb-3" />
             <Skeleton className="h-24 w-full mb-4" />
             <div className="flex justify-end gap-3">
@@ -766,7 +766,7 @@ export default function ListPageClient() {
             {[1, 2, 3].map((i) => (
               <div
                 key={i}
-                className="bg-white/5 backdrop-blur-sm rounded-xl border border-white/20 p-2 sm:p-4"
+                className="bg-white/5 backdrop-blur-md rounded-xl border border-white/20 p-2 sm:p-4"
               >
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex-1 space-y-2">
@@ -1006,7 +1006,7 @@ export default function ListPageClient() {
                 }
               }}
               disabled={isSettingUpSchedule}
-              className="flex-shrink-0 px-2 sm:px-3 py-1 sm:py-1.5 rounded-md sm:rounded-lg bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/30 text-white/90 text-xs font-medium transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 sm:gap-1.5"
+              className="flex-shrink-0 px-2 sm:px-3 py-1 rounded-md sm:rounded-lg bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/30 text-white/90 text-xs font-medium transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 sm:gap-1.5"
               title="Setup scheduled jobs (daily health checks, weekly metadata refresh)"
             >
               <Activity
@@ -1078,7 +1078,7 @@ export default function ListPageClient() {
                   }
                 }}
                 disabled={isRefreshingMetadata}
-                className="flex-shrink-0 px-2 sm:px-3 py-1 sm:py-1.5 rounded-md sm:rounded-lg bg-green-600/20 hover:bg-green-600/30 border border-green-500/30 text-white/90 text-xs font-medium transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 sm:gap-1.5"
+                className="flex-shrink-0 px-2 sm:px-3 py-1 rounded-md sm:rounded-lg bg-green-600/20 hover:bg-green-600/30 border border-green-500/30 text-white/90 text-xs font-medium transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 sm:gap-1.5"
                 title="Refresh metadata for all URLs with improved extractor"
               >
                 <RefreshCw
@@ -1170,7 +1170,7 @@ export default function ListPageClient() {
                   }
                 }}
                 disabled={isCheckingHealth}
-                className="flex-shrink-0 px-2 sm:px-3 py-1 sm:py-1.5 rounded-md sm:rounded-lg bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30 text-white/90 text-xs font-medium transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 sm:gap-1.5"
+                className="flex-shrink-0 px-2 sm:px-3 py-1 rounded-md sm:rounded-lg bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30 text-white/90 text-xs font-medium transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 sm:gap-1.5"
                 title="Check URL health status for this list"
               >
                 <Activity

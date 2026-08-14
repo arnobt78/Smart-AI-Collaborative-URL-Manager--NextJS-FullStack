@@ -137,7 +137,7 @@ function UrlCardWrapper({
   // Disabled until batch fetch completes to prevent duplicate calls
   const { data: metadata, isLoading: isLoadingMetadata } = useUrlMetadata(
     url.url,
-    shouldFetch // Only fetch if batch is ready AND data not in cache
+    shouldFetch, // Only fetch if batch is ready AND data not in cache
   );
 
   // Use cached data if available, otherwise use hook data
@@ -184,7 +184,7 @@ export function UrlList() {
     if (process.env.NODE_ENV === "development" && list?.urls) {
       const urls = (list.urls as unknown as UrlItem[]) || [];
       const urlWithClickCount = urls.find(
-        (u) => u.clickCount !== undefined && u.clickCount > 0
+        (u) => u.clickCount !== undefined && u.clickCount > 0,
       );
       if (urlWithClickCount) {
       }
@@ -232,7 +232,7 @@ export function UrlList() {
     return () => {
       window.removeEventListener(
         "metadata-refresh-complete",
-        handleMetadataRefresh
+        handleMetadataRefresh,
       );
       window.removeEventListener("metadata-cached", handleMetadataCached);
     };
@@ -277,7 +277,7 @@ export function UrlList() {
     }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
-    })
+    }),
   );
 
   // Real-time updates subscription
@@ -347,7 +347,7 @@ export function UrlList() {
   const currentListHash =
     list?.id && list?.urls
       ? `${list.id}:${Array.from(
-          new Set((list.urls as unknown as UrlItem[]).map((u) => u.url))
+          new Set((list.urls as unknown as UrlItem[]).map((u) => u.url)),
         )
           .sort()
           .join("|")}`
@@ -390,7 +390,7 @@ export function UrlList() {
       if (skipFlag === "true") {
         if (process.env.NODE_ENV === "development") {
           console.log(
-            `⏭️ [BATCH] Skipping ALL metadata fetches after bulk import (dev server workaround)`
+            `⏭️ [BATCH] Skipping ALL metadata fetches after bulk import (dev server workaround)`,
           );
         }
         // Keep flag set for entire session - don't clear it
@@ -546,7 +546,7 @@ export function UrlList() {
                 JSON.stringify({
                   data: meta,
                   timestamp: Date.now(),
-                })
+                }),
               );
             } catch {
               // Ignore localStorage errors
@@ -616,8 +616,8 @@ export function UrlList() {
                 })
                 .catch(() => {
                   // Silently fail
-                })
-            )
+                }),
+            ),
           );
         }
 
@@ -727,7 +727,7 @@ export function UrlList() {
       if (current?.id && typeof window !== "undefined") {
         try {
           const stored = localStorage.getItem(
-            getDragOrderStorageKey(current.id)
+            getDragOrderStorageKey(current.id),
           );
           if (stored) {
             const parsed = JSON.parse(stored) as UrlItem[];
@@ -856,7 +856,7 @@ export function UrlList() {
         ) {
           if (process.env.NODE_ENV === "development") {
             console.debug(
-              "⏭️ [URL_LIST] Skipping getList - bulk import in progress"
+              "⏭️ [URL_LIST] Skipping getList - bulk import in progress",
             );
           }
           return;
@@ -994,8 +994,8 @@ export function UrlList() {
       try {
         const response = await fetch(
           `/api/search/smart?q=${encodeURIComponent(
-            currentSearchQuery
-          )}&listId=${current.id}`
+            currentSearchQuery,
+          )}&listId=${current.id}`,
         );
 
         if (response.ok) {
@@ -1058,7 +1058,7 @@ export function UrlList() {
       (u) =>
         u.id === urlId
           ? { ...u, clickCount: newClickCount } // Create new object with updated clickCount
-          : { ...u } // Create new object for all URLs to ensure React detects the change
+          : { ...u }, // Create new object for all URLs to ensure React detects the change
     );
 
     // Update store immediately for instant feedback with new object references
@@ -1071,14 +1071,14 @@ export function UrlList() {
         {
           method: "POST",
           credentials: "include", // Ensure cookies are sent for authentication
-        }
+        },
       );
 
       if (response.ok) {
         const data = await response.json();
         if (process.env.NODE_ENV === "development") {
           console.log(
-            `✅ [API] POST /api/lists/${current.id}/urls/${urlId}/click - success`
+            `✅ [API] POST /api/lists/${current.id}/urls/${urlId}/click - success`,
           );
         }
 
@@ -1086,7 +1086,7 @@ export function UrlList() {
         if (data.list) {
           const serverUrls = (data.list.urls as unknown as UrlItem[]) || [];
           const serverUrlMap = new Map(
-            serverUrls.map((u: UrlItem) => [u.id, u])
+            serverUrls.map((u: UrlItem) => [u.id, u]),
           );
 
           // Create completely new URLs array ensuring server clickCount is used
@@ -1167,7 +1167,7 @@ export function UrlList() {
         newNote || enhancementResult?.summary || "",
         undefined, // reminder
         enhancementResult?.category, // AI-generated category
-        existingMetadata // Pass cached metadata to avoid re-fetching
+        existingMetadata, // Pass cached metadata to avoid re-fetching
       );
       // Note: Metadata is now fetched and cached by the unified POST endpoint
       // The event listener in UrlList will populate React Query cache when metadata-cached event fires
@@ -1194,7 +1194,7 @@ export function UrlList() {
     url: string,
     tags?: string[],
     notes?: string,
-    reminder?: string
+    reminder?: string,
   ) => {
     setIsEditing(true);
     setError(undefined);
@@ -1374,7 +1374,7 @@ export function UrlList() {
         urlToDuplicate.reminder,
         urlToDuplicate.category,
         existingMetadata, // Pass cached metadata if available
-        true // isDuplicate flag - creates url_duplicated activity instead of url_added
+        true, // isDuplicate flag - creates url_duplicated activity instead of url_added
       );
 
       // CRITICAL: Invalidate unified query to trigger updates?activityLimit=30 refetch
@@ -1717,7 +1717,7 @@ export function UrlList() {
                     user: activityData.user,
                   },
                 },
-              })
+              }),
             );
           }
 
@@ -1761,7 +1761,7 @@ export function UrlList() {
         if (process.env.NODE_ENV === "development") {
           console.error(
             `❌ [API] PATCH /api/lists/${current.id}/urls - reorder failed:`,
-            err
+            err,
           );
         }
         // Revert on error - fetch the current list
@@ -1843,7 +1843,7 @@ export function UrlList() {
           const updated = updateDragOrderCache(
             current.id,
             reorderedUrls,
-            false
+            false,
           );
 
           // Cache updated successfully
@@ -1872,7 +1872,7 @@ export function UrlList() {
       if (process.env.NODE_ENV === "development") {
         console.log(
           "✅ [DRAG] Store updated, sortableContextKey will increment on next render",
-          currentList.get().urls?.map((u: UrlItem) => u.id)
+          currentList.get().urls?.map((u: UrlItem) => u.id),
         );
       }
 
@@ -1898,7 +1898,7 @@ export function UrlList() {
           const { list, activity: activityData } = await response.json();
           if (process.env.NODE_ENV === "development") {
             console.log(
-              `✅ [API] PATCH /api/lists/${current.id}/urls - reorder success`
+              `✅ [API] PATCH /api/lists/${current.id}/urls - reorder success`,
             );
           }
 
@@ -1946,7 +1946,7 @@ export function UrlList() {
           if (process.env.NODE_ENV === "development") {
             console.log(
               "✅ [DRAG] Final store state",
-              currentList.get().urls?.map((u: UrlItem) => u.id)
+              currentList.get().urls?.map((u: UrlItem) => u.id),
             );
           }
 
@@ -1964,7 +1964,7 @@ export function UrlList() {
                     user: activityData.user,
                   },
                 },
-              })
+              }),
             );
           }
 
@@ -2008,7 +2008,7 @@ export function UrlList() {
         if (process.env.NODE_ENV === "development") {
           console.error(
             `❌ [API] PATCH /api/lists/${current.id}/urls - reorder failed:`,
-            err
+            err,
           );
         }
         // Revert on error - fetch the current list
@@ -2390,8 +2390,8 @@ export function UrlList() {
         const q = normalizedCurrentSearch;
         urls = urlsToUse.filter((u) => {
           return (
-          (u.title && u.title.toLowerCase().includes(q)) ||
-          (u.url && u.url.toLowerCase().includes(q)) ||
+            (u.title && u.title.toLowerCase().includes(q)) ||
+            (u.url && u.url.toLowerCase().includes(q)) ||
             (u.description && u.description.toLowerCase().includes(q)) ||
             u.tags?.some((tag) => tag.toLowerCase().includes(q)) ||
             (u.category && u.category.toLowerCase().includes(q))
@@ -2439,7 +2439,7 @@ export function UrlList() {
         if (b.position !== undefined) return 1;
         return (
           new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-      );
+        );
       });
       pinnedUrls.sort((a, b) => {
         if (a.position !== undefined && b.position !== undefined) {
@@ -2454,25 +2454,25 @@ export function UrlList() {
     } else if (sortOption === "oldest") {
       unpinnedUrls.sort(
         (a, b) =>
-          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
       );
       pinnedUrls.sort(
         (a, b) =>
-          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
       );
     } else if (sortOption === "az") {
       unpinnedUrls.sort((a, b) =>
-        (a.title || a.url).localeCompare(b.title || b.url)
+        (a.title || a.url).localeCompare(b.title || b.url),
       );
       pinnedUrls.sort((a, b) =>
-        (a.title || a.url).localeCompare(b.title || b.url)
+        (a.title || a.url).localeCompare(b.title || b.url),
       );
     } else if (sortOption === "za") {
       unpinnedUrls.sort((a, b) =>
-        (b.title || b.url).localeCompare(a.title || a.url)
+        (b.title || b.url).localeCompare(a.title || a.url),
       );
       pinnedUrls.sort((a, b) =>
-        (b.title || b.url).localeCompare(a.title || a.url)
+        (b.title || b.url).localeCompare(a.title || a.url),
       );
     }
 
@@ -2482,7 +2482,7 @@ export function UrlList() {
     // Debug logging for click count updates in filtered URLs
     if (process.env.NODE_ENV === "development") {
       const urlWithClickCount = result.find(
-        (u) => u.clickCount !== undefined && u.clickCount > 0
+        (u) => u.clickCount !== undefined && u.clickCount > 0,
       );
       if (urlWithClickCount) {
         console.log("🔍 [FILTERED_URLS] filteredAndSortedUrls computed:", {
@@ -2581,7 +2581,7 @@ export function UrlList() {
           <Button
             type="button"
             onClick={() => setShowArchived(false)}
-            className={`text-xs sm:text-sm px-3 sm:px-4 py-1.5 sm:py-2 flex-1 sm:flex-none ${
+            className={`text-xs sm:text-sm px-2 sm:px-4 py-1 sm:py-2 flex-1 sm:flex-none ${
               !showArchived
                 ? "bg-blue-600 text-white"
                 : "bg-white/10 text-white/70 hover:bg-white/20"
@@ -2592,7 +2592,7 @@ export function UrlList() {
           <Button
             type="button"
             onClick={() => setShowArchived(true)}
-            className={`text-xs sm:text-sm px-3 sm:px-4 py-1.5 sm:py-2 flex-1 sm:flex-none ${
+            className={`text-xs sm:text-sm px-2 sm:px-4 py-1 sm:py-2 flex-1 sm:flex-none ${
               showArchived
                 ? "bg-blue-600 text-white"
                 : "bg-white/10 text-white/70 hover:bg-white/20"
@@ -2620,7 +2620,7 @@ export function UrlList() {
                 setError(undefined);
               }
             }}
-            className={`bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white flex items-center justify-center gap-1.5 sm:gap-2 transition-all duration-200 shadow-md hover:shadow-lg text-xs sm:text-sm px-3 sm:px-4 py-1.5 sm:py-2 w-full sm:w-auto ${
+            className={`bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white flex items-center justify-center gap-1.5 sm:gap-2 transition-all duration-200 shadow-md hover:shadow-lg text-xs sm:text-sm px-2 sm:px-4 py-1 sm:py-2 w-full sm:w-auto ${
               !permissions.canEdit ? "opacity-50 cursor-not-allowed" : ""
             }`}
           >
@@ -2661,7 +2661,7 @@ export function UrlList() {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search URLs, titles, or descriptions... (AI-powered)"
-                className="w-full text-sm sm:text-base lg:text-lg shadow-md font-delicious min-w-[180px] bg-transparent pr-16 sm:pr-20 py-2 sm:py-2.5"
+                className="w-full text-sm sm:text-base lg:text-lg shadow-md font-delicious min-w-[180px] bg-transparent pr-16 sm:pr-20 py-2 sm:py-2"
               />
               {search.trim() && (
                 <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
@@ -2669,7 +2669,7 @@ export function UrlList() {
                     <div className="flex items-center gap-2 text-blue-400">
                       <div className="w-4 h-4 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
                       <span className="text-xs font-medium">AI Search...</span>
-          </div>
+                    </div>
                   ) : searchCacheIndicator ? (
                     <span className="text-xs text-green-400 font-medium flex items-center gap-1">
                       <span className="w-2 h-2 bg-green-400 rounded-full" />
@@ -2686,7 +2686,10 @@ export function UrlList() {
             </div>
 
             {/* Filter Dropdown */}
-            <UrlFilterBar sortOption={sortOption} setSortOption={setSortOption} />
+            <UrlFilterBar
+              sortOption={sortOption}
+              setSortOption={setSortOption}
+            />
           </div>
 
           {/* Row 2 on phone: Import/Export Bar */}
@@ -2778,12 +2781,12 @@ export function UrlList() {
             items={filteredAndSortedUrls.map((u) => u.id)}
             strategy={verticalListSortingStrategy}
           >
-      <div className="space-y-8">
+            <div className="space-y-8">
               {filteredAndSortedUrls.map((url) => {
                 return (
                   <UrlCardWrapper
-            key={url.id}
-            url={url}
+                    key={url.id}
+                    url={url}
                     onEdit={(urlObj) => {
                       setEditingUrl(urlObj);
                       setEditingTags(urlObj.tags?.join(", ") || "");
@@ -2801,7 +2804,7 @@ export function UrlList() {
                         const currentUrls =
                           current.urls as unknown as UrlItem[];
                         const deletedUrl = currentUrls.find(
-                          (url) => url.id === urlId
+                          (url) => url.id === urlId,
                         );
                         if (deletedUrl) {
                           queryClient.removeQueries({
@@ -2828,19 +2831,19 @@ export function UrlList() {
                           }, 2000);
                         });
                     }}
-            onToggleFavorite={handleToggleFavorite}
-            onShare={handleShare}
+                    onToggleFavorite={handleToggleFavorite}
+                    onShare={handleShare}
                     onUrlClick={handleUrlClick}
                     onDuplicate={handleDuplicate}
                     onArchive={handleArchive}
                     onPin={handlePin}
-            shareTooltip={shareTooltip}
+                    shareTooltip={shareTooltip}
                     isMetadataReady={isMetadataReady}
                     canEdit={permissions.canEdit}
-          />
+                  />
                 );
               })}
-      </div>
+            </div>
           </SortableContext>
         </DndContext>
       )}
@@ -2849,23 +2852,23 @@ export function UrlList() {
       {showArchived && (
         <div className="space-y-8">
           {archivedUrlsList.length === 0 ? (
-            <div className="rounded-2xl border-2 border-dashed border-white/30 p-16 text-center bg-white/5 backdrop-blur-sm">
+            <div className="rounded-2xl border-2 border-dashed border-white/30 p-16 text-center bg-white/5 backdrop-blur-md">
               <div className="mx-auto w-32 h-32 bg-gradient-to-br from-gray-500/20 via-gray-500/20 to-transparent rounded-full flex items-center justify-center shadow-inner border border-gray-400/30">
                 <ArchiveBoxIcon className="h-16 w-16 text-gray-400" />
-          </div>
+              </div>
               <h3 className="mt-6 text-2xl font-semibold text-white">
                 No Archived URLs
-          </h3>
+              </h3>
               <p className="mt-3 text-lg text-white/60 max-w-md mx-auto">
                 Archived URLs will appear here. You can restore them at any
                 time.
-          </p>
-        </div>
+              </p>
+            </div>
           ) : (
             archivedUrlsList.map((url) => (
               <div
                 key={url.id}
-                className="bg-white/5 backdrop-blur-sm rounded-xl border border-white/20 p-4 sm:p-6"
+                className="bg-white/5 backdrop-blur-md rounded-xl border border-white/20 p-4 sm:p-6"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
@@ -2884,13 +2887,14 @@ export function UrlList() {
                       <p className="text-xs text-white/50 mt-2">
                         Archived:{" "}
                         {new Date(
-                          (url as UrlItem & { archivedAt?: string }).archivedAt!
+                          (url as UrlItem & { archivedAt?: string })
+                            .archivedAt!,
                         ).toLocaleDateString()}
                       </p>
                     )}
-              </div>
-                <Button
-                  type="button"
+                  </div>
+                  <Button
+                    type="button"
                     disabled={!permissions.canEdit}
                     onClick={() => {
                       if (!permissions.canEdit) return; // Prevent action if disabled
@@ -2903,16 +2907,16 @@ export function UrlList() {
                     }`}
                   >
                     Restore
-                </Button>
+                  </Button>
+                </div>
               </div>
-          </div>
             ))
           )}
         </div>
       )}
 
       {!showArchived && list.urls.length === 0 && (
-        <div className="rounded-2xl border-2 border-dashed border-white/30 p-16 text-center bg-white/5 backdrop-blur-sm">
+        <div className="rounded-2xl border-2 border-dashed border-white/30 p-16 text-center bg-white/5 backdrop-blur-md">
           <div className="mx-auto w-32 h-32 bg-gradient-to-br from-blue-500/20 via-blue-500/20 to-transparent rounded-full flex items-center justify-center shadow-inner border border-blue-400/30">
             <LinkIcon className="h-16 w-16 text-blue-400" />
           </div>

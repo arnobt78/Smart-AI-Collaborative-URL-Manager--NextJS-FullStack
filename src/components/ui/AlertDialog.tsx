@@ -62,7 +62,7 @@ export function AlertDialog({
   // Use portal to render at document root level, ensuring proper viewport positioning
   const dialogContent = (
     <div
-      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-md p-4"
       onClick={handleCancel}
       style={{
         position: "fixed",

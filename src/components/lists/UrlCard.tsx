@@ -103,7 +103,7 @@ export const UrlCard: React.FC<UrlCardProps> = ({
         return false;
       }
     },
-    []
+    [],
   );
   const [toastMessage, setToastMessage] = React.useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
@@ -134,7 +134,7 @@ export const UrlCard: React.FC<UrlCardProps> = ({
     setToastMessage(
       `This URL has been clicked ${clickCount} time${
         clickCount !== 1 ? "s" : ""
-      }`
+      }`,
     );
     setTimeout(() => setToastMessage(null), 3000);
   };
@@ -150,7 +150,7 @@ export const UrlCard: React.FC<UrlCardProps> = ({
 
     try {
       const response = await fetch(
-        `/api/search/smart?listId=${current.id}&urlId=${url.id}`
+        `/api/search/smart?listId=${current.id}&urlId=${url.id}`,
       );
 
       if (response.ok) {
@@ -311,7 +311,7 @@ export const UrlCard: React.FC<UrlCardProps> = ({
   const isNoPreview = !hasImage && !description;
 
   return (
-    <div className="group relative overflow-hidden rounded-2xl border border-white/20 bg-white/5 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 hover:border-blue-400/30">
+    <div className="group relative overflow-hidden rounded-2xl border border-white/20 bg-white/5 backdrop-blur-md shadow-lg hover:shadow-xl transition-all duration-300 hover:border-blue-400/30">
       {/* Drag handle in top-right corner */}
       {dragHandleProps && (
         <div
@@ -329,7 +329,7 @@ export const UrlCard: React.FC<UrlCardProps> = ({
       <div className="flex flex-col sm:flex-row p-3 sm:p-4 gap-3 sm:gap-4">
         {/* Image Section */}
         <div className="md:w-1/5 w-full flex-shrink-0 flex items-center justify-center">
-          <div className="relative w-24 h-24 sm:w-28 sm:h-28 md:w-full md:h-full aspect-square overflow-hidden rounded-lg sm:rounded-xl shadow-sm bg-gray-900/30 backdrop-blur-sm border border-white/10 flex items-center justify-center">
+          <div className="relative w-24 h-24 sm:w-28 sm:h-28 md:w-full md:h-full aspect-square overflow-hidden rounded-lg sm:rounded-xl shadow-sm bg-gray-900/30 backdrop-blur-md border border-white/10 flex items-center justify-center">
             {shouldShowSkeleton ? (
               <div className="absolute inset-0 bg-gray-800/40 rounded-xl animate-pulse" />
             ) : !currentImageUrl || imageError ? (
@@ -375,7 +375,7 @@ export const UrlCard: React.FC<UrlCardProps> = ({
             )}
             <button
               onClick={() => onToggleFavorite(url.id)}
-              className="absolute top-2 right-2 bg-black/50 backdrop-blur-sm rounded-lg p-2 hover:bg-black/70 transition-colors cursor-pointer z-10"
+              className="absolute top-2 right-2 bg-black/50 backdrop-blur-md rounded-lg p-2 hover:bg-black/70 transition-colors cursor-pointer z-10"
             >
               <StarIcon
                 className={`h-5 w-5 ${
@@ -455,7 +455,7 @@ export const UrlCard: React.FC<UrlCardProps> = ({
                 {(url.category || (url.tags && url.tags.length > 0)) && (
                   <div className="flex items-center gap-2 mb-2 flex-wrap">
                     {url.category && (
-                      <span className="px-2.5 py-1 bg-blue-500/20 border border-blue-400/30 text-blue-300 rounded-md text-xs font-semibold whitespace-nowrap">
+                      <span className="px-2 py-1 bg-blue-500/20 border border-blue-400/30 text-blue-300 rounded-md text-xs font-semibold whitespace-nowrap">
                         {url.category}
                       </span>
                     )}
@@ -495,7 +495,7 @@ export const UrlCard: React.FC<UrlCardProps> = ({
                       {new Date(url.reminder) >= new Date() &&
                         new Date(url.reminder) <=
                           new Date(
-                            new Date().setDate(new Date().getDate() + 7)
+                            new Date().setDate(new Date().getDate() + 7),
                           ) && (
                           <span className="ml-2 px-2 py-0.5 bg-orange-500/20 border border-orange-400/30 text-orange-300 rounded text-xs font-semibold">
                             Soon
@@ -659,7 +659,7 @@ export const UrlCard: React.FC<UrlCardProps> = ({
               </div>
               {/* Toast notification */}
               {toastMessage && (
-                <div className="fixed bottom-4 right-4 bg-green-500/90 backdrop-blur-sm text-white px-4 py-2 rounded-lg shadow-xl z-50 animate-in fade-in slide-in-from-bottom-2 border border-green-400/30">
+                <div className="fixed bottom-4 right-4 bg-green-500/90 backdrop-blur-md text-white px-4 py-2 rounded-lg shadow-xl z-50 animate-in fade-in slide-in-from-bottom-2 border border-green-400/30">
                   {toastMessage}
                 </div>
               )}
@@ -715,7 +715,7 @@ export const UrlCard: React.FC<UrlCardProps> = ({
         document.body &&
         ReactDOM.createPortal(
           <div
-            className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+            className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-md p-4"
             onClick={() => setSimilarUrlsOpen(false)}
             style={{ position: "fixed" }}
           >
@@ -784,7 +784,7 @@ export const UrlCard: React.FC<UrlCardProps> = ({
                     {similarUrls.map((result) => (
                       <div
                         key={result.url.id}
-                        className="bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 p-4 hover:border-blue-400/30 transition-colors"
+                        className="bg-white/5 backdrop-blur-md rounded-xl border border-white/10 p-4 hover:border-blue-400/30 transition-colors"
                       >
                         <div className="flex items-start justify-between gap-4">
                           <div className="flex-1 min-w-0">
@@ -832,7 +832,7 @@ export const UrlCard: React.FC<UrlCardProps> = ({
               </div>
             </div>
           </div>,
-          document.body
+          document.body,
         )}
 
       {/* Comments Modal - Portal to body */}
@@ -842,7 +842,7 @@ export const UrlCard: React.FC<UrlCardProps> = ({
         currentList.get()?.id &&
         ReactDOM.createPortal(
           <div
-            className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+            className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-md p-4"
             onClick={() => setCommentsOpen(false)}
             style={{ position: "fixed" }}
           >
@@ -896,7 +896,7 @@ export const UrlCard: React.FC<UrlCardProps> = ({
               </div>
             </div>
           </div>,
-          document.body
+          document.body,
         )}
     </div>
   );

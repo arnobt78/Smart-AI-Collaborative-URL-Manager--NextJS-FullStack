@@ -6,7 +6,6 @@ import { currentList } from "@/stores/urlListStore";
 import { Button } from "@/components/ui/Button";
 import {
   Card,
-  CardHeader,
   CardTitle,
   CardDescription,
   CardContent,
@@ -66,7 +65,7 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
         throw new Error("List slug required");
       }
       const response = await fetch(
-        `/api/lists/${listSlug}/collections?includeDuplicates=false&minGroupSize=2&maxCollections=10`
+        `/api/lists/${listSlug}/collections?includeDuplicates=false&minGroupSize=2&maxCollections=10`,
       );
 
       if (!response.ok) {
@@ -113,7 +112,7 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
     queryFn: async () => {
       // Use unified API endpoint without cache-busting - React Query handles caching
       const response = await fetch(
-        `/api/lists/${listSlug}/collections?includeDuplicates=true&minGroupSize=2&maxCollections=10`
+        `/api/lists/${listSlug}/collections?includeDuplicates=true&minGroupSize=2&maxCollections=10`,
       );
       if (!response.ok) {
         throw new Error("Failed to fetch duplicates");
@@ -139,7 +138,7 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
   const [isCreating, setIsCreating] = useState<string | null>(null);
   const [showDuplicates, setShowDuplicates] = useState(false);
   const [deletingDuplicateIds, setDeletingDuplicateIds] = useState<Set<string>>(
-    new Set()
+    new Set(),
   );
   const [isExpanded, setIsExpanded] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -173,7 +172,7 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
       // Clear server-side Redis cache first (use GET with clearCache=true, not DELETE)
       try {
         await fetch(
-          `/api/lists/${listSlug}/collections?clearCache=true&_t=${Date.now()}`
+          `/api/lists/${listSlug}/collections?clearCache=true&_t=${Date.now()}`,
         );
       } catch (_error) {
         // Ignore cache clear errors
@@ -367,10 +366,10 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
           if (!oldData) return oldData;
           return {
             suggestions: oldData.suggestions.filter(
-              (s) => s.id !== suggestion.id
+              (s) => s.id !== suggestion.id,
             ),
           };
-        }
+        },
       );
       queryClient.invalidateQueries({
         queryKey: listQueryKeys.unified(listSlug),
@@ -401,7 +400,7 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
       } else if (process.env.NODE_ENV === "development") {
         // Silently handle expected errors (no console spam)
         console.debug(
-          "⏭️ [COLLECTIONS] Create request aborted (expected during page refresh)"
+          "⏭️ [COLLECTIONS] Create request aborted (expected during page refresh)",
         );
       }
     } finally {
@@ -424,7 +423,9 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
             <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
               <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-blue-400 flex-shrink-0" />
               <div className="min-w-0">
-                <h3 className="font-semibold text-white text-sm sm:text-base truncate">Smart Collections</h3>
+                <h3 className="font-semibold text-white text-sm sm:text-base truncate">
+                  Smart Collections
+                </h3>
                 <p className="text-xs sm:text-sm text-white/60 truncate">
                   Get AI-powered collection suggestions
                 </p>
@@ -434,7 +435,7 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
               variant="outline"
               size="sm"
               onClick={() => setIsExpanded(true)}
-              className="border-white/20 text-white hover:bg-white/10 text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-1.5 flex-shrink-0"
+              className="border-white/20 text-white hover:bg-white/10 text-xs sm:text-sm px-2 sm:px-3 py-1 flex-shrink-0"
             >
               Explore
             </Button>
@@ -446,12 +447,15 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
 
   return (
     <Card className="mb-4 sm:mb-6">
-      <CardHeader>
-        <div className="flex items-center justify-between gap-2 sm:gap-3">
+      {/* Single pad shell — title + body share one p-2 sm:p-4 (no Header+Content double pad) */}
+      <div className="p-2 sm:p-4 space-y-2 sm:space-y-4">
+        <div className="flex items-center justify-between gap-2 sm:gap-3 pb-1 sm:pb-4">
           <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
             <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-blue-400 flex-shrink-0" />
             <div className="min-w-0">
-              <CardTitle className="text-sm sm:text-base">Smart Collections</CardTitle>
+              <CardTitle className="text-sm sm:text-base">
+                Smart Collections
+              </CardTitle>
               <CardDescription className="text-xs sm:text-sm">
                 AI-powered suggestions to organize your URLs
               </CardDescription>
@@ -465,312 +469,320 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
             <X className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
           </button>
         </div>
-      </CardHeader>
 
-      <CardContent className="space-y-4">
-        {/* Loading State — only when cold (no suggestions yet) */}
-        {isLoading && !hasSuggestions && (
-          <div className="space-y-4">
-            <Skeleton className="h-32 w-full" />
-            <Skeleton className="h-32 w-full" />
-          </div>
-        )}
-
-        {/* Collection Suggestions — stay visible during refetch */}
-        {hasSuggestions && (
-          <div>
-            <h4 className="text-xs sm:text-sm font-semibold text-white mb-2 sm:mb-3 flex items-center gap-1.5 sm:gap-2">
-              <FolderPlus className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-              <span>Suggested Collections ({suggestions.length})</span>
-            </h4>
-            <div className="space-y-2 sm:space-y-3">
-              {suggestions.map((suggestion) => (
-                <div
-                  key={suggestion.id}
-                  className="border border-white/10 rounded-lg p-3 sm:p-4 bg-white/5 hover:bg-white/10 transition-colors"
-                >
-                  <div className="flex items-start justify-between gap-2 sm:gap-4 flex-col sm:flex-row">
-                    <div className="flex-1 min-w-0 w-full sm:w-auto">
-                      {/* Title - Full width on phone */}
-                      <h5 className="font-semibold text-white text-sm sm:text-base w-full mb-1.5 sm:mb-2 break-words">
-                        {suggestion.name}
-                      </h5>
-                      {/* URLs and Category Badges - Separate row */}
-                      <div className="flex items-center gap-1.5 sm:gap-2 mb-1.5 sm:mb-2 flex-wrap">
-                        <Badge variant="secondary" className="text-xs">
-                          {suggestion.urls.length} URLs
-                        </Badge>
-                        {suggestion.category && (
-                          <Badge variant="outline" className="text-xs">
-                            {suggestion.category}
-                          </Badge>
-                        )}
-                      </div>
-                      {/* Description - Full text on phone */}
-                      <p className="text-xs sm:text-sm text-white/60 mb-1.5 sm:mb-2 break-words">
-                        {suggestion.description}
-                      </p>
-                      <div className="flex items-center gap-1.5 sm:gap-2 text-xs text-white/50 flex-wrap">
-                        <span>Confidence: {suggestion.confidence}%</span>
-                        <span>•</span>
-                        <span className="break-words">{suggestion.reason}</span>
-                      </div>
-                    </div>
-                    <Button
-                      size="sm"
-                      onClick={() => {
-                        // Prevent action if viewer (disabled state)
-                        if (!permissions.canEdit) return;
-                        createCollection(suggestion);
-                      }}
-                      disabled={
-                        isCreating === suggestion.id || !permissions.canEdit
-                      }
-                      className={`shrink-0 bg-blue-600 hover:bg-blue-700 text-white border-0 w-full sm:w-auto text-xs sm:text-sm px-3 sm:px-4 py-1.5 sm:py-2 ${
-                        !permissions.canEdit
-                          ? "opacity-50 cursor-not-allowed"
-                          : ""
-                      }`}
-                      title={
-                        !permissions.canEdit
-                          ? "Only owners and editors can create collections"
-                          : undefined
-                      }
-                    >
-                      {isCreating === suggestion.id ? (
-                        <>
-                          <Loader2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2 animate-spin" />
-                          Creating...
-                        </>
-                      ) : (
-                        <>
-                          <FolderPlus className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
-                          Create
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                </div>
-              ))}
+        <div className="space-y-2 sm:space-y-4">
+          {/* Loading State — only when cold (no suggestions yet) */}
+          {isLoading && !hasSuggestions && (
+            <div className="space-y-2 sm:space-y-4">
+              <Skeleton className="h-32 w-full" />
+              <Skeleton className="h-32 w-full" />
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Duplicate Detection - Only show if duplicates have been fetched */}
-        {showDuplicates && (isLoadingDuplicates || hasDuplicates) && (
-          <div>
-            <div className="flex items-center justify-between gap-2 mb-2 sm:mb-3">
-              <h4 className="text-xs sm:text-sm font-semibold text-white flex items-center gap-1.5 sm:gap-2 min-w-0 flex-1">
-                <AlertTriangle className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-yellow-400 shrink-0" />
-                <span className="truncate">
-                  {isLoadingDuplicates
-                    ? "Checking for duplicates..."
-                    : hasDuplicates
-                    ? `Duplicate URLs (${duplicates.length})`
-                    : "No duplicates found"}
-                </span>
+          {/* Collection Suggestions — stay visible during refetch */}
+          {hasSuggestions && (
+            <div>
+              <h4 className="text-xs sm:text-sm font-semibold text-white mb-2 sm:mb-3 flex items-center gap-1.5 sm:gap-2">
+                <FolderPlus className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                <span>Suggested Collections ({suggestions.length})</span>
               </h4>
-              {!isLoadingDuplicates && hasDuplicates && (
-                <button
-                  type="button"
-                  onClick={() => setShowDuplicates(false)}
-                  className="px-2.5 sm:px-3 py-1 sm:py-1.5 text-[10px] sm:text-xs rounded-lg text-white/60 hover:text-white hover:bg-white/10 transition-colors shrink-0"
-                >
-                  Hide
-                </button>
-              )}
-            </div>
-            {isLoadingDuplicates && (
-              <div className="text-center py-4 sm:py-6">
-                <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 text-white/40 mx-auto animate-spin" />
-                <p className="text-[10px] sm:text-xs text-white/50 mt-2">
-                  Checking URLs for duplicates...
-                </p>
+              <div className="space-y-2 sm:space-y-4">
+                {suggestions.map((suggestion) => (
+                  <div
+                    key={suggestion.id}
+                    className="border border-white/10 rounded-lg p-2 sm:p-4 bg-white/5 hover:bg-white/10 transition-colors"
+                  >
+                    <div className="flex items-start justify-between gap-2 sm:gap-4 flex-col sm:flex-row">
+                      <div className="flex-1 min-w-0 w-full sm:w-auto">
+                        {/* Title - Full width on phone */}
+                        <h5 className="font-semibold text-white text-sm sm:text-base w-full mb-1.5 sm:mb-2 break-words">
+                          {suggestion.name}
+                        </h5>
+                        {/* URLs and Category Badges - Separate row */}
+                        <div className="flex items-center gap-1.5 sm:gap-2 mb-1.5 sm:mb-2 flex-wrap">
+                          <Badge variant="secondary" className="text-xs">
+                            {suggestion.urls.length} URLs
+                          </Badge>
+                          {suggestion.category && (
+                            <Badge variant="outline" className="text-xs">
+                              {suggestion.category}
+                            </Badge>
+                          )}
+                        </div>
+                        {/* Description - Full text on phone */}
+                        <p className="text-xs sm:text-sm text-white/60 mb-1.5 sm:mb-2 break-words">
+                          {suggestion.description}
+                        </p>
+                        <div className="flex items-center gap-1.5 sm:gap-2 text-xs text-white/50 flex-wrap">
+                          <span>Confidence: {suggestion.confidence}%</span>
+                          <span>•</span>
+                          <span className="break-words">
+                            {suggestion.reason}
+                          </span>
+                        </div>
+                      </div>
+                      <Button
+                        size="sm"
+                        onClick={() => {
+                          // Prevent action if viewer (disabled state)
+                          if (!permissions.canEdit) return;
+                          createCollection(suggestion);
+                        }}
+                        disabled={
+                          isCreating === suggestion.id || !permissions.canEdit
+                        }
+                        className={`shrink-0 bg-blue-600 hover:bg-blue-700 text-white border-0 w-full sm:w-auto text-xs sm:text-sm px-2 sm:px-4 py-1 sm:py-2 ${
+                          !permissions.canEdit
+                            ? "opacity-50 cursor-not-allowed"
+                            : ""
+                        }`}
+                        title={
+                          !permissions.canEdit
+                            ? "Only owners and editors can create collections"
+                            : undefined
+                        }
+                      >
+                        {isCreating === suggestion.id ? (
+                          <>
+                            <Loader2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2 animate-spin" />
+                            Creating...
+                          </>
+                        ) : (
+                          <>
+                            <FolderPlus className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
+                            Create
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                ))}
               </div>
-            )}
-            {!isLoadingDuplicates && hasDuplicates && (
-              <div className="space-y-2 sm:space-y-3">
-                {duplicates.map((dup, idx) => {
-                  const isDeleting = deletingDuplicateIds.has(dup.url.id);
+            </div>
+          )}
 
-                  return (
-                    <div
-                      key={`${dup.url.id}-${idx}`}
-                      className="border border-yellow-400/20 rounded-lg p-3 sm:p-4 bg-yellow-400/5"
-                    >
-                      <div className="flex items-start gap-2 sm:gap-3 flex-col sm:flex-row">
-                        <div className="flex items-start gap-2 sm:gap-3 flex-1 min-w-0 w-full">
-                          <AlertTriangle className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-400 mt-0.5 shrink-0" />
-                          <div className="flex-1 min-w-0 w-full">
-                            <p className="text-xs sm:text-sm font-medium text-white break-words">
-                              {dup.url.title || dup.url.url}
-                            </p>
-                            <p className="text-[10px] sm:text-xs text-white/60 break-words mt-1 break-all">
-                              {dup.url.url}
-                            </p>
-                            <div className="mt-2 space-y-1">
-                              {dup.duplicates.map((d, i) => (
-                                <div
-                                  key={i}
-                                  className="text-[10px] sm:text-xs text-white/70 flex items-start gap-1.5 sm:gap-2 flex-wrap"
-                                >
-                                  <Copy className="h-3 w-3 shrink-0 mt-0.5" />
-                                  <span className="break-words flex-1 min-w-0">
-                                    Also in:{" "}
-                                    {d.listSlug ? (
-                                      <button
-                                        onClick={() => {
-                                          router.push(`/list/${d.listSlug}`);
-                                        }}
-                                        className="underline hover:text-white transition-colors break-words"
-                                        title={`Open ${d.listTitle || "list"}`}
-                                      >
-                                        {d.listTitle || "Unknown List"}
-                                      </button>
-                                    ) : (
-                                      <span className="break-words">{d.listTitle || "Unknown List"}</span>
-                                    )}{" "}
-                                    ({Math.round(d.similarity * 100)}% similar)
-                                  </span>
-                                </div>
-                              ))}
+          {/* Duplicate Detection - Only show if duplicates have been fetched */}
+          {showDuplicates && (isLoadingDuplicates || hasDuplicates) && (
+            <div>
+              <div className="flex items-center justify-between gap-2 mb-2 sm:mb-3">
+                <h4 className="text-xs sm:text-sm font-semibold text-white flex items-center gap-1.5 sm:gap-2 min-w-0 flex-1">
+                  <AlertTriangle className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-yellow-400 shrink-0" />
+                  <span className="truncate">
+                    {isLoadingDuplicates
+                      ? "Checking for duplicates..."
+                      : hasDuplicates
+                        ? `Duplicate URLs (${duplicates.length})`
+                        : "No duplicates found"}
+                  </span>
+                </h4>
+                {!isLoadingDuplicates && hasDuplicates && (
+                  <button
+                    type="button"
+                    onClick={() => setShowDuplicates(false)}
+                    className="px-2 sm:px-3 py-1 text-[10px] sm:text-xs rounded-lg text-white/60 hover:text-white hover:bg-white/10 transition-colors shrink-0"
+                  >
+                    Hide
+                  </button>
+                )}
+              </div>
+              {isLoadingDuplicates && (
+                <div className="text-center py-4 sm:py-6">
+                  <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 text-white/40 mx-auto animate-spin" />
+                  <p className="text-[10px] sm:text-xs text-white/50 mt-2">
+                    Checking URLs for duplicates...
+                  </p>
+                </div>
+              )}
+              {!isLoadingDuplicates && hasDuplicates && (
+                <div className="space-y-2 sm:space-y-4">
+                  {duplicates.map((dup, idx) => {
+                    const isDeleting = deletingDuplicateIds.has(dup.url.id);
+
+                    return (
+                      <div
+                        key={`${dup.url.id}-${idx}`}
+                        className="border border-yellow-400/20 rounded-lg p-2 sm:p-4 bg-yellow-400/5"
+                      >
+                        <div className="flex items-start gap-2 sm:gap-3 flex-col sm:flex-row">
+                          <div className="flex items-start gap-2 sm:gap-3 flex-1 min-w-0 w-full">
+                            <AlertTriangle className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-400 mt-0.5 shrink-0" />
+                            <div className="flex-1 min-w-0 w-full">
+                              <p className="text-xs sm:text-sm font-medium text-white break-words">
+                                {dup.url.title || dup.url.url}
+                              </p>
+                              <p className="text-[10px] sm:text-xs text-white/60 break-words mt-1 break-all">
+                                {dup.url.url}
+                              </p>
+                              <div className="mt-2 space-y-1">
+                                {dup.duplicates.map((d, i) => (
+                                  <div
+                                    key={i}
+                                    className="text-[10px] sm:text-xs text-white/70 flex items-start gap-1.5 sm:gap-2 flex-wrap"
+                                  >
+                                    <Copy className="h-3 w-3 shrink-0 mt-0.5" />
+                                    <span className="break-words flex-1 min-w-0">
+                                      Also in:{" "}
+                                      {d.listSlug ? (
+                                        <button
+                                          onClick={() => {
+                                            router.push(`/list/${d.listSlug}`);
+                                          }}
+                                          className="underline hover:text-white transition-colors break-words"
+                                          title={`Open ${d.listTitle || "list"}`}
+                                        >
+                                          {d.listTitle || "Unknown List"}
+                                        </button>
+                                      ) : (
+                                        <span className="break-words">
+                                          {d.listTitle || "Unknown List"}
+                                        </span>
+                                      )}{" "}
+                                      ({Math.round(d.similarity * 100)}%
+                                      similar)
+                                    </span>
+                                  </div>
+                                ))}
+                              </div>
                             </div>
                           </div>
+                          {permissions.canEdit && (
+                            <button
+                              onClick={() => {
+                                setPendingDeleteDuplicate(dup);
+                                setDeleteDialogOpen(true);
+                              }}
+                              disabled={isDeleting}
+                              className="shrink-0 px-2 sm:px-3 py-1 text-[10px] sm:text-xs rounded-md border border-red-400/30 bg-red-400/10 text-red-200 hover:bg-red-400/20 hover:border-red-400/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400/50 disabled:opacity-50 disabled:pointer-events-none disabled:cursor-not-allowed transition-colors flex items-center gap-1 sm:gap-1.5 w-full sm:w-auto justify-center sm:justify-start self-start sm:self-auto"
+                              title="Remove this duplicate from current list"
+                            >
+                              {isDeleting ? (
+                                <>
+                                  <Loader2 className="h-3 w-3 animate-spin" />
+                                  <span className="hidden sm:inline">
+                                    Removing...
+                                  </span>
+                                  <span className="sm:hidden">Removing</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Trash2 className="h-3 w-3" />
+                                  Remove
+                                </>
+                              )}
+                            </button>
+                          )}
                         </div>
-                        {permissions.canEdit && (
-                          <button
-                            onClick={() => {
-                              setPendingDeleteDuplicate(dup);
-                              setDeleteDialogOpen(true);
-                            }}
-                            disabled={isDeleting}
-                            className="shrink-0 px-2.5 sm:px-3 py-1.5 text-[10px] sm:text-xs rounded-md border border-red-400/30 bg-red-400/10 text-red-200 hover:bg-red-400/20 hover:border-red-400/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400/50 disabled:opacity-50 disabled:pointer-events-none disabled:cursor-not-allowed transition-colors flex items-center gap-1 sm:gap-1.5 w-full sm:w-auto justify-center sm:justify-start self-start sm:self-auto"
-                            title="Remove this duplicate from current list"
-                          >
-                            {isDeleting ? (
-                              <>
-                                <Loader2 className="h-3 w-3 animate-spin" />
-                                <span className="hidden sm:inline">Removing...</span>
-                                <span className="sm:hidden">Removing</span>
-                              </>
-                            ) : (
-                              <>
-                                <Trash2 className="h-3 w-3" />
-                                Remove
-                              </>
-                            )}
-                          </button>
-                        )}
                       </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-            {!isLoadingDuplicates && !hasDuplicates && (
-              <div className="text-center py-4 sm:py-6 border border-green-400/20 rounded-lg bg-green-400/5">
-                <CheckCircle2 className="h-5 w-5 sm:h-6 sm:w-6 text-green-400 mx-auto mb-2" />
-                <p className="text-xs sm:text-sm text-white/70 px-2">
-                  No duplicate URLs found across your lists!
-                </p>
-              </div>
-            )}
-          </div>
-        )}
+                    );
+                  })}
+                </div>
+              )}
+              {!isLoadingDuplicates && !hasDuplicates && (
+                <div className="text-center py-4 sm:py-6 border border-green-400/20 rounded-lg bg-green-400/5">
+                  <CheckCircle2 className="h-5 w-5 sm:h-6 sm:w-6 text-green-400 mx-auto mb-2" />
+                  <p className="text-xs sm:text-sm text-white/70 px-2">
+                    No duplicate URLs found across your lists!
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
 
-        {/* Empty State - Only show if no suggestions and duplicates section not expanded */}
-        {!isLoading && !hasSuggestions && !showDuplicates && (
-          <div className="text-center py-8">
-            <CheckCircle2 className="h-12 w-12 text-white/20 mx-auto mb-3" />
-            <p className="text-white/60 text-sm">
-              No collection suggestions available yet.
-              <br />
-              Add more URLs to get AI-powered suggestions.
-            </p>
-          </div>
-        )}
+          {/* Empty State - Only show if no suggestions and duplicates section not expanded */}
+          {!isLoading && !hasSuggestions && !showDuplicates && (
+            <div className="text-center py-8">
+              <CheckCircle2 className="h-12 w-12 text-white/20 mx-auto mb-3" />
+              <p className="text-white/60 text-sm">
+                No collection suggestions available yet.
+                <br />
+                Add more URLs to get AI-powered suggestions.
+              </p>
+            </div>
+          )}
 
-        {/* Action Buttons */}
-        <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center pt-2 border-t border-white/10 mt-4 gap-2">
-          {/* Check Duplicates Button (on-demand) */}
-          <button
-            type="button"
-            onClick={async () => {
-              if (!showDuplicates) {
-                // Show duplicates section and always refetch fresh data
-                setShowDuplicates(true);
-                setShouldFetchDuplicates(true);
+          {/* Action Buttons */}
+          <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center pt-2 border-t border-white/10 gap-2">
+            {/* Check Duplicates Button (on-demand) */}
+            <button
+              type="button"
+              onClick={async () => {
+                if (!showDuplicates) {
+                  // Show duplicates section and always refetch fresh data
+                  setShowDuplicates(true);
+                  setShouldFetchDuplicates(true);
 
-                try {
-                  // Always refetch to get latest duplicates (ignore cache)
-                  const result = await refetchDuplicates();
-                  // Show toast notification after check completes
-                  const duplicateCount = result.data?.duplicates?.length || 0;
-                  if (duplicateCount > 0) {
+                  try {
+                    // Always refetch to get latest duplicates (ignore cache)
+                    const result = await refetchDuplicates();
+                    // Show toast notification after check completes
+                    const duplicateCount = result.data?.duplicates?.length || 0;
+                    if (duplicateCount > 0) {
+                      toast({
+                        title: "Duplicates Found",
+                        description: `Found ${duplicateCount} duplicate URL${
+                          duplicateCount > 1 ? "s" : ""
+                        } across your lists`,
+                        variant: "warning",
+                      });
+                    } else {
+                      toast({
+                        title: "No Duplicates",
+                        description:
+                          "No duplicate URLs found across your lists!",
+                        variant: "success",
+                      });
+                    }
+                  } catch (error) {
+                    console.error("Failed to check duplicates:", error);
                     toast({
-                      title: "Duplicates Found",
-                      description: `Found ${duplicateCount} duplicate URL${
-                        duplicateCount > 1 ? "s" : ""
-                      } across your lists`,
-                      variant: "warning",
+                      title: "Error",
+                      description:
+                        "Failed to check for duplicates. Please try again.",
+                      variant: "error",
                     });
-                  } else {
-                    toast({
-                      title: "No Duplicates",
-                      description: "No duplicate URLs found across your lists!",
-                      variant: "success",
-                    });
+                    setShowDuplicates(false); // Hide section on error
+                    setShouldFetchDuplicates(false);
                   }
-                } catch (error) {
-                  console.error("Failed to check duplicates:", error);
-                  toast({
-                    title: "Error",
-                    description:
-                      "Failed to check for duplicates. Please try again.",
-                    variant: "error",
-                  });
-                  setShowDuplicates(false); // Hide section on error
+                } else {
+                  // Hide duplicates section
+                  setShowDuplicates(false);
                   setShouldFetchDuplicates(false);
                 }
-              } else {
-                // Hide duplicates section
-                setShowDuplicates(false);
-                setShouldFetchDuplicates(false);
-              }
-            }}
-            disabled={isLoadingDuplicates}
-            className="inline-flex items-center justify-center rounded-md border border-white/20 bg-transparent px-2.5 sm:px-3 py-1.5 text-xs sm:text-sm font-medium text-white hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 disabled:opacity-50 disabled:pointer-events-none disabled:cursor-not-allowed transition-colors"
-          >
-            <Search
-              className={`h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2 ${
-                isLoadingDuplicates ? "animate-spin" : ""
-              }`}
-            />
-            {isLoadingDuplicates
-              ? "Checking..."
-              : showDuplicates
-              ? "Hide Duplicates"
-              : duplicates.length > 0
-              ? `Show Duplicates (${duplicates.length})`
-              : "Check Duplicates"}
-          </button>
+              }}
+              disabled={isLoadingDuplicates}
+              className="inline-flex items-center justify-center rounded-md border border-white/20 bg-transparent px-2 sm:px-3 py-1 text-xs sm:text-sm font-medium text-white hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 disabled:opacity-50 disabled:pointer-events-none disabled:cursor-not-allowed transition-colors"
+            >
+              <Search
+                className={`h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2 ${
+                  isLoadingDuplicates ? "animate-spin" : ""
+                }`}
+              />
+              {isLoadingDuplicates
+                ? "Checking..."
+                : showDuplicates
+                  ? "Hide Duplicates"
+                  : duplicates.length > 0
+                    ? `Show Duplicates (${duplicates.length})`
+                    : "Check Duplicates"}
+            </button>
 
-          {/* Refresh Suggestions Button */}
-          <button
-            type="button"
-            onClick={refreshCollections}
-            disabled={isLoading || isRefreshing}
-            className="inline-flex items-center justify-center rounded-md border border-white/20 bg-transparent px-2.5 sm:px-3 py-1.5 text-xs sm:text-sm font-medium text-white hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 disabled:opacity-50 disabled:pointer-events-none disabled:cursor-not-allowed transition-colors"
-          >
-            <Loader2
-              className={`h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2 ${
-                isLoading || isRefreshing ? "animate-spin" : ""
-              }`}
-            />
-            {isRefreshing ? "Refreshing..." : "Refresh Suggestions"}
-          </button>
+            {/* Refresh Suggestions Button */}
+            <button
+              type="button"
+              onClick={refreshCollections}
+              disabled={isLoading || isRefreshing}
+              className="inline-flex items-center justify-center rounded-md border border-white/20 bg-transparent px-2 sm:px-3 py-1 text-xs sm:text-sm font-medium text-white hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 disabled:opacity-50 disabled:pointer-events-none disabled:cursor-not-allowed transition-colors"
+            >
+              <Loader2
+                className={`h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2 ${
+                  isLoading || isRefreshing ? "animate-spin" : ""
+                }`}
+              />
+              {isRefreshing ? "Refreshing..." : "Refresh Suggestions"}
+            </button>
+          </div>
         </div>
-      </CardContent>
+      </div>
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog
@@ -800,7 +812,7 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
               `/api/lists/${listSlug}/urls?urlId=${dup.url.id}`,
               {
                 method: "DELETE",
-              }
+              },
             );
 
             if (!response.ok) {
@@ -818,10 +830,10 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
                 if (!old?.duplicates) return old;
                 // Remove the deleted duplicate from the list
                 const filtered = old.duplicates.filter(
-                  (d) => d.url.id !== dup.url.id
+                  (d) => d.url.id !== dup.url.id,
                 );
                 return { duplicates: filtered };
-              }
+              },
             );
 
             // Trigger fresh duplicate check after deletion to re-check ALL remaining URLs

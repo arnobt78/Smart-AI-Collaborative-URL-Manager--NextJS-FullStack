@@ -9,7 +9,7 @@ interface TabsContextValue {
 }
 
 const TabsContext = React.createContext<TabsContextValue | undefined>(
-  undefined
+  undefined,
 );
 
 const useTabsContext = () => {
@@ -29,9 +29,18 @@ interface TabsProps {
 }
 
 const Tabs = React.forwardRef<HTMLDivElement, TabsProps>(
-  ({ defaultValue, value: controlledValue, onValueChange, children, className }, ref) => {
+  (
+    {
+      defaultValue,
+      value: controlledValue,
+      onValueChange,
+      children,
+      className,
+    },
+    ref,
+  ) => {
     const [uncontrolledValue, setUncontrolledValue] = React.useState(
-      defaultValue || ""
+      defaultValue || "",
     );
 
     const value = controlledValue ?? uncontrolledValue;
@@ -50,7 +59,7 @@ const Tabs = React.forwardRef<HTMLDivElement, TabsProps>(
         </div>
       </TabsContext.Provider>
     );
-  }
+  },
 );
 Tabs.displayName = "Tabs";
 
@@ -62,16 +71,15 @@ const TabsList = React.forwardRef<HTMLDivElement, TabsListProps>(
       ref={ref}
       className={cn(
         "inline-flex h-10 items-center justify-center rounded-lg bg-white/5 p-1 text-white/60 border border-white/10",
-        className
+        className,
       )}
       {...props}
     />
-  )
+  ),
 );
 TabsList.displayName = "TabsList";
 
-interface TabsTriggerProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+interface TabsTriggerProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   value: string;
 }
 
@@ -88,16 +96,16 @@ const TabsTrigger = React.forwardRef<HTMLButtonElement, TabsTriggerProps>(
         aria-selected={isSelected}
         onClick={() => onValueChange(value)}
         className={cn(
-          "inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+          "inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
           isSelected
             ? "bg-white/10 text-white shadow-sm"
             : "text-white/60 hover:text-white hover:bg-white/5",
-          className
+          className,
         )}
         {...props}
       />
     );
-  }
+  },
 );
 TabsTrigger.displayName = "TabsTrigger";
 
@@ -116,12 +124,12 @@ const TabsContent = React.forwardRef<HTMLDivElement, TabsContentProps>(
         role="tabpanel"
         className={cn(
           "mt-2 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2",
-          className
+          className,
         )}
         {...props}
       />
     );
-  }
+  },
 );
 TabsContent.displayName = "TabsContent";
 

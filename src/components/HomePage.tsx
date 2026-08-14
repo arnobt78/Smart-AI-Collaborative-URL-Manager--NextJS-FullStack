@@ -2,8 +2,8 @@
 
 /**
  * HomePage — authenticated marketing home vs Auth.
- * Flash fix (PORTABLE_AUTH_UI_GUIDE §3): never show marketing homepage/skeleton
- * while resolving a logged-out visit; use urlist:wasAuthed to branch.
+ * Flash fix: guests see Auth (wasAuthed default false). No full-page spinner —
+ * returning users (wasAuthed) see marketing while session RQ resolves.
  */
 import { useEffect, useState } from "react";
 import { useSession } from "@/hooks/useSession";
@@ -34,71 +34,15 @@ const features = [
   },
 ];
 
-/** Neutral full-viewport wait — not marketing-shaped (avoids homepage flash). */
-function NeutralWait() {
-  return (
-    <div className="min-h-[50vh] w-full flex items-center justify-center">
-      <div
-        className="h-10 w-10 rounded-full border-2 border-white/20 border-t-blue-400 animate-spin"
-        aria-hidden
-      />
-    </div>
-  );
-}
-
-export default function HomePage() {
-  const { user: session, isLoading: sessionLoading } = useSession();
-  const [mounted, setMounted] = useState(false);
-  const [wasAuthedHint, setWasAuthedHint] = useState<boolean | null>(null);
-
-  useEffect(() => {
-    setMounted(true);
-    try {
-      setWasAuthedHint(localStorage.getItem(WAS_AUTHED_KEY) === "1");
-    } catch {
-      setWasAuthedHint(false);
-    }
-  }, []);
-
-  // Sync hint when session resolves (logout clears key in ProfileDropdown)
-  useEffect(() => {
-    if (!mounted || wasAuthedHint === null) return;
-    if (session?.email) {
-      localStorage.setItem(WAS_AUTHED_KEY, "1");
-      setWasAuthedHint(true);
-    } else if (!sessionLoading && !session) {
-      localStorage.removeItem(WAS_AUTHED_KEY);
-      setWasAuthedHint(false);
-    }
-  }, [mounted, session, sessionLoading, wasAuthedHint]);
-
-  // Pre-hydration: neutral placeholder (not hero skeleton)
-  if (!mounted || wasAuthedHint === null) {
-    return <NeutralWait />;
-  }
-
-  // Logged-out optimistic path: show Auth immediately — no marketing flash
-  if (!wasAuthedHint && !session) {
-    return <Auth />;
-  }
-
-  // Expected session but still loading — compact wait, not marketing skeleton
-  if (wasAuthedHint && sessionLoading && !session) {
-    return <NeutralWait />;
-  }
-
-  // Confirmed logged out after load
-  if (!session) {
-    return <Auth />;
-  }
-
+/** Static marketing home — no session wait / spinner. */
+function MarketingHome() {
   return (
     <div className="min-h-screen w-full">
       {/* Hero Section */}
       <section className="relative py-6 px-4 sm:py-12 sm:px-6 lg:px-0">
         <div className="text-center max-w-3xl mx-auto">
           <div className="flex justify-center mb-6 sm:mb-8">
-            <div className="bg-blue-500/20 backdrop-blur-sm rounded-xl sm:rounded-2xl p-3 sm:p-4 inline-block border border-blue-400/30">
+            <div className="bg-blue-500/20 backdrop-blur-md rounded-xl sm:rounded-2xl p-3 sm:p-4 inline-block border border-blue-400/30">
               <OptimizedImage
                 src="/favicon.ico"
                 alt="Explore"
@@ -119,14 +63,14 @@ export default function HomePage() {
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-2">
             <Button
               href="/new"
-              className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 hover:from-blue-700 hover:via-purple-700 hover:to-indigo-700 text-white text-base sm:text-lg font-semibold px-6 sm:px-8 py-2.5 sm:py-3 rounded-xl shadow-md hover:shadow-xl transition-all duration-200 w-full sm:w-auto"
+              className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 hover:from-blue-700 hover:via-purple-700 hover:to-indigo-700 text-white text-base sm:text-lg font-semibold px-6 sm:px-8 py-2 sm:py-3 rounded-xl shadow-md hover:shadow-xl transition-all duration-200 w-full sm:w-auto"
             >
               Create New List
             </Button>
             <Button
               href="/lists"
               variant="outline"
-              className="text-white border-white/30 hover:bg-white/10 text-base sm:text-lg px-6 sm:px-8 py-2.5 sm:py-3 rounded-xl w-full sm:w-auto"
+              className="text-white border-white/30 hover:bg-white/10 text-base sm:text-lg px-6 sm:px-8 py-2 sm:py-3 rounded-xl w-full sm:w-auto"
             >
               View My Lists
             </Button>
@@ -140,9 +84,9 @@ export default function HomePage() {
           {features.map((feature, index) => (
             <div
               key={index}
-              className="group p-2 sm:p-4 rounded-xl sm:rounded-2xl border border-white/20 bg-white/5 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 hover:border-blue-400/30"
+              className="group p-2 sm:p-4 rounded-xl sm:rounded-2xl border border-white/20 bg-white/5 backdrop-blur-md shadow-lg hover:shadow-xl transition-all duration-300 hover:border-blue-400/30"
             >
-              <div className="bg-gradient-to-br from-blue-500/20 to-purple-500/20 backdrop-blur-sm rounded-lg sm:rounded-xl p-2.5 sm:p-3 inline-block mb-3 sm:mb-4 group-hover:scale-110 transition-transform duration-300 border border-blue-400/30">
+              <div className="bg-gradient-to-br from-blue-500/20 to-purple-500/20 backdrop-blur-md rounded-lg sm:rounded-xl p-2.5 sm:p-3 inline-block mb-3 sm:mb-4 group-hover:scale-110 transition-transform duration-300 border border-blue-400/30">
                 {feature.icon}
               </div>
               <h3 className="text-base sm:text-lg lg:text-xl font-semibold text-white mb-2 sm:mb-3 group-hover:text-blue-400 transition-colors">
@@ -163,7 +107,7 @@ export default function HomePage() {
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
           <div className="text-center p-4 sm:p-6">
-            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-blue-500/20 backdrop-blur-sm border border-blue-400/30 text-blue-400 flex items-center justify-center text-base sm:text-lg lg:text-xl font-semibold mx-auto mb-3 sm:mb-4">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-blue-500/20 backdrop-blur-md border border-blue-400/30 text-blue-400 flex items-center justify-center text-base sm:text-lg lg:text-xl font-semibold mx-auto mb-3 sm:mb-4">
               1
             </div>
             <h3 className="text-base sm:text-lg lg:text-xl font-semibold text-white mb-2">
@@ -174,7 +118,7 @@ export default function HomePage() {
             </p>
           </div>
           <div className="text-center p-4 sm:p-6">
-            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-purple-500/20 backdrop-blur-sm border border-purple-400/30 text-purple-400 flex items-center justify-center text-base sm:text-lg lg:text-xl font-semibold mx-auto mb-3 sm:mb-4">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-purple-500/20 backdrop-blur-md border border-purple-400/30 text-purple-400 flex items-center justify-center text-base sm:text-lg lg:text-xl font-semibold mx-auto mb-3 sm:mb-4">
               2
             </div>
             <h3 className="text-base sm:text-lg lg:text-xl font-semibold text-white mb-2">
@@ -185,7 +129,7 @@ export default function HomePage() {
             </p>
           </div>
           <div className="text-center p-4 sm:p-6 sm:col-span-2 lg:col-span-1">
-            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-indigo-500/20 backdrop-blur-sm border border-indigo-400/30 text-indigo-400 flex items-center justify-center text-base sm:text-lg lg:text-xl font-semibold mx-auto mb-3 sm:mb-4">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-indigo-500/20 backdrop-blur-md border border-indigo-400/30 text-indigo-400 flex items-center justify-center text-base sm:text-lg lg:text-xl font-semibold mx-auto mb-3 sm:mb-4">
               3
             </div>
             <h3 className="text-base sm:text-lg lg:text-xl font-semibold text-white mb-2">
@@ -209,7 +153,7 @@ export default function HomePage() {
           </p>
           <Button
             href="/new"
-            className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 hover:from-blue-700 hover:via-purple-700 hover:to-indigo-700 text-white text-sm sm:text-base lg:text-lg font-semibold px-6 sm:px-8 py-2.5 sm:py-3 rounded-xl shadow-md hover:shadow-xl transition-all duration-200 w-full sm:w-auto"
+            className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 hover:from-blue-700 hover:via-purple-700 hover:to-indigo-700 text-white text-sm sm:text-base lg:text-lg font-semibold px-6 sm:px-8 py-2 sm:py-3 rounded-xl shadow-md hover:shadow-xl transition-all duration-200 w-full sm:w-auto"
           >
             Get Started Now With Your Daily URL List
           </Button>
@@ -217,4 +161,50 @@ export default function HomePage() {
       </section>
     </div>
   );
+}
+
+export default function HomePage() {
+  const { user: session, isLoading: sessionLoading } = useSession();
+  const [mounted, setMounted] = useState(false);
+  // Default false = Auth for guests (SSR + first paint); no null spinner wait
+  const [wasAuthedHint, setWasAuthedHint] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    try {
+      setWasAuthedHint(localStorage.getItem(WAS_AUTHED_KEY) === "1");
+    } catch {
+      setWasAuthedHint(false);
+    }
+  }, []);
+
+  // Sync hint when session resolves (logout clears key in ProfileDropdown)
+  useEffect(() => {
+    if (!mounted) return;
+    if (session?.email) {
+      localStorage.setItem(WAS_AUTHED_KEY, "1");
+      setWasAuthedHint(true);
+    } else if (!sessionLoading && !session) {
+      localStorage.removeItem(WAS_AUTHED_KEY);
+      setWasAuthedHint(false);
+    }
+  }, [mounted, session, sessionLoading]);
+
+  // Confirmed session → marketing
+  if (session) {
+    return <MarketingHome />;
+  }
+
+  // Guest / cold visit → Auth immediately (no marketing flash, no spinner)
+  if (!wasAuthedHint) {
+    return <Auth />;
+  }
+
+  // Returning user hint while session RQ loads → static marketing (no spinner)
+  if (sessionLoading) {
+    return <MarketingHome />;
+  }
+
+  // Hint stale / logged out after load
+  return <Auth />;
 }

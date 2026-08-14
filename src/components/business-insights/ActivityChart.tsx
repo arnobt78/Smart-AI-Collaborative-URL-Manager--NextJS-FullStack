@@ -101,7 +101,9 @@ export function ActivityChart({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-sm sm:text-base">Activity Timeline</CardTitle>
+        <CardTitle className="text-sm sm:text-base">
+          Activity Timeline
+        </CardTitle>
       </CardHeader>
       <CardContent>
         <Tabs
@@ -112,9 +114,24 @@ export function ActivityChart({
           }}
         >
           <TabsList className="mb-4 grid grid-cols-3 gap-1 sm:gap-2">
-            <TabsTrigger value="7" className="text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2">7 Days</TabsTrigger>
-            <TabsTrigger value="30" className="text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2">30 Days</TabsTrigger>
-            <TabsTrigger value="90" className="text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2">90 Days</TabsTrigger>
+            <TabsTrigger
+              value="7"
+              className="text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2"
+            >
+              7 Days
+            </TabsTrigger>
+            <TabsTrigger
+              value="30"
+              className="text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2"
+            >
+              30 Days
+            </TabsTrigger>
+            <TabsTrigger
+              value="90"
+              className="text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2"
+            >
+              90 Days
+            </TabsTrigger>
           </TabsList>
           <TabsContent value="7" className="mt-0">
             <div
@@ -130,7 +147,11 @@ export function ActivityChart({
                     style={{ fontSize: "10px" }}
                     className="text-[10px] sm:text-xs"
                   />
-                  <YAxis stroke="#ffffff60" style={{ fontSize: "10px" }} className="text-[10px] sm:text-xs" />
+                  <YAxis
+                    stroke="#ffffff60"
+                    style={{ fontSize: "10px" }}
+                    className="text-[10px] sm:text-xs"
+                  />
                   <Tooltip content={<CustomTooltip />} />
                   <Legend
                     wrapperStyle={{ color: "#ffffff60", fontSize: "10px" }}
@@ -173,7 +194,11 @@ export function ActivityChart({
                     height={60}
                     interval="preserveStartEnd"
                   />
-                  <YAxis stroke="#ffffff60" style={{ fontSize: "10px" }} className="text-[10px] sm:text-xs" />
+                  <YAxis
+                    stroke="#ffffff60"
+                    style={{ fontSize: "10px" }}
+                    className="text-[10px] sm:text-xs"
+                  />
                   <Tooltip content={<CustomTooltip />} />
                   <Legend
                     wrapperStyle={{ color: "#ffffff60", fontSize: "10px" }}
@@ -216,7 +241,11 @@ export function ActivityChart({
                     height={60}
                     interval="preserveStartEnd"
                   />
-                  <YAxis stroke="#ffffff60" style={{ fontSize: "10px" }} className="text-[10px] sm:text-xs" />
+                  <YAxis
+                    stroke="#ffffff60"
+                    style={{ fontSize: "10px" }}
+                    className="text-[10px] sm:text-xs"
+                  />
                   <Tooltip content={<CustomTooltip />} />
                   <Legend
                     wrapperStyle={{ color: "#ffffff60", fontSize: "10px" }}

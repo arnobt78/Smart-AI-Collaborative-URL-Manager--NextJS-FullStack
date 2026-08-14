@@ -120,7 +120,7 @@ export default function EditListPageClient() {
                   <div className="h-5 bg-white/10 rounded w-16" />
                   <div className="h-5 w-2 bg-white/10 rounded" />
                 </label>
-                <div className="w-full border border-white/20 bg-white/10 backdrop-blur-sm rounded-xl px-4 sm:px-5 py-3 sm:py-3.5 h-12" />
+                <div className="w-full border border-white/20 bg-white/10 backdrop-blur-md rounded-xl px-2 sm:px-4 py-2 sm:py-3 h-12" />
                 <div className="h-4 bg-white/10 rounded w-40" />
               </div>
 
@@ -131,7 +131,7 @@ export default function EditListPageClient() {
                   <div className="h-5 bg-white/10 rounded w-24" />
                   <div className="h-4 bg-white/10 rounded w-16" />
                 </label>
-                <div className="w-full border border-white/20 bg-white/10 backdrop-blur-sm rounded-xl px-4 sm:px-5 py-3 sm:py-3.5 h-24" />
+                <div className="w-full border border-white/20 bg-white/10 backdrop-blur-md rounded-xl px-2 sm:px-4 py-2 sm:py-3 h-24" />
                 <div className="h-4 bg-white/10 rounded w-56" />
               </div>
 
@@ -196,7 +196,7 @@ export default function EditListPageClient() {
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="e.g., My Favorite Resources"
                 required
-                className="w-full border border-white/20 bg-white/10 backdrop-blur-sm rounded-lg sm:rounded-xl px-3 sm:px-4 lg:px-5 py-2.5 sm:py-3 lg:py-3.5 text-sm sm:text-base lg:text-lg text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-400/50 transition-all duration-200 shadow-inner"
+                className="w-full border border-white/20 bg-white/10 backdrop-blur-md rounded-lg sm:rounded-xl px-2 sm:px-4 lg:px-5 py-2 sm:py-3 text-sm sm:text-base lg:text-lg text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-400/50 transition-all duration-200 shadow-inner"
               />
               <p className="text-xs sm:text-sm text-white/50">
                 Give your list a memorable name
@@ -219,7 +219,7 @@ export default function EditListPageClient() {
                 id="description"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                className="text-sm sm:text-base lg:text-lg shadow-inner font-delicious rounded-lg sm:rounded-xl border border-white/20 bg-white/10 backdrop-blur-sm focus:ring-2 focus:ring-pink-500 focus:border-pink-400/50 transition-all duration-200 px-3 sm:px-4 py-2.5 sm:py-3"
+                className="text-sm sm:text-base lg:text-lg shadow-inner font-delicious rounded-lg sm:rounded-xl border border-white/20 bg-white/10 backdrop-blur-md focus:ring-2 focus:ring-pink-500 focus:border-pink-400/50 transition-all duration-200 px-2 sm:px-4 py-2 sm:py-3"
                 placeholder="Describe what this list is about..."
                 rows={4}
               />
@@ -267,14 +267,14 @@ export default function EditListPageClient() {
                 type="button"
                 variant="outline"
                 onClick={() => router.back()}
-                className="text-white border-white/30 hover:bg-white/10 transition-all duration-200 order-2 sm:order-1 text-sm sm:text-base py-2.5 sm:py-3 w-full sm:w-auto"
+                className="text-white border-white/30 hover:bg-white/10 transition-all duration-200 order-2 sm:order-1 text-sm sm:text-base py-2 sm:py-3 w-full sm:w-auto"
               >
                 Cancel
               </Button>
               <Button
                 type="submit"
                 isLoading={isSaving}
-                className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 hover:from-blue-700 hover:via-purple-700 hover:to-indigo-700 text-white font-bold py-2.5 sm:py-3 lg:py-4 rounded-lg sm:rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 text-sm sm:text-base lg:text-lg order-1 sm:order-2 w-full sm:w-auto"
+                className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 hover:from-blue-700 hover:via-purple-700 hover:to-indigo-700 text-white font-bold py-2 sm:py-3 lg:py-4 rounded-lg sm:rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 text-sm sm:text-base lg:text-lg order-1 sm:order-2 w-full sm:w-auto"
               >
                 {isSaving ? "Saving..." : "Save Changes"}
               </Button>

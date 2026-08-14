@@ -396,23 +396,29 @@ export default function ApiDocsPage() {
         <TabsList className="grid w-full grid-cols-4 mb-4 sm:mb-6 gap-1 sm:gap-2">
           <TabsTrigger
             value="Authentication"
-            className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2"
+            className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2"
           >
             <Lock className="h-3 w-3 sm:h-4 sm:w-4" />
             <span className="hidden sm:inline">Auth</span>
             <span className="sm:hidden">Auth</span>
           </TabsTrigger>
-          <TabsTrigger value="Lists" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2">
+          <TabsTrigger
+            value="Lists"
+            className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2"
+          >
             <Link2 className="h-3 w-3 sm:h-4 sm:w-4" />
             Lists
           </TabsTrigger>
-          <TabsTrigger value="Utility" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2">
+          <TabsTrigger
+            value="Utility"
+            className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2"
+          >
             <Code className="h-3 w-3 sm:h-4 sm:w-4" />
             Utility
           </TabsTrigger>
           <TabsTrigger
             value="Business Insights"
-            className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2"
+            className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2"
           >
             <Globe className="h-3 w-3 sm:h-4 sm:w-4" />
             <span className="hidden sm:inline">Insights</span>
@@ -433,10 +439,10 @@ export default function ApiDocsPage() {
                             endpoint.method === "GET"
                               ? "success"
                               : endpoint.method === "POST"
-                              ? "default"
-                              : endpoint.method === "PATCH"
-                              ? "secondary"
-                              : "destructive"
+                                ? "default"
+                                : endpoint.method === "PATCH"
+                                  ? "secondary"
+                                  : "destructive"
                           }
                           className="font-mono text-xs sm:text-sm"
                         >
@@ -448,7 +454,9 @@ export default function ApiDocsPage() {
                         {endpoint.auth && (
                           <Badge variant="secondary" className="text-xs">
                             <Lock className="h-3 w-3 mr-1" />
-                            <span className="hidden sm:inline">Auth Required</span>
+                            <span className="hidden sm:inline">
+                              Auth Required
+                            </span>
                             <span className="sm:hidden">Auth</span>
                           </Badge>
                         )}

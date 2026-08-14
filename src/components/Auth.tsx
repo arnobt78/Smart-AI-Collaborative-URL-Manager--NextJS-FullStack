@@ -342,7 +342,7 @@ export default function Auth() {
             </div>
 
             {/* Typewriter Container */}
-            <div className="flex flex-col items-center gap-3 sm:gap-4 px-3 sm:px-4">
+            <div className="flex flex-col items-center gap-3 sm:gap-4 px-2 sm:px-4">
               <div className="bg-[rgba(20,20,30,0.8)] border-2 border-[#7b8ebc] rounded-xl sm:rounded-2xl px-4 sm:px-6 py-3 sm:py-4 shadow-[0_8px_32px_rgba(0,0,0,0.3)] backdrop-blur-md max-w-2xl w-full">
                 <pre className="font-mono text-base sm:text-lg lg:text-xl xl:text-2xl text-[#00ff99] drop-shadow-[0_0_10px_rgba(0,255,153,0.5)] whitespace-pre-wrap leading-tight">
                   {typewriterText}
@@ -398,7 +398,7 @@ export default function Auth() {
               <button
                 type="button"
                 onClick={() => setIsGuestDropdownOpen(!isGuestDropdownOpen)}
-                className="w-full rounded-lg sm:rounded-xl border border-white/20 bg-white/10 backdrop-blur-sm px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base text-white focus:outline-none focus:ring-2 focus:ring-[#00ff99] focus:border-transparent transition-colors min-h-[48px] flex items-center justify-between cursor-pointer gap-2"
+                className="w-full rounded-lg sm:rounded-xl border border-white/20 bg-white/10 backdrop-blur-md px-2 sm:px-4 py-2 sm:py-3 text-sm sm:text-base text-white focus:outline-none focus:ring-2 focus:ring-[#00ff99] focus:border-transparent transition-colors min-h-[48px] flex items-center justify-between cursor-pointer gap-2"
               >
                 <span className="flex min-w-0 flex-1 items-center gap-2">
                   {/* Fixed 28px lead — Users or avatar share the same footprint */}
@@ -496,7 +496,7 @@ export default function Auth() {
                   setEmail(e.target.value);
                   setSelectedGuestId(null);
                 }}
-                className="w-full min-h-[48px] rounded-lg sm:rounded-xl border border-white/20 bg-white/10 backdrop-blur-sm px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00ff99] focus:border-transparent transition-colors box-border"
+                className="w-full min-h-[48px] rounded-lg sm:rounded-xl border border-white/20 bg-white/10 backdrop-blur-md px-2 sm:px-4 py-2 sm:py-3 text-sm sm:text-base text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00ff99] focus:border-transparent transition-colors box-border"
                 placeholder="Email address"
               />
             </div>
@@ -509,7 +509,7 @@ export default function Auth() {
                   setPassword(e.target.value);
                   setSelectedGuestId(null);
                 }}
-                className="w-full min-h-[48px] rounded-lg sm:rounded-xl border border-white/20 bg-white/10 backdrop-blur-sm px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00ff99] focus:border-transparent transition-colors box-border"
+                className="w-full min-h-[48px] rounded-lg sm:rounded-xl border border-white/20 bg-white/10 backdrop-blur-md px-2 sm:px-4 py-2 sm:py-3 text-sm sm:text-base text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00ff99] focus:border-transparent transition-colors box-border"
                 placeholder="Password"
               />
             </div>
@@ -519,7 +519,7 @@ export default function Auth() {
                 type="submit"
                 onClick={handleSignIn}
                 disabled={loading}
-                className="w-full min-h-[48px] bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white text-sm sm:text-base font-semibold py-2.5 sm:py-3 rounded-lg sm:rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center justify-center gap-2"
+                className="w-full min-h-[48px] bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white text-sm sm:text-base font-semibold py-2 sm:py-3 rounded-lg sm:rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center justify-center gap-2"
               >
                 {loading ? (
                   <>

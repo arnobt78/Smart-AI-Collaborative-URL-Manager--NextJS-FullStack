@@ -297,7 +297,7 @@ export function UrlBulkImportExport({
 
   const handleImport = async (
     e: React.ChangeEvent<HTMLInputElement>,
-    sourceType?: "json" | "csv" | "chrome" | "pocket" | "pinboard" | "auto"
+    sourceType?: "json" | "csv" | "chrome" | "pocket" | "pinboard" | "auto",
   ) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -363,15 +363,15 @@ export function UrlBulkImportExport({
             fileName.includes("chrome")
             ? "chrome"
             : fileExtension === "json"
-            ? fileName.includes("pocket") || text.includes('"item_id"')
-              ? "pocket"
-              : fileName.includes("pinboard") ||
-                (text.includes('"href"') && text.includes('"description"'))
-              ? "pinboard"
-              : "json"
-            : fileExtension === "csv"
-            ? "csv"
-            : "json"
+              ? fileName.includes("pocket") || text.includes('"item_id"')
+                ? "pocket"
+                : fileName.includes("pinboard") ||
+                    (text.includes('"href"') && text.includes('"description"'))
+                  ? "pinboard"
+                  : "json"
+              : fileExtension === "csv"
+                ? "csv"
+                : "json"
           : sourceType;
 
       if (detectedType === "chrome") {
@@ -395,7 +395,7 @@ export function UrlBulkImportExport({
         } catch (parseError) {
           console.error(
             "❌ [IMPORT] Failed to parse Chrome bookmarks:",
-            parseError
+            parseError,
           );
           if (process.env.NODE_ENV === "development") {
             console.error("Parse error details:", {
@@ -412,7 +412,7 @@ export function UrlBulkImportExport({
               parseError instanceof Error
                 ? parseError.message
                 : "Unknown parsing error"
-            }. Please ensure this is a valid Chrome bookmarks export file.`
+            }. Please ensure this is a valid Chrome bookmarks export file.`,
           );
         }
 
@@ -421,7 +421,7 @@ export function UrlBulkImportExport({
           if (process.env.NODE_ENV === "development") {
             console.info(
               `ℹ️ [CHROME IMPORT] ${result.errors.length} parsing warning(s):`,
-              result.errors.slice(0, 3) // Only show first 3 in dev mode
+              result.errors.slice(0, 3), // Only show first 3 in dev mode
             );
           }
         }
@@ -451,7 +451,7 @@ export function UrlBulkImportExport({
           if (process.env.NODE_ENV === "development") {
             console.info(
               `ℹ️ [POCKET IMPORT] ${result.errors.length} parsing warning(s):`,
-              result.errors.slice(0, 3)
+              result.errors.slice(0, 3),
             );
           }
         }
@@ -461,7 +461,7 @@ export function UrlBulkImportExport({
           throw new Error(
             result.errors && result.errors.length > 0
               ? result.errors[0]
-              : "No items found in Pocket export file. Please check the file format."
+              : "No items found in Pocket export file. Please check the file format.",
           );
         }
       } else if (detectedType === "pinboard") {
@@ -474,7 +474,7 @@ export function UrlBulkImportExport({
           if (process.env.NODE_ENV === "development") {
             console.info(
               `ℹ️ [PINBOARD IMPORT] ${result.errors.length} parsing warning(s):`,
-              result.errors.slice(0, 3)
+              result.errors.slice(0, 3),
             );
           }
         }
@@ -484,7 +484,7 @@ export function UrlBulkImportExport({
           throw new Error(
             result.errors && result.errors.length > 0
               ? result.errors[0]
-              : "No bookmarks found in Pinboard export file. Please check the file format."
+              : "No bookmarks found in Pinboard export file. Please check the file format.",
           );
         }
       } else if (detectedType === "json") {
@@ -497,7 +497,7 @@ export function UrlBulkImportExport({
           importedUrls = jsonData;
         } else {
           throw new Error(
-            "Invalid JSON format. Expected 'urls' array or array of URLs."
+            "Invalid JSON format. Expected 'urls' array or array of URLs.",
           );
         }
       } else if (fileExtension === "csv") {
@@ -505,7 +505,7 @@ export function UrlBulkImportExport({
         const lines = text.split("\n").filter((line) => line.trim());
         if (lines.length < 2) {
           throw new Error(
-            "CSV file must have at least a header row and one data row."
+            "CSV file must have at least a header row and one data row.",
           );
         }
 
@@ -556,7 +556,7 @@ export function UrlBulkImportExport({
           };
 
           const titleIndex = headers.findIndex(
-            (h) => h.toLowerCase() === "title"
+            (h) => h.toLowerCase() === "title",
           );
           if (titleIndex !== -1 && values[titleIndex]) {
             urlObj.title =
@@ -564,7 +564,7 @@ export function UrlBulkImportExport({
           }
 
           const descIndex = headers.findIndex(
-            (h) => h.toLowerCase() === "description"
+            (h) => h.toLowerCase() === "description",
           );
           if (descIndex !== -1 && values[descIndex]) {
             urlObj.description =
@@ -572,7 +572,7 @@ export function UrlBulkImportExport({
           }
 
           const tagsIndex = headers.findIndex(
-            (h) => h.toLowerCase() === "tags"
+            (h) => h.toLowerCase() === "tags",
           );
           if (tagsIndex !== -1 && values[tagsIndex]) {
             const tagsStr = values[tagsIndex].replace(/^"|"$/g, "");
@@ -584,7 +584,7 @@ export function UrlBulkImportExport({
           }
 
           const notesIndex = headers.findIndex(
-            (h) => h.toLowerCase() === "notes"
+            (h) => h.toLowerCase() === "notes",
           );
           if (notesIndex !== -1 && values[notesIndex]) {
             urlObj.notes =
@@ -592,7 +592,7 @@ export function UrlBulkImportExport({
           }
 
           const reminderIndex = headers.findIndex(
-            (h) => h.toLowerCase() === "reminder"
+            (h) => h.toLowerCase() === "reminder",
           );
           if (reminderIndex !== -1 && values[reminderIndex]) {
             urlObj.reminder =
@@ -600,7 +600,7 @@ export function UrlBulkImportExport({
           }
 
           const categoryIndex = headers.findIndex(
-            (h) => h.toLowerCase() === "category"
+            (h) => h.toLowerCase() === "category",
           );
           if (categoryIndex !== -1 && values[categoryIndex]) {
             urlObj.category =
@@ -608,7 +608,7 @@ export function UrlBulkImportExport({
           }
 
           const favoriteIndex = headers.findIndex(
-            (h) => h.toLowerCase() === "favorite"
+            (h) => h.toLowerCase() === "favorite",
           );
           if (favoriteIndex !== -1 && values[favoriteIndex]) {
             urlObj.isFavorite =
@@ -617,7 +617,7 @@ export function UrlBulkImportExport({
           }
 
           const pinnedIndex = headers.findIndex(
-            (h) => h.toLowerCase() === "pinned"
+            (h) => h.toLowerCase() === "pinned",
           );
           if (pinnedIndex !== -1 && values[pinnedIndex]) {
             urlObj.isPinned =
@@ -628,7 +628,7 @@ export function UrlBulkImportExport({
         });
       } else {
         throw new Error(
-          "Unsupported file format. Please use JSON, CSV, or Chrome bookmarks HTML."
+          "Unsupported file format. Please use JSON, CSV, or Chrome bookmarks HTML.",
         );
       }
 
@@ -659,7 +659,7 @@ export function UrlBulkImportExport({
           sampleUrls: importedUrls.slice(0, 5).map((item) => item.url),
         });
         throw new Error(
-          `No valid URLs found in the file. Found ${importedUrls.length} bookmarks, but none had valid URLs. Please check the file format.`
+          `No valid URLs found in the file. Found ${importedUrls.length} bookmarks, but none had valid URLs. Please check the file format.`,
         );
       }
 
@@ -669,7 +669,7 @@ export function UrlBulkImportExport({
         abortRegistry.startGlobalInterception();
         if (process.env.NODE_ENV === "development") {
           devLog(
-            `🔍 [IMPORT] Started global fetch interception for RSC request tracking`
+            `🔍 [IMPORT] Started global fetch interception for RSC request tracking`,
           );
         }
       }
@@ -736,7 +736,7 @@ export function UrlBulkImportExport({
 
           if (process.env.NODE_ENV === "development") {
             devLog(
-              `✅ [BULK IMPORT] Successfully imported ${result.urls.length} URLs`
+              `✅ [BULK IMPORT] Successfully imported ${result.urls.length} URLs`,
             );
           }
 
@@ -771,7 +771,7 @@ export function UrlBulkImportExport({
 
               if (process.env.NODE_ENV === "development") {
                 devLog(
-                  `🛑 [BULK IMPORT] Cleaned up all requests before reload (${abortRegistry.getCount()} remaining)`
+                  `🛑 [BULK IMPORT] Cleaned up all requests before reload (${abortRegistry.getCount()} remaining)`,
                 );
               }
             }
@@ -805,7 +805,7 @@ export function UrlBulkImportExport({
           // A hard reload ensures a clean slate
           if (process.env.NODE_ENV === "development") {
             devLog(
-              "🔄 [BULK IMPORT] Forcing page reload to clear server state..."
+              "🔄 [BULK IMPORT] Forcing page reload to clear server state...",
             );
             // Set flag in sessionStorage to skip metadata fetch after reload
             sessionStorage.setItem("skipMetadataAfterBulkImport", "true");
@@ -828,7 +828,7 @@ export function UrlBulkImportExport({
         } catch (error) {
           console.error(
             "❌ [BULK IMPORT] Failed, falling back to one-by-one:",
-            error
+            error,
           );
           // Fall through to one-by-one import
         }
@@ -931,7 +931,7 @@ export function UrlBulkImportExport({
               metadata = await fetchUrlMetadata(
                 urlItem.url,
                 10000,
-                metadataAbortController.signal // Use metadata-specific signal
+                metadataAbortController.signal, // Use metadata-specific signal
               );
               clearTimeout(metadataTimeout);
             } catch (err) {
@@ -942,8 +942,8 @@ export function UrlBulkImportExport({
             // Check if metadata was successfully fetched (has meaningful data)
             metadataFetched = Boolean(
               metadata &&
-                Object.keys(metadata).length > 0 &&
-                (metadata.title || metadata.description || metadata.image)
+              Object.keys(metadata).length > 0 &&
+              (metadata.title || metadata.description || metadata.image),
             );
 
             // Pre-populate the query cache only if metadata was successfully fetched
@@ -956,7 +956,7 @@ export function UrlBulkImportExport({
                 const key = `react-query:${queryKey.join(":")}`;
                 localStorage.setItem(
                   key,
-                  JSON.stringify({ data: metadata, timestamp: Date.now() })
+                  JSON.stringify({ data: metadata, timestamp: Date.now() }),
                 );
               } catch {
                 // Ignore localStorage errors
@@ -987,7 +987,7 @@ export function UrlBulkImportExport({
                 // Overall import was cancelled - skip this URL
                 if (process.env.NODE_ENV === "development") {
                   devLog(
-                    `⏭️ [IMPORT] Overall import cancelled for ${urlItem.url}, skipping URL`
+                    `⏭️ [IMPORT] Overall import cancelled for ${urlItem.url}, skipping URL`,
                   );
                 }
                 return; // Skip URL addition
@@ -996,7 +996,7 @@ export function UrlBulkImportExport({
                 // URL will still be added with imported title/URL, just without metadata
                 if (process.env.NODE_ENV === "development") {
                   devLog(
-                    `⏭️ [IMPORT] Metadata cancelled for ${urlItem.url}, using imported data directly (no metadata) - URL will still be added`
+                    `⏭️ [IMPORT] Metadata cancelled for ${urlItem.url}, using imported data directly (no metadata) - URL will still be added`,
                   );
                 }
                 // Continue to addUrlToList with imported title/URL
@@ -1010,7 +1010,7 @@ export function UrlBulkImportExport({
               if (process.env.NODE_ENV === "development") {
                 console.debug(
                   `Metadata fetch failed for ${urlItem.url}:`,
-                  metadataError
+                  metadataError,
                 );
               }
             }
@@ -1039,7 +1039,7 @@ export function UrlBulkImportExport({
               signalBeforeAdd?.aborted
             ) {
               devLog(
-                `⏭️ [IMPORT] Signal aborted before addUrlToList for ${urlItem.url}, skipping to prevent pending request`
+                `⏭️ [IMPORT] Signal aborted before addUrlToList for ${urlItem.url}, skipping to prevent pending request`,
               );
             }
             return;
@@ -1056,7 +1056,7 @@ export function UrlBulkImportExport({
             if (currentAbortSignal?.aborted) {
               if (process.env.NODE_ENV === "development") {
                 devLog(
-                  `⏭️ [IMPORT] Signal aborted before addUrlToList call for ${urlItem.url}, exiting immediately`
+                  `⏭️ [IMPORT] Signal aborted before addUrlToList call for ${urlItem.url}, exiting immediately`,
                 );
               }
               return;
@@ -1072,14 +1072,14 @@ export function UrlBulkImportExport({
                 finalCategory,
                 undefined, // existingMetadata - pass undefined, let server fetch or use cache
                 false, // isDuplicate
-                currentAbortSignal // Pass abort signal to allow cancellation
+                currentAbortSignal, // Pass abort signal to allow cancellation
               ),
               new Promise<void>((_, reject) =>
                 setTimeout(
                   () =>
                     reject(new Error("addUrlToList timeout after 3 seconds")),
-                  3000 // Reduced to 3 seconds to fail faster and prevent server saturation
-                )
+                  3000, // Reduced to 3 seconds to fail faster and prevent server saturation
+                ),
               ),
             ]);
 
@@ -1091,7 +1091,7 @@ export function UrlBulkImportExport({
                 `⚠️ [IMPORT] Failed to add URL ${urlItem.url}:`,
                 addUrlError instanceof Error
                   ? addUrlError.message
-                  : String(addUrlError)
+                  : String(addUrlError),
               );
             }
             // Yield event loop after error to prevent server saturation
@@ -1131,7 +1131,7 @@ export function UrlBulkImportExport({
           successCount++;
           if (process.env.NODE_ENV === "development") {
             devLog(
-              `✅ [IMPORT] Successfully imported: ${urlItem.url} (successCount: ${successCount})`
+              `✅ [IMPORT] Successfully imported: ${urlItem.url} (successCount: ${successCount})`,
             );
           }
         } catch (error) {
@@ -1148,8 +1148,8 @@ export function UrlBulkImportExport({
               devLog(
                 `⏭️ [IMPORT] Skipping URL ${urlItem.url.substring(
                   0,
-                  60
-                )}... (import cancelled)`
+                  60,
+                )}... (import cancelled)`,
               );
             }
             return; // Exit without counting as error
@@ -1160,9 +1160,9 @@ export function UrlBulkImportExport({
             console.warn(
               `⚠️ [IMPORT] Failed to import URL ${urlItem.url.substring(
                 0,
-                60
+                60,
               )}...:`,
-              error instanceof Error ? error.message : String(error)
+              error instanceof Error ? error.message : String(error),
             );
             console.warn(`⚠️ [IMPORT] Failed URL details:`, {
               url: urlItem.url,
@@ -1187,11 +1187,11 @@ export function UrlBulkImportExport({
           ) {
             const progress = Math.min(
               100,
-              Math.round((processedCount / validUrls.length) * 100)
+              Math.round((processedCount / validUrls.length) * 100),
             );
             if (process.env.NODE_ENV === "development") {
               devLog(
-                `📊 [IMPORT] Progress: ${progress}% (${processedCount}/${validUrls.length} URLs processed, ${successCount} successful, ${errorCount} failed)`
+                `📊 [IMPORT] Progress: ${progress}% (${processedCount}/${validUrls.length} URLs processed, ${successCount} successful, ${errorCount} failed)`,
               );
             }
           }
@@ -1241,7 +1241,7 @@ export function UrlBulkImportExport({
           devLog(
             `📥 [IMPORT] [${elapsed}s] Starting URL ${currentIndex + 1}/${
               validUrls.length
-            }: ${urlItem.url.substring(0, 60)}...`
+            }: ${urlItem.url.substring(0, 60)}...`,
           );
         }
 
@@ -1253,7 +1253,7 @@ export function UrlBulkImportExport({
 
             // Update metrics
             const urlMetric = importMetrics.urlTimings.find(
-              (m) => m.url === urlItem.url && m.status === "pending"
+              (m) => m.url === urlItem.url && m.status === "pending",
             );
             if (urlMetric) {
               urlMetric.endTime = urlEndTime;
@@ -1267,10 +1267,10 @@ export function UrlBulkImportExport({
                 `✅ [IMPORT] [${elapsed}s] URL ${currentIndex + 1}/${
                   validUrls.length
                 } completed in ${Math.round(
-                  urlDuration / 1000
+                  urlDuration / 1000,
                 )}s (${completedCount}/${
                   validUrls.length
-                } total, ${successCount} success, ${errorCount} failed)`
+                } total, ${successCount} success, ${errorCount} failed)`,
               );
             }
 
@@ -1284,7 +1284,7 @@ export function UrlBulkImportExport({
 
             // Update metrics
             const urlMetric = importMetrics.urlTimings.find(
-              (m) => m.url === urlItem.url && m.status === "pending"
+              (m) => m.url === urlItem.url && m.status === "pending",
             );
             if (urlMetric) {
               urlMetric.endTime = urlEndTime;
@@ -1298,7 +1298,7 @@ export function UrlBulkImportExport({
                 `❌ [IMPORT] [${elapsed}s] URL ${currentIndex + 1}/${
                   validUrls.length
                 } failed after ${Math.round(urlDuration / 1000)}s:`,
-                error instanceof Error ? error.message : String(error)
+                error instanceof Error ? error.message : String(error),
               );
             }
           })
@@ -1335,7 +1335,7 @@ export function UrlBulkImportExport({
         isMountedRef.current
       ) {
         console.warn(
-          "⚠️ [IMPORT] Abort signal was aborted before processing started. Creating fresh controller."
+          "⚠️ [IMPORT] Abort signal was aborted before processing started. Creating fresh controller.",
         );
         abortControllerRef.current = new AbortController();
         // Note: We can't update the local abortSignal const, but we'll use abortControllerRef.current.signal
@@ -1375,16 +1375,16 @@ export function UrlBulkImportExport({
             abortSignalAborted: currentAbortSignal.aborted,
             isImportActive: isImportActiveRef.current,
             isMounted: isMountedRef.current,
-          }
+          },
         );
         throw new Error(
-          "Cannot start import - abort signal was aborted before processing could begin"
+          "Cannot start import - abort signal was aborted before processing could begin",
         );
       }
 
       if (process.env.NODE_ENV === "development") {
         devLog(
-          `📥 [IMPORT] Processing loop started. ${runningPromises.size} promises running.`
+          `📥 [IMPORT] Processing loop started. ${runningPromises.size} promises running.`,
         );
       }
 
@@ -1429,8 +1429,8 @@ export function UrlBulkImportExport({
                         `⚠️ [IMPORT] Promise ${
                           index + 1
                         } stuck (running for ${Math.round(
-                          elapsed / 1000
-                        )}s), forcing cleanup`
+                          elapsed / 1000,
+                        )}s), forcing cleanup`,
                       );
                     }
                   }
@@ -1446,13 +1446,13 @@ export function UrlBulkImportExport({
                   }
                   if (process.env.NODE_ENV === "development") {
                     console.warn(
-                      `⚠️ [IMPORT] Cleaned up ${stuckPromises.length} stuck promise(s), continuing with remaining URLs...`
+                      `⚠️ [IMPORT] Cleaned up ${stuckPromises.length} stuck promise(s), continuing with remaining URLs...`,
                     );
                   }
                 } else if (runningPromises.size > 0) {
                   if (process.env.NODE_ENV === "development") {
                     console.warn(
-                      `⚠️ [IMPORT] Promise.race timeout after 45s - ${runningPromises.size} promises still running, continuing to wait...`
+                      `⚠️ [IMPORT] Promise.race timeout after 45s - ${runningPromises.size} promises still running, continuing to wait...`,
                     );
                   }
                 }
@@ -1472,7 +1472,7 @@ export function UrlBulkImportExport({
             if (process.env.NODE_ENV === "development") {
               console.warn(
                 "⚠️ [IMPORT] Error waiting for promise completion, continuing...",
-                error
+                error,
               );
             }
             await new Promise((resolve) => setTimeout(resolve, 10));
@@ -1509,7 +1509,7 @@ export function UrlBulkImportExport({
             `⏳ [IMPORT] Starting final wait for ${runningPromises.size} remaining promise(s)...`,
             {
               promiseIndices: Array.from(runningPromises.keys()),
-            }
+            },
           );
         }
 
@@ -1521,12 +1521,12 @@ export function UrlBulkImportExport({
               if (process.env.NODE_ENV === "development") {
                 console.warn(
                   `⚠️ [IMPORT] Final wait timeout after ${Math.round(
-                    waitDuration / 1000
+                    waitDuration / 1000,
                   )}s - aborting remaining ${runningPromises.size} request(s)`,
                   {
                     pendingIndices: Array.from(runningPromises.keys()),
                     abortRegistryCount: abortRegistry?.getCount() || 0,
-                  }
+                  },
                 );
               }
               // Abort all pending requests
@@ -1550,7 +1550,7 @@ export function UrlBulkImportExport({
               if (process.env.NODE_ENV === "development") {
                 console.warn(
                   `⚠️ [IMPORT] URL processing promise was rejected (final wait):`,
-                  result.reason
+                  result.reason,
                 );
               }
               errorCount++;
@@ -1561,12 +1561,12 @@ export function UrlBulkImportExport({
             const finalWaitDuration = Date.now() - finalWaitStartTime;
             devLog(
               `✅ [IMPORT] Final wait completed in ${Math.round(
-                finalWaitDuration / 1000
+                finalWaitDuration / 1000,
               )}s`,
               {
                 remainingPromises: runningPromises.size,
                 abortRegistryCount: abortRegistry?.getCount() || 0,
-              }
+              },
             );
           }
         } catch (error) {
@@ -1574,9 +1574,9 @@ export function UrlBulkImportExport({
           if (process.env.NODE_ENV === "development") {
             console.error(
               `❌ [IMPORT] Error in final wait after ${Math.round(
-                finalWaitDuration / 1000
+                finalWaitDuration / 1000,
               )}s:`,
-              error
+              error,
             );
           }
         }
@@ -1584,14 +1584,11 @@ export function UrlBulkImportExport({
         process.env.NODE_ENV === "development" &&
         runningPromises.size > 0
       ) {
-        devLog(
-          `⏭️ [IMPORT] Skipping final wait - import inactive or aborted`,
-          {
-            pendingPromises: runningPromises.size,
-            isImportActive: isImportActiveRef.current,
-            isAborted: signalForWait?.aborted || false,
-          }
-        );
+        devLog(`⏭️ [IMPORT] Skipping final wait - import inactive or aborted`, {
+          pendingPromises: runningPromises.size,
+          isImportActive: isImportActiveRef.current,
+          isAborted: signalForWait?.aborted || false,
+        });
       }
 
       const processingEndTime = Date.now();
@@ -1600,7 +1597,7 @@ export function UrlBulkImportExport({
       if (process.env.NODE_ENV === "development") {
         devLog(
           `⏱️ [IMPORT] Processing loop completed in ${Math.round(
-            processingDuration / 1000
+            processingDuration / 1000,
           )}s`,
           {
             totalUrls: validUrls.length,
@@ -1609,7 +1606,7 @@ export function UrlBulkImportExport({
             failed: errorCount,
             pending: runningPromises.size,
             elapsed: Math.round(processingDuration / 1000) + "s",
-          }
+          },
         );
       }
 
@@ -1646,8 +1643,8 @@ export function UrlBulkImportExport({
         const cleanupDuration = Date.now() - cleanupStartTime;
         devLog(
           `🧹 [IMPORT] Initial cleanup completed in ${Math.round(
-            cleanupDuration
-          )}ms`
+            cleanupDuration,
+          )}ms`,
         );
       }
 
@@ -1664,10 +1661,10 @@ export function UrlBulkImportExport({
 
       // Calculate average times
       const successfulUrls = importMetrics.urlTimings.filter(
-        (m) => m.status === "success"
+        (m) => m.status === "success",
       );
       const failedUrls = importMetrics.urlTimings.filter(
-        (m) => m.status === "failed"
+        (m) => m.status === "failed",
       );
       const avgSuccessTime =
         successfulUrls.length > 0
@@ -1690,14 +1687,14 @@ export function UrlBulkImportExport({
               successfulUrls.length > 0
                 ? Math.round(
                     Math.min(...successfulUrls.map((m) => m.duration || 0)) /
-                      1000
+                      1000,
                   ) + "s"
                 : "N/A",
             slowestUrl:
               successfulUrls.length > 0
                 ? Math.round(
                     Math.max(...successfulUrls.map((m) => m.duration || 0)) /
-                      1000
+                      1000,
                   ) + "s"
                 : "N/A",
           },
@@ -1719,7 +1716,7 @@ export function UrlBulkImportExport({
       if (successCount > 0) {
         const messageParts: string[] = [];
         messageParts.push(
-          `Imported ${successCount} URL${successCount === 1 ? "" : "s"}`
+          `Imported ${successCount} URL${successCount === 1 ? "" : "s"}`,
         );
 
         if (errorCount > 0) {
@@ -1727,7 +1724,7 @@ export function UrlBulkImportExport({
         }
         if (metadataFailedUrls.length > 0) {
           messageParts.push(
-            `${metadataFailedUrls.length} couldn't fetch metadata (using imported data)`
+            `${metadataFailedUrls.length} couldn't fetch metadata (using imported data)`,
           );
         }
         if (skippedCount > 0) {
@@ -1747,7 +1744,7 @@ export function UrlBulkImportExport({
         ) {
           console.info(
             `ℹ️ [IMPORT] ${metadataFailedUrls.length} URL(s) couldn't fetch metadata (using imported data):`,
-            metadataFailedUrls.slice(0, 10) // Show first 10 in dev mode
+            metadataFailedUrls.slice(0, 10), // Show first 10 in dev mode
           );
         }
       } else {
@@ -1820,7 +1817,7 @@ export function UrlBulkImportExport({
         (window as any).__bulkImportActive = false;
         if (process.env.NODE_ENV === "development") {
           devLog(
-            `🚫 [IMPORT] [FINALLY] Cleared __bulkImportActive flag FIRST (critical for wrapper bypass)`
+            `🚫 [IMPORT] [FINALLY] Cleared __bulkImportActive flag FIRST (critical for wrapper bypass)`,
           );
         }
       }
@@ -1858,7 +1855,7 @@ export function UrlBulkImportExport({
             {
               abortedRequests: abortedCount,
               remainingCount: abortRegistry.getCount(),
-            }
+            },
           );
         }
 
@@ -1868,7 +1865,7 @@ export function UrlBulkImportExport({
         try {
           if (process.env.NODE_ENV === "development") {
             devLog(
-              `🧹 [IMPORT] [FINALLY] Attempting router cache cleanup IMMEDIATELY...`
+              `🧹 [IMPORT] [FINALLY] Attempting router cache cleanup IMMEDIATELY...`,
             );
           }
 
@@ -1879,9 +1876,7 @@ export function UrlBulkImportExport({
             if (nextRouter.prefetchCache) {
               nextRouter.prefetchCache.clear();
               if (process.env.NODE_ENV === "development") {
-                devLog(
-                  `✅ [IMPORT] [FINALLY] Cleared Next.js prefetch cache`
-                );
+                devLog(`✅ [IMPORT] [FINALLY] Cleared Next.js prefetch cache`);
               }
             }
 
@@ -1894,7 +1889,7 @@ export function UrlBulkImportExport({
                 routerInstance.isPending = false;
                 if (process.env.NODE_ENV === "development") {
                   devLog(
-                    `✅ [IMPORT] [FINALLY] Cleared Next.js router pending state`
+                    `✅ [IMPORT] [FINALLY] Cleared Next.js router pending state`,
                   );
                 }
               }
@@ -1903,9 +1898,7 @@ export function UrlBulkImportExport({
               if (routerInstance.cache) {
                 routerInstance.cache.clear?.();
                 if (process.env.NODE_ENV === "development") {
-                  devLog(
-                    `✅ [IMPORT] [FINALLY] Cleared Next.js router cache`
-                  );
+                  devLog(`✅ [IMPORT] [FINALLY] Cleared Next.js router cache`);
                 }
               }
             }
@@ -1929,7 +1922,7 @@ export function UrlBulkImportExport({
               routerCache.clear();
               if (process.env.NODE_ENV === "development") {
                 devLog(
-                  `✅ [IMPORT] [FINALLY] Cleared Next.js router internal cache`
+                  `✅ [IMPORT] [FINALLY] Cleared Next.js router internal cache`,
                 );
               }
             }
@@ -1940,7 +1933,7 @@ export function UrlBulkImportExport({
           if (process.env.NODE_ENV === "development") {
             const routerCleanupDuration = Date.now() - routerCleanupStartTime;
             devLog(
-              `✅ [IMPORT] [FINALLY] Router cleanup completed in ${routerCleanupDuration}ms`
+              `✅ [IMPORT] [FINALLY] Router cleanup completed in ${routerCleanupDuration}ms`,
             );
           }
         } catch (e) {
@@ -1949,7 +1942,7 @@ export function UrlBulkImportExport({
             const routerCleanupDuration = Date.now() - routerCleanupStartTime;
             console.warn(
               `⚠️ [IMPORT] [FINALLY] Router cleanup failed after ${routerCleanupDuration}ms:`,
-              e
+              e,
             );
           }
         }
@@ -1994,7 +1987,7 @@ export function UrlBulkImportExport({
 
         if (process.env.NODE_ENV === "development") {
           devLog(
-            `🔍 [IMPORT] [FINALLY] Stopped global fetch interception immediately (with retry scheduled)`
+            `🔍 [IMPORT] [FINALLY] Stopped global fetch interception immediately (with retry scheduled)`,
           );
         }
       }
@@ -2003,22 +1996,22 @@ export function UrlBulkImportExport({
       const finallyDuration = finallyEndTime - finallyStartTime;
       if (process.env.NODE_ENV === "development") {
         devLog(
-          `🏁 [IMPORT] [FINALLY] Final cleanup phase completed in ${finallyDuration}ms`
+          `🏁 [IMPORT] [FINALLY] Final cleanup phase completed in ${finallyDuration}ms`,
         );
         devLog(
-          `✅ [IMPORT] Import fully cleaned up - page should be responsive now`
+          `✅ [IMPORT] Import fully cleaned up - page should be responsive now`,
         );
         // ADDITIVE: Enforce hard disable + native fetch restoration guard
         try {
           (window as any).__bulkImportDisableInterception = true;
           abortRegistry?.forceRestoreNativeFetch?.();
           devLog(
-            "🛠 [IMPORT] Disabled interception & enforced native fetch restoration"
+            "🛠 [IMPORT] Disabled interception & enforced native fetch restoration",
           );
         } catch (e) {
           devLog(
             "⚠️ [IMPORT] Native restoration enforcement encountered error (ignored)",
-            e
+            e,
           );
         }
       }
@@ -2045,7 +2038,7 @@ export function UrlBulkImportExport({
             {
               abortRegistryCount: abortRegistry?.getCount() || 0,
               isImportActive: isImportActiveRef.current,
-            }
+            },
           );
         }
 
@@ -2081,9 +2074,7 @@ export function UrlBulkImportExport({
               }
 
               if (process.env.NODE_ENV === "development") {
-                devLog(
-                  `🧹 [IMPORT] Cleared router cache again during wait`
-                );
+                devLog(`🧹 [IMPORT] Cleared router cache again during wait`);
               }
             } catch (e) {
               // Ignore errors
@@ -2100,7 +2091,7 @@ export function UrlBulkImportExport({
             `✅ [IMPORT] Wait completed in ${waitDuration}ms, checking final state...`,
             {
               abortRegistryCount: abortRegistry?.getCount() || 0,
-            }
+            },
           );
         }
 
@@ -2109,7 +2100,7 @@ export function UrlBulkImportExport({
         if (typeof window !== "undefined" && abortRegistry) {
           if (process.env.NODE_ENV === "development") {
             devLog(
-              `🛑 [IMPORT] Force aborting ALL global requests before clearing flags...`
+              `🛑 [IMPORT] Force aborting ALL global requests before clearing flags...`,
             );
           }
           abortRegistry.forceAbortAllGlobal();
@@ -2130,13 +2121,10 @@ export function UrlBulkImportExport({
 
         if (typeof window !== "undefined") {
           if (process.env.NODE_ENV === "development") {
-            devLog(
-              `🏁 [IMPORT] Finalizing import and allowing navigation...`,
-              {
-                abortRegistryCount: abortRegistry?.getCount() || 0,
-                willClearFlag: true,
-              }
-            );
+            devLog(`🏁 [IMPORT] Finalizing import and allowing navigation...`, {
+              abortRegistryCount: abortRegistry?.getCount() || 0,
+              willClearFlag: true,
+            });
           }
 
           // CRITICAL: Clear router cache ONE MORE TIME before clearing flags
@@ -2176,7 +2164,7 @@ export function UrlBulkImportExport({
                 __bulkImportActive: (window as any).__bulkImportActive,
                 __bulkImportJustCompleted: true,
                 abortRegistryCount: abortRegistry?.getCount() || 0,
-              }
+              },
             );
           }
 
@@ -2186,7 +2174,7 @@ export function UrlBulkImportExport({
             (window as any).__bulkImportJustCompleted = false;
             if (process.env.NODE_ENV === "development") {
               devLog(
-                `✅ [IMPORT] Import fully completed - navigation should work normally now`
+                `✅ [IMPORT] Import fully completed - navigation should work normally now`,
               );
             }
           }, 1000);
@@ -2242,7 +2230,7 @@ export function UrlBulkImportExport({
                 if ((window as any).__bulkImportJustCompleted) {
                   if (process.env.NODE_ENV === "development") {
                     console.warn(
-                      "⚠️ [IMPORT] Navigation appears unresponsive after recovery window – performing hard reload"
+                      "⚠️ [IMPORT] Navigation appears unresponsive after recovery window – performing hard reload",
                     );
                   }
                   (window as any).__bulkImportJustCompleted = false;
@@ -2258,7 +2246,7 @@ export function UrlBulkImportExport({
               window.clearInterval(recoveryInterval);
               if (process.env.NODE_ENV === "development") {
                 devLog(
-                  "✅ [IMPORT] Post-import navigation recovery confirmed clean; stopping recovery loop"
+                  "✅ [IMPORT] Post-import navigation recovery confirmed clean; stopping recovery loop",
                 );
               }
             }
@@ -2287,11 +2275,13 @@ export function UrlBulkImportExport({
               if (isMountedRef.current && !isImportActiveRef.current) {
                 if (process.env.NODE_ENV === "development") {
                   console.debug(
-                    "🔄 [IMPORT] Triggering final list refresh after import completion"
+                    "🔄 [IMPORT] Triggering final list refresh after import completion",
                   );
                 }
                 // Use React Query invalidation instead of getList() - triggers unified endpoint refetch
-                queryClient.invalidateQueries({ queryKey: listQueryKeys.unified(slug) });
+                queryClient.invalidateQueries({
+                  queryKey: listQueryKeys.unified(slug),
+                });
               }
             }, 800); // Reduced delay since we're aborting all requests
           }
@@ -2319,7 +2309,7 @@ export function UrlBulkImportExport({
             onClick={() => setShowExportMenu(!showExportMenu)}
             disabled={isExporting !== null || urls.length === 0}
             className={`
-              relative flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-xl
+              relative flex items-center justify-center gap-1.5 sm:gap-2 px-2 sm:px-4 py-2 rounded-xl
               transition-all duration-200 shadow-md hover:shadow-lg
               text-xs sm:text-sm font-medium whitespace-nowrap
               ${
@@ -2407,7 +2397,7 @@ export function UrlBulkImportExport({
             onClick={() => setShowImportMenu(!showImportMenu)}
             disabled={isImporting || !canEdit}
             className={`
-              relative flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-xl
+              relative flex items-center justify-center gap-1.5 sm:gap-2 px-2 sm:px-4 py-2 rounded-xl
               transition-all duration-200 shadow-md hover:shadow-lg
               text-xs sm:text-sm font-medium whitespace-nowrap
               ${

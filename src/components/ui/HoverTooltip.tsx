@@ -20,7 +20,7 @@ export function HoverTooltip({
   const [tooltipPosition, setTooltipPosition] = useState({ top: 0, left: 0 });
   const triggerRef = useRef<HTMLDivElement>(null);
   const [isMounted, setIsMounted] = useState(false);
-  
+
   // Track mount state to prevent portal rendering during SSR or after unmount
   useEffect(() => {
     setIsMounted(true);
@@ -35,7 +35,13 @@ export function HoverTooltip({
   };
 
   useEffect(() => {
-    if (isVisible && usePortal && triggerRef.current && typeof window !== "undefined" && document.body) {
+    if (
+      isVisible &&
+      usePortal &&
+      triggerRef.current &&
+      typeof window !== "undefined" &&
+      document.body
+    ) {
       const updatePosition = () => {
         // Check if ref still exists (component might have unmounted)
         if (!triggerRef.current || !document.body) return;
@@ -48,11 +54,11 @@ export function HoverTooltip({
         // Average character width is ~7px, padding is 12px on each side
         const estimatedTooltipWidth = message.length * 7 + 24;
         const tooltipHalfWidth = estimatedTooltipWidth / 2;
-        
+
         // Get viewport and container dimensions
         const viewportWidth = window.innerWidth;
         const padding = 16; // Minimum padding from edges
-        
+
         // Find max-w-7xl container if exists (80rem = 1280px)
         const maxW7xl = 1280;
         const containerWidth = Math.min(viewportWidth, maxW7xl);
@@ -63,19 +69,21 @@ export function HoverTooltip({
             // Position above the element, centered horizontally
             top = rect.top - 8; // 8px margin (mb-2)
             left = rect.left + rect.width / 2;
-            
+
             // Adjust to stay within container bounds
             const minLeft = containerLeft + padding + tooltipHalfWidth;
-            const maxLeft = containerLeft + containerWidth - padding - tooltipHalfWidth;
+            const maxLeft =
+              containerLeft + containerWidth - padding - tooltipHalfWidth;
             left = Math.max(minLeft, Math.min(maxLeft, left));
             break;
           case "bottom":
             top = rect.bottom + 8; // 8px margin (mt-2)
             left = rect.left + rect.width / 2;
-            
+
             // Adjust to stay within container bounds
             const minLeftBottom = containerLeft + padding + tooltipHalfWidth;
-            const maxLeftBottom = containerLeft + containerWidth - padding - tooltipHalfWidth;
+            const maxLeftBottom =
+              containerLeft + containerWidth - padding - tooltipHalfWidth;
             left = Math.max(minLeftBottom, Math.min(maxLeftBottom, left));
             break;
           case "left":
@@ -93,7 +101,7 @@ export function HoverTooltip({
 
       // Update position immediately
       updatePosition();
-      
+
       // Update on scroll and resize
       window.addEventListener("scroll", updatePosition, true);
       window.addEventListener("resize", updatePosition);
@@ -115,14 +123,14 @@ export function HoverTooltip({
           position === "top"
             ? "translate(-50%, -100%)"
             : position === "bottom"
-            ? "translate(-50%, 0)"
-            : position === "left"
-            ? "translate(-100%, -50%)"
-            : "translate(0, -50%)",
+              ? "translate(-50%, 0)"
+              : position === "left"
+                ? "translate(-100%, -50%)"
+                : "translate(0, -50%)",
       }}
       role="tooltip"
     >
-      <div className="bg-gray-900 text-white text-xs sm:text-sm px-2.5 sm:px-3 py-1.5 rounded-lg shadow-lg whitespace-normal sm:whitespace-nowrap max-w-[calc(100vw-2rem)] sm:max-w-none font-delicious animate-in fade-in-0 zoom-in-95 duration-200">
+      <div className="bg-gray-900 text-white text-xs sm:text-sm px-2 sm:px-3 py-1 rounded-lg shadow-lg whitespace-normal sm:whitespace-nowrap max-w-[calc(100vw-2rem)] sm:max-w-none font-delicious animate-in fade-in-0 zoom-in-95 duration-200">
         {message}
       </div>
     </div>
@@ -131,7 +139,7 @@ export function HoverTooltip({
       className={`absolute z-50 ${positionClasses[position]}`}
       role="tooltip"
     >
-      <div className="bg-gray-900 text-white text-xs sm:text-sm px-2.5 sm:px-3 py-1.5 rounded-lg shadow-lg whitespace-normal sm:whitespace-nowrap max-w-[calc(100vw-2rem)] sm:max-w-none font-delicious animate-in fade-in-0 zoom-in-95 duration-200 pointer-events-none">
+      <div className="bg-gray-900 text-white text-xs sm:text-sm px-2 sm:px-3 py-1 rounded-lg shadow-lg whitespace-normal sm:whitespace-nowrap max-w-[calc(100vw-2rem)] sm:max-w-none font-delicious animate-in fade-in-0 zoom-in-95 duration-200 pointer-events-none">
         {message}
       </div>
     </div>

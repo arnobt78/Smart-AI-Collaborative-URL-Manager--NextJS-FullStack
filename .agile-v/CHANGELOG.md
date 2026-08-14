@@ -20,3 +20,5 @@
 - List UX: slug-safe unified placeholder + `currentList` sync; My Lists clickable title; silent Smart Collections create (no auto-nav)
 - Visit Site: schemeless URLs open via `ensureAbsoluteHttpUrl` + `openExternalUrl` (card + Similar URLs dialog)
 - Collaborators empty one-row; Card chrome `p-2 sm:p-4` (no lg:p-8 double gutter)
+- HomePage: no NeutralWait spinner (Auth or Marketing via wasAuthed)
+- Smart Collections: single pad shell `p-2 sm:p-4` + title `pb-1 sm:pb-4`

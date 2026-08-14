@@ -45,14 +45,14 @@ export function Comments({ listId, urlId, currentUserId }: CommentsProps) {
   const queryKey = ["comments", listId, urlId];
 
   // Fetch comments using React Query
-  const {
-    data: commentsData,
-    isLoading,
-  } = useQuery<{ comments: Comment[]; cached?: boolean }>({
+  const { data: commentsData, isLoading } = useQuery<{
+    comments: Comment[];
+    cached?: boolean;
+  }>({
     queryKey,
     queryFn: async () => {
       const response = await fetch(
-        `/api/lists/${listId}/comments?urlId=${urlId}`
+        `/api/lists/${listId}/comments?urlId=${urlId}`,
       );
       if (!response.ok) {
         throw new Error("Failed to fetch comments");
@@ -111,7 +111,7 @@ export function Comments({ listId, urlId, currentUserId }: CommentsProps) {
 
       // Snapshot previous value
       const previousData = queryClient.getQueryData<{ comments: Comment[] }>(
-        queryKey
+        queryKey,
       );
 
       // Optimistically update cache with temporary comment
@@ -137,9 +137,7 @@ export function Comments({ listId, urlId, currentUserId }: CommentsProps) {
       queryClient.setQueryData<{ comments: Comment[] }>(queryKey, (old) => {
         if (!old) return { comments: [data.comment] };
         // Replace optimistic comment with real one
-        const filtered = old.comments.filter(
-          (c) => !c.id.startsWith("temp-")
-        );
+        const filtered = old.comments.filter((c) => !c.id.startsWith("temp-"));
         return { comments: [...filtered, data.comment] };
       });
 
@@ -159,7 +157,7 @@ export function Comments({ listId, urlId, currentUserId }: CommentsProps) {
               listId,
               activity: data.activity,
             },
-          })
+          }),
         );
       }
 
@@ -209,7 +207,13 @@ export function Comments({ listId, urlId, currentUserId }: CommentsProps) {
 
   // Update comment mutation with optimistic update
   const updateMutation = useMutation({
-    mutationFn: async ({ commentId, content }: { commentId: string; content: string }) => {
+    mutationFn: async ({
+      commentId,
+      content,
+    }: {
+      commentId: string;
+      content: string;
+    }) => {
       const response = await fetch(`/api/lists/${listId}/comments`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -227,7 +231,7 @@ export function Comments({ listId, urlId, currentUserId }: CommentsProps) {
       await queryClient.cancelQueries({ queryKey });
 
       const previousData = queryClient.getQueryData<{ comments: Comment[] }>(
-        queryKey
+        queryKey,
       );
 
       // Optimistically update comment
@@ -237,7 +241,7 @@ export function Comments({ listId, urlId, currentUserId }: CommentsProps) {
           comments: old.comments.map((c) =>
             c.id === commentId
               ? { ...c, content, updatedAt: new Date().toISOString() }
-              : c
+              : c,
           ),
         };
       });
@@ -250,7 +254,7 @@ export function Comments({ listId, urlId, currentUserId }: CommentsProps) {
         if (!old) return { comments: [data.comment] };
         return {
           comments: old.comments.map((c) =>
-            c.id === data.comment.id ? data.comment : c
+            c.id === data.comment.id ? data.comment : c,
           ),
         };
       });
@@ -271,7 +275,7 @@ export function Comments({ listId, urlId, currentUserId }: CommentsProps) {
               listId,
               activity: data.activity,
             },
-          })
+          }),
         );
       }
 
@@ -302,7 +306,10 @@ export function Comments({ listId, urlId, currentUserId }: CommentsProps) {
   // Save edit
   const handleSaveEdit = async () => {
     if (!editingId || !editContent.trim() || updateMutation.isPending) return;
-    updateMutation.mutate({ commentId: editingId, content: editContent.trim() });
+    updateMutation.mutate({
+      commentId: editingId,
+      content: editContent.trim(),
+    });
   };
 
   // Delete comment mutation with optimistic update
@@ -312,7 +319,7 @@ export function Comments({ listId, urlId, currentUserId }: CommentsProps) {
         `/api/lists/${listId}/comments?commentId=${commentId}`,
         {
           method: "DELETE",
-        }
+        },
       );
 
       if (!response.ok) {
@@ -326,7 +333,7 @@ export function Comments({ listId, urlId, currentUserId }: CommentsProps) {
       await queryClient.cancelQueries({ queryKey });
 
       const previousData = queryClient.getQueryData<{ comments: Comment[] }>(
-        queryKey
+        queryKey,
       );
 
       // Optimistically remove comment
@@ -354,7 +361,7 @@ export function Comments({ listId, urlId, currentUserId }: CommentsProps) {
               listId,
               activity: data.activity,
             },
-          })
+          }),
         );
       }
 
@@ -442,7 +449,7 @@ export function Comments({ listId, urlId, currentUserId }: CommentsProps) {
             <Button
               type="submit"
               disabled={!newComment.trim() || createMutation.isPending}
-              className="px-3 sm:px-4 py-1.5 text-xs"
+              className="px-2 sm:px-4 py-1 text-xs"
             >
               {createMutation.isPending ? "Posting..." : "Post Comment"}
             </Button>
@@ -482,7 +489,7 @@ export function Comments({ listId, urlId, currentUserId }: CommentsProps) {
                         type="button"
                         onClick={handleCancelEdit}
                         variant="secondary"
-                        className="px-2.5 sm:px-3 py-1 text-xs"
+                        className="px-2 sm:px-3 py-1 text-xs"
                       >
                         <X className="w-3 h-3 mr-1" />
                         Cancel
@@ -491,7 +498,7 @@ export function Comments({ listId, urlId, currentUserId }: CommentsProps) {
                         type="button"
                         onClick={handleSaveEdit}
                         disabled={updateMutation.isPending}
-                        className="px-2.5 sm:px-3 py-1 text-xs"
+                        className="px-2 sm:px-3 py-1 text-xs"
                       >
                         <Check className="w-3 h-3 mr-1" />
                         {updateMutation.isPending ? "Saving..." : "Save"}
@@ -507,7 +514,8 @@ export function Comments({ listId, urlId, currentUserId }: CommentsProps) {
                         </div>
                         <div className="text-xs text-white/50">
                           {formatDate(comment.createdAt)}
-                          {comment.updatedAt !== comment.createdAt && " (edited)"}
+                          {comment.updatedAt !== comment.createdAt &&
+                            " (edited)"}
                         </div>
                       </div>
                       {isOwner && (
@@ -556,4 +564,3 @@ export function Comments({ listId, urlId, currentUserId }: CommentsProps) {
     </div>
   );
 }
-

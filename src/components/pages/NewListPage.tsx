@@ -130,7 +130,7 @@ export default function NewListPageClient() {
                   <div className="h-5 bg-white/10 rounded w-16" />
                   <div className="h-5 w-2 bg-white/10 rounded" />
                 </label>
-                <div className="w-full border border-white/20 bg-white/10 backdrop-blur-sm rounded-xl px-4 sm:px-5 py-3 sm:py-3.5 h-12" />
+                <div className="w-full border border-white/20 bg-white/10 backdrop-blur-md rounded-xl px-2 sm:px-4 py-2 sm:py-3 h-12" />
                 <div className="h-4 bg-white/10 rounded w-40" />
               </div>
 
@@ -143,7 +143,7 @@ export default function NewListPageClient() {
                 </label>
                 <div className="relative">
                   <div className="absolute left-4 top-1/2 -translate-y-1/2 h-4 bg-white/10 rounded w-12" />
-                  <div className="w-full border border-white/20 bg-white/10 backdrop-blur-sm rounded-xl px-4 sm:px-5 pl-20 py-3 sm:py-3.5 h-12" />
+                  <div className="w-full border border-white/20 bg-white/10 backdrop-blur-md rounded-xl px-2 sm:px-4 pl-20 py-2 sm:py-3 h-12" />
                 </div>
                 <div className="h-4 bg-white/10 rounded w-64" />
               </div>
@@ -156,7 +156,7 @@ export default function NewListPageClient() {
                   <div className="h-4 bg-white/10 rounded w-16" />
                 </label>
                 <div className="space-y-3">
-                  <div className="w-full border border-white/20 bg-white/10 backdrop-blur-sm rounded-xl px-4 sm:px-5 py-3 sm:py-3.5 h-12" />
+                  <div className="w-full border border-white/20 bg-white/10 backdrop-blur-md rounded-xl px-2 sm:px-4 py-2 sm:py-3 h-12" />
                 </div>
                 <div className="h-4 bg-white/10 rounded w-64" />
               </div>
@@ -168,7 +168,7 @@ export default function NewListPageClient() {
                   <div className="h-5 bg-white/10 rounded w-24" />
                   <div className="h-4 bg-white/10 rounded w-16" />
                 </label>
-                <div className="w-full border border-white/20 bg-white/10 backdrop-blur-sm rounded-xl px-4 sm:px-5 py-3 sm:py-3.5 h-24" />
+                <div className="w-full border border-white/20 bg-white/10 backdrop-blur-md rounded-xl px-2 sm:px-4 py-2 sm:py-3 h-24" />
                 <div className="h-4 bg-white/10 rounded w-56" />
               </div>
 
@@ -229,7 +229,7 @@ export default function NewListPageClient() {
                 onChange={(e) =>
                   setFormData({ ...formData, title: e.target.value })
                 }
-                className="w-full border border-white/20 bg-white/10 backdrop-blur-sm rounded-lg sm:rounded-xl px-3 sm:px-4 lg:px-5 py-2.5 sm:py-3 lg:py-3.5 text-sm sm:text-base lg:text-lg text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-400/50 transition-all duration-200 shadow-inner"
+                className="w-full border border-white/20 bg-white/10 backdrop-blur-md rounded-lg sm:rounded-xl px-2 sm:px-4 lg:px-5 py-2 sm:py-3 text-sm sm:text-base lg:text-lg text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-400/50 transition-all duration-200 shadow-inner"
                 placeholder="e.g., My Favorite Resources"
                 required
               />
@@ -255,7 +255,7 @@ export default function NewListPageClient() {
                   onChange={(e) =>
                     setFormData({ ...formData, slug: e.target.value })
                   }
-                  className="w-full border border-white/20 bg-white/10 backdrop-blur-sm rounded-lg sm:rounded-xl px-3 sm:px-4 lg:px-5 pl-16 sm:pl-20 py-2.5 sm:py-3 lg:py-3.5 text-sm sm:text-base lg:text-lg text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-400/50 transition-all duration-200 shadow-inner"
+                  className="w-full border border-white/20 bg-white/10 backdrop-blur-md rounded-lg sm:rounded-xl px-2 sm:px-4 lg:px-5 pl-16 sm:pl-20 py-2 sm:py-3 text-sm sm:text-base lg:text-lg text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-400/50 transition-all duration-200 shadow-inner"
                   placeholder="custom-slug"
                 />
               </div>
@@ -278,7 +278,7 @@ export default function NewListPageClient() {
                   onChange={(e) =>
                     setFormData({ ...formData, url: e.target.value })
                   }
-                  className="w-full border border-white/20 bg-white/10 backdrop-blur-sm rounded-lg sm:rounded-xl px-3 sm:px-4 lg:px-5 py-2.5 sm:py-3 lg:py-3.5 text-sm sm:text-base lg:text-lg text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400/50 transition-all duration-200 shadow-inner"
+                  className="w-full border border-white/20 bg-white/10 backdrop-blur-md rounded-lg sm:rounded-xl px-2 sm:px-4 lg:px-5 py-2 sm:py-3 text-sm sm:text-base lg:text-lg text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400/50 transition-all duration-200 shadow-inner"
                   placeholder="https://example.com"
                 />
                 {formData.url && (
@@ -320,7 +320,7 @@ export default function NewListPageClient() {
                 onChange={(e) =>
                   setFormData({ ...formData, description: e.target.value })
                 }
-                className="text-sm sm:text-base lg:text-lg shadow-inner font-delicious rounded-lg sm:rounded-xl border border-white/20 bg-white/10 backdrop-blur-sm focus:ring-2 focus:ring-pink-500 focus:border-pink-400/50 transition-all duration-200 px-3 sm:px-4 py-2.5 sm:py-3"
+                className="text-sm sm:text-base lg:text-lg shadow-inner font-delicious rounded-lg sm:rounded-xl border border-white/20 bg-white/10 backdrop-blur-md focus:ring-2 focus:ring-pink-500 focus:border-pink-400/50 transition-all duration-200 px-2 sm:px-4 py-2 sm:py-3"
                 placeholder="Describe what this list is about..."
                 rows={4}
               />
@@ -363,7 +363,7 @@ export default function NewListPageClient() {
 
             <button
               type="submit"
-              className="group relative w-full sm:w-fit bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 hover:from-blue-700 hover:via-purple-700 hover:to-indigo-700 text-white font-bold py-2.5 sm:py-3 px-4 sm:px-6 rounded-lg sm:rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 text-sm sm:text-base lg:text-lg overflow-hidden"
+              className="group relative w-full sm:w-fit bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 hover:from-blue-700 hover:via-purple-700 hover:to-indigo-700 text-white font-bold py-2 sm:py-3 px-4 sm:px-6 rounded-lg sm:rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 text-sm sm:text-base lg:text-lg overflow-hidden"
             >
               {/* Shine effect */}
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />

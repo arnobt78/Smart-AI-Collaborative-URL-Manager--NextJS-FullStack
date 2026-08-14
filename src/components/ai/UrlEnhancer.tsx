@@ -63,24 +63,24 @@ export function UrlEnhancer({
       if (!title || !description) {
         try {
           const metadataResponse = await fetch(
-            `/api/metadata?url=${encodeURIComponent(url)}`
+            `/api/metadata?url=${encodeURIComponent(url)}`,
           );
           if (metadataResponse.ok) {
-            const metadata = await metadataResponse.json() as UrlMetadata;
+            const metadata = (await metadataResponse.json()) as UrlMetadata;
             enhancedTitle = enhancedTitle || metadata.title || undefined;
             enhancedDescription =
               enhancedDescription || metadata.description || undefined;
-            
+
             // Save metadata to React Query cache so it can be reused when adding URL
             const queryKey = ["url-metadata", url] as const;
             queryClient.setQueryData(queryKey, metadata);
-            
+
             // Also save to localStorage for persistence
             try {
               const key = `react-query:${queryKey.join(":")}`;
               localStorage.setItem(
                 key,
-                JSON.stringify({ data: metadata, timestamp: Date.now() })
+                JSON.stringify({ data: metadata, timestamp: Date.now() }),
               );
             } catch {
               // Ignore localStorage errors
@@ -135,7 +135,7 @@ export function UrlEnhancer({
           type="button"
           onClick={handleEnhance}
           disabled={loading || !url}
-          className="group relative flex items-center gap-2 px-3 py-1.5 text-sm bg-gradient-to-r from-violet-500 via-purple-500 to-fuchsia-500 text-white rounded-lg hover:from-violet-600 hover:via-purple-600 hover:to-fuchsia-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 shadow-md hover:shadow-lg hover:scale-105 active:scale-95 overflow-hidden"
+          className="group relative flex items-center gap-2 px-3 py-1 text-sm bg-gradient-to-r from-violet-500 via-purple-500 to-fuchsia-500 text-white rounded-lg hover:from-violet-600 hover:via-purple-600 hover:to-fuchsia-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 shadow-md hover:shadow-lg hover:scale-105 active:scale-95 overflow-hidden"
         >
           <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
           {loading ? (
@@ -181,7 +181,7 @@ export function UrlEnhancer({
                 <span className="text-xs text-gray-600 dark:text-gray-300 mr-1">
                   Category:
                 </span>
-                <span className="inline-block px-2.5 py-1 bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-200 rounded-md text-xs font-semibold shadow-sm">
+                <span className="inline-block px-2 py-1 bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-200 rounded-md text-xs font-semibold shadow-sm">
                   {result.category}
                 </span>
               </div>
@@ -293,7 +293,7 @@ export function UrlEnhancer({
                     Category
                   </p>
                 </div>
-                <span className="inline-block px-3 py-1.5 bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-200 rounded-lg text-sm font-medium shadow-sm">
+                <span className="inline-block px-3 py-1 bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-200 rounded-lg text-sm font-medium shadow-sm">
                   {result.category}
                 </span>
               </div>
@@ -311,7 +311,7 @@ export function UrlEnhancer({
                   {result.tags.map((tag, index) => (
                     <span
                       key={index}
-                      className="px-2.5 py-1 bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900/40 dark:to-pink-900/40 text-purple-800 dark:text-purple-200 rounded-md text-xs font-medium shadow-sm hover:scale-105 transition-transform"
+                      className="px-2 py-1 bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900/40 dark:to-pink-900/40 text-purple-800 dark:text-purple-200 rounded-md text-xs font-medium shadow-sm hover:scale-105 transition-transform"
                     >
                       #{tag}
                     </span>

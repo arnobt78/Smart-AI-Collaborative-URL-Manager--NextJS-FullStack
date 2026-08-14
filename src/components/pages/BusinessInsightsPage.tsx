@@ -101,7 +101,7 @@ type CardComponentTypes =
 const _cardTypeCheck: CardComponentTypes[] = [];
 
 export default function BusinessInsightsPage(
-  props: BusinessInsightsPageProps = {}
+  props: BusinessInsightsPageProps = {},
 ) {
   const [activeTab, setActiveTab] = useState("overview");
 
@@ -221,27 +221,42 @@ export default function BusinessInsightsPage(
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-5 mb-4 sm:mb-6 gap-1 sm:gap-2">
-          <TabsTrigger value="overview" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2">
+          <TabsTrigger
+            value="overview"
+            className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2"
+          >
             <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4" />
             <span className="hidden sm:inline">Overview</span>
             <span className="sm:hidden">Overview</span>
           </TabsTrigger>
-          <TabsTrigger value="activity" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2">
+          <TabsTrigger
+            value="activity"
+            className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2"
+          >
             <BarChart3 className="h-3 w-3 sm:h-4 sm:w-4" />
             <span className="hidden sm:inline">Activity</span>
             <span className="sm:hidden">Activity</span>
           </TabsTrigger>
-          <TabsTrigger value="popular" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2">
+          <TabsTrigger
+            value="popular"
+            className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2"
+          >
             <Star className="h-3 w-3 sm:h-4 sm:w-4" />
             <span className="hidden sm:inline">Popular</span>
             <span className="sm:hidden">Popular</span>
           </TabsTrigger>
-          <TabsTrigger value="performance" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2">
+          <TabsTrigger
+            value="performance"
+            className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2"
+          >
             <Zap className="h-3 w-3 sm:h-4 sm:w-4" />
             <span className="hidden sm:inline">Performance</span>
             <span className="sm:hidden">Perf</span>
           </TabsTrigger>
-          <TabsTrigger value="global" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2">
+          <TabsTrigger
+            value="global"
+            className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2"
+          >
             <Globe className="h-3 w-3 sm:h-4 sm:w-4" />
             <span className="hidden sm:inline">Global</span>
             <span className="sm:hidden">Global</span>

@@ -134,7 +134,7 @@
   }
 
   .glass-effect {
-    @apply bg-white/80 backdrop-blur-sm;
+    @apply bg-white/80 backdrop-blur-md;
   }
 
   .text-gradient {

@@ -145,7 +145,7 @@ export default function ListsPageClient() {
         {!isLoading && (
           <Button
             href="/new"
-            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white text-sm sm:text-base shadow-lg hover:shadow-xl transition-all duration-200 w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-2.5"
+            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white text-sm sm:text-base shadow-lg hover:shadow-xl transition-all duration-200 w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-2"
           >
             Create New List
           </Button>
@@ -159,7 +159,7 @@ export default function ListsPageClient() {
             {Array.from({ length: skeletonCount }).map((_, i) => (
               <div
                 key={i}
-                className="group relative overflow-hidden rounded-xl border border-white/20 bg-gradient-to-br from-white/5 to-white/3 backdrop-blur-sm p-4 sm:p-6 shadow-md animate-pulse"
+                className="group relative overflow-hidden rounded-xl border border-white/20 bg-gradient-to-br from-white/5 to-white/3 backdrop-blur-md p-4 sm:p-6 shadow-md animate-pulse"
               >
                 {/* Subtle glow effect skeleton */}
                 <div className="absolute inset-0 bg-gradient-to-br from-blue-500/0 via-purple-500/0 to-indigo-500/0 rounded-xl pointer-events-none" />
@@ -183,14 +183,14 @@ export default function ListsPageClient() {
                       {/* Stats Row skeleton */}
                       <div className="flex flex-wrap items-center gap-3 sm:gap-4">
                         {/* URL Count badge skeleton */}
-                        <div className="flex items-center gap-1.5 bg-white/5 px-2.5 py-1 rounded-lg border border-white/10">
+                        <div className="flex items-center gap-1.5 bg-white/5 px-2 py-1 rounded-lg border border-white/10">
                           <div className="h-3.5 w-3.5 sm:h-4 sm:w-4 bg-white/10 rounded" />
                           <div className="h-4 bg-white/10 rounded w-6" />
                           <div className="h-4 bg-white/10 rounded w-12 hidden sm:block" />
                         </div>
 
                         {/* Collaborators badge skeleton */}
-                        <div className="flex items-center gap-1.5 bg-white/5 px-2.5 py-1 rounded-lg border border-white/10">
+                        <div className="flex items-center gap-1.5 bg-white/5 px-2 py-1 rounded-lg border border-white/10">
                           <div className="h-3.5 w-3.5 sm:h-4 sm:w-4 bg-white/10 rounded" />
                           <div className="h-4 bg-white/10 rounded w-4" />
                           <div className="h-4 bg-white/10 rounded w-16 hidden sm:block" />
@@ -235,7 +235,7 @@ export default function ListsPageClient() {
             return (
               <div
                 key={list.id}
-                className="group relative overflow-hidden rounded-xl border border-white/20 bg-gradient-to-br from-white/5 to-white/3 backdrop-blur-sm p-4 sm:p-6 shadow-md hover:shadow-xl transition-all duration-300 hover:border-blue-400/40 hover:from-white/10 hover:to-white/5"
+                className="group relative overflow-hidden rounded-xl border border-white/20 bg-gradient-to-br from-white/5 to-white/3 backdrop-blur-md p-4 sm:p-6 shadow-md hover:shadow-xl transition-all duration-300 hover:border-blue-400/40 hover:from-white/10 hover:to-white/5"
               >
                 {/* Subtle glow effect on hover */}
                 <div className="absolute inset-0 bg-gradient-to-br from-blue-500/0 via-purple-500/0 to-indigo-500/0 group-hover:from-blue-500/5 group-hover:via-purple-500/5 group-hover:to-indigo-500/5 transition-all duration-300 rounded-xl pointer-events-none" />
@@ -286,7 +286,7 @@ export default function ListsPageClient() {
                       {/* Stats Row */}
                       <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-xs sm:text-sm">
                         {/* URL Count */}
-                        <span className="flex items-center gap-1.5 text-white/80 bg-white/5 px-2.5 py-1 rounded-lg border border-white/10">
+                        <span className="flex items-center gap-1.5 text-white/80 bg-white/5 px-2 py-1 rounded-lg border border-white/10">
                           <LinkIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-400" />
                           <span className="font-medium">{urlCount}</span>
                           <span className="text-white/60 hidden sm:inline">
@@ -296,7 +296,7 @@ export default function ListsPageClient() {
 
                         {/* Collaborators Count */}
                         {collaboratorCount > 0 && (
-                          <span className="flex items-center gap-1.5 text-white/80 bg-white/5 px-2.5 py-1 rounded-lg border border-white/10">
+                          <span className="flex items-center gap-1.5 text-white/80 bg-white/5 px-2 py-1 rounded-lg border border-white/10">
                             <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-purple-400" />
                             <span className="font-medium">
                               {collaboratorCount}
@@ -369,7 +369,7 @@ export default function ListsPageClient() {
             );
           })
         ) : (
-          <div className="rounded-xl border-2 border-dashed border-white/30 p-2 sm:p-4 text-center bg-white/5 backdrop-blur-sm">
+          <div className="rounded-xl border-2 border-dashed border-white/30 p-2 sm:p-4 text-center bg-white/5 backdrop-blur-md">
             <div className="mx-auto w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 bg-gradient-to-r from-blue-500/20 to-purple-500/20 border border-blue-400/30 rounded-full flex items-center justify-center">
               <LinkIcon className="h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12 text-blue-400" />
             </div>
@@ -382,7 +382,7 @@ export default function ListsPageClient() {
             <div className="mt-6 sm:mt-8">
               <Button
                 href="/new"
-                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white text-sm sm:text-base shadow-lg hover:shadow-xl transition-all duration-200 w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-2.5"
+                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white text-sm sm:text-base shadow-lg hover:shadow-xl transition-all duration-200 w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-2"
               >
                 Create New List
               </Button>
