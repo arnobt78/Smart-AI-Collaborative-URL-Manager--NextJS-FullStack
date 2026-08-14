@@ -15,3 +15,4 @@
 - Stable scrollbar gutter on html; Auth drop w-screen
 - Navbar avatar no-squeeze (padding outside size-10)
 - Prod console: SSE/AI via `devLog`/`devWarn` only in development
+- Clean Vercel logs: Sentry sourcemaps opt-in; prisma.config.ts seed

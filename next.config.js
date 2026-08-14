@@ -67,16 +67,31 @@ const nextConfig = {
 /**
  * tunnelRoute: same-origin /api/monitoring — browsers send Sentry envelopes here
  * instead of *.ingest.sentry.io, so ad-block / privacy extensions usually allow them.
- * Source-map upload uses SENTRY_AUTH_TOKEN when present (skipped if missing).
+ *
+ * Source-map upload is OFF by default (SENTRY_UPLOAD_SOURCEMAPS !== "1").
+ * Vercel had Errors when SENTRY_AUTH_TOKEN org (e.g. arnob-mahmuds-org) ≠ SENTRY_ORG
+ * (e.g. daily-urlist). Set SENTRY_UPLOAD_SOURCEMAPS=1 only after org/project/token match.
+ * Runtime DSN + tunnel still work without upload.
  */
+const uploadSourcemaps = process.env.SENTRY_UPLOAD_SOURCEMAPS === "1";
+
 module.exports = withSentryConfig(nextConfig, {
   org: process.env.SENTRY_ORG,
   project: process.env.SENTRY_PROJECT,
-  authToken: process.env.SENTRY_AUTH_TOKEN,
-  silent: !process.env.CI,
+  authToken: uploadSourcemaps ? process.env.SENTRY_AUTH_TOKEN : undefined,
+  silent: true,
+  telemetry: false,
   // Same-origin tunnel (normal browser + incognito with ad-block)
   tunnelRoute: "/api/monitoring",
   widenClientFileUpload: true,
   hideSourceMaps: true,
-  disableLogger: true,
+  sourcemaps: {
+    disable: !uploadSourcemaps,
+  },
+  // Replaces deprecated top-level disableLogger
+  webpack: {
+    treeshake: {
+      removeDebugLogging: true,
+    },
+  },
 });

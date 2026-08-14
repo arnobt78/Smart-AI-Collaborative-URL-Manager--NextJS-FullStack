@@ -107,12 +107,12 @@ Append-only. Newest entries at bottom.
 
 ---
 
-## DEC-0008 — Auth toast handoff + stable scrollbar gutter
+## DEC-0009 — Quiet Vercel build: Sentry upload opt-in + prisma.config.ts
 
 | Field | Value |
 |-------|-------|
 | Timestamp | 2026-08-14 |
 | Agent | Cursor Build |
-| Decision | Queue welcome/goodbye in sessionStorage across hard redirects; AuthToastBridge consume; Sparkles loading CTA; html scrollbar-gutter stable |
-| Rationale | In-memory toasts die on location.href; inline Auth message duplicated toast; scrollbar appear/disappear caused layout shift |
+| Decision | Disable Sentry sourcemap upload unless `SENTRY_UPLOAD_SOURCEMAPS=1`; `silent`+`telemetry:false`; replace `disableLogger`; move seed to `prisma.config.ts` |
+| Rationale | Token org ≠ `SENTRY_ORG` caused non-fatal but noisy sentry-cli Errors; package.json#prisma deprecated |
 | Status | Implemented |

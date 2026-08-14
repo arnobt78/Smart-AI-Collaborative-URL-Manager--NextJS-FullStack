@@ -5,15 +5,16 @@
 Live: https://daily-urlist.vercel.app/ · Resume: `.agile-v/STATE.md`
 
 ## Status (C1)
-Done: Auth UX (flash/navbar/Select/toasts/CTA/gutter/avatar) · `devLog` silences SSE/AI in prod.  
-Human: HA-0001; Sentry. Out of scope: densify/JWT SSR, Zod/SHA, Next 16.
+Done: Auth UX · quiet prod console · clean Vercel build (Sentry upload opt-in + prisma.config.ts).  
+Human: HA-0001; match Sentry org/token before upload.  
+Out of scope: densify/JWT SSR, Zod/SHA, Next 16, Prisma 7.
 
 ## Stack
-Next 15.5.23 · React 18 · RQ Infinity · Prisma 6.19 · cookie auth · Upstash · multi-AI · Sentry tunnel · PostHog · Jest
+Next 15.5.23 · React 18 · RQ · Prisma 6.19 · cookie auth · Upstash · Sentry tunnel · PostHog · Jest
 
-## Auth / layout / logs
-`wasAuthed` · static Navbar · `auth-toast` · `scrollbar-gutter: stable` · avatar `min-w-10`  
-`lib/dev-log.ts` — use instead of `console.log` for SSE/AI diagnostics (prod no-op)
+## Deploy / Sentry
+`next.config.js`: `sourcemaps.disable` unless `SENTRY_UPLOAD_SOURCEMAPS=1`; `silent`+`telemetry:false`; webpack `removeDebugLogging`.  
+`prisma.config.ts` for seed (not package.json#prisma).
 
 ## Validate
-`tsc` · `lint` · `test` · `build` → `.agile-v/VALIDATION_SUMMARY.md`
+`tsc` · `lint` · `prisma generate` · `build` → `.agile-v/VALIDATION_SUMMARY.md`
