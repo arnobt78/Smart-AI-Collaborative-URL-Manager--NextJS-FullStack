@@ -140,7 +140,7 @@ export default function HomePage() {
           {features.map((feature, index) => (
             <div
               key={index}
-              className="group p-4 sm:p-6 lg:p-8 rounded-xl sm:rounded-2xl border border-white/20 bg-white/5 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 hover:border-blue-400/30"
+              className="group p-2 sm:p-4 rounded-xl sm:rounded-2xl border border-white/20 bg-white/5 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 hover:border-blue-400/30"
             >
               <div className="bg-gradient-to-br from-blue-500/20 to-purple-500/20 backdrop-blur-sm rounded-lg sm:rounded-xl p-2.5 sm:p-3 inline-block mb-3 sm:mb-4 group-hover:scale-110 transition-transform duration-300 border border-blue-400/30">
                 {feature.icon}

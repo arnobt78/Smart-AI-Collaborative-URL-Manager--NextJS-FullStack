@@ -18,7 +18,7 @@ export default function Auth() {
   const [loading, setLoading] = useState(false);
   /** Which CTA is in flight — drives Signing in… / Signing up… label */
   const [authAction, setAuthAction] = useState<"signin" | "signup" | null>(
-    null
+    null,
   );
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -372,7 +372,7 @@ export default function Auth() {
           showWelcome ? "opacity-0 pointer-events-none" : "opacity-100"
         }`}
       >
-        <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 shadow-2xl">
+        <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl sm:rounded-2xl p-2 sm:p-4 shadow-2xl">
           <div className="text-center mb-6 sm:mb-8">
             <div className="flex justify-center mb-3 sm:mb-4">
               <OptimizedImage
@@ -417,16 +417,13 @@ export default function Auth() {
                         className="shrink-0"
                       />
                     ) : (
-                      <Users
-                        className="h-4 w-4 text-white/70"
-                        aria-hidden
-                      />
+                      <Users className="h-4 w-4 text-white/70" aria-hidden />
                     )}
                   </span>
                   <span className="truncate text-white leading-none min-h-[1.25em] inline-flex items-center">
                     {selectedGuestId
-                      ? TEST_ACCOUNTS.find((a) => a.id === selectedGuestId)
-                          ?.label ?? "Select as Guest User"
+                      ? (TEST_ACCOUNTS.find((a) => a.id === selectedGuestId)
+                          ?.label ?? "Select as Guest User")
                       : "Select as Guest User"}
                   </span>
                 </span>
@@ -438,9 +435,7 @@ export default function Auth() {
               </button>
 
               {isGuestDropdownOpen && (
-                <div
-                  className="absolute top-full left-0 right-0 mt-2 z-50 bg-gradient-to-br from-zinc-900/95 to-zinc-800/95 backdrop-blur-md border border-white/20 rounded-xl shadow-2xl animate-in fade-in-0 duration-150"
-                >
+                <div className="absolute top-full left-0 right-0 mt-2 z-50 bg-gradient-to-br from-zinc-900/95 to-zinc-800/95 backdrop-blur-md border border-white/20 rounded-xl shadow-2xl animate-in fade-in-0 duration-150">
                   {TEST_ACCOUNTS.map((account) => (
                     <button
                       key={account.id}
@@ -533,9 +528,7 @@ export default function Auth() {
                       aria-hidden
                     />
                     <span>
-                      {authAction === "signup"
-                        ? "Signing up…"
-                        : "Signing in…"}
+                      {authAction === "signup" ? "Signing up…" : "Signing in…"}
                     </span>
                     <Sparkles className="h-4 w-4 shrink-0" aria-hidden />
                   </>

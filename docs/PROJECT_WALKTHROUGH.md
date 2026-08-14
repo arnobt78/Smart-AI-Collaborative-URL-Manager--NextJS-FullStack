@@ -17,6 +17,7 @@ Next 15 URL bookmark manager. Demo: https://daily-urlist.vercel.app/
 - Deploy: Sentry sourcemaps only if `SENTRY_UPLOAD_SOURCEMAPS=1`; `prisma.config.ts` seed
 - Hooks: `useSession` · `useListQueries` + `queryInvalidation` · cookie `lib/auth.ts`
 - Lists UX: unified placeholder same-slug only · ListPage syncs `currentList` from RQ · My Lists title → `/list/[slug]` · Smart Collections create stays on page
+- Visit: `lib/utils.ts` `ensureAbsoluteHttpUrl` + `openExternalUrl` (UrlCard Visit Site + Similar URLs dialog)
 - Docs: `README.md` · `SECURITY.md` · `PORTABLE_AUTH_UI_GUIDE.md`
 - Out of scope (separate REQ): densify/Zod/SHA/JWT-null SSR
 

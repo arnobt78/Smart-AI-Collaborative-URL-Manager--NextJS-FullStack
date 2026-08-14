@@ -120,7 +120,7 @@ export default function NewListPageClient() {
         </div>
 
         {/* Form Card Skeleton */}
-        <div className="relative overflow-hidden bg-gradient-to-br from-white/10 via-white/5 to-white/3 backdrop-blur-md border border-white/20 rounded-2xl shadow-2xl p-4 sm:p-6 lg:p-8">
+        <div className="relative overflow-hidden bg-gradient-to-br from-white/10 via-white/5 to-white/3 backdrop-blur-md border border-white/20 rounded-2xl shadow-2xl p-2 sm:p-4">
           <div className="relative z-10">
             <div className="space-y-6 sm:space-y-8 animate-pulse">
               {/* Title Field Skeleton */}
@@ -209,7 +209,7 @@ export default function NewListPageClient() {
       </div>
 
       {/* Form Card */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-white/10 via-white/5 to-white/3 backdrop-blur-md border border-white/20 rounded-xl sm:rounded-2xl shadow-2xl p-4 sm:p-6 lg:p-8">
+      <div className="relative overflow-hidden bg-gradient-to-br from-white/10 via-white/5 to-white/3 backdrop-blur-md border border-white/20 rounded-xl sm:rounded-2xl shadow-2xl p-2 sm:p-4">
         {/* Animated background effect */}
         <div className="absolute inset-0 bg-gradient-to-r from-blue-500/0 via-purple-500/5 to-indigo-500/0 animate-pulse pointer-events-none" />
 

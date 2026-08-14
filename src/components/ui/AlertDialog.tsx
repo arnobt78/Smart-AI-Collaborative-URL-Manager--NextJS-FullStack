@@ -73,7 +73,7 @@ export function AlertDialog({
       }}
     >
       <div
-        className="relative w-full max-w-md mx-3 sm:mx-4 bg-gradient-to-br from-zinc-900 to-zinc-800 rounded-xl sm:rounded-2xl shadow-2xl border border-white/20 p-4 sm:p-6 lg:p-8 max-h-[90vh] overflow-y-auto"
+        className="relative w-full max-w-md mx-3 sm:mx-4 bg-gradient-to-br from-zinc-900 to-zinc-800 rounded-xl sm:rounded-2xl shadow-2xl border border-white/20 p-2 sm:p-4 max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <button

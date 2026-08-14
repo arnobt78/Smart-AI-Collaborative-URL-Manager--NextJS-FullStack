@@ -121,7 +121,7 @@ export default function ListPageClient() {
 
     // Check localStorage (persists across sessions)
     const localSyncedLists = JSON.parse(
-      localStorage.getItem("vector-synced-lists") || "[]"
+      localStorage.getItem("vector-synced-lists") || "[]",
     );
     if (localSyncedLists.includes(listId)) {
       return true;
@@ -129,7 +129,7 @@ export default function ListPageClient() {
 
     // Check sessionStorage as backup (persists in current session, survives Fast Refresh better)
     const sessionSyncedLists = JSON.parse(
-      sessionStorage.getItem("vector-synced-lists") || "[]"
+      sessionStorage.getItem("vector-synced-lists") || "[]",
     );
     return sessionSyncedLists.includes(listId);
   };
@@ -140,7 +140,7 @@ export default function ListPageClient() {
 
     // Mark in localStorage (persists across sessions)
     const localSyncedLists = JSON.parse(
-      localStorage.getItem("vector-synced-lists") || "[]"
+      localStorage.getItem("vector-synced-lists") || "[]",
     );
     if (!localSyncedLists.includes(listId)) {
       localSyncedLists.push(listId);
@@ -151,7 +151,7 @@ export default function ListPageClient() {
 
     // Also mark in sessionStorage as backup (survives Fast Refresh better)
     const sessionSyncedLists = JSON.parse(
-      sessionStorage.getItem("vector-synced-lists") || "[]"
+      sessionStorage.getItem("vector-synced-lists") || "[]",
     );
     if (!sessionSyncedLists.includes(listId)) {
       sessionSyncedLists.push(listId);
@@ -444,7 +444,7 @@ export default function ListPageClient() {
       window.removeEventListener("unified-update", handleUnifiedUpdate);
       window.removeEventListener(
         "unified-update-unauthorized",
-        handleUnauthorized
+        handleUnauthorized,
       );
     };
   }, [
@@ -492,7 +492,7 @@ export default function ListPageClient() {
       hasSyncedVectors.current = listId; // Update ref for in-memory check
       if (process.env.NODE_ENV === "development") {
         console.log(
-          `⏭️ [VECTOR] ✅ SKIPPING sync for list ${listId} - already synced (localStorage check passed)`
+          `⏭️ [VECTOR] ✅ SKIPPING sync for list ${listId} - already synced (localStorage check passed)`,
         );
       }
       return; // Already synced - skip entirely
@@ -502,7 +502,7 @@ export default function ListPageClient() {
     if (hasSyncedVectors.current === listId) {
       if (process.env.NODE_ENV === "development") {
         console.log(
-          `⏭️ [VECTOR] ✅ SKIPPING sync for list ${listId} - already synced (in-memory check passed)`
+          `⏭️ [VECTOR] ✅ SKIPPING sync for list ${listId} - already synced (in-memory check passed)`,
         );
       }
       return; // Already synced in this session
@@ -512,7 +512,7 @@ export default function ListPageClient() {
     if (syncInProgress.current === listId) {
       if (process.env.NODE_ENV === "development") {
         console.log(
-          `⏭️ [VECTOR] ✅ SKIPPING sync for list ${listId} - sync already in progress`
+          `⏭️ [VECTOR] ✅ SKIPPING sync for list ${listId} - sync already in progress`,
         );
       }
       return; // Sync already in progress
@@ -520,7 +520,7 @@ export default function ListPageClient() {
 
     if (process.env.NODE_ENV === "development") {
       console.log(
-        `🔄 [VECTOR] Will sync list ${listId} - not found in localStorage or in-memory ref`
+        `🔄 [VECTOR] Will sync list ${listId} - not found in localStorage or in-memory ref`,
       );
     }
 
@@ -542,7 +542,7 @@ export default function ListPageClient() {
       // The localStorage is set synchronously and persists across page visits
       if (process.env.NODE_ENV === "development") {
         console.log(
-          `📝 [VECTOR] Marking list ${listId} as synced in localStorage (optimistic, before API call)`
+          `📝 [VECTOR] Marking list ${listId} as synced in localStorage (optimistic, before API call)`,
         );
       }
       markListVectorSynced(listId);
@@ -564,7 +564,7 @@ export default function ListPageClient() {
       if (!hasListSyncedVectors(listId)) {
         if (process.env.NODE_ENV === "development") {
           console.warn(
-            `⚠️ [VECTOR] Failed to persist sync status for list ${listId}`
+            `⚠️ [VECTOR] Failed to persist sync status for list ${listId}`,
           );
         }
         // If localStorage failed, we'll still try to sync, but mark again after success
@@ -573,7 +573,7 @@ export default function ListPageClient() {
       // Sync vectors in background (don't block UI)
       if (process.env.NODE_ENV === "development") {
         console.log(
-          `🚀 [VECTOR] Starting API call to sync vectors for list ${listId}`
+          `🚀 [VECTOR] Starting API call to sync vectors for list ${listId}`,
         );
       }
       fetch(`/api/lists/${listId}/sync-vectors`, {
@@ -585,7 +585,7 @@ export default function ListPageClient() {
           if (!hasListSyncedVectors(listId)) {
             if (process.env.NODE_ENV === "development") {
               console.warn(
-                `⚠️ [VECTOR] localStorage was cleared, re-marking list ${listId}`
+                `⚠️ [VECTOR] localStorage was cleared, re-marking list ${listId}`,
               );
             }
             markListVectorSynced(listId);
@@ -594,7 +594,7 @@ export default function ListPageClient() {
           if (process.env.NODE_ENV === "development") {
             const finalCheck = hasListSyncedVectors(listId);
             console.log(
-              `✅ [VECTOR] Synced list ${listId} - localStorage check: ${finalCheck} - will not sync again`
+              `✅ [VECTOR] Synced list ${listId} - localStorage check: ${finalCheck} - will not sync again`,
             );
           }
 
@@ -605,12 +605,12 @@ export default function ListPageClient() {
           // On failure, clear localStorage flag to allow retry on next visit
           if (typeof window !== "undefined") {
             const syncedLists = JSON.parse(
-              localStorage.getItem("vector-synced-lists") || "[]"
+              localStorage.getItem("vector-synced-lists") || "[]",
             );
             const filtered = syncedLists.filter((id: string) => id !== listId);
             localStorage.setItem(
               "vector-synced-lists",
-              JSON.stringify(filtered)
+              JSON.stringify(filtered),
             );
           }
 
@@ -752,7 +752,7 @@ export default function ListPageClient() {
           </div>
 
           {/* Add URL Form Skeleton */}
-          <div className="bg-white/5 backdrop-blur-sm p-4 sm:p-6 lg:p-8 rounded-xl border border-white/20">
+          <div className="bg-white/5 backdrop-blur-sm p-2 sm:p-4 rounded-xl border border-white/20">
             <Skeleton className="h-12 w-full mb-3" />
             <Skeleton className="h-24 w-full mb-4" />
             <div className="flex justify-end gap-3">
@@ -766,7 +766,7 @@ export default function ListPageClient() {
             {[1, 2, 3].map((i) => (
               <div
                 key={i}
-                className="bg-white/5 backdrop-blur-sm rounded-xl border border-white/20 p-4 sm:p-6 lg:p-8"
+                className="bg-white/5 backdrop-blur-sm rounded-xl border border-white/20 p-2 sm:p-4"
               >
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex-1 space-y-2">
@@ -813,7 +813,7 @@ export default function ListPageClient() {
   return (
     <div className="min-h-screen w-full">
       {/* Header Card */}
-      <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 mb-4 sm:mb-6 shadow-xl">
+      <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-xl sm:rounded-2xl p-2 sm:p-4 mb-4 sm:mb-6 shadow-xl">
         {/* First Row: Title/Info on Left, Buttons on Right */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-3 sm:mb-4">
           {/* Left Side: Title, URL Count, Visibility Badge, Toggle */}
@@ -861,85 +861,85 @@ export default function ListPageClient() {
                   checked={list.isPublic ?? false}
                   disabled={isToggling || !permissions.canInvite}
                   onChange={async (e) => {
-                  const newValue = e.target.checked;
-                  setIsToggling(true);
-                  try {
-                    const response = await fetch(
-                      `/api/lists/${list.id}/visibility`,
-                      {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ isPublic: newValue }),
-                      }
-                    );
+                    const newValue = e.target.checked;
+                    setIsToggling(true);
+                    try {
+                      const response = await fetch(
+                        `/api/lists/${list.id}/visibility`,
+                        {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ isPublic: newValue }),
+                        },
+                      );
 
-                    if (response.ok) {
-                      const { list: updatedList } = await response.json();
-                      if (updatedList) {
-                        flushSync(() => {
-                          currentList.set(updatedList);
-                        });
+                      if (response.ok) {
+                        const { list: updatedList } = await response.json();
+                        if (updatedList) {
+                          flushSync(() => {
+                            currentList.set(updatedList);
+                          });
 
-                        // CRITICAL: Invalidate ALL related queries to ensure all pages update immediately
-                        // This ensures ListsPage, BrowsePage, and current page all update without refresh
-                        // Use centralized invalidation function for consistency
-                        if (typeof slug === "string" && list?.id) {
-                          invalidateListQueries(queryClient, slug, list.id);
+                          // CRITICAL: Invalidate ALL related queries to ensure all pages update immediately
+                          // This ensures ListsPage, BrowsePage, and current page all update without refresh
+                          // Use centralized invalidation function for consistency
+                          if (typeof slug === "string" && list?.id) {
+                            invalidateListQueries(queryClient, slug, list.id);
+                          }
+                          // CRITICAL: Invalidate browse/public lists queries so BrowsePage updates immediately
+                          // This is additional to list queries invalidation above
+                          invalidateBrowseQueries(queryClient);
+
+                          // UNIFIED APPROACH: SSE handles ALL activity-updated events (single source of truth)
+                          // No local dispatch needed - prevents duplicate API calls
+
+                          toast({
+                            title: newValue
+                              ? "Made Public 🌐"
+                              : "Made Private 🔒",
+                            description: `List is now ${
+                              newValue ? "public" : "private"
+                            }`,
+                            variant: "success",
+                          });
+                        } else {
+                          // Refetch via React Query invalidation - triggers unified endpoint refetch
+                          // Use centralized invalidation function for consistency
+                          if (typeof slug === "string" && list?.id) {
+                            invalidateListQueries(queryClient, slug, list.id);
+                          }
+                          // CRITICAL: Invalidate browse/public lists queries so BrowsePage updates immediately
+                          // This is additional to list queries invalidation above
+                          invalidateBrowseQueries(queryClient);
+                          toast({
+                            title: newValue
+                              ? "Made Public 🌐"
+                              : "Made Private 🔒",
+                            description: `List is now ${
+                              newValue ? "public" : "private"
+                            }`,
+                            variant: "success",
+                          });
                         }
-                        // CRITICAL: Invalidate browse/public lists queries so BrowsePage updates immediately
-                        // This is additional to list queries invalidation above
-                        invalidateBrowseQueries(queryClient);
-
-                        // UNIFIED APPROACH: SSE handles ALL activity-updated events (single source of truth)
-                        // No local dispatch needed - prevents duplicate API calls
-
-                        toast({
-                          title: newValue
-                            ? "Made Public 🌐"
-                            : "Made Private 🔒",
-                          description: `List is now ${
-                            newValue ? "public" : "private"
-                          }`,
-                          variant: "success",
-                        });
                       } else {
-                        // Refetch via React Query invalidation - triggers unified endpoint refetch
-                        // Use centralized invalidation function for consistency
-                        if (typeof slug === "string" && list?.id) {
-                          invalidateListQueries(queryClient, slug, list.id);
-                        }
-                        // CRITICAL: Invalidate browse/public lists queries so BrowsePage updates immediately
-                        // This is additional to list queries invalidation above
-                        invalidateBrowseQueries(queryClient);
+                        const data = await response.json();
                         toast({
-                          title: newValue
-                            ? "Made Public 🌐"
-                            : "Made Private 🔒",
-                          description: `List is now ${
-                            newValue ? "public" : "private"
-                          }`,
-                          variant: "success",
+                          title: "Failed",
+                          description:
+                            data.error || "Failed to update visibility",
+                          variant: "error",
                         });
                       }
-                    } else {
-                      const data = await response.json();
+                    } catch {
                       toast({
-                        title: "Failed",
-                        description:
-                          data.error || "Failed to update visibility",
+                        title: "Error",
+                        description: "An unexpected error occurred",
                         variant: "error",
                       });
+                    } finally {
+                      setIsToggling(false);
                     }
-                  } catch {
-                    toast({
-                      title: "Error",
-                      description: "An unexpected error occurred",
-                      variant: "error",
-                    });
-                  } finally {
-                    setIsToggling(false);
-                  }
-                }}
+                  }}
                 />
                 <span className="text-[10px] text-white/50 hidden sm:inline">
                   {list.isPublic ? "Public" : "Private"}
@@ -981,7 +981,7 @@ export default function ListPageClient() {
                       if (process.env.NODE_ENV === "development") {
                         console.log(
                           "📋 Manual Setup Instructions:",
-                          data.instructions
+                          data.instructions,
                         );
                       }
                     } else {
@@ -1042,7 +1042,7 @@ export default function ListPageClient() {
                         window.dispatchEvent(
                           new CustomEvent("metadata-refresh-complete", {
                             detail: { listId: list.id },
-                          })
+                          }),
                         );
                       }
 
@@ -1123,7 +1123,7 @@ export default function ListPageClient() {
                                 listId: data.list.id || list?.id,
                                 activity: data.activity,
                               },
-                            })
+                            }),
                           );
                         }
 
@@ -1197,8 +1197,8 @@ export default function ListPageClient() {
               {mounted && list?.slug
                 ? `${window.location.origin}/list/${list.slug}`
                 : list?.slug
-                ? `/list/${list.slug}`
-                : ""}
+                  ? `/list/${list.slug}`
+                  : ""}
             </span>
             <button
               type="button"
@@ -1207,8 +1207,8 @@ export default function ListPageClient() {
                   mounted && list?.slug
                     ? `${window.location.origin}/list/${list.slug}`
                     : list?.slug
-                    ? `/list/${list.slug}`
-                    : "";
+                      ? `/list/${list.slug}`
+                      : "";
                 if (!url) return;
                 try {
                   await navigator.clipboard.writeText(url);
@@ -1241,7 +1241,7 @@ export default function ListPageClient() {
 
         {/* Collaborators Section - PermissionManager */}
         {list.id && list.slug && (
-          <div className="mt-3 sm:mt-4 bg-gradient-to-br from-white/5 to-white/3 backdrop-blur-md border border-white/10 rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 shadow-xl">
+          <div className="mt-3 sm:mt-4 bg-gradient-to-br from-white/5 to-white/3 backdrop-blur-md border border-white/10 rounded-xl sm:rounded-2xl p-2 sm:p-4 shadow-xl">
             <PermissionManager
               listId={list.id}
               listTitle={list.title || "Untitled List"}
@@ -1259,7 +1259,7 @@ export default function ListPageClient() {
 
         {/* Activity Feed Section */}
         {list.id && (
-          <div className="mt-4 sm:mt-6 bg-white/5 backdrop-blur-md border border-white/10 rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 shadow-xl">
+          <div className="mt-4 sm:mt-6 bg-white/5 backdrop-blur-md border border-white/10 rounded-xl sm:rounded-2xl p-2 sm:p-4 shadow-xl">
             <ActivityFeed listId={list.id} limit={30} />
           </div>
         )}

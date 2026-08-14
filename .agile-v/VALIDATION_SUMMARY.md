@@ -12,5 +12,6 @@
 | Clean Vercel deploy logs | PASS | — | Sentry upload opt-in; prisma.config.ts |
 | Import-flow quiet prod | PASS | — | UrlBulkImportExport + chrome + bulk-import → devLog |
 | List switch + collections UX | PASS | PASS | slug-safe placeholder; title nav; silent create; warm-cache skeletons |
+| Visit Site open external URL | PASS | PASS | ensureAbsoluteHttpUrl + openExternalUrl; UrlCard card+dialog |
 
 Out of scope: densify/JWT SSR, Zod/SHA, Next 16, Prisma 7.

@@ -7,13 +7,7 @@ import { Badge } from "@/components/ui/Badge";
 import { AlertDialog } from "@/components/ui/AlertDialog";
 import { useToast } from "@/components/ui/Toaster";
 import { LinkIcon, PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
-import {
-  Globe,
-  Lock,
-  Calendar,
-  Clock,
-  Users,
-} from "lucide-react";
+import { Globe, Lock, Calendar, Clock, Users } from "lucide-react";
 import {
   useAllListsQuery,
   useDeleteList,
@@ -100,7 +94,7 @@ export default function ListsPageClient() {
 
   // Helper function to format relative time
   const formatRelativeTime = (
-    date: string | Date | null | undefined
+    date: string | Date | null | undefined,
   ): string => {
     if (!date) return "Unknown";
     try {
@@ -375,7 +369,7 @@ export default function ListsPageClient() {
             );
           })
         ) : (
-          <div className="rounded-xl border-2 border-dashed border-white/30 p-4 sm:p-6 lg:p-8 text-center bg-white/5 backdrop-blur-sm">
+          <div className="rounded-xl border-2 border-dashed border-white/30 p-2 sm:p-4 text-center bg-white/5 backdrop-blur-sm">
             <div className="mx-auto w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 bg-gradient-to-r from-blue-500/20 to-purple-500/20 border border-blue-400/30 rounded-full flex items-center justify-center">
               <LinkIcon className="h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12 text-blue-400" />
             </div>

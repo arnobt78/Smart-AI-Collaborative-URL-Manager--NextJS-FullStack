@@ -26,7 +26,7 @@ interface UrlEditModalProps {
     url: string,
     tags?: string[],
     notes?: string,
-    reminder?: string
+    reminder?: string,
   ) => void;
 }
 
@@ -113,7 +113,7 @@ export function UrlEditModal({
           typeof window !== "undefined" ? window.location.origin : "";
         const response = await fetch(
           `${baseUrl}/api/metadata?url=${encodeURIComponent(editingUrl.url)}`,
-          { signal: abortController.signal }
+          { signal: abortController.signal },
         );
 
         // Check if aborted
@@ -160,7 +160,7 @@ export function UrlEditModal({
   if (!editingUrl) return null;
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-3 sm:p-4 backdrop-blur-sm overflow-y-auto">
-      <div className="w-full max-w-xl max-h-[90vh] my-4 sm:my-8 rounded-xl sm:rounded-2xl bg-gradient-to-br from-zinc-900 to-zinc-800 p-4 sm:p-6 lg:p-8 shadow-2xl border border-white/20 overflow-y-auto">
+      <div className="w-full max-w-xl max-h-[90vh] my-4 sm:my-8 rounded-xl sm:rounded-2xl bg-gradient-to-br from-zinc-900 to-zinc-800 p-2 sm:p-4 shadow-2xl border border-white/20 overflow-y-auto">
         <h2 className="text-xl sm:text-2xl font-bold text-white flex items-center gap-2">
           <PencilIcon className="h-5 w-5 sm:h-6 sm:w-6 text-blue-400" />
           Edit URL
@@ -181,7 +181,7 @@ export function UrlEditModal({
               editingUrl.url,
               tagsArray.length > 0 ? tagsArray : undefined,
               editingNotes || undefined,
-              editingReminder || undefined
+              editingReminder || undefined,
             );
           }}
           className="mt-4 sm:mt-6 lg:mt-8 space-y-4 sm:space-y-6"
@@ -239,7 +239,7 @@ export function UrlEditModal({
                         .map((t) => t.trim())
                         .filter((t) => t.length > 0);
                       const newTags = [...existingTags, ...result.tags].filter(
-                        (tag, index, self) => self.indexOf(tag) === index
+                        (tag, index, self) => self.indexOf(tag) === index,
                       );
                       setEditingTags(newTags.join(", "));
                     }

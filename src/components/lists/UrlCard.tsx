@@ -33,6 +33,7 @@ import { currentList } from "@/stores/urlListStore";
 import { UrlHealthIndicator } from "@/components/urls/UrlHealthIndicator";
 import { Comments } from "@/components/collaboration/Comments";
 import { MessageSquare } from "lucide-react";
+import { ensureAbsoluteHttpUrl, openExternalUrl } from "@/lib/utils";
 // Using public path instead of import
 const logoPath = "/favicon.ico";
 
@@ -198,7 +199,7 @@ export const UrlCard: React.FC<UrlCardProps> = ({
   // Use logo.png only for your own site URLs
   const isOwnUrl = (() => {
     try {
-      const u = new URL(url.url);
+      const u = new URL(ensureAbsoluteHttpUrl(url.url) || url.url);
       return [
         "localhost",
         "127.0.0.1",
@@ -271,7 +272,8 @@ export const UrlCard: React.FC<UrlCardProps> = ({
   // This ensures data is displayed even if metadata hasn't loaded yet
   const title = metadata?.title || url.title || url.url;
   const description = metadata?.description || url.description; // Fallback to url.description from database
-  const siteName = metadata?.siteName || url.category; // Use category as siteName fallback
+  // Reserved for richer card chrome (site label); keep derived so metadata path stays warm
+  const _siteName = metadata?.siteName || url.category;
 
   // Check if we should show skeleton
   // Only show skeleton if we truly don't have ANY data to display
@@ -521,12 +523,11 @@ export const UrlCard: React.FC<UrlCardProps> = ({
                   <IconButton
                     icon={<ArrowTopRightOnSquareIcon />}
                     onClick={() => {
-                      // Track the click
+                      // Fire-and-forget click analytics; open must not wait on fetch
                       if (onUrlClick) {
                         onUrlClick(url.id);
                       }
-                      // Open the URL
-                      window.open(url.url, "_blank", "noopener,noreferrer");
+                      openExternalUrl(url.url);
                     }}
                     tooltip="Visit Site"
                     variant="primary"
@@ -817,11 +818,7 @@ export const UrlCard: React.FC<UrlCardProps> = ({
                           <Button
                             type="button"
                             onClick={() => {
-                              window.open(
-                                result.url.url,
-                                "_blank",
-                                "noopener,noreferrer"
-                              );
+                              openExternalUrl(result.url.url);
                             }}
                             className="flex-shrink-0 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg whitespace-nowrap"
                           >

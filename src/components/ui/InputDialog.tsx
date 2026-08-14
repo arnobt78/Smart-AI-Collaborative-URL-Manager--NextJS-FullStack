@@ -103,7 +103,7 @@ export function InputDialog({
       onClick={handleCancel}
     >
       <div
-        className="relative w-full max-w-md mx-3 sm:mx-4 bg-gradient-to-br from-zinc-900 to-zinc-800 rounded-xl sm:rounded-2xl shadow-2xl border border-white/20 p-4 sm:p-6 lg:p-8"
+        className="relative w-full max-w-md mx-3 sm:mx-4 bg-gradient-to-br from-zinc-900 to-zinc-800 rounded-xl sm:rounded-2xl shadow-2xl border border-white/20 p-2 sm:p-4"
         onClick={(e) => e.stopPropagation()}
       >
         <button

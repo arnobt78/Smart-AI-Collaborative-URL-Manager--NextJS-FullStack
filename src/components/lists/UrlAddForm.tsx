@@ -42,7 +42,7 @@ export function UrlAddForm({
   const [isUrlInputFocused, setIsUrlInputFocused] = useState(false);
   const [enhancementResult, setEnhancementResult] =
     useState<EnhancementResult | null>(null);
-  
+
   const prefetchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const previousUrlRef = useRef<string | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -105,7 +105,7 @@ export function UrlAddForm({
           typeof window !== "undefined" ? window.location.origin : "";
         const response = await fetch(
           `${baseUrl}/api/metadata?url=${encodeURIComponent(newUrl)}`,
-          { signal: abortController.signal }
+          { signal: abortController.signal },
         );
 
         // Check if aborted
@@ -186,7 +186,7 @@ export function UrlAddForm({
         .map((t) => t.trim())
         .filter((t) => t.length > 0);
       const allTags = [...existingTags, ...result.tags].filter(
-        (tag, index, self) => self.indexOf(tag) === index
+        (tag, index, self) => self.indexOf(tag) === index,
       );
       setNewTags(allTags.join(", "));
       devLog("Auto-filled tags:", allTags); // Debug log
@@ -204,7 +204,7 @@ export function UrlAddForm({
         setNewNote((prev) =>
           prev.includes(result.summary)
             ? prev
-            : `${prev}\n\nAI Summary: ${result.summary}`
+            : `${prev}\n\nAI Summary: ${result.summary}`,
         );
       }
     } else {
@@ -230,7 +230,7 @@ export function UrlAddForm({
         transition-all duration-300 ease-in-out overflow-hidden
         ${
           isExpanded
-            ? "p-4 sm:p-6 lg:p-8 max-h-[1000px] opacity-100"
+            ? "p-2 sm:p-4 max-h-[1000px] opacity-100"
             : "p-0 max-h-0 opacity-0"
         }
       `}
