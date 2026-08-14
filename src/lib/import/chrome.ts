@@ -67,7 +67,7 @@ export function parseChromeBookmarks(html: string): ImportResult {
           : undefined;
 
         // Look for folder path in parent elements for category/tags
-        let folderPath: string[] = [];
+        const folderPath: string[] = [];
         let parent: Element | null = link.parentElement;
         while (parent && parent !== doc.body) {
           const dt = parent.querySelector("h3");

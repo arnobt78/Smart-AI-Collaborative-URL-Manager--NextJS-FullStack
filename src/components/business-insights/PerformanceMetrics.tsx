@@ -185,7 +185,6 @@ export function PerformanceMetrics({
                   <Tooltip content={<CustomTooltip />} />
                   <Legend
                     wrapperStyle={{ color: "#ffffff60", fontSize: "10px" }}
-                    className="text-[10px] sm:text-xs"
                   />
                 </PieChart>
               </ResponsiveContainer>

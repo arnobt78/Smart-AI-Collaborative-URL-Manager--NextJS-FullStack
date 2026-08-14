@@ -51,7 +51,7 @@ export async function GET(req: NextRequest, context: RouteContext) {
 
     // Check Redis cache for URLs with metadata (use list.id, not identifier)
     const cacheKey = `list-urls:${listId}`;
-    let cachedData: {
+    const cachedData: {
       urls: UrlItem[];
       metadata: Record<string, UrlMetadata>;
     } | null = null;

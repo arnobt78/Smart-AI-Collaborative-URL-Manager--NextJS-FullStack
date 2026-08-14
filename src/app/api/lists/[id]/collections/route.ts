@@ -65,7 +65,7 @@ export async function GET(
     );
 
     // Get duplicate detections (if requested)
-    let duplicates: DuplicateDetection[] = [];
+    const duplicates: DuplicateDetection[] = [];
     if (includeDuplicates && user) {
       try {
         // Get all user's lists for duplicate detection

@@ -50,7 +50,7 @@ These describe the current product as verified in code. They are **Accepted as b
 **Acceptance:**
 
 - [x] `.env.example` exists with placeholders only
-- [ ] README env section references `.env.example`
+- [x] README env section references `.env.example`
 - [ ] Decision recorded on whether to stop allowlisting secrets in `.cursorignore`
 - [x] No real credentials committed
 
@@ -102,11 +102,12 @@ These describe the current product as verified in code. They are **Accepted as b
 **Statement:** Remove or justify unused dependencies (`next-auth`, `@hello-pangea/dnd` if still unused) and align README auth env docs with custom session auth.  
 **Acceptance:**
 
-- [ ] Unused deps removed **or** DEC logged why kept
-- [ ] README does not instruct NextAuth setup as the app’s auth system
-- [ ] `package.json` / lockfile consistent
+- [x] Unused deps removed **or** DEC logged why kept — removed `next-auth`, `@hello-pangea/dnd` (2026-08-14)
+- [x] README does not instruct NextAuth setup as the app’s auth system
+- [x] `package.json` / lockfile consistent
 
-**Trace:** RISK-0003, TASK-0004
+**Trace:** RISK-0003, TASK-0004  
+**Status:** Done 2026-08-14 — README documents custom cookie auth
 
 ---
 
@@ -162,7 +163,8 @@ These describe the current product as verified in code. They are **Accepted as b
 **Statement:** Document which runner is canonical (`npm test` → Jest) and either remove unused Vitest config or wire a clear `test:vitest` script to avoid dual-runner confusion.  
 **Acceptance:** Single documented path for CI/local; scripts match docs.
 
-**Trace:** TASK-0008
+**Trace:** TASK-0008  
+**Status:** Done 2026-08-14 — removed Vitest stack; Jest only
 
 ---
 

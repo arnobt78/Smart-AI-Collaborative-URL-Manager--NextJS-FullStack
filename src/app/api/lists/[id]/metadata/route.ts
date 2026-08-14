@@ -30,7 +30,7 @@ export async function GET(req: NextRequest, context: RouteContext) {
 
     // Check Redis cache first (instant retrieval)
     const cacheKey = `list-metadata:${listId}`;
-    let cachedMetadata: Record<string, UrlMetadata> | null = null;
+    const cachedMetadata: Record<string, UrlMetadata> | null = null;
     const uniqueUrls = Array.from(new Set(urls.map((u) => u.url)));
 
     console.log(

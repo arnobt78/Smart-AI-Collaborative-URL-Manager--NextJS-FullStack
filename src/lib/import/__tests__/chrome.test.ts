@@ -4,6 +4,8 @@
 
 import { parseChromeBookmarks } from "../chrome";
 import type { ImportResult } from "../types";
+import fs from "fs";
+import path from "path";
 
 // Mock console methods to reduce noise in tests
 const originalConsoleError = console.error;
@@ -215,8 +217,6 @@ describe("parseChromeBookmarks", () => {
 
   it("should parse all 48 URLs from the actual bookmarks.html file", () => {
     // Read the actual bookmarks.html file
-    const fs = require("fs");
-    const path = require("path");
     const htmlPath = path.join(process.cwd(), "db-data", "bookmarks.html");
     const htmlContent = fs.readFileSync(htmlPath, "utf8");
 

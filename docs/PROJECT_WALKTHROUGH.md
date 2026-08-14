@@ -1,27 +1,23 @@
 # PROJECT_WALKTHROUGH.md
 
-Compact agent map for Daily Urlist. Code is source of truth; details in `.agile-v/` and `docs/`.
+Compact agent map. Code = source of truth.
 
-## What it is
-Next.js 15 App Router URL bookmark app: lists/URLs CRUD, AI enhance/search/collections, collab (roles, comments, SSE), Redis cache, vector search, QStash jobs, Cloudinary, Vercel.
+## App
+Next 15 App Router URL bookmark manager: CRUD lists/URLs, AI, collab SSE, Redis, vector, QStash, Cloudinary. Demo: https://daily-urlist.vercel.app/
 
 ## Layout
-- `src/app/**/page.tsx` — thin server shells → `src/components/pages/*` clients
-- `src/app/api/**` — Route Handlers
-- `src/hooks/useListQueries.ts` + `src/utils/queryInvalidation.ts` — React Query Infinity
-- `src/lib/auth.ts` — cookie sessions (not NextAuth)
-- `src/lib/redis.ts` — Upstash REST; optional `getCache`/`setCache`/`deleteCache`
-- `src/lib/ai/*` — providers `models[]` + shared client fallback
-- `src/components/ui/safe-image.tsx` — optimizer → native `<img>` (UrlCard)
-- Prisma: `List.urls` / `archivedUrls` JSON arrays
+- `src/app/**/page.tsx` → `src/components/pages/*`
+- `src/app/api/**` Route Handlers · `layout.tsx` SEO metadata + JSON-LD
+- `sitemap.ts` / `robots.ts` · `SECURITY.md` private vuln reports
+- Hooks: `useListQueries` + `queryInvalidation` · Auth: `src/lib/auth.ts` cookies
+- Redis helpers · AI `providers`+`client` · `SafeImage` on UrlCard
+- Prisma: `List.urls` / `archivedUrls` JSON
 
-## Observability (2026-08)
-- Sentry: `@sentry/nextjs`, `tunnelRoute: "/api/monitoring"`, env-gated DSN
-- PostHog: env-gated; idle without `NEXT_PUBLIC_POSTHOG_KEY`
-- Guardrails: security headers, robots.ts, vercel.json
+## Versions
+Next **15.5.23** · React **18** · Prisma **6.19.3** · Jest only · audit **0**
 
 ## Env
-See `.env.example`. Real secrets: `.env.local` / Vercel only.
+`.env.example` · secrets in `.env.local`/Vercel only
 
-## Docs of note
-`docs/AGILE_V_PROTOCOL.md` · `LLM_MODEL_SELECTION.md` · `VERCEL_PRODUCTION_GUARDRAILS.md` · `SAFE_IMAGE_REUSABLE_COMPONENT.md` · `Redis_Sentry_PostHog_INTEGRATION_GUIDE.md`
+## Docs
+`README.md` · `LLM_MODEL_SELECTION.md` · `VERCEL_PRODUCTION_GUARDRAILS.md` · `SAFE_IMAGE_*` · `Redis_Sentry_PostHog_*` · `.agile-v/`

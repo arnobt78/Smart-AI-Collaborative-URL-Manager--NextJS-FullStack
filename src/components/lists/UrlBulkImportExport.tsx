@@ -863,7 +863,7 @@ export function UrlBulkImportExport({
         });
       }
       let errorCount = 0;
-      let skippedCount = 0; // URLs that failed validation
+      const skippedCount = 0; // URLs that failed validation
       const metadataFailedUrls: string[] = []; // Track URLs that couldn't fetch metadata
       let processedCount = 0; // Track total processed for progress
 
@@ -2010,7 +2010,6 @@ export function UrlBulkImportExport({
         // ADDITIVE: Enforce hard disable + native fetch restoration guard
         try {
           (window as any).__bulkImportDisableInterception = true;
-          const { abortRegistry } = require("@/utils/abortRegistry");
           abortRegistry?.forceRestoreNativeFetch?.();
           console.log(
             "🛠 [IMPORT] Disabled interception & enforced native fetch restoration"

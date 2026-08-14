@@ -134,7 +134,6 @@ export function ActivityChart({
                   <Tooltip content={<CustomTooltip />} />
                   <Legend
                     wrapperStyle={{ color: "#ffffff60", fontSize: "10px" }}
-                    className="text-[10px] sm:text-xs"
                   />
                   <Line
                     type="monotone"
@@ -178,7 +177,6 @@ export function ActivityChart({
                   <Tooltip content={<CustomTooltip />} />
                   <Legend
                     wrapperStyle={{ color: "#ffffff60", fontSize: "10px" }}
-                    className="text-[10px] sm:text-xs"
                   />
                   <Line
                     type="monotone"
@@ -222,7 +220,6 @@ export function ActivityChart({
                   <Tooltip content={<CustomTooltip />} />
                   <Legend
                     wrapperStyle={{ color: "#ffffff60", fontSize: "10px" }}
-                    className="text-[10px] sm:text-xs"
                   />
                   <Line
                     type="monotone"

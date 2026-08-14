@@ -20,11 +20,15 @@ const customJestConfig = {
       },
     ],
   },
-  transformIgnorePatterns: [
-    "/node_modules/(?!(@dnd-kit|@nanostores|nanostores|@hello-pangea|@heroicons|@tanstack|@upstash|lucide-react)/)",
+  testPathIgnorePatterns: [
     "<rootDir>/.next/",
+    "<rootDir>/node_modules/",
+    "<rootDir>/babel.config.test.js",
   ],
-  testPathIgnorePatterns: ["<rootDir>/.next/", "<rootDir>/node_modules/"],
+  testMatch: [
+    "<rootDir>/src/**/__tests__/**/*.{js,jsx,ts,tsx}",
+    "<rootDir>/src/**/*.{spec,test}.{js,jsx,ts,tsx}",
+  ],
   collectCoverageFrom: [
     "src/**/*.{js,jsx,ts,tsx}",
     "!src/**/*.d.ts",
@@ -33,5 +37,14 @@ const customJestConfig = {
   ],
 };
 
-// createJestConfig is exported this way to ensure that next/jest can load the Next.js config which is async
-module.exports = createJestConfig(customJestConfig);
+// next/jest overwrites transformIgnorePatterns — re-apply after merge so ESM packages transform
+const asyncConfig = createJestConfig(customJestConfig);
+
+module.exports = async () => {
+  const config = await asyncConfig();
+  config.transformIgnorePatterns = [
+    "/node_modules/(?!(@dnd-kit|@nanostores|nanostores|@heroicons|@tanstack|@upstash|lucide-react)/)",
+    "<rootDir>/.next/",
+  ];
+  return config;
+};

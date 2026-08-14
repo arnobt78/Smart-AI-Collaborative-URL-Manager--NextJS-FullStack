@@ -12,6 +12,7 @@ import {
 import { useTypewriter } from "@/hooks/useTypewriter";
 import { IconButton } from "@/components/ui/HoverTooltip";
 import { useQueryClient } from "@tanstack/react-query";
+import { abortRegistry } from "@/utils/abortRegistry";
 
 export default function Navbar() {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -48,7 +49,6 @@ export default function Navbar() {
         // CRITICAL: Force abort any pending requests and clear router cache
         // This ensures RSC requests don't get stuck
         try {
-          const { abortRegistry } = require("@/utils/abortRegistry");
           if (abortRegistry) {
             // Force abort all requests
             abortRegistry.forceAbortAllGlobal();

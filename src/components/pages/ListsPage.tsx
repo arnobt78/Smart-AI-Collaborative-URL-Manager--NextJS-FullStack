@@ -22,8 +22,8 @@ import {
   type UserList,
 } from "@/hooks/useListQueries";
 
-// Keep interface for backward compatibility
-interface List extends UserList {}
+// Keep type alias for backward compatibility
+type List = UserList;
 
 export default function ListsPageClient() {
   const router = useRouter();

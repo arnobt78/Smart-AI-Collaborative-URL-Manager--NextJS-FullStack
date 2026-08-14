@@ -96,7 +96,7 @@ class SmartCollectionsService {
 
     try {
       // Step 1: Use vector search to find similar URLs (if enabled)
-      let groupedUrls: Map<string, UrlItem[]> = new Map();
+      const groupedUrls: Map<string, UrlItem[]> = new Map();
 
       if (useVectorSearch && urls.length > 0) {
         try {

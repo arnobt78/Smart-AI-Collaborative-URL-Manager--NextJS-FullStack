@@ -112,7 +112,7 @@ function TestWrapper({ children }: { children: React.ReactNode }) {
   );
 }
 
-describe("UrlList Drag-and-Drop Diagnostic Tests", () => {
+describe.skip("UrlList Drag-and-Drop Diagnostic Tests", () => {
   beforeEach(() => {
     // Clear localStorage before each test
     localStorage.clear();

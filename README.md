@@ -1,16 +1,18 @@
-# Smart AI Collaborative URL Bookmark Manager - Next.js, TanStack React Query, Prisma, PostgreSQL, Upstash, QStash, Cloudinary, Google Gemini, Groq, OpenRouter, Hugging Face FullStack Project
+# Smart AI Collaborative URL Bookmark Manager - Next.js, TypeScript, PostgreSQL, Prisma, TanStack Query, Upstash, QStash, Cloudinary, AI Features, SSE Full-Stack Project
 
-A production-ready, full-stack URL bookmarking and sharing platform built with Next.js 15, React, TypeScript, and PostgreSQL. Features AI-powered enhancements, real-time collaboration, vector search, and intelligent URL organization.
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Next.js](https://img.shields.io/badge/Next.js-15-black)](https://nextjs.org/)
+[![React](https://img.shields.io/badge/React-18.3.1-blue)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.7.3-blue)](https://www.typescriptlang.org/)
+[![Prisma](https://img.shields.io/badge/Prisma-6.19-2D3748)](https://www.prisma.io/)
+[![React Query](https://img.shields.io/badge/TanStack%20Query-5-FF4154)](https://tanstack.com/query)
+[![launch with diploi badge](https://diploi.com/launch.svg)](https://diploi.com/launch/arnobt78/Daily-URL-Bookmark-Notes-Dairy--NextJS-FullStack)
 
-- **Live-Demo:** [https://daily-urlist.vercel.app/](https://daily-urlist.vercel.app/)
+A production-ready, full-stack URL bookmarking and sharing platform (**The Daily Urlist**, package `urlist` v0.2.1). Built with **Next.js 15 App Router**, **React 18**, **TypeScript**, **Prisma**, and **PostgreSQL**. Features AI-powered enhancements, real-time collaboration, vector search, Redis caching, and intelligent URL organization.
 
-![Next.js](https://img.shields.io/badge/Next.js-15.5.7-black)
-![React](https://img.shields.io/badge/React-18.3.1-blue)
-![TypeScript](https://img.shields.io/badge/TypeScript-5.7.3-blue)
-![Prisma](https://img.shields.io/badge/Prisma-6.19.0-2D3748)
-![React Query](https://img.shields.io/badge/React%20Query-5.90.6-FF4154)
-
----
+- **Live Demo:** [https://daily-urlist.vercel.app/](https://daily-urlist.vercel.app/)
+- **Security:** Private reports → [SECURITY.md](./SECURITY.md) · [contact@arnobmahmud.com](mailto:contact@arnobmahmud.com)
+- **Author:** [Arnob Mahmud](https://www.arnobmahmud.com) · [GitHub @arnobt78](https://github.com/arnobt78) · [LinkedIn @arnob-mahmud-05839655](https://www.linkedin.com/in/arnob-mahmud-05839655/)
 
 ![Screenshot 2025-12-05 at 13 25 33](https://github.com/user-attachments/assets/7369ad36-5a47-4e30-97ed-f6fab885515f)
 ![Screenshot 2025-12-05 at 13 25 56](https://github.com/user-attachments/assets/7d041189-6bab-41df-9cbb-25c3d16d8c67)
@@ -24,1428 +26,643 @@ A production-ready, full-stack URL bookmarking and sharing platform built with N
 ![Screenshot 2025-12-05 at 13 39 17](https://github.com/user-attachments/assets/a4f27ec3-c645-49b5-b4c2-2eb61732d05e)
 ![Screenshot 2025-12-05 at 13 39 40](https://github.com/user-attachments/assets/e9e43a9f-8387-40c7-855a-6d52e1ca1fae)
 
-## 📖 Table of Contents
+## Table of Contents
 
-- [Overview](#-overview)
-- [Features](#-features)
-- [Technology Stack](#-technology-stack)
-- [Project Structure](#-project-structure)
-- [Getting Started](#-getting-started)
-- [Environment Variables](#-environment-variables)
-- [Project Walkthrough](#-project-walkthrough)
-- [Components Documentation](#-components-documentation)
-- [API Endpoints](#-api-endpoints)
-- [Reusable Components Guide](#-reusable-components-guide)
-- [Code Examples](#-code-examples)
-- [Keywords](#-keywords)
-- [Conclusion](#-conclusion)
-
----
-
-## 🎯 Overview
-
-**The Daily Urlist** is a modern, full-featured URL bookmark manager that goes beyond simple link saving. It combines powerful organization tools, AI-powered enhancements, real-time collaboration, and intelligent features to create a comprehensive solution for managing and sharing web resources.
-
-### What Makes This Project Special?
-
-- **🚀 Production-Ready**: Optimized for performance with React Query caching, Infinity cache strategy, and instant rendering
-- **🤖 AI-Powered**: URL enhancement, smart collections, duplicate detection, and semantic search
-- **👥 Real-Time Collaboration**: Live updates, comments, activity feeds, and role-based permissions
-- **⚡ Lightning Fast**: Zero API calls until database changes, instant navigation with cached data
-- **🔍 Intelligent Organization**: Vector-based semantic search, smart collections, and automatic categorization
-- **📊 Business Insights**: Analytics, activity tracking, and performance metrics
-- **🌐 Import/Export**: Support for Pocket, Pinboard, and Chrome bookmarks
+- [Overview](#overview)
+- [Who This README Is For](#who-this-readme-is-for)
+- [Features](#features)
+- [Technology Stack](#technology-stack)
+- [Keywords Glossary](#keywords-glossary)
+- [Project Structure](#project-structure)
+- [How the App Works (Architecture)](#how-the-app-works-architecture)
+- [Getting Started](#getting-started)
+- [Environment Variables](#environment-variables)
+- [Pages & Routes](#pages--routes)
+- [API Endpoints](#api-endpoints)
+- [Authentication](#authentication)
+- [Data Model](#data-model)
+- [Frontend: Components & Reuse](#frontend-components--reuse)
+- [Hooks, Cache & Invalidation](#hooks-cache--invalidation)
+- [Backend Libraries](#backend-libraries)
+- [AI, Redis, Vector & Jobs](#ai-redis-vector--jobs)
+- [Code Snippets (Learning)](#code-snippets-learning)
+- [Testing, Lint & Build](#testing-lint--build)
+- [Deploying](#deploying)
+- [Learning Path](#learning-path)
+- [Related Docs](#related-docs)
+- [Conclusion](#conclusion)
+- [License](#license)
 
 ---
 
-## ✨ Features
+## Overview
 
-### Core Features
+**The Daily Urlist** is more than a bookmark list. Users create **lists**, add **URLs** with metadata, collaborate with roles, get **AI** help (enhance / collections / smart search), and see **live updates** over SSE when collaborators change a list.
 
-1. **URL Management**
-
-   - Create, edit, delete, and organize URLs in lists
-   - Rich metadata extraction (title, description, images)
-   - Drag-and-drop reordering
-   - Favorites, pins, and reminders
-   - Archive and restore URLs
-   - URL health monitoring
-
-2. **List Management**
-
-   - Multiple lists per user
-   - Public/private visibility controls
-   - Custom slugs for easy sharing
-   - List-level descriptions and metadata
-   - Bulk import/export (Pocket, Pinboard, Chrome)
-
-3. **AI-Powered Enhancements**
-
-   - Automatic URL enhancement with AI
-   - Smart collection suggestions
-   - Duplicate URL detection
-   - Semantic search across all URLs
-   - Automatic categorization and tagging
-
-4. **Collaboration**
-
-   - Role-based permissions (Owner, Editor, Viewer)
-   - Real-time activity feeds
-   - Comments on URLs
-   - Live updates via Server-Sent Events (SSE)
-   - Collaborative editing
-
-5. **Search & Discovery**
-
-   - Vector-based semantic search
-   - Filter by tags, category, favorites
-   - Sort by date, alphabetically, favorites
-   - Browse public lists
-   - Smart search with AI
-
-6. **Business Insights**
-
-   - Activity timelines
-   - Popular content analytics
-   - Performance metrics
-   - Global statistics
-   - API status monitoring
-
-7. **Developer Features**
-   - RESTful API with comprehensive endpoints
-   - API documentation page
-   - Real-time event streaming
-   - Scheduled background jobs
+| Layer                               | Role in this project                                     |
+| ----------------------------------- | -------------------------------------------------------- |
+| **Next.js App Router**              | Pages + API Route Handlers in one app                    |
+| **Prisma + PostgreSQL**             | Users, sessions, lists, comments, activities             |
+| **TanStack React Query**            | Client cache with long `staleTime` (“Infinity” strategy) |
+| **Upstash Redis / Vector / QStash** | Optional cache, semantic search, background jobs         |
+| **Multi-provider AI**               | Gemini → Groq → OpenRouter → Hugging Face fallbacks      |
+| **Cloudinary**                      | Optional image hosting / optimization                    |
+| **Sentry / PostHog**                | Optional error tracking & analytics (env-gated)          |
 
 ---
 
-## 🛠 Technology Stack
+## Who This README Is For
 
-### Frontend
+- **Beginners** learning Next.js full-stack patterns (App Router, Route Handlers, Prisma)
+- **Intermediate** developers studying React Query cache + mutation invalidation
+- **Anyone** forking the repo to build a similar SaaS-style bookmark/collab product
 
-- **Next.js 15.5.7** - React framework with App Router
-- **React 18.3.1** - UI library
-- **TypeScript 5.7.3** - Type safety
-- **TanStack React Query 5.90.6** - Data fetching and caching
-- **Tailwind CSS 3.4.1** - Utility-first styling
-- **ShadCN UI** - Reusable component library
-- **@dnd-kit** - Drag-and-drop functionality
-- **NanoStores** - Lightweight state management
-- **Recharts** - Data visualization
-
-### Backend
-
-- **Next.js API Routes** - Serverless API endpoints
-- **Prisma 6.19.0** - Database ORM
-- **PostgreSQL** - Primary database (Supabase)
-- **Upstash Redis** - Caching and real-time features
-- **Upstash Vector** - Vector database for semantic search
-- **QStash** - Scheduled jobs and background tasks
-
-### AI & Services
-
-- **Google Gemini** - AI enhancement
-- **Groq (Llama 3)** - Fast AI inference
-- **OpenRouter** - Multi-model AI access
-- **Hugging Face** - AI inference
-- **Cloudinary** - Image optimization and CDN
-
-### Email & Communication
-
-- **Resend** - Transactional emails
-- **Nodemailer** - SMTP email support
-- **Gmail SMTP** - Alternative email provider
-
-### Development Tools
-
-- **Turbopack** - Fast bundler (development)
-- **Jest** - Testing framework
-- **ESLint** - Code linting
-- **TypeScript** - Static type checking
+You do **not** need every third-party key to learn the codebase. See [Environment Variables](#environment-variables).
 
 ---
 
-## 📁 Project Structure
+## Features
 
-```bash
+### Core URL & list management
+
+- Create / edit / delete lists and URL items
+- Metadata fetch (title, description, image, favicon)
+- Drag-and-drop reorder (`@dnd-kit`)
+- Favorites, pins, reminders, archive/restore
+- Public vs private lists + shareable `slug`
+- Bulk import (Chrome / Pocket / Pinboard) and export (JSON / CSV / Markdown)
+
+### AI-powered tools (optional keys)
+
+- URL enhancement (`/api/ai/enhance-url`)
+- Smart collections & duplicate hints
+- Semantic / smart search (vector + LLM when configured)
+
+### Collaboration & realtime
+
+- Collaborator emails + roles (owner / editor / viewer)
+- Comments on URL items
+- Activity feed
+- Server-Sent Events (SSE) for live list sync
+
+### Insights & ops
+
+- Business insights charts (Recharts)
+- API status / docs pages in the app
+- QStash jobs: metadata refresh, URL health, session cleanup
+
+### UX & resilience
+
+- `SafeImage` fallback for broken remote previews
+- React Query invalidation so CRUD updates UI without full reload (including back navigation when cache is correct)
+- Security headers + `robots.ts` + Sentry tunnel `/api/monitoring`
+
+---
+
+## Technology Stack
+
+### Runtime & UI
+
+| Tech                   | Version (approx.) | Why it’s here                      |
+| ---------------------- | ----------------- | ---------------------------------- |
+| **Next.js**            | 15.5.x            | App Router, SSR shells, API routes |
+| **React**              | 18.3              | UI + client islands                |
+| **TypeScript**         | 5.7.x             | Typed app & API                    |
+| **Tailwind CSS**       | 3.4               | Utility styling                    |
+| **TanStack Query**     | 5.x               | Server-state cache                 |
+| **NanoStores**         | 1.x               | Lightweight client list state      |
+| **@dnd-kit**           | 6.x / 10.x        | Accessible drag-and-drop           |
+| **Recharts**           | 3.x               | Insights charts                    |
+| **Lucide / Heroicons** | —                 | Icons                              |
+
+### Data & infra
+
+| Tech                    | Role                              |
+| ----------------------- | --------------------------------- |
+| **PostgreSQL**          | Primary database                  |
+| **Prisma 6.19**         | ORM + migrations                  |
+| **bcryptjs**            | Password hashing                  |
+| **Upstash Redis**       | Cache + realtime pub/sub helpers  |
+| **Upstash Vector**      | Embeddings / semantic search      |
+| **QStash**              | Scheduled / queued HTTP jobs      |
+| **Cloudinary**          | Media                             |
+| **Nodemailer / Resend** | Email                             |
+| **Cheerio**             | HTML parsing (imports / metadata) |
+| **Sentry**              | Errors (tunnel `/api/monitoring`) |
+| **PostHog**             | Analytics (no-op without key)     |
+| **Jest**                | Unit / component tests            |
+
+> Auth is **custom cookie sessions** in `src/lib/auth.ts` — **not** NextAuth (removed as unused).
+
+---
+
+## Keywords Glossary
+
+| Keyword                  | Meaning here                                                 |
+| ------------------------ | ------------------------------------------------------------ |
+| **App Router**           | Next.js `src/app` file-based routing                         |
+| **Route Handler**        | `route.ts` API under `src/app/api`                           |
+| **SSR-first**            | Layouts/pages start on server; interactivity is client       |
+| **Client island**        | `"use client"` component for hooks / DnD / forms             |
+| **React Query Infinity** | Very long `staleTime` so cached list data feels instant      |
+| **Invalidation**         | Mark queries stale after mutation so UI refetches            |
+| **SSE**                  | Server pushes events over a long-lived HTTP stream           |
+| **JSON URLs column**     | `List.urls` stores URL objects as JSON, not a separate table |
+| **Slug**                 | Public path segment, e.g. `/list/my-travel-links`            |
+| **Env-gated**            | Feature idle until env vars exist (Sentry, PostHog, AI)      |
+| **Model chain**          | AI tries providers/models in order on failure / rate limit   |
+
+---
+
+## Project Structure
+
+```text
 daily-urlist/
-├── prisma/
-│   ├── schema.prisma          # Database schema
-│   └── migrations/            # Database migrations
-├── public/                    # Static assets
 ├── src/
-│   ├── app/                   # Next.js App Router
-│   │   ├── api/              # API routes
-│   │   │   ├── auth/         # Authentication endpoints
-│   │   │   ├── lists/        # List management endpoints
-│   │   │   ├── ai/           # AI enhancement endpoints
-│   │   │   ├── business-insights/  # Analytics endpoints
-│   │   │   ├── metadata/     # URL metadata extraction
-│   │   │   ├── realtime/     # Server-Sent Events
-│   │   │   └── ...
-│   │   ├── list/[slug]/      # Individual list pages
-│   │   ├── lists/            # Lists overview page
-│   │   ├── browse/           # Public lists browser
-│   │   ├── business-insights/ # Analytics dashboard
-│   │   └── ...
-│   ├── components/           # React components
-│   │   ├── ui/              # Reusable UI components (ShadCN)
-│   │   ├── pages/           # Page-level components
-│   │   ├── lists/           # List-related components
-│   │   ├── collaboration/   # Collaboration features
-│   │   ├── ai/              # AI-powered components
-│   │   ├── business-insights/ # Analytics components
-│   │   └── ...
-│   ├── hooks/               # Custom React hooks
-│   │   ├── useListQueries.ts        # List data hooks
-│   │   ├── useSession.ts            # Session management
-│   │   ├── useUrlMetadata.ts        # URL metadata hooks
-│   │   ├── useBrowseQueries.ts      # Browse page hooks
-│   │   └── ...
-│   ├── lib/                 # Utility libraries
-│   │   ├── ai/             # AI providers and logic
-│   │   ├── auth.ts         # Authentication logic
-│   │   ├── db.ts           # Database utilities
-│   │   ├── email/          # Email services
-│   │   ├── import/         # Bookmark importers
-│   │   ├── export/         # Export functionality
-│   │   ├── react-query.ts  # React Query configuration
-│   │   └── ...
-│   ├── stores/             # State management
-│   │   ├── urlListStore.ts      # URL list state (NanoStores)
-│   │   └── dragOrderCache.ts    # Drag-and-drop cache
-│   ├── utils/              # Utility functions
-│   │   ├── queryInvalidation.ts  # Cache invalidation
-│   │   ├── urlMetadata.ts        # Metadata extraction
-│   │   └── ...
-│   └── types/              # TypeScript type definitions
-├── package.json            # Dependencies and scripts
-├── next.config.js          # Next.js configuration
-├── tailwind.config.js      # Tailwind CSS configuration
-└── tsconfig.json           # TypeScript configuration
+│   ├── app/                    # Next.js App Router
+│   │   ├── api/                # Backend Route Handlers
+│   │   ├── list/[slug]/        # Public/shared list + edit
+│   │   ├── lists/, browse/, new/, business-insights/, …
+│   │   ├── layout.tsx          # Root layout (providers)
+│   │   ├── robots.ts
+│   │   └── global-error.tsx    # Sentry-aware error UI
+│   ├── components/
+│   │   ├── pages/              # Large page clients
+│   │   ├── lists/, urls/, ui/  # Domain + primitives
+│   │   ├── collaboration/, ai/, collections/
+│   │   ├── business-insights/, layout/, providers/
+│   ├── hooks/                  # React Query + session + SSE
+│   ├── lib/                    # auth, prisma, redis, ai, email, …
+│   ├── stores/                 # NanoStores (current list, drag cache)
+│   └── utils/                  # queryInvalidation, urlMetadata, …
+├── prisma/                     # schema.prisma + migrations
+├── docs/                       # Deep guides (AI, Sentry, SafeImage, …)
+├── .agile-v/                   # Agent / cycle memory (optional for humans)
+├── .env.example                # Placeholder env template (safe to commit)
+├── SECURITY.md                 # Private vulnerability reporting
+├── vercel.json                 # Deploy headers / config
+└── package.json
 ```
 
+**Teaching tip:** `src/app/**/page.tsx` files are often thin; heavy UI lives in `src/components/pages/*` so routing stays clean.
+
 ---
 
-## 🚀 Getting Started
+## How the App Works (Architecture)
+
+```text
+Browser (React Query + NanoStores)
+    │  fetch / mutate
+    ▼
+Next.js Route Handlers (src/app/api/**)
+    │  getCurrentUser() cookie session
+    ▼
+Prisma → PostgreSQL
+    │
+    ├─ optional Redis cache (metadata / list payloads)
+    ├─ optional Vector index (semantic search)
+    ├─ optional AI providers (enhance / collections / search)
+    └─ optional QStash → /api/jobs/* (background work)
+
+Collaborators ←── SSE /api/realtime/list/[listId]/events ←── Redis pub/sub helpers
+```
+
+1. User signs up/in → server sets **httpOnly** `session_token` cookie.
+2. List CRUD writes Postgres (`List.urls` JSON).
+3. Client mutations call APIs, then **`invalidateUrlQueries` / list keys** so every subscribed page updates.
+4. If Redis/AI/QStash keys are missing, those paths no-op or degrade gracefully where coded.
+
+---
+
+## Getting Started
 
 ### Prerequisites
 
-- **Node.js** 18+ (recommended: 20+)
-- **PostgreSQL** database (Neon, Supabase, or self-hosted)
-- **npm** or **yarn** package manager
-- **Git** for version control
+- **Node.js** 20+ recommended
+- **npm**
+- A **PostgreSQL** database (local Docker, Neon, Supabase, Hetzner, etc.)
 
-### Installation Steps
+### 1. Clone & install
 
-1. **Clone the Repository**
+```bash
+git clone https://github.com/arnobt78/Daily-URL-Bookmark-Notes-Dairy--NextJS-FullStack.git
+cd Daily-URL-Bookmark-Notes-Dairy--NextJS-FullStack
+npm install
+```
 
-   ```bash
-   git clone <repository-url>
-   cd daily-urlist
-   ```
+### 2. Environment file
 
-2. **Install Dependencies**
+```bash
+cp .env.example .env.local
+```
 
-   ```bash
-   npm install
-   ```
+Fill at least the **minimum** variables (next section). You do **not** need every key to run core CRUD.
 
-3. **Set Up Environment Variables**
+### 3. Database
 
-   Create a `.env.local` file in the root directory (see [Environment Variables](#-environment-variables) section below).
+```bash
+npx prisma migrate dev
+# optional sample data:
+npm run db:seed
+```
 
-4. **Set Up Database**
+### 4. Develop
 
-   ```bash
-   # Generate Prisma Client
-   npm run db:generate
+```bash
+npm run dev
+```
 
-   # Push schema to database (creates tables)
-   npx prisma db push
-   ```
+Open [http://localhost:3000](http://localhost:3000).
 
-5. **Start Development Server**
+### 5. Quality checks
 
-   ```bash
-   npm run dev
-   ```
-
-   The application will be available at `http://localhost:3000`
+```bash
+npx tsc --noEmit
+npm run lint
+npm test
+npm run build
+```
 
 ---
 
-## 🔐 Environment Variables
+## Environment Variables
 
-Create a `.env.local` file in the root directory with the following variables:
+Committed template: **[`.env.example`](./.env.example)**.  
+Real secrets go only in **`.env.local`** (gitignored) or your host (Vercel).
 
-### Required Variables
+### Do we need a `.env` to run?
+
+| Answer                | Detail                                                                                              |
+| --------------------- | --------------------------------------------------------------------------------------------------- |
+| **Minimum yes**       | You need Postgres URLs + base URL for a working app.                                                |
+| **Optional services** | Redis, Vector, QStash, Cloudinary, AI, email, Sentry, PostHog — leave blank to skip those features. |
+
+### Minimum (core app)
+
+| Variable               | Purpose                        | How to get it                                                      |
+| ---------------------- | ------------------------------ | ------------------------------------------------------------------ |
+| `NEXT_PUBLIC_BASE_URL` | Absolute app URL               | Local: `http://localhost:3000`                                     |
+| `DATABASE_URL`         | Prisma pooled URL              | From your Postgres host (often port `6543` with `?pgbouncer=true`) |
+| `DIRECT_URL`           | Direct Postgres for migrations | Same host, usually port `5432`                                     |
+
+**Example (placeholders only):**
 
 ```bash
-# Base URL Configuration
 NEXT_PUBLIC_BASE_URL=http://localhost:3000
-# For production: https://your-domain.com
-
-# Database Configuration (PostgreSQL - Supabase)
-# Transaction Pooler for regular app queries (port 6543)
-DATABASE_URL="postgresql://postgres.PROJECT_REF:PASSWORD@aws-1-eu-central-1.pooler.supabase.com:6543/postgres?pgbouncer=true"
-
-# Direct connection for Prisma migrations (port 5432)
-DIRECT_URL="postgresql://postgres.PROJECT_REF:PASSWORD@aws-1-eu-central-1.pooler.supabase.com:5432/postgres"
-
-# Session Secret
-NEXTAUTH_SECRET=your-secret-key-here-change-in-production
-NEXTAUTH_URL=http://localhost:3000
+DATABASE_URL=postgresql://USER:PASSWORD@HOST:6543/postgres?pgbouncer=true
+DIRECT_URL=postgresql://USER:PASSWORD@HOST:5432/postgres
 ```
 
-### Optional but Recommended
+### Optional — Email
+
+| Variable         | Purpose      | How to get it                    |
+| ---------------- | ------------ | -------------------------------- |
+| `SMTP_*`         | Classic SMTP | Gmail / provider SMTP settings   |
+| `RESEND_API_KEY` | Resend API   | [resend.com](https://resend.com) |
+
+### Optional — Upstash
+
+| Variable                            | Purpose                  | How to get it                                                   |
+| ----------------------------------- | ------------------------ | --------------------------------------------------------------- |
+| `UPSTASH_REDIS_REST_URL` / `TOKEN`  | Cache + realtime helpers | [console.upstash.com](https://console.upstash.com) → Redis REST |
+| `UPSTASH_VECTOR_REST_URL` / `TOKEN` | Semantic search          | Upstash Vector index                                            |
+| `QSTASH_TOKEN`                      | Job scheduling           | Upstash QStash                                                  |
+
+### Optional — Cloudinary
+
+| Variable                                           | Purpose                   |
+| -------------------------------------------------- | ------------------------- |
+| `CLOUDINARY_CLOUD_NAME` / `API_KEY` / `API_SECRET` | Upload & transform images |
+
+Create a free cloud at [cloudinary.com](https://cloudinary.com).
+
+### Optional — AI providers
+
+| Variable                         | Provider         |
+| -------------------------------- | ---------------- |
+| `GOOGLE_GEMINI_API_KEY`          | Google AI Studio |
+| `GROQ_LLAMA_API_KEY`             | Groq Console     |
+| `OPENROUTER_API_KEY`             | OpenRouter       |
+| `HUGGING_FACE_INFERENCE_API_KEY` | Hugging Face     |
+
+Without these, AI routes will fail or skip; list/URL CRUD still works.
+
+### Optional — Observability
+
+| Variable                                              | Purpose                 |
+| ----------------------------------------------------- | ----------------------- |
+| `NEXT_PUBLIC_SENTRY_DSN` / `SENTRY_DSN`               | Browser + server errors |
+| `SENTRY_ORG` / `SENTRY_PROJECT` / `SENTRY_AUTH_TOKEN` | Source maps / CI upload |
+| `NEXT_PUBLIC_POSTHOG_KEY` / `HOST`                    | Product analytics       |
+
+Sentry browser traffic can use the same-origin tunnel **`/api/monitoring`** (see `next.config.js`) to reduce ad-block drops. PostHog is a **no-op** until the key is set.
+
+### Legacy names
+
+`NEXTAUTH_SECRET` / `NEXTAUTH_URL` may appear in older docs or status checks — **this app does not use NextAuth**. Prefer cookie auth in `src/lib/auth.ts`.
+
+---
+
+## Pages & Routes
+
+| Route                          | Purpose                  |
+| ------------------------------ | ------------------------ |
+| `/`                            | Home / auth entry        |
+| `/lists`                       | Your lists               |
+| `/new`                         | Create list              |
+| `/browse`                      | Discover public lists    |
+| `/list/[slug]`                 | View list + URLs         |
+| `/list/[slug]/edit`            | Edit list settings       |
+| `/business-insights`           | Analytics dashboards     |
+| `/api-docs`                    | In-app API documentation |
+| `/api-status`                  | Integration status       |
+| `/about`, `/privacy`, `/terms` | Static/info              |
+
+Each `page.tsx` typically renders a client from `src/components/pages/`.
+
+---
+
+## API Endpoints
+
+All under `src/app/api/**`. Auth endpoints set/clear cookies; list routes usually require a session (except public reads).
+
+### Auth
+
+| Method | Path                | Notes                  |
+| ------ | ------------------- | ---------------------- |
+| POST   | `/api/auth/signup`  | Create user + session  |
+| POST   | `/api/auth/signin`  | Login + session cookie |
+| POST   | `/api/auth/signout` | Clear session          |
+| GET    | `/api/auth/session` | Current user/session   |
+
+### Lists & URLs
+
+| Method                | Path                                 | Notes             |
+| --------------------- | ------------------------------------ | ----------------- |
+| GET/POST              | `/api/lists`                         | List all / create |
+| GET/PATCH/DELETE      | `/api/lists/[id]`                    | One list          |
+| GET                   | `/api/lists/public`                  | Public discovery  |
+| GET/POST/PATCH/DELETE | `/api/lists/[id]/urls`               | URL items         |
+| PATCH                 | `/api/lists/[id]/reorder`            | Order             |
+| POST                  | `/api/lists/[id]/archive-url`        | Archive           |
+| POST                  | `/api/lists/[id]/bulk-import`        | Bulk import       |
+| GET/POST              | `/api/lists/[id]/collaborators`      | Sharing           |
+| GET/POST/DELETE       | `/api/lists/[id]/comments`           | Comments          |
+| GET                   | `/api/lists/[id]/activities`         | Activity          |
+| GET                   | `/api/lists/[id]/collections`        | AI collections    |
+| PATCH                 | `/api/lists/[id]/visibility`         | Public flag       |
+| GET                   | `/api/lists/[id]/metadata`           | Cached metadata   |
+| POST                  | `/api/lists/[id]/sync-vectors`       | Vector sync       |
+| GET                   | `/api/realtime/list/[listId]/events` | SSE stream        |
+
+### AI, search, metadata, jobs, insights
+
+| Area     | Examples                                                                                    |
+| -------- | ------------------------------------------------------------------------------------------- |
+| AI       | `POST /api/ai/enhance-url`                                                                  |
+| Search   | `POST /api/search/smart`                                                                    |
+| Metadata | `GET/POST /api/metadata`                                                                    |
+| Email    | `POST /api/email/send`                                                                      |
+| Jobs     | `/api/jobs/refresh-metadata`, `check-urls`, `cleanup-sessions`, …                           |
+| Insights | `/api/business-insights/overview`, `activity`, `global`, `popular`, `performance`, `status` |
+
+**Learner tip:** Open any `route.ts`, find `getCurrentUser()`, then follow the Prisma call — that is the backend pattern everywhere.
+
+---
+
+## Authentication
+
+```text
+signUp / signIn
+  → bcrypt hash/verify
+  → Prisma Session row
+  → Set-Cookie: session_token (httpOnly)
+  → getCurrentUser() reads cookie on later requests
+```
+
+Key file: [`src/lib/auth.ts`](./src/lib/auth.ts)
+
+```ts
+// Conceptual usage inside a Route Handler
+import { getCurrentUser } from "@/lib/auth";
+
+export async function GET() {
+  const user = await getCurrentUser();
+  if (!user) return Response.json({ error: "Unauthorized" }, { status: 401 });
+  // ...
+}
+```
+
+**Reuse in another project:** copy `auth.ts` + `User`/`Session` models + the four `/api/auth/*` routes; keep cookies httpOnly and rotate secrets if you add signing later.
+
+---
+
+## Data Model
+
+Simplified Prisma view:
+
+- **User** — email + hashed password
+- **Session** — token, expiry, last activity
+- **List** — title, slug, `isPublic`, `urls` (JSON array), `archivedUrls` (JSON), collaborators / roles
+- **Comment** — tied to `listId` + `urlId`
+- **Activity** — audit trail for list actions
+
+URL objects live **inside** `List.urls` (not a separate `Url` table). That keeps reads simple and matches the NanoStores `UrlItem` shape in `src/stores/urlListStore.ts`.
+
+---
+
+## Frontend: Components & Reuse
+
+### UI primitives (`src/components/ui/`)
+
+| Component                               | Use when                                              |
+| --------------------------------------- | ----------------------------------------------------- |
+| `Button`, `Input`, `Textarea`, `Select` | Forms                                                 |
+| `Card`, `Badge`, `Tabs`, `Switch`       | Layout / toggles                                      |
+| `Toast` / `Toaster`                     | Feedback (`useToast`)                                 |
+| `AlertDialog`, `InputDialog`            | Confirms / prompts                                    |
+| `SafeImage`                             | Remote URLs that may 404 (optimizer → native `<img>`) |
+| `OptimizedImage`                        | Trusted/Cloudinary assets                             |
+
+**Reuse example — SafeImage:**
+
+```tsx
+import { SafeImage } from "@/components/ui/safe-image";
+
+<SafeImage
+  src={url.image}
+  alt={url.title}
+  width={120}
+  height={80}
+  className="rounded-md object-cover"
+/>;
+```
+
+Copy `safe-image.tsx` into another Next app that already allows remote image hosts in `next.config`.
+
+### Domain components
+
+| Path                            | Role                        |
+| ------------------------------- | --------------------------- |
+| `lists/UrlList.tsx`             | Sortable URL list + filters |
+| `lists/UrlCard.tsx`             | Single URL card             |
+| `lists/UrlBulkImportExport.tsx` | Import/export UI            |
+| `collaboration/Comments.tsx`    | Thread UI                   |
+| `pages/*Page.tsx`               | Full screens wired to hooks |
+
+**Reuse pattern:** keep presentational UI dumb; pass data/mutations from hooks (`useListQueries`) so the same card works in list view and browse view.
+
+---
+
+## Hooks, Cache & Invalidation
+
+| Hook / util            | Responsibility                                                     |
+| ---------------------- | ------------------------------------------------------------------ |
+| `useListQueries`       | Query keys, list/URL mutations, unified list fetch                 |
+| `useBrowseQueries`     | Public browse data                                                 |
+| `useRealtimeList`      | SSE subscription                                                   |
+| `useSession`           | Client session helper                                              |
+| `queryInvalidation.ts` | After CRUD: invalidate list, URLs, metadata, browse, collaborators |
+
+**Why it matters:** with long `staleTime`, forgetting invalidation causes “stale UI until refresh.” This project centralizes invalidation so create/update/delete stays consistent across pages and back-button navigation.
+
+```ts
+// After a successful mutation (conceptual)
+import { invalidateUrlQueries } from "@/utils/queryInvalidation";
+
+await invalidateUrlQueries(queryClient, listId);
+```
+
+---
+
+## Backend Libraries
+
+| Module        | Path                                   | Teaches                                    |
+| ------------- | -------------------------------------- | ------------------------------------------ |
+| Prisma client | `src/lib/prisma.ts`                    | Singleton DB client                        |
+| Redis helpers | `src/lib/redis.ts`                     | `getCache` / `setCache` / `deleteCache`    |
+| AI            | `src/lib/ai/*`                         | Provider registry + shared client fallback |
+| Vector        | `src/lib/vector.ts`                    | Upstash Vector                             |
+| Import/export | `src/lib/import`, `src/lib/export`     | Chrome/Pocket/Pinboard parsers             |
+| Email         | `src/lib/email`                        | SMTP / Resend                              |
+| Permissions   | `src/lib/collaboration/permissions.ts` | Role checks                                |
+| Jobs          | `src/lib/jobs`                         | QStash wiring                              |
+
+---
+
+## AI, Redis, Vector & Jobs
+
+1. **AI** — `providers.ts` defines `models[]` chains; `client.ts` walks them and skips hard rate limits.
+2. **Redis** — speeds metadata/list payloads when Upstash REST env is set.
+3. **Vector** — powers smarter search when vector env is set.
+4. **QStash** — calls your own `/api/jobs/*` on a schedule (health checks, metadata refresh, session cleanup).
+
+Deep dives: `docs/LLM_MODEL_SELECTION.md`, `docs/Redis_Sentry_PostHog_INTEGRATION_GUIDE.md`.
+
+---
+
+## Code Snippets (Learning)
+
+### App Router page → client page
+
+```tsx
+// src/app/lists/page.tsx (pattern)
+import ListsPageClient from "@/components/pages/ListsPage";
+
+export default function ListsPage() {
+  return <ListsPageClient />;
+}
+```
+
+### React Query provider
+
+Configured in root layout / providers so every page shares one `QueryClient` (`src/lib/react-query.ts`).
+
+### Tailwind class merge (`src/lib/utils.ts`)
+
+```ts
+import { type ClassValue, clsx } from "clsx";
+import { twMerge } from "tailwind-merge";
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
+```
+
+Use `cn("px-2", condition && "bg-white/10")` in UI components the same way as typical shadcn-style apps.
+
+---
+
+## Testing, Lint & Build
 
 ```bash
-# Email Configuration (Choose one)
-# Option 1: SMTP (Gmail)
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USER=your-email@gmail.com
-SMTP_PASS=your-app-password
-SMTP_FROM_EMAIL=your-email@gmail.com
-SMTP_FROM_NAME=The Daily Urlist
-
-# Option 2: Resend
-RESEND_API_KEY=re_your_resend_api_key
-
-# Redis & Real-time Features (Upstash)
-UPSTASH_REDIS_REST_URL=https://your-redis.upstash.io
-UPSTASH_REDIS_REST_TOKEN=your-redis-token
-
-# Vector Database for Semantic Search (Upstash)
-UPSTASH_VECTOR_REST_URL=https://your-vector.upstash.io
-UPSTASH_VECTOR_REST_TOKEN=your-vector-token
-
-# Scheduled Jobs (QStash)
-QSTASH_TOKEN=your-qstash-token
-
-# Image Optimization (Cloudinary)
-CLOUDINARY_CLOUD_NAME=your-cloud-name
-CLOUDINARY_API_KEY=your-api-key
-CLOUDINARY_API_SECRET=your-api-secret
-
-# AI Services (At least one recommended)
-GOOGLE_GEMINI_API_KEY=your-gemini-api-key
-GROQ_LLAMA_API_KEY=your-groq-api-key
-OPENROUTER_API_KEY=your-openrouter-api-key
-HUGGING_FACE_INFERENCE_API_KEY=your-huggingface-api-key
-```
-
-### Environment Variable Details
-
-#### Database (Required)
-
-- **`DATABASE_URL`**: PostgreSQL connection string (Transaction Pooler for app queries)
-
-  - For Supabase: `postgresql://postgres.PROJECT_REF:PASSWORD@REGION.pooler.supabase.com:6543/postgres?pgbouncer=true`
-  - For other providers: `postgresql://user:password@host:port/database?sslmode=require`
-  - Get from: Supabase, Neon, or your PostgreSQL provider
-
-- **`DIRECT_URL`**: Direct database connection (required for Prisma migrations with Supabase)
-  - For Supabase: `postgresql://postgres.PROJECT_REF:PASSWORD@REGION.pooler.supabase.com:5432/postgres`
-  - Used by Prisma for schema migrations (DDL operations)
-  - **Note**: If using Supabase, both `DATABASE_URL` and `DIRECT_URL` are required.
-
-#### Email (Optional but Recommended)
-
-Choose **one** email service:
-
-**SMTP (Gmail):**
-
-- `SMTP_HOST`: Usually `smtp.gmail.com`
-- `SMTP_PORT`: `587` for TLS
-- `SMTP_USER`: Your Gmail address
-- `SMTP_PASS`: Gmail App Password (not your regular password)
-- `SMTP_FROM_EMAIL`: Sender email
-- `SMTP_FROM_NAME`: Sender display name
-
-**Resend:**
-
-- `RESEND_API_KEY`: Get from [Resend.com](https://resend.com)
-
-#### Redis (Optional - Enables Caching & Real-time)
-
-- `UPSTASH_REDIS_REST_URL`: Get from [Upstash Redis](https://upstash.com)
-- `UPSTASH_REDIS_REST_TOKEN`: Get from Upstash dashboard
-
-#### Vector Database (Optional - Enables Semantic Search)
-
-- `UPSTASH_VECTOR_REST_URL`: Get from [Upstash Vector](https://upstash.com)
-- `UPSTASH_VECTOR_REST_TOKEN`: Get from Upstash dashboard
-
-#### AI Services (Optional - Enables AI Features)
-
-At least one AI provider recommended:
-
-- **Google Gemini**: `GOOGLE_GEMINI_API_KEY` - [Get API Key](https://makersuite.google.com/app/apikey)
-- **Groq**: `GROQ_LLAMA_API_KEY` - [Get API Key](https://console.groq.com)
-- **OpenRouter**: `OPENROUTER_API_KEY` - [Get API Key](https://openrouter.ai)
-- **Hugging Face**: `HUGGING_FACE_INFERENCE_API_KEY` - [Get API Key](https://huggingface.co)
-
-#### Cloudinary (Optional - Enables Image Optimization)
-
-- `CLOUDINARY_CLOUD_NAME`: Get from [Cloudinary](https://cloudinary.com)
-- `CLOUDINARY_API_KEY`: From Cloudinary dashboard
-- `CLOUDINARY_API_SECRET`: From Cloudinary dashboard
-
-#### Scheduled Jobs (Optional - Enables Background Tasks)
-
-- `QSTASH_TOKEN`: Get from [Upstash QStash](https://upstash.com)
-
----
-
-## 📚 Project Walkthrough
-
-### How It Works
-
-#### 1. **Authentication Flow**
-
-- User signs up/signs in through the `Auth` component
-- Session token stored in httpOnly cookie
-- Session validated on each API request
-- React Query caches session data with Infinity cache
-
-```typescript
-// Session is cached forever until logout
-const { user, isLoading } = useSession();
-```
-
-#### 2. **List Creation & Management**
-
-- Users create lists with title, description, and slug
-- Lists stored in PostgreSQL with JSON URL arrays
-- React Query caches lists data for instant loading
-- Real-time updates via SSE for collaborative editing
-
-#### 3. **URL Management**
-
-- URLs added to lists with automatic metadata extraction
-- Metadata cached in React Query with Infinity cache
-- Drag-and-drop reordering with optimistic updates
-- Health monitoring for URL status
-
-#### 4. **Real-Time Collaboration**
-
-- Server-Sent Events (SSE) for live updates
-- Redis pub/sub for broadcasting changes
-- Activity feed shows all list changes
-- Comments system for URL discussions
-
-#### 5. **AI Enhancements**
-
-- AI providers (Gemini, Groq, etc.) enhance URLs
-- Smart collections suggest related URLs
-- Duplicate detection finds similar URLs
-- Semantic search uses vector embeddings
-
-#### 6. **Caching Strategy**
-
-- **Infinity Cache**: Data cached forever until invalidated
-- **Centralized Invalidation**: Single source of truth
-- **Optimistic Updates**: UI updates immediately
-- **Placeholder Data**: Shows cached data while fetching
-
----
-
-## 🧩 Components Documentation
-
-### Page Components
-
-#### `HomePage.tsx`
-
-Landing page with features showcase and authentication.
-
-**Location:** `src/components/HomePage.tsx`
-
-**Features:**
-
-- Hero section with call-to-action
-- Features grid
-- How it works section
-- Conditional rendering based on auth state
-
-**Usage:**
-
-```typescript
-import HomePage from "@/components/HomePage";
-
-export default function Page() {
-  return <HomePage />;
-}
-```
-
-#### `ListsPage.tsx`
-
-Displays all user lists with search, filtering, and management options.
-
-**Location:** `src/components/pages/ListsPage.tsx`
-
-**Features:**
-
-- Lists grid with React Query caching
-- Search and filter functionality
-- Delete lists with confirmation
-- Public/private indicators
-- Collaboration indicators
-
-**Hooks Used:**
-
-- `useAllListsQuery()` - Fetches all lists with Infinity cache
-
-#### `ListPage.tsx`
-
-Individual list view with URLs, activities, and collaboration.
-
-**Location:** `src/components/pages/ListPage.tsx`
-
-**Features:**
-
-- Unified list data (list + activities + collaborators)
-- Real-time updates via SSE
-- Activity feed
-- Collaboration management
-- Smart collections sidebar
-
-**Hooks Used:**
-
-- `useUnifiedListQuery(slug)` - Fetches complete list data
-
-#### `BrowsePage.tsx`
-
-Browse public lists with pagination and search.
-
-**Location:** `src/components/pages/BrowsePage.tsx`
-
-**Features:**
-
-- Public lists pagination
-- Search functionality
-- List preview cards
-
-**Hooks Used:**
-
-- `usePublicListsQuery(page, search)` - Fetches public lists
-
-#### `BusinessInsightsPage.tsx`
-
-Analytics dashboard with charts and metrics.
-
-**Location:** `src/components/pages/BusinessInsightsPage.tsx`
-
-**Features:**
-
-- Activity timeline charts
-- Popular content analytics
-- Performance metrics
-- Global statistics
-
-**Hooks Used:**
-
-- `useBusinessOverviewQuery()`
-- `useBusinessActivityQuery(days)`
-- `useBusinessPopularQuery()`
-- `useBusinessPerformanceQuery()`
-- `useBusinessGlobalQuery()`
-
----
-
-### UI Components (ShadCN)
-
-All UI components are located in `src/components/ui/` and follow ShadCN patterns:
-
-#### `Button.tsx`
-
-Reusable button component with variants and link support.
-
-```typescript
-import { Button } from "@/components/ui/Button";
-
-// Primary button
-<Button>Click Me</Button>
-
-// Link button
-<Button href="/lists">Go to Lists</Button>
-
-// Variants
-<Button variant="outline">Outline</Button>
-<Button variant="ghost">Ghost</Button>
-```
-
-#### `Card.tsx`
-
-Card component for content containers.
-
-```typescript
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
-
-<Card>
-  <CardHeader>
-    <CardTitle>Title</CardTitle>
-  </CardHeader>
-  <CardContent>Content here</CardContent>
-</Card>;
-```
-
-#### `Toast.tsx` / `Toaster.tsx`
-
-Dynamic toast notifications.
-
-```typescript
-import { useToast } from "@/components/ui/Toaster";
-
-const { toast } = useToast();
-
-toast({
-  title: "Success!",
-  description: "Operation completed",
-  variant: "success",
-});
-```
-
-#### Other UI Components
-
-- `Input.tsx` - Text input fields
-- `Textarea.tsx` - Multi-line text input
-- `Badge.tsx` - Status badges
-- `AlertDialog.tsx` - Confirmation dialogs
-- `Tabs.tsx` - Tab navigation
-- `Skeleton.tsx` - Loading skeletons
-- `Tooltip.tsx` - Hover tooltips
-
----
-
-### Feature Components
-
-#### `UrlList.tsx`
-
-Main component for displaying and managing URLs in a list.
-
-**Location:** `src/components/lists/UrlList.tsx`
-
-**Features:**
-
-- Drag-and-drop reordering
-- URL cards with metadata
-- Search and filtering
-- Bulk operations
-- Real-time updates
-
-**Key Props:**
-
-- None (uses `currentList` store)
-
-**Usage:**
-
-```typescript
-import { UrlList } from "@/components/lists/UrlList";
-
-<UrlList />;
-```
-
-#### `UrlCard.tsx`
-
-Individual URL card component.
-
-**Location:** `src/components/lists/UrlCard.tsx`
-
-**Features:**
-
-- URL preview with metadata
-- Actions (edit, delete, favorite, pin)
-- Click tracking
-- Health indicator
-
-**Props:**
-
-```typescript
-interface UrlCardProps {
-  url: UrlItem;
-  metadata?: UrlMetadata;
-  isLoadingMetadata?: boolean;
-  onEdit: (url: UrlItem) => void;
-  onDelete: (id: string) => void;
-  // ... other handlers
-}
-```
-
-#### `SmartCollections.tsx`
-
-AI-powered collection suggestions and duplicate detection.
-
-**Location:** `src/components/collections/SmartCollections.tsx`
-
-**Features:**
-
-- Smart collection suggestions
-- Duplicate URL detection
-- Collection creation from suggestions
-
-**Props:**
-
-```typescript
-interface SmartCollectionsProps {
-  listId: string;
-  listSlug: string;
-}
-```
-
-#### `PermissionManager.tsx`
-
-Role-based collaboration management.
-
-**Location:** `src/components/collaboration/PermissionManager.tsx`
-
-**Features:**
-
-- Add/remove collaborators
-- Role management (Owner, Editor, Viewer)
-- Permission indicators
-
-**Props:**
-
-```typescript
-interface PermissionManagerProps {
-  listId: string;
-  listTitle: string;
-  listSlug: string;
-  onUpdate?: () => void;
-}
-```
-
-#### `ActivityFeed.tsx`
-
-Real-time activity feed for list changes.
-
-**Location:** `src/components/collaboration/ActivityFeed.tsx`
-
-**Features:**
-
-- Real-time activity updates
-- Activity icons and labels
-- Time-based formatting
-
-**Props:**
-
-```typescript
-interface ActivityFeedProps {
-  listId: string;
-  limit?: number; // Default: 50
-}
-```
-
-#### `Comments.tsx`
-
-Comment system for URLs.
-
-**Location:** `src/components/collaboration/Comments.tsx`
-
-**Features:**
-
-- Add/edit/delete comments
-- Real-time comment updates
-- User attribution
-
-**Props:**
-
-```typescript
-interface CommentsProps {
-  listId: string;
-  urlId: string;
-  currentUserId?: string;
-}
+npm run lint          # next lint (eslint-config-next 15)
+npm test              # Jest (canonical — Vitest removed)
+npx tsc --noEmit      # types
+npm run build         # prisma generate && next build
+npm audit             # keep at 0 when possible
 ```
 
 ---
 
-## 🔌 API Endpoints
+## Deploying
 
-### Authentication
+Typical target: **Vercel**.
 
-#### `POST /api/auth/signup`
+1. Import the GitHub repo.
+2. Set the same env vars as `.env.example` (Production + Preview as needed).
+3. Ensure `DATABASE_URL` / `DIRECT_URL` point at production Postgres.
+4. Optional: Sentry org/project/token; Firewall bot settings (human dashboard).
+5. Deploy — `postinstall` runs `prisma generate`.
 
-Create a new user account.
-
-**Request:**
-
-```json
-{
-  "email": "user@example.com",
-  "password": "securepassword"
-}
-```
-
-**Response:**
-
-```json
-{
-  "user": {
-    "id": "uuid",
-    "email": "user@example.com"
-  }
-}
-```
-
-#### `POST /api/auth/signin`
-
-Sign in an existing user.
-
-**Request:**
-
-```json
-{
-  "email": "user@example.com",
-  "password": "securepassword"
-}
-```
-
-**Response:**
-
-```json
-{
-  "user": {
-    "id": "uuid",
-    "email": "user@example.com"
-  }
-}
-```
-
-#### `GET /api/auth/session`
-
-Get current user session.
-
-**Response:**
-
-```json
-{
-  "user": {
-    "id": "uuid",
-    "email": "user@example.com"
-  }
-}
-```
-
-#### `POST /api/auth/signout`
-
-Sign out current user.
+Also see `docs/VERCEL_PRODUCTION_GUARDRAILS.md` and `vercel.json`.
 
 ---
 
-### Lists
+## Learning Path
 
-#### `GET /api/lists`
-
-Get all lists for current user.
-
-**Response:**
-
-```json
-{
-  "lists": [
-    {
-      "id": "uuid",
-      "title": "My List",
-      "slug": "my-list",
-      "description": "Description",
-      "isPublic": false,
-      "createdAt": "2025-01-01T00:00:00Z"
-    }
-  ]
-}
-```
-
-#### `POST /api/lists`
-
-Create a new list.
-
-**Request:**
-
-```json
-{
-  "title": "New List",
-  "description": "Description",
-  "slug": "new-list",
-  "isPublic": false,
-  "urls": []
-}
-```
-
-#### `GET /api/lists/[id]`
-
-Get a specific list by slug.
-
-**Response:**
-
-```json
-{
-  "id": "uuid",
-  "title": "List Title",
-  "slug": "list-slug",
-  "urls": [...],
-  "userId": "uuid",
-  "isPublic": false
-}
-```
-
-#### `GET /api/lists/[id]/updates`
-
-Unified endpoint for list data, activities, and collaborators.
-
-**Query Parameters:**
-
-- `activityLimit`: Number of activities to fetch (default: 30)
-
-**Response:**
-
-```json
-{
-  "list": { ... },
-  "activities": [ ... ],
-  "collaborators": [ ... ]
-}
-```
-
-#### `PATCH /api/lists/[id]`
-
-Update list metadata.
-
-**Request:**
-
-```json
-{
-  "title": "Updated Title",
-  "description": "Updated Description",
-  "isPublic": true
-}
-```
-
-#### `DELETE /api/lists/[id]`
-
-Delete a list.
+1. Run with **minimum env** → sign up → create a list → add a URL.
+2. Read `src/lib/auth.ts` + one `lists` route.
+3. Trace a mutation in `useListQueries` → API → `queryInvalidation`.
+4. Open `UrlList` / `UrlCard` / `SafeImage`.
+5. Add Redis or one AI key and watch optional features light up.
+6. Read SSE (`useRealtimeList` + realtime route).
 
 ---
 
-### URLs
+## Related Docs
 
-#### `POST /api/lists/[id]/urls`
-
-Add URLs to a list.
-
-**Request:**
-
-```json
-{
-  "urls": [
-    {
-      "url": "https://example.com",
-      "title": "Example",
-      "description": "Description"
-    }
-  ]
-}
-```
-
-#### `PATCH /api/lists/[id]/urls`
-
-Update or reorder URLs.
-
-**Request (Reorder):**
-
-```json
-{
-  "action": "reorder",
-  "urls": [ { "id": "...", "position": 0 }, ... ]
-}
-```
-
-**Request (Update):**
-
-```json
-{
-  "action": "update",
-  "urlId": "uuid",
-  "updates": {
-    "title": "New Title",
-    "tags": ["tag1", "tag2"]
-  }
-}
-```
-
-#### `DELETE /api/lists/[id]/urls/[urlId]`
-
-Delete a URL from a list.
+| Doc                                                                                                | Topic                         |
+| -------------------------------------------------------------------------------------------------- | ----------------------------- |
+| [SECURITY.md](./SECURITY.md)                                                                       | Private vulnerability reports |
+| [docs/PROJECT_WALKTHROUGH.md](./docs/PROJECT_WALKTHROUGH.md)                                       | Compact agent/human map       |
+| [docs/LLM_MODEL_SELECTION.md](./docs/LLM_MODEL_SELECTION.md)                                       | AI model chains               |
+| [docs/SAFE_IMAGE_REUSABLE_COMPONENT.md](./docs/SAFE_IMAGE_REUSABLE_COMPONENT.md)                   | SafeImage design              |
+| [docs/Redis_Sentry_PostHog_INTEGRATION_GUIDE.md](./docs/Redis_Sentry_PostHog_INTEGRATION_GUIDE.md) | Observability + Redis         |
+| [docs/VERCEL_PRODUCTION_GUARDRAILS.md](./docs/VERCEL_PRODUCTION_GUARDRAILS.md)                     | Production hardening          |
+| [docs/AGILE_V_PROTOCOL.md](./docs/AGILE_V_PROTOCOL.md)                                             | Multi-agent delivery protocol |
+| [CLAUDE.md](./CLAUDE.md) / [AGENTS.md](./AGENTS.md)                                                | AI coding agent entrypoints   |
 
 ---
 
-### Metadata
+## Conclusion
 
-#### `GET /api/metadata?url=...`
+This repository is a **complete teaching example** of a modern Next.js full-stack product: cookie auth, JSON-embedded list items, React Query cache discipline, optional Redis/AI/Vector/QStash, and collaboration over SSE. Start with Postgres + local env, then layer services as you learn each subsystem.
 
-Fetch metadata for a URL.
-
-**Query Parameters:**
-
-- `url`: The URL to fetch metadata for
-
-**Response:**
-
-```json
-{
-  "title": "Page Title",
-  "description": "Page description",
-  "image": "https://example.com/image.jpg",
-  "siteName": "Site Name"
-}
-```
+Fork it, strip features you do not need, or lift individual modules (`SafeImage`, `auth.ts`, `queryInvalidation`, AI client) into your own apps.
 
 ---
 
-### AI Features
+## License
 
-#### `POST /api/ai/enhance-url`
-
-Enhance URL with AI (category, tags, summary).
-
-**Request:**
-
-```json
-{
-  "url": "https://example.com",
-  "title": "Page Title",
-  "description": "Description",
-  "provider": "gemini"
-}
-```
-
-**Response:**
-
-```json
-{
-  "category": "Technology",
-  "tags": ["web", "development"],
-  "summary": "AI-generated summary",
-  "confidence": 0.95
-}
-```
-
----
-
-### Collections & Search
-
-#### `GET /api/lists/[id]/collections`
-
-Get AI-generated collection suggestions.
-
-**Query Parameters:**
-
-- `includeDuplicates`: Include duplicate detection (default: false)
-- `minGroupSize`: Minimum URLs per collection (default: 2)
-- `maxCollections`: Maximum collections to return (default: 10)
-
-#### `POST /api/search/smart`
-
-Semantic search across URLs.
-
-**Request:**
-
-```json
-{
-  "query": "search query",
-  "listId": "uuid"
-}
-```
-
----
-
-### Collaboration
-
-#### `GET /api/lists/[id]/collaborators`
-
-Get list collaborators.
-
-#### `POST /api/lists/[id]/collaborators`
-
-Add a collaborator.
-
-**Request:**
-
-```json
-{
-  "email": "collaborator@example.com",
-  "role": "editor"
-}
-```
-
-#### `PATCH /api/lists/[id]/collaborators`
-
-Update collaborator role.
-
-#### `DELETE /api/lists/[id]/collaborators`
-
-Remove a collaborator.
-
----
-
-### Real-Time
-
-#### `GET /api/realtime/list/[listId]/events`
-
-Server-Sent Events stream for real-time updates.
-
-**Usage:**
-
-```typescript
-const eventSource = new EventSource(`/api/realtime/list/${listId}/events`);
-
-eventSource.onmessage = (event) => {
-  const data = JSON.parse(event.data);
-  // Handle update
-};
-```
-
----
-
-## 🔧 Reusable Components Guide
-
-### How to Use ShadCN UI Components
-
-All UI components in `src/components/ui/` are fully reusable and follow consistent patterns.
-
-#### Example: Using Button Component
-
-```typescript
-import { Button } from "@/components/ui/Button";
-
-function MyComponent() {
-  return (
-    <div>
-      {/* Primary button */}
-      <Button onClick={() => console.log("Clicked")}>Primary Action</Button>
-
-      {/* Link button */}
-      <Button href="/lists" variant="outline">
-        View Lists
-      </Button>
-
-      {/* Loading state */}
-      <Button disabled={isLoading}>
-        {isLoading ? "Loading..." : "Submit"}
-      </Button>
-    </div>
-  );
-}
-```
-
-#### Example: Using Toast Notifications
-
-```typescript
-import { useToast } from "@/components/ui/Toaster";
-
-function MyComponent() {
-  const { toast } = useToast();
-
-  const handleSuccess = () => {
-    toast({
-      title: "Success!",
-      description: "Operation completed successfully",
-      variant: "success",
-    });
-  };
-
-  const handleError = () => {
-    toast({
-      title: "Error",
-      description: "Something went wrong",
-      variant: "error",
-    });
-  };
-
-  return <Button onClick={handleSuccess}>Show Toast</Button>;
-}
-```
-
-#### Example: Using React Query Hooks
-
-```typescript
-import { useUnifiedListQuery } from "@/hooks/useListQueries";
-import { useUrlMetadata } from "@/hooks/useUrlMetadata";
-
-function MyComponent({ listSlug }: { listSlug: string }) {
-  // Fetch list data with Infinity cache
-  const { data, isLoading } = useUnifiedListQuery(listSlug);
-
-  // Fetch URL metadata with caching
-  const { data: metadata } = useUrlMetadata("https://example.com");
-
-  if (isLoading) return <div>Loading...</div>;
-
-  return (
-    <div>
-      <h1>{data?.list?.title}</h1>
-      <p>{metadata?.description}</p>
-    </div>
-  );
-}
-```
-
-#### Example: Using Centralized Cache Invalidation
-
-```typescript
-import { invalidateListQueries } from "@/utils/queryInvalidation";
-import { useQueryClient } from "@tanstack/react-query";
-
-function MyComponent({ listSlug, listId }: Props) {
-  const queryClient = useQueryClient();
-
-  const handleUpdate = async () => {
-    // Perform update
-    await updateList(listId, { title: "New Title" });
-
-    // Invalidate cache to trigger refetch
-    invalidateListQueries(queryClient, listSlug, listId);
-  };
-}
-```
-
----
-
-## 💻 Code Examples
-
-### Creating a New List
-
-```typescript
-import { useRouter } from "next/navigation";
-import { useAllListsQuery } from "@/hooks/useListQueries";
-
-function CreateListForm() {
-  const router = useRouter();
-  const { refetch } = useAllListsQuery();
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const formData = new FormData(e.target);
-
-    const response = await fetch("/api/lists", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        title: formData.get("title"),
-        slug: formData.get("slug"),
-        description: formData.get("description"),
-      }),
-    });
-
-    if (response.ok) {
-      await refetch(); // Refresh lists
-      router.push(`/list/${formData.get("slug")}`);
-    }
-  };
-
-  return <form onSubmit={handleSubmit}>...</form>;
-}
-```
-
-### Adding a URL with Metadata
-
-```typescript
-import { useUrlMetadata } from "@/hooks/useUrlMetadata";
-import { useToast } from "@/components/ui/Toaster";
-
-function AddUrlForm({ listId }: { listId: string }) {
-  const [url, setUrl] = useState("");
-  const { data: metadata } = useUrlMetadata(url);
-  const { toast } = useToast();
-
-  const handleAdd = async () => {
-    const response = await fetch(`/api/lists/${listId}/urls`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        urls: [
-          {
-            url,
-            title: metadata?.title,
-            description: metadata?.description,
-          },
-        ],
-      }),
-    });
-
-    if (response.ok) {
-      toast({
-        title: "Success!",
-        description: "URL added successfully",
-        variant: "success",
-      });
-    }
-  };
-
-  return (
-    <div>
-      <input value={url} onChange={(e) => setUrl(e.target.value)} />
-      {metadata && <img src={metadata.image} alt={metadata.title} />}
-      <button onClick={handleAdd}>Add URL</button>
-    </div>
-  );
-}
-```
-
-### Using AI Enhancement
-
-```typescript
-import { UrlEnhancer } from "@/components/ai/UrlEnhancer";
-
-function EnhancedUrlForm({ url }: { url: string }) {
-  const [enhancementResult, setEnhancementResult] = useState(null);
-
-  return (
-    <div>
-      <input value={url} readOnly />
-
-      <UrlEnhancer
-        url={url}
-        onEnhance={(result) => {
-          setEnhancementResult(result);
-          // Use result.category, result.tags, result.summary
-        }}
-      />
-
-      {enhancementResult && (
-        <div>
-          <p>Category: {enhancementResult.category}</p>
-          <p>Tags: {enhancementResult.tags.join(", ")}</p>
-        </div>
-      )}
-    </div>
-  );
-}
-```
-
-### Real-Time Updates with SSE
-
-```typescript
-import { useEffect } from "react";
-import { useQueryClient } from "@tanstack/react-query";
-
-function useRealtimeUpdates(listId: string) {
-  const queryClient = useQueryClient();
-
-  useEffect(() => {
-    const eventSource = new EventSource(`/api/realtime/list/${listId}/events`);
-
-    eventSource.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-
-      // Invalidate cache to trigger refetch
-      queryClient.invalidateQueries({
-        queryKey: ["unified-list", listId],
-      });
-    };
-
-    return () => eventSource.close();
-  }, [listId, queryClient]);
-}
-```
-
----
-
-## 🎯 Keywords
-
-- **Next.js 15** - React framework with App Router
-- **React Query** - Data fetching and caching
-- **TypeScript** - Type-safe JavaScript
-- **PostgreSQL** - Relational database
-- **Prisma** - Database ORM
-- **Redis** - Caching and real-time features
-- **Vector Search** - Semantic search with embeddings
-- **AI Enhancement** - URL enhancement with AI
-- **Real-Time Collaboration** - Live updates and SSE
-- **Role-Based Access** - Permission system
-- **Drag-and-Drop** - URL reordering
-- **Metadata Extraction** - Automatic URL metadata
-- **Smart Collections** - AI-powered grouping
-- **Business Analytics** - Insights and metrics
-- **Server-Sent Events** - Real-time updates
-- **Infinity Cache** - Persistent caching strategy
-- **Turbopack** - Fast bundler
-- **Tailwind CSS** - Utility-first styling
-- **ShadCN UI** - Component library
-
----
-
-## 🎓 Learning Resources
-
-### Key Concepts to Understand
-
-1. **React Query Caching Strategy**
-
-   - Infinity cache until invalidation
-   - Centralized invalidation patterns
-   - Optimistic updates
-
-2. **Real-Time Updates**
-
-   - Server-Sent Events (SSE)
-   - Redis pub/sub
-   - Event-driven architecture
-
-3. **State Management**
-
-   - NanoStores for client state
-   - React Query for server state
-   - Local storage for persistence
-
-4. **AI Integration**
-
-   - Multiple AI provider support
-   - Fallback mechanisms
-   - Error handling
-
-5. **Performance Optimization**
-   - Lazy loading
-   - Code splitting
-   - Image optimization
-   - Metadata caching
-
----
-
-## 📝 Conclusion
-
-**The Daily Urlist** is a comprehensive, production-ready URL bookmark manager that demonstrates modern web development best practices. It combines powerful features like AI enhancements, real-time collaboration, and intelligent organization with optimized performance and developer-friendly architecture.
-
-### What You Can Learn
-
-- **Full-Stack Development**: Next.js App Router, API routes, database design
-- **State Management**: React Query, NanoStores, local storage
-- **Real-Time Features**: Server-Sent Events, Redis pub/sub
-- **AI Integration**: Multiple AI providers, semantic search
-- **Performance Optimization**: Infinity caching, lazy loading, code splitting
-- **Type Safety**: Comprehensive TypeScript usage
-- **UI/UX**: ShadCN components, responsive design, accessibility
-
-### Project Highlights
-
-✅ **Production-Ready**: Optimized for performance and scalability  
-✅ **Fully Typed**: Comprehensive TypeScript coverage  
-✅ **Well-Documented**: Clear code comments and structure  
-✅ **Modular Architecture**: Reusable components and hooks  
-✅ **Real-Time**: Live collaboration and updates  
-✅ **AI-Powered**: Smart features and enhancements
+This project is licensed under the [MIT License](https://opensource.org/licenses/MIT). Feel free to use, modify, and distribute the code as per the terms of the license.
 
 ---
 
 ## Happy Coding! 🎉
 
-Feel free to use this project repository and extend this project further!
+This is an **open-source project** — feel free to use, enhance, and extend this project further!
 
-If you have any questions or want to share your work, reach out via GitHub or my portfolio at [https://arnob-mahmud.vercel.app/](https://arnob-mahmud.vercel.app/).
+If you have any questions or want to share your work, reach out via GitHub or my portfolio at [https://www.arnobmahmud.com](https://www.arnobmahmud.com).
 
-**Enjoy building and learning!** 🚀
-
-Thank you! 😊
-
----
+**Security issues:** please report privately per [SECURITY.md](./SECURITY.md) ([contact@arnobmahmud.com](mailto:contact@arnobmahmud.com)).

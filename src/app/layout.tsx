@@ -26,12 +26,15 @@ const robotoMono = Roboto_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL("https://daily-urlist.vercel.app"),
   title: {
-    default: "The Daily Urlist - Organize, Share & Manage Your URL Collections",
+    default:
+      "The Daily Urlist | Smart AI Collaborative URL Bookmark Manager",
     template: "%s | The Daily Urlist",
   },
   description:
-    "Create and share beautiful lists of URLs with ease. Organize bookmarks, resources, and collections. Features drag-and-drop reordering, rich previews, custom slugs, notes, reminders, and real-time collaboration. Perfect for sharing resources with others.",
+    "The Daily Urlist — a smart AI collaborative URL bookmark manager. Create, organize, and share URL lists with drag-and-drop, rich previews, custom slugs, notes, reminders, AI enhancement, vector search, import/export (Chrome, Pocket, Pinboard), and real-time collaboration. Live demo: https://daily-urlist.vercel.app/",
   keywords: [
+    "The Daily Urlist",
+    "Smart AI Collaborative URL Bookmark Manager",
     "url bookmarking",
     "url organizer",
     "bookmark manager",
@@ -49,19 +52,28 @@ export const metadata: Metadata = {
     "web resource organizer",
     "url library",
     "link manager",
-    "url collection tool",
     "bookmark platform",
     "url sharing platform",
+    "AI bookmark manager",
+    "collaborative bookmarks",
+    "vector search bookmarks",
+    "Next.js bookmark app",
+    "TanStack React Query",
+    "Prisma PostgreSQL",
+    "real-time SSE collaboration",
+    "Chrome Pocket Pinboard import",
+    "Arnob Mahmud",
   ],
   authors: [
     {
       name: "Arnob Mahmud",
-      url: "https://arnob-mahmud.vercel.app/",
+      url: "https://www.arnobmahmud.com",
     },
   ],
   creator: "Arnob Mahmud",
   publisher: "Arnob Mahmud",
   applicationName: "The Daily Urlist",
+  generator: "Next.js",
   referrer: "origin-when-cross-origin",
   icons: {
     icon: [
@@ -85,12 +97,20 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://daily-urlist.vercel.app",
+    url: "https://daily-urlist.vercel.app/",
     siteName: "The Daily Urlist",
-    title: "The Daily Urlist - Organize, Share & Manage Your URL Collections",
+    title:
+      "The Daily Urlist | Smart AI Collaborative URL Bookmark Manager",
     description:
-      "Create and share beautiful lists of URLs with ease. Organize bookmarks, resources, and collections. Features drag-and-drop reordering, rich previews, custom slugs, notes, reminders, and real-time collaboration.",
+      "Organize, share, and collaborate on URL collections with AI enhancement, vector search, drag-and-drop, rich previews, and real-time updates. Built by Arnob Mahmud.",
     images: [
+      {
+        url: "https://github.com/user-attachments/assets/7369ad36-5a47-4e30-97ed-f6fab885515f",
+        width: 1200,
+        height: 630,
+        alt: "The Daily Urlist — Smart AI Collaborative URL Bookmark Manager demo screenshot",
+        type: "image/png",
+      },
       {
         url: "/favicon.ico",
         width: 512,
@@ -102,18 +122,32 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "The Daily Urlist - Organize, Share & Manage Your URL Collections",
+    title:
+      "The Daily Urlist | Smart AI Collaborative URL Bookmark Manager",
     description:
-      "Create and share beautiful lists of URLs with ease. Organize bookmarks, resources, and collections. Features drag-and-drop reordering, rich previews, and real-time collaboration.",
-    images: ["/favicon.ico"],
+      "AI collaborative URL bookmark manager: lists, rich previews, import/export, vector search, and real-time collaboration. https://daily-urlist.vercel.app/",
+    images: [
+      "https://github.com/user-attachments/assets/7369ad36-5a47-4e30-97ed-f6fab885515f",
+    ],
     creator: "@arnobmahmud",
     site: "@arnobmahmud",
   },
   alternates: {
-    canonical: "https://daily-urlist.vercel.app",
+    canonical: "https://daily-urlist.vercel.app/",
   },
   category: "productivity",
   classification: "URL Bookmarking Platform",
+  abstract:
+    "Full-stack Next.js URL bookmarking platform with AI, collaboration, and semantic search.",
+  bookmarks: ["https://daily-urlist.vercel.app/"],
+  archives: ["https://github.com/arnobt78/Daily-URL-Bookmark-Notes-Dairy--NextJS-FullStack"],
+  assets: ["https://daily-urlist.vercel.app/favicon.ico"],
+  other: {
+    "contact:email": "contact@arnobmahmud.com",
+    "author:email": "contact@arnobmahmud.com",
+    "author:website": "https://www.arnobmahmud.com",
+    "project:demo": "https://daily-urlist.vercel.app/",
+  },
 };
 
 export const viewport: Viewport = {
@@ -129,12 +163,54 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebApplication",
+        name: "The Daily Urlist",
+        alternateName:
+          "Smart AI Collaborative URL Bookmark Manager",
+        url: "https://daily-urlist.vercel.app/",
+        description:
+          "Create, organize, and share URL lists with AI enhancement, vector search, and real-time collaboration.",
+        applicationCategory: "ProductivityApplication",
+        operatingSystem: "Web",
+        offers: {
+          "@type": "Offer",
+          price: "0",
+          priceCurrency: "USD",
+        },
+        author: {
+          "@type": "Person",
+          name: "Arnob Mahmud",
+          url: "https://www.arnobmahmud.com",
+          email: "contact@arnobmahmud.com",
+        },
+      },
+      {
+        "@type": "Person",
+        name: "Arnob Mahmud",
+        url: "https://www.arnobmahmud.com",
+        email: "contact@arnobmahmud.com",
+        sameAs: [
+          "https://github.com/arnobt78",
+          "https://www.linkedin.com/in/arnob-mahmud-05839655/",
+        ],
+      },
+    ],
+  };
+
   return (
     <html lang="en" data-scroll-behavior="smooth" suppressHydrationWarning>
       <body
         className={`${inter.variable} ${robotoMono.variable} font-sans antialiased`}
         suppressHydrationWarning
       >
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
         <QueryProvider>
           <Suspense fallback={null}>
             <PostHogProvider>

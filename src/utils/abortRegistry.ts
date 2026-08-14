@@ -14,7 +14,9 @@ class AbortRegistry {
   private permanentOriginalFetch: typeof fetch | null = null;
   // NATIVE BACKUP: Capture true browser fetch at construction (never mutated)
   private nativeFetchBackup: typeof fetch | null =
-    typeof window !== "undefined" ? window.fetch.bind(window) : null;
+    typeof window !== "undefined" && typeof window.fetch === "function"
+      ? window.fetch.bind(window)
+      : null;
 
   constructor() {
     // Just emit a debug log (additive) so we know native fetch was captured
@@ -106,17 +108,17 @@ class AbortRegistry {
     }
 
     // Intercept fetch to track ALL requests (including Next.js RSC)
-    const self = this;
-    window.fetch = function (
+    // Arrow keeps `this` bound to AbortRegistry (avoids no-this-alias)
+    window.fetch = (
       input: RequestInfo | URL,
       init?: RequestInit
-    ): Promise<Response> {
+    ): Promise<Response> => {
       // BYPASS FLAG: Explicit hard disable of interception (additive safeguard)
       if (
         typeof window !== "undefined" &&
         (window as any).__bulkImportDisableInterception
       ) {
-        return (self.originalFetch || self.nativeFetchBackup || fetch).call(
+        return (this.originalFetch || this.nativeFetchBackup || fetch).call(
           window,
           input,
           init
@@ -129,7 +131,7 @@ class AbortRegistry {
         !(window as any).__bulkImportActive
       ) {
         // Import completed, use original fetch without interception
-        return self.originalFetch!.call(window, input, init);
+        return this.originalFetch!.call(window, input, init);
       }
 
       // Create a controller for this fetch
@@ -145,7 +147,7 @@ class AbortRegistry {
       const requestId = `${url}_${Date.now()}_${Math.random()}`;
 
       // Track this controller
-      self.globalFetchControllers.set(requestId, controller);
+      this.globalFetchControllers.set(requestId, controller);
 
       // Merge abort signals if provided
       const existingSignal = init?.signal;
@@ -169,14 +171,14 @@ class AbortRegistry {
       }
 
       // Call original fetch with abort signal
-      const fetchPromise = self
+      const fetchPromise = this
         .originalFetch!.call(window, input, {
           ...init,
           signal: finalSignal,
         })
         .finally(() => {
           // Clean up after fetch completes
-          self.globalFetchControllers.delete(requestId);
+          this.globalFetchControllers.delete(requestId);
         });
 
       return fetchPromise;

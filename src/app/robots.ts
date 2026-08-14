@@ -30,5 +30,7 @@ export default function robots(): MetadataRoute.Robots {
         disallow: "/",
       },
     ],
+    sitemap: "https://daily-urlist.vercel.app/sitemap.xml",
+    host: "https://daily-urlist.vercel.app",
   };
 }
