@@ -16,3 +16,4 @@
 - Navbar avatar no-squeeze (padding outside size-10)
 - Prod console: SSE/AI via `devLog`/`devWarn` only in development
 - Clean Vercel logs: Sentry sourcemaps opt-in; prisma.config.ts seed
+- Import-flow console → `devLog` (UrlBulkImportExport, chrome parser, bulk-import API)

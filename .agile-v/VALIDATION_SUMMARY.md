@@ -10,5 +10,6 @@
 | Stable scrollbar gutter | PASS | — | html scrollbar-gutter; Auth inset-0 |
 | Avatar no-squeeze + quiet prod console | PASS | — | Navbar min-w-10; devLog for SSE/AI |
 | Clean Vercel deploy logs | PASS | — | Sentry upload opt-in; prisma.config.ts |
+| Import-flow quiet prod | PASS | — | UrlBulkImportExport + chrome + bulk-import → devLog |
 
 Out of scope: densify/JWT SSR, Zod/SHA, Next 16, Prisma 7.
