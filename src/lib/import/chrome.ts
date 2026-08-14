@@ -4,6 +4,7 @@
  */
 
 import type { ImportResult, ImportedUrlItem } from "./types";
+import { devLog } from "@/lib/dev-log";
 
 /**
  * Parse Chrome bookmarks HTML file
@@ -36,10 +37,7 @@ export function parseChromeBookmarks(html: string): ImportResult {
 
     // Find all bookmark links
     const links = doc.querySelectorAll("a[href]");
-    
-    if (process.env.NODE_ENV === "development") {
-      console.log(`📥 [CHROME PARSER] Found ${links.length} bookmark links`);
-    }
+    devLog(`📥 [CHROME PARSER] Found ${links.length} bookmark links`);
 
     links.forEach((link, index) => {
       try {

@@ -24,6 +24,7 @@ import {
   parsePinboardExport,
 } from "@/lib/import";
 import { formatAsMarkdown, downloadMarkdownFile } from "@/lib/export";
+import { devLog } from "@/lib/dev-log";
 
 interface UrlBulkImportExportProps {
   urls: UrlItem[];
@@ -325,7 +326,7 @@ export function UrlBulkImportExport({
 
     try {
       if (process.env.NODE_ENV === "development") {
-        console.log("📥 [IMPORT] Starting import:", {
+        devLog("📥 [IMPORT] Starting import:", {
           fileName: file.name,
           fileSize: file.size,
           fileType: file.type,
@@ -336,7 +337,7 @@ export function UrlBulkImportExport({
       const text = await file.text();
 
       if (process.env.NODE_ENV === "development") {
-        console.log("📥 [IMPORT] File read successfully, length:", text.length);
+        devLog("📥 [IMPORT] File read successfully, length:", text.length);
       }
 
       const fileExtension = file.name.split(".").pop()?.toLowerCase();
@@ -378,13 +379,13 @@ export function UrlBulkImportExport({
         let result;
         try {
           if (process.env.NODE_ENV === "development") {
-            console.log("📥 [IMPORT] Parsing Chrome bookmarks...");
+            devLog("📥 [IMPORT] Parsing Chrome bookmarks...");
           }
           result = parseChromeBookmarks(text);
           importedUrls = result.items;
 
           if (process.env.NODE_ENV === "development") {
-            console.log("📥 [IMPORT] Chrome parsing result:", {
+            devLog("📥 [IMPORT] Chrome parsing result:", {
               count: result.count,
               itemsLength: result.items.length,
               errors: result.errors?.length || 0,
@@ -645,7 +646,7 @@ export function UrlBulkImportExport({
       });
 
       if (process.env.NODE_ENV === "development") {
-        console.log("📥 [IMPORT] URL validation:", {
+        devLog("📥 [IMPORT] URL validation:", {
           totalImported: importedUrls.length,
           validUrls: validUrls.length,
           invalidUrls: importedUrls.length - validUrls.length,
@@ -667,7 +668,7 @@ export function UrlBulkImportExport({
       if (typeof window !== "undefined" && abortRegistry) {
         abortRegistry.startGlobalInterception();
         if (process.env.NODE_ENV === "development") {
-          console.log(
+          devLog(
             `🔍 [IMPORT] Started global fetch interception for RSC request tracking`
           );
         }
@@ -734,7 +735,7 @@ export function UrlBulkImportExport({
           const result = await response.json();
 
           if (process.env.NODE_ENV === "development") {
-            console.log(
+            devLog(
               `✅ [BULK IMPORT] Successfully imported ${result.urls.length} URLs`
             );
           }
@@ -769,7 +770,7 @@ export function UrlBulkImportExport({
               abortRegistry.stopGlobalInterception();
 
               if (process.env.NODE_ENV === "development") {
-                console.log(
+                devLog(
                   `🛑 [BULK IMPORT] Cleaned up all requests before reload (${abortRegistry.getCount()} remaining)`
                 );
               }
@@ -803,7 +804,7 @@ export function UrlBulkImportExport({
           // The Next.js dev server can't handle the load from bulk import + SSE + metadata fetching
           // A hard reload ensures a clean slate
           if (process.env.NODE_ENV === "development") {
-            console.log(
+            devLog(
               "🔄 [BULK IMPORT] Forcing page reload to clear server state..."
             );
             // Set flag in sessionStorage to skip metadata fetch after reload
@@ -856,7 +857,7 @@ export function UrlBulkImportExport({
       };
 
       if (process.env.NODE_ENV === "development") {
-        console.log(`🕐 [IMPORT] Import metrics initialized:`, {
+        devLog(`🕐 [IMPORT] Import metrics initialized:`, {
           totalUrls: importMetrics.totalUrls,
           concurrencyLimit: importMetrics.concurrencyLimit,
           startTime: new Date(importStartTime).toISOString(),
@@ -985,7 +986,7 @@ export function UrlBulkImportExport({
               if (overallImportCancelled) {
                 // Overall import was cancelled - skip this URL
                 if (process.env.NODE_ENV === "development") {
-                  console.log(
+                  devLog(
                     `⏭️ [IMPORT] Overall import cancelled for ${urlItem.url}, skipping URL`
                   );
                 }
@@ -994,7 +995,7 @@ export function UrlBulkImportExport({
                 // Only metadata was cancelled (timeout/network) - continue with imported data
                 // URL will still be added with imported title/URL, just without metadata
                 if (process.env.NODE_ENV === "development") {
-                  console.log(
+                  devLog(
                     `⏭️ [IMPORT] Metadata cancelled for ${urlItem.url}, using imported data directly (no metadata) - URL will still be added`
                   );
                 }
@@ -1037,7 +1038,7 @@ export function UrlBulkImportExport({
               process.env.NODE_ENV === "development" &&
               signalBeforeAdd?.aborted
             ) {
-              console.log(
+              devLog(
                 `⏭️ [IMPORT] Signal aborted before addUrlToList for ${urlItem.url}, skipping to prevent pending request`
               );
             }
@@ -1054,7 +1055,7 @@ export function UrlBulkImportExport({
             // This prevents starting addUrlToList if signal was aborted during metadata fetch
             if (currentAbortSignal?.aborted) {
               if (process.env.NODE_ENV === "development") {
-                console.log(
+                devLog(
                   `⏭️ [IMPORT] Signal aborted before addUrlToList call for ${urlItem.url}, exiting immediately`
                 );
               }
@@ -1129,7 +1130,7 @@ export function UrlBulkImportExport({
 
           successCount++;
           if (process.env.NODE_ENV === "development") {
-            console.log(
+            devLog(
               `✅ [IMPORT] Successfully imported: ${urlItem.url} (successCount: ${successCount})`
             );
           }
@@ -1144,7 +1145,7 @@ export function UrlBulkImportExport({
           // If aborted, don't count as error - just skip
           if (isAborted) {
             if (process.env.NODE_ENV === "development") {
-              console.log(
+              devLog(
                 `⏭️ [IMPORT] Skipping URL ${urlItem.url.substring(
                   0,
                   60
@@ -1189,7 +1190,7 @@ export function UrlBulkImportExport({
               Math.round((processedCount / validUrls.length) * 100)
             );
             if (process.env.NODE_ENV === "development") {
-              console.log(
+              devLog(
                 `📊 [IMPORT] Progress: ${progress}% (${processedCount}/${validUrls.length} URLs processed, ${successCount} successful, ${errorCount} failed)`
               );
             }
@@ -1237,7 +1238,7 @@ export function UrlBulkImportExport({
 
         if (process.env.NODE_ENV === "development") {
           const elapsed = Math.round((urlStartTime - importStartTime) / 1000);
-          console.log(
+          devLog(
             `📥 [IMPORT] [${elapsed}s] Starting URL ${currentIndex + 1}/${
               validUrls.length
             }: ${urlItem.url.substring(0, 60)}...`
@@ -1262,7 +1263,7 @@ export function UrlBulkImportExport({
 
             if (process.env.NODE_ENV === "development") {
               const elapsed = Math.round((urlEndTime - importStartTime) / 1000);
-              console.log(
+              devLog(
                 `✅ [IMPORT] [${elapsed}s] URL ${currentIndex + 1}/${
                   validUrls.length
                 } completed in ${Math.round(
@@ -1347,7 +1348,7 @@ export function UrlBulkImportExport({
 
       // Start initial batch of concurrent requests (up to CONCURRENCY_LIMIT)
       if (process.env.NODE_ENV === "development") {
-        console.log(`📥 [IMPORT] Starting processing loop:`, {
+        devLog(`📥 [IMPORT] Starting processing loop:`, {
           validUrlsLength: validUrls.length,
           concurrencyLimit: CONCURRENCY_LIMIT,
           nextUrlIndex,
@@ -1382,7 +1383,7 @@ export function UrlBulkImportExport({
       }
 
       if (process.env.NODE_ENV === "development") {
-        console.log(
+        devLog(
           `📥 [IMPORT] Processing loop started. ${runningPromises.size} promises running.`
         );
       }
@@ -1504,7 +1505,7 @@ export function UrlBulkImportExport({
         const finalWaitStartTime = Date.now();
 
         if (process.env.NODE_ENV === "development") {
-          console.log(
+          devLog(
             `⏳ [IMPORT] Starting final wait for ${runningPromises.size} remaining promise(s)...`,
             {
               promiseIndices: Array.from(runningPromises.keys()),
@@ -1558,7 +1559,7 @@ export function UrlBulkImportExport({
 
           if (process.env.NODE_ENV === "development") {
             const finalWaitDuration = Date.now() - finalWaitStartTime;
-            console.log(
+            devLog(
               `✅ [IMPORT] Final wait completed in ${Math.round(
                 finalWaitDuration / 1000
               )}s`,
@@ -1583,7 +1584,7 @@ export function UrlBulkImportExport({
         process.env.NODE_ENV === "development" &&
         runningPromises.size > 0
       ) {
-        console.log(
+        devLog(
           `⏭️ [IMPORT] Skipping final wait - import inactive or aborted`,
           {
             pendingPromises: runningPromises.size,
@@ -1597,7 +1598,7 @@ export function UrlBulkImportExport({
       const processingDuration = processingEndTime - importStartTime;
 
       if (process.env.NODE_ENV === "development") {
-        console.log(
+        devLog(
           `⏱️ [IMPORT] Processing loop completed in ${Math.round(
             processingDuration / 1000
           )}s`,
@@ -1616,7 +1617,7 @@ export function UrlBulkImportExport({
       // This ensures all in-flight fetch requests are cancelled
       const cleanupStartTime = Date.now();
       if (process.env.NODE_ENV === "development") {
-        console.log(`🧹 [IMPORT] Starting cleanup phase...`, {
+        devLog(`🧹 [IMPORT] Starting cleanup phase...`, {
           pendingPromises: runningPromises.size,
           abortRegistryCount: abortRegistry?.getCount() || 0,
         });
@@ -1625,7 +1626,7 @@ export function UrlBulkImportExport({
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
         if (process.env.NODE_ENV === "development") {
-          console.log(`🛑 [IMPORT] Aborted import controller`);
+          devLog(`🛑 [IMPORT] Aborted import controller`);
         }
       }
 
@@ -1633,7 +1634,7 @@ export function UrlBulkImportExport({
       // These are likely GET requests to /api/lists/test-import that are pending
       cancelPendingGetList();
       if (process.env.NODE_ENV === "development") {
-        console.log(`🛑 [IMPORT] Cancelled pending getList requests`);
+        devLog(`🛑 [IMPORT] Cancelled pending getList requests`);
       }
 
       // Give a longer delay to ensure all cancellations are processed
@@ -1643,7 +1644,7 @@ export function UrlBulkImportExport({
 
       if (process.env.NODE_ENV === "development") {
         const cleanupDuration = Date.now() - cleanupStartTime;
-        console.log(
+        devLog(
           `🧹 [IMPORT] Initial cleanup completed in ${Math.round(
             cleanupDuration
           )}ms`
@@ -1680,7 +1681,7 @@ export function UrlBulkImportExport({
           : 0;
 
       if (process.env.NODE_ENV === "development") {
-        console.log(`📊 [IMPORT] Processing complete. Detailed Summary:`, {
+        devLog(`📊 [IMPORT] Processing complete. Detailed Summary:`, {
           timing: {
             totalDuration: Math.round(totalDuration / 1000) + "s",
             avgSuccessTime: Math.round(avgSuccessTime / 1000) + "s",
@@ -1818,14 +1819,14 @@ export function UrlBulkImportExport({
       if (typeof window !== "undefined") {
         (window as any).__bulkImportActive = false;
         if (process.env.NODE_ENV === "development") {
-          console.log(
+          devLog(
             `🚫 [IMPORT] [FINALLY] Cleared __bulkImportActive flag FIRST (critical for wrapper bypass)`
           );
         }
       }
 
       if (process.env.NODE_ENV === "development") {
-        console.log(`🏁 [IMPORT] [FINALLY] Starting final cleanup phase...`, {
+        devLog(`🏁 [IMPORT] [FINALLY] Starting final cleanup phase...`, {
           timestamp: new Date().toISOString(),
           abortRegistryCount: abortRegistry?.getCount() || 0,
         });
@@ -1834,7 +1835,7 @@ export function UrlBulkImportExport({
       // Cancel all pending getList requests that might be stuck
       cancelPendingGetList();
       if (process.env.NODE_ENV === "development") {
-        console.log(`✅ [IMPORT] [FINALLY] Cancelled pending getList requests`);
+        devLog(`✅ [IMPORT] [FINALLY] Cancelled pending getList requests`);
       }
 
       // CRITICAL: Abort ALL tracked fetch requests globally
@@ -1843,7 +1844,7 @@ export function UrlBulkImportExport({
         const abortedCount = abortRegistry.getCount();
 
         if (process.env.NODE_ENV === "development") {
-          console.log(`🛑 [IMPORT] [FINALLY] Starting global abort...`, {
+          devLog(`🛑 [IMPORT] [FINALLY] Starting global abort...`, {
             trackedRequests: abortedCount,
           });
         }
@@ -1852,7 +1853,7 @@ export function UrlBulkImportExport({
 
         if (process.env.NODE_ENV === "development") {
           const abortDuration = Date.now() - finallyStartTime;
-          console.log(
+          devLog(
             `🛑 [IMPORT] [FINALLY] Global abort completed in ${abortDuration}ms`,
             {
               abortedRequests: abortedCount,
@@ -1866,7 +1867,7 @@ export function UrlBulkImportExport({
         const routerCleanupStartTime = Date.now();
         try {
           if (process.env.NODE_ENV === "development") {
-            console.log(
+            devLog(
               `🧹 [IMPORT] [FINALLY] Attempting router cache cleanup IMMEDIATELY...`
             );
           }
@@ -1878,7 +1879,7 @@ export function UrlBulkImportExport({
             if (nextRouter.prefetchCache) {
               nextRouter.prefetchCache.clear();
               if (process.env.NODE_ENV === "development") {
-                console.log(
+                devLog(
                   `✅ [IMPORT] [FINALLY] Cleared Next.js prefetch cache`
                 );
               }
@@ -1892,7 +1893,7 @@ export function UrlBulkImportExport({
               if (routerInstance.isPending !== undefined) {
                 routerInstance.isPending = false;
                 if (process.env.NODE_ENV === "development") {
-                  console.log(
+                  devLog(
                     `✅ [IMPORT] [FINALLY] Cleared Next.js router pending state`
                   );
                 }
@@ -1902,7 +1903,7 @@ export function UrlBulkImportExport({
               if (routerInstance.cache) {
                 routerInstance.cache.clear?.();
                 if (process.env.NODE_ENV === "development") {
-                  console.log(
+                  devLog(
                     `✅ [IMPORT] [FINALLY] Cleared Next.js router cache`
                   );
                 }
@@ -1915,7 +1916,7 @@ export function UrlBulkImportExport({
           if (nextFetchCache) {
             nextFetchCache.clear();
             if (process.env.NODE_ENV === "development") {
-              console.log(`✅ [IMPORT] [FINALLY] Cleared Next.js fetch cache`);
+              devLog(`✅ [IMPORT] [FINALLY] Cleared Next.js fetch cache`);
             }
           }
 
@@ -1927,7 +1928,7 @@ export function UrlBulkImportExport({
             if (routerCache && typeof routerCache.clear === "function") {
               routerCache.clear();
               if (process.env.NODE_ENV === "development") {
-                console.log(
+                devLog(
                   `✅ [IMPORT] [FINALLY] Cleared Next.js router internal cache`
                 );
               }
@@ -1938,7 +1939,7 @@ export function UrlBulkImportExport({
 
           if (process.env.NODE_ENV === "development") {
             const routerCleanupDuration = Date.now() - routerCleanupStartTime;
-            console.log(
+            devLog(
               `✅ [IMPORT] [FINALLY] Router cleanup completed in ${routerCleanupDuration}ms`
             );
           }
@@ -1992,7 +1993,7 @@ export function UrlBulkImportExport({
         }, 10);
 
         if (process.env.NODE_ENV === "development") {
-          console.log(
+          devLog(
             `🔍 [IMPORT] [FINALLY] Stopped global fetch interception immediately (with retry scheduled)`
           );
         }
@@ -2001,21 +2002,21 @@ export function UrlBulkImportExport({
       const finallyEndTime = Date.now();
       const finallyDuration = finallyEndTime - finallyStartTime;
       if (process.env.NODE_ENV === "development") {
-        console.log(
+        devLog(
           `🏁 [IMPORT] [FINALLY] Final cleanup phase completed in ${finallyDuration}ms`
         );
-        console.log(
+        devLog(
           `✅ [IMPORT] Import fully cleaned up - page should be responsive now`
         );
         // ADDITIVE: Enforce hard disable + native fetch restoration guard
         try {
           (window as any).__bulkImportDisableInterception = true;
           abortRegistry?.forceRestoreNativeFetch?.();
-          console.log(
+          devLog(
             "🛠 [IMPORT] Disabled interception & enforced native fetch restoration"
           );
         } catch (e) {
-          console.log(
+          devLog(
             "⚠️ [IMPORT] Native restoration enforcement encountered error (ignored)",
             e
           );
@@ -2039,7 +2040,7 @@ export function UrlBulkImportExport({
         // 4. Router cache to be fully cleared
         const waitStartTime = Date.now();
         if (process.env.NODE_ENV === "development") {
-          console.log(
+          devLog(
             `⏳ [IMPORT] Waiting for abort signals to propagate (500ms)...`,
             {
               abortRegistryCount: abortRegistry?.getCount() || 0,
@@ -2080,7 +2081,7 @@ export function UrlBulkImportExport({
               }
 
               if (process.env.NODE_ENV === "development") {
-                console.log(
+                devLog(
                   `🧹 [IMPORT] Cleared router cache again during wait`
                 );
               }
@@ -2095,7 +2096,7 @@ export function UrlBulkImportExport({
 
         if (process.env.NODE_ENV === "development") {
           const waitDuration = Date.now() - waitStartTime;
-          console.log(
+          devLog(
             `✅ [IMPORT] Wait completed in ${waitDuration}ms, checking final state...`,
             {
               abortRegistryCount: abortRegistry?.getCount() || 0,
@@ -2107,7 +2108,7 @@ export function UrlBulkImportExport({
         // This is a nuclear option to ensure NO requests are pending
         if (typeof window !== "undefined" && abortRegistry) {
           if (process.env.NODE_ENV === "development") {
-            console.log(
+            devLog(
               `🛑 [IMPORT] Force aborting ALL global requests before clearing flags...`
             );
           }
@@ -2118,7 +2119,7 @@ export function UrlBulkImportExport({
           if (abortRegistry) {
             abortRegistry.stopGlobalInterception();
             if (process.env.NODE_ENV === "development") {
-              console.log(`🔍 [IMPORT] Ensured fetch interception is stopped`);
+              devLog(`🔍 [IMPORT] Ensured fetch interception is stopped`);
             }
           }
         }
@@ -2129,7 +2130,7 @@ export function UrlBulkImportExport({
 
         if (typeof window !== "undefined") {
           if (process.env.NODE_ENV === "development") {
-            console.log(
+            devLog(
               `🏁 [IMPORT] Finalizing import and allowing navigation...`,
               {
                 abortRegistryCount: abortRegistry?.getCount() || 0,
@@ -2169,7 +2170,7 @@ export function UrlBulkImportExport({
           (window as any).__bulkImportJustCompleted = true;
 
           if (process.env.NODE_ENV === "development") {
-            console.log(
+            devLog(
               `✅ [IMPORT] Import completion flag set - page should be responsive now`,
               {
                 __bulkImportActive: (window as any).__bulkImportActive,
@@ -2184,7 +2185,7 @@ export function UrlBulkImportExport({
           setTimeout(() => {
             (window as any).__bulkImportJustCompleted = false;
             if (process.env.NODE_ENV === "development") {
-              console.log(
+              devLog(
                 `✅ [IMPORT] Import fully completed - navigation should work normally now`
               );
             }
@@ -2256,7 +2257,7 @@ export function UrlBulkImportExport({
             if (!activeFlag && !justCompletedFlag && pendingCount === 0) {
               window.clearInterval(recoveryInterval);
               if (process.env.NODE_ENV === "development") {
-                console.log(
+                devLog(
                   "✅ [IMPORT] Post-import navigation recovery confirmed clean; stopping recovery loop"
                 );
               }

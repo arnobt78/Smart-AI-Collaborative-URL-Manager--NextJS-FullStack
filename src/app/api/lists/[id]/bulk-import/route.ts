@@ -7,6 +7,7 @@ import { upsertUrlVectors, vectorIndex } from "@/lib/vector";
 import { requirePermission } from "@/lib/collaboration/permissions";
 import { redis, cacheKeys } from "@/lib/redis";
 import type { UrlItem } from "@/stores/urlListStore";
+import { devLog } from "@/lib/dev-log";
 
 type RouteContext = { params: Promise<{ id: string }> };
 
@@ -142,7 +143,7 @@ export async function POST(req: NextRequest, context: RouteContext) {
       });
     }
 
-    console.log(
+    devLog(
       `✅ [BULK IMPORT] Added ${newUrls.length} URLs to list ${listId}`
     );
 
