@@ -12,7 +12,6 @@ import {
   Bars3Icon,
   XMarkIcon,
 } from "@heroicons/react/24/outline";
-import { useTypewriter } from "@/hooks/useTypewriter";
 import { abortRegistry } from "@/utils/abortRegistry";
 import { useSession } from "@/hooks/useSession";
 import { ProfileDropdown } from "@/components/layout/ProfileDropdown";
@@ -23,11 +22,6 @@ export default function Navbar() {
   const [mounted, setMounted] = useState(false);
   const [wasAuthedHint, setWasAuthedHint] = useState(false);
   const { user, isLoading, isAuthenticated } = useSession();
-  const { displayText, isComplete } = useTypewriter({
-    text: "Daily Urlist",
-    speed: 200,
-    delay: 2500,
-  });
 
   // Guide §3 — defer localStorage until mounted (avoid hydration mismatch)
   useEffect(() => {
@@ -139,15 +133,13 @@ export default function Navbar() {
             onClick={(e) => handleNavigation(e, "/")}
             className="flex items-center gap-2 sm:gap-3 text-base sm:text-xl font-bold text-white hover:text-blue-400 transition-all duration-300 font-mono group"
           >
-            <div className="bg-transparent transition-transform duration-300 group-hover:scale-110">
+            <div className="bg-transparent transition-transform duration-300 group-hover:scale-110 shrink-0">
               <LinkIcon className="h-6 w-6 sm:h-8 sm:w-8 text-blue-600 stroke-[2.5px] drop-shadow-[0_0_10px_rgba(59,130,246,0.5)]" />
             </div>
-            <div className="animate-ease-in-out" suppressHydrationWarning>
-              <span className="gradient-color drop-shadow-[0_0_15px_rgba(59,130,246,0.3)] text-lg sm:text-xl lg:text-2xl font-extrabold tracking-tight">
-                {displayText}
-                {!isComplete && <span className="typewriter-cursor" />}
-              </span>
-            </div>
+            {/* Static brand — no typewriter/cursor (stable height/width) */}
+            <span className="gradient-color drop-shadow-[0_0_15px_rgba(59,130,246,0.3)] text-lg sm:text-xl lg:text-2xl font-extrabold tracking-tight leading-none inline-block min-h-[1.25em]">
+              Daily Urlist
+            </span>
           </Link>
 
           {/* Desktop Navigation */}
@@ -174,7 +166,7 @@ export default function Navbar() {
               My Lists
             </Link>
 
-            <div className="pl-2 lg:pl-4">
+            <div className="pl-2 lg:pl-4 size-10 shrink-0 flex items-center justify-center">
               {showProfile && user ? (
                 <ProfileDropdown
                   email={user.email}
@@ -185,23 +177,29 @@ export default function Navbar() {
                   className="size-10 animate-pulse rounded-full border border-white/20 bg-white/10"
                   aria-hidden
                 />
-              ) : null}
+              ) : (
+                <div className="size-10" aria-hidden />
+              )}
             </div>
           </div>
 
           {/* Mobile: profile + hamburger */}
           <div className="flex items-center gap-2 sm:hidden">
-            {showProfile && user ? (
-              <ProfileDropdown
-                email={user.email}
-                onNavigate={handleNavigation}
-              />
-            ) : showProfileSkeleton ? (
-              <div
-                className="size-10 animate-pulse rounded-full border border-white/20 bg-white/10"
-                aria-hidden
-              />
-            ) : null}
+            <div className="size-10 shrink-0 flex items-center justify-center">
+              {showProfile && user ? (
+                <ProfileDropdown
+                  email={user.email}
+                  onNavigate={handleNavigation}
+                />
+              ) : showProfileSkeleton ? (
+                <div
+                  className="size-10 animate-pulse rounded-full border border-white/20 bg-white/10"
+                  aria-hidden
+                />
+              ) : (
+                <div className="size-10" aria-hidden />
+              )}
+            </div>
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className="p-2 text-white/80 hover:text-white transition-colors"

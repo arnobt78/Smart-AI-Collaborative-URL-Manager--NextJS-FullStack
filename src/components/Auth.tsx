@@ -383,34 +383,37 @@ export default function Auth() {
           </div>
 
           <form className="space-y-4 sm:space-y-6">
-            {/* Guest Select — PORTABLE_AUTH_UI_GUIDE §2.1: avatar + name + email, fill/clear */}
+            {/* Guest Select — fixed lead slot + always-visible Clear (no layout shift) */}
             <div className="relative" ref={guestDropdownRef}>
               <button
                 type="button"
                 onClick={() => setIsGuestDropdownOpen(!isGuestDropdownOpen)}
-                className="w-full rounded-lg sm:rounded-xl border border-white/20 bg-white/10 backdrop-blur-sm px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base text-white focus:outline-none focus:ring-2 focus:ring-[#00ff99] focus:border-transparent transition-all min-h-[44px] sm:min-h-[48px] flex items-center justify-between cursor-pointer gap-2"
+                className="w-full rounded-lg sm:rounded-xl border border-white/20 bg-white/10 backdrop-blur-sm px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base text-white focus:outline-none focus:ring-2 focus:ring-[#00ff99] focus:border-transparent transition-colors min-h-[48px] flex items-center justify-between cursor-pointer gap-2"
               >
-                <span className="flex min-w-0 items-center gap-2">
-                  {selectedGuestId ? (
-                    <UserAvatar
-                      seed={
-                        TEST_ACCOUNTS.find((a) => a.id === selectedGuestId)
-                          ?.email ?? email
-                      }
-                      src={
-                        TEST_ACCOUNTS.find((a) => a.id === selectedGuestId)
-                          ?.image
-                      }
-                      size={28}
-                      className="shrink-0"
-                    />
-                  ) : (
-                    <Users
-                      className="h-4 w-4 shrink-0 text-white/70"
-                      aria-hidden
-                    />
-                  )}
-                  <span className="truncate text-white">
+                <span className="flex min-w-0 flex-1 items-center gap-2">
+                  {/* Fixed 28px lead — Users or avatar share the same footprint */}
+                  <span className="size-7 shrink-0 flex items-center justify-center">
+                    {selectedGuestId ? (
+                      <UserAvatar
+                        seed={
+                          TEST_ACCOUNTS.find((a) => a.id === selectedGuestId)
+                            ?.email ?? email
+                        }
+                        src={
+                          TEST_ACCOUNTS.find((a) => a.id === selectedGuestId)
+                            ?.image
+                        }
+                        size={28}
+                        className="shrink-0"
+                      />
+                    ) : (
+                      <Users
+                        className="h-4 w-4 text-white/70"
+                        aria-hidden
+                      />
+                    )}
+                  </span>
+                  <span className="truncate text-white leading-none min-h-[1.25em] inline-flex items-center">
                     {selectedGuestId
                       ? TEST_ACCOUNTS.find((a) => a.id === selectedGuestId)
                           ?.label ?? "Select as Guest User"
@@ -426,13 +429,7 @@ export default function Auth() {
 
               {isGuestDropdownOpen && (
                 <div
-                  className={`
-                    absolute top-full left-0 right-0 mt-2
-                    bg-gradient-to-br from-zinc-900/95 to-zinc-800/95
-                    backdrop-blur-md border border-white/20 rounded-xl shadow-2xl
-                    z-50
-                    animate-in fade-in-0 zoom-in-95 slide-in-from-top-2 duration-200
-                  `}
+                  className="absolute top-full left-0 right-0 mt-2 z-50 bg-gradient-to-br from-zinc-900/95 to-zinc-800/95 backdrop-blur-md border border-white/20 rounded-xl shadow-2xl animate-in fade-in-0 duration-150"
                 >
                   {TEST_ACCOUNTS.map((account) => (
                     <button
@@ -444,7 +441,7 @@ export default function Auth() {
                         setSelectedGuestId(account.id);
                         setIsGuestDropdownOpen(false);
                       }}
-                      className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-white/80 hover:bg-white/10 hover:text-white transition-all duration-150 text-left cursor-pointer"
+                      className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-white/80 hover:bg-white/10 hover:text-white transition-colors duration-150 text-left cursor-pointer"
                     >
                       <UserAvatar
                         seed={account.email}
@@ -462,20 +459,25 @@ export default function Auth() {
                     </button>
                   ))}
 
-                  {selectedGuestId && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setEmail("");
-                        setPassword("");
-                        setSelectedGuestId(null);
-                        setIsGuestDropdownOpen(false);
-                      }}
-                      className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-white/80 hover:bg-white/10 hover:text-white transition-all duration-150 text-left cursor-pointer border-t border-white/10"
-                    >
-                      <span>Clear Selection</span>
-                    </button>
-                  )}
+                  {/* Always mounted Clear row — stable menu height */}
+                  <button
+                    type="button"
+                    disabled={!selectedGuestId}
+                    onClick={() => {
+                      if (!selectedGuestId) return;
+                      setEmail("");
+                      setPassword("");
+                      setSelectedGuestId(null);
+                      setIsGuestDropdownOpen(false);
+                    }}
+                    className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-left border-t border-white/10 transition-colors duration-150 ${
+                      selectedGuestId
+                        ? "text-white/80 hover:bg-white/10 hover:text-white cursor-pointer"
+                        : "text-white/30 cursor-not-allowed"
+                    }`}
+                  >
+                    <span>Clear Selection</span>
+                  </button>
                 </div>
               )}
             </div>
@@ -489,7 +491,7 @@ export default function Auth() {
                   setEmail(e.target.value);
                   setSelectedGuestId(null);
                 }}
-                className="w-full rounded-lg sm:rounded-xl border border-white/20 bg-white/10 backdrop-blur-sm px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00ff99] focus:border-transparent transition-all"
+                className="w-full min-h-[48px] rounded-lg sm:rounded-xl border border-white/20 bg-white/10 backdrop-blur-sm px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00ff99] focus:border-transparent transition-colors box-border"
                 placeholder="Email address"
               />
             </div>
@@ -502,7 +504,7 @@ export default function Auth() {
                   setPassword(e.target.value);
                   setSelectedGuestId(null);
                 }}
-                className="w-full rounded-lg sm:rounded-xl border border-white/20 bg-white/10 backdrop-blur-sm px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00ff99] focus:border-transparent transition-all"
+                className="w-full min-h-[48px] rounded-lg sm:rounded-xl border border-white/20 bg-white/10 backdrop-blur-sm px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00ff99] focus:border-transparent transition-colors box-border"
                 placeholder="Password"
               />
             </div>

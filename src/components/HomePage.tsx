@@ -1,11 +1,17 @@
 "use client";
 
+/**
+ * HomePage — authenticated marketing home vs Auth.
+ * Flash fix (PORTABLE_AUTH_UI_GUIDE §3): never show marketing homepage/skeleton
+ * while resolving a logged-out visit; use urlist:wasAuthed to branch.
+ */
 import { useEffect, useState } from "react";
 import { useSession } from "@/hooks/useSession";
 import Auth from "./Auth";
 import { LinkIcon, ShareIcon, PhotoIcon } from "@heroicons/react/24/outline";
 import { Button } from "@/components/ui/Button";
 import { OptimizedImage } from "@/components/ui/OptimizedImage";
+import { WAS_AUTHED_KEY } from "@/constants/auth";
 
 const features = [
   {
@@ -28,109 +34,60 @@ const features = [
   },
 ];
 
-interface SessionUser {
-  id: string;
-  email: string;
+/** Neutral full-viewport wait — not marketing-shaped (avoids homepage flash). */
+function NeutralWait() {
+  return (
+    <div className="min-h-[50vh] w-full flex items-center justify-center">
+      <div
+        className="h-10 w-10 rounded-full border-2 border-white/20 border-t-blue-400 animate-spin"
+        aria-hidden
+      />
+    </div>
+  );
 }
 
 export default function HomePage() {
-  const {
-    user: session,
-    isLoading: sessionLoading,
-    isFetching: sessionFetching,
-  } = useSession();
+  const { user: session, isLoading: sessionLoading } = useSession();
   const [mounted, setMounted] = useState(false);
+  const [wasAuthedHint, setWasAuthedHint] = useState<boolean | null>(null);
 
   useEffect(() => {
     setMounted(true);
+    try {
+      setWasAuthedHint(localStorage.getItem(WAS_AUTHED_KEY) === "1");
+    } catch {
+      setWasAuthedHint(false);
+    }
   }, []);
 
-  // CRITICAL: Show skeleton during initial mount or loading
-  // This prevents showing stale cached session data or homepage UI before session is confirmed
-  // Show skeleton if:
-  // 1. Not mounted yet (prevents hydration mismatch and shows skeleton instead of homepage/Auth)
-  // 2. Initial loading (isLoading = true, no cache yet - first visit or empty cache)
-  // Note: Once session state is confirmed (null = no user, user object = logged in), show Auth/Homepage
-  // We don't check sessionFetching here because it can be true even after we have confirmed session state
-  // This ensures skeleton shows only during initial load, then Auth/Homepage shows immediately
-  const shouldShowSkeleton = !mounted || sessionLoading;
+  // Sync hint when session resolves (logout clears key in ProfileDropdown)
+  useEffect(() => {
+    if (!mounted || wasAuthedHint === null) return;
+    if (session?.email) {
+      localStorage.setItem(WAS_AUTHED_KEY, "1");
+      setWasAuthedHint(true);
+    } else if (!sessionLoading && !session) {
+      localStorage.removeItem(WAS_AUTHED_KEY);
+      setWasAuthedHint(false);
+    }
+  }, [mounted, session, sessionLoading, wasAuthedHint]);
 
-  // Show skeleton loading while mounted is false, loading, or fetching
-  if (shouldShowSkeleton) {
-    return (
-      <div className="min-h-screen w-full">
-        {/* Hero Section Skeleton */}
-        <section className="relative py-8 px-2 sm:py-12 sm:px-0">
-          <div className="text-center max-w-3xl mx-auto">
-            <div className="flex justify-center mb-8">
-              {/* Icon box skeleton: p-4 (16px) + 48px image = 80px total */}
-              <div className="w-20 h-20 bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20 animate-pulse" />
-            </div>
-            {/* Title skeleton: text-3xl sm:text-4xl md:text-5xl */}
-            <div className="h-8 sm:h-10 md:h-12 bg-white/10 backdrop-blur-sm rounded-xl w-3/4 mx-auto mb-6 animate-pulse" />
-            {/* Description skeleton: text-base sm:text-lg md:text-xl */}
-            <div className="h-5 sm:h-6 md:h-7 bg-white/10 backdrop-blur-sm rounded-lg w-full mx-auto mb-8 animate-pulse" />
-            {/* Buttons skeleton: py-3 = h-12 */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <div className="h-12 bg-white/10 backdrop-blur-sm rounded-xl w-full sm:w-auto px-8 animate-pulse" />
-              <div className="h-12 bg-white/10 backdrop-blur-sm rounded-xl w-full sm:w-auto px-8 animate-pulse" />
-            </div>
-          </div>
-        </section>
-
-        {/* Features Section Skeleton */}
-        <section className="py-16 px-4 sm:py-20 sm:px-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
-            {[1, 2, 3].map((i) => (
-              <div
-                key={i}
-                className="group p-6 sm:p-8 rounded-2xl border border-white/20 bg-white/5 backdrop-blur-sm shadow-lg"
-              >
-                {/* Icon box skeleton: p-3 + h-8 w-8 icon = ~56px total */}
-                <div className="w-14 h-14 bg-white/10 backdrop-blur-sm rounded-xl mb-4 animate-pulse border border-white/10" />
-                {/* Title skeleton: text-lg sm:text-xl */}
-                <div className="h-6 sm:h-7 bg-white/10 backdrop-blur-sm rounded-lg mb-3 animate-pulse" />
-                {/* Description skeleton */}
-                <div className="h-4 bg-white/10 backdrop-blur-sm rounded w-full animate-pulse" />
-                <div className="h-4 bg-white/10 backdrop-blur-sm rounded w-3/4 mt-2 animate-pulse" />
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* How It Works Section Skeleton */}
-        <section className="py-16 px-4 sm:py-20 sm:px-6">
-          {/* Title skeleton: text-2xl sm:text-3xl */}
-          <div className="h-8 sm:h-9 bg-white/10 backdrop-blur-sm rounded-xl w-1/3 mx-auto mb-8 sm:mb-12 animate-pulse" />
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="text-center p-4 sm:p-6">
-                {/* Numbered circle skeleton: w-10 h-10 sm:w-12 sm:h-12 */}
-                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white/10 backdrop-blur-sm rounded-full mx-auto mb-4 animate-pulse border border-white/10" />
-                {/* Title skeleton: text-lg sm:text-xl */}
-                <div className="h-6 sm:h-7 bg-white/10 backdrop-blur-sm rounded-lg mb-2 animate-pulse" />
-                {/* Description skeleton */}
-                <div className="h-4 bg-white/10 backdrop-blur-sm rounded w-full animate-pulse" />
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* CTA Section Skeleton */}
-        <section className="py-16 px-4 sm:py-20 sm:px-6">
-          <div className="max-w-3xl text-center mx-auto">
-            {/* Title skeleton: text-2xl sm:text-3xl */}
-            <div className="h-8 sm:h-9 bg-white/10 backdrop-blur-sm rounded-xl w-2/3 mx-auto mb-6 animate-pulse" />
-            {/* Description skeleton: text-base sm:text-xl */}
-            <div className="h-5 sm:h-7 bg-white/10 backdrop-blur-sm rounded-lg w-full mx-auto mb-8 animate-pulse" />
-            {/* Button skeleton: py-3 = h-12, with px-8 */}
-            <div className="h-12 bg-white/10 backdrop-blur-sm rounded-xl w-full sm:w-auto mx-auto px-8 animate-pulse" />
-          </div>
-        </section>
-      </div>
-    );
+  // Pre-hydration: neutral placeholder (not hero skeleton)
+  if (!mounted || wasAuthedHint === null) {
+    return <NeutralWait />;
   }
 
+  // Logged-out optimistic path: show Auth immediately — no marketing flash
+  if (!wasAuthedHint && !session) {
+    return <Auth />;
+  }
+
+  // Expected session but still loading — compact wait, not marketing skeleton
+  if (wasAuthedHint && sessionLoading && !session) {
+    return <NeutralWait />;
+  }
+
+  // Confirmed logged out after load
   if (!session) {
     return <Auth />;
   }

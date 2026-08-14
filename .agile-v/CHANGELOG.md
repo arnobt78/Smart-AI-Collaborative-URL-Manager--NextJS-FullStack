@@ -10,3 +10,4 @@
 - Educational README + SECURITY.md; SEO metadata + sitemap.xml
 - Portable Auth UI: Robohash guest Select + ProfileDropdown (API Docs/Status/Logout)
 - Educational README rewrite (preserve title/screenshots); SECURITY.md linked
+- Auth flash/navbar/Select: wasAuthed HomePage gate; static Navbar brand; fixed Select lead + Clear

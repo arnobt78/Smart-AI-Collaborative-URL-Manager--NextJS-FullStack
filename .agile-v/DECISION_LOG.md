@@ -92,3 +92,15 @@ Append-only. Newest entries at bottom.
 | Rationale | Bypass ad-block on Sentry ingest; avoid slowing app; Redis already existed |
 | Linked REQs | REQ-0006, REQ-0005 |
 | Status | Implemented — rotate exposed auth token |
+
+---
+
+## DEC-0007 — Auth flash gate via wasAuthed (no densify)
+
+| Field | Value |
+|-------|-------|
+| Timestamp | 2026-08-14 |
+| Agent | Cursor Build |
+| Decision | Gate HomePage on `urlist:wasAuthed`; static Navbar brand; fixed guest Select slots. Defer densify/Zod/SHA/JWT SSR. |
+| Rationale | Marketing skeleton during `sessionLoading` caused homepage flash; typewriter/cursor + Select lead swap caused layout shift |
+| Status | Implemented |
