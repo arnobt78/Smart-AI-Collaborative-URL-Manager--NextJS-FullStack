@@ -13,3 +13,5 @@
 - Auth flash/navbar/Select: wasAuthed HomePage gate; static Navbar brand; fixed Select lead + Clear
 - Auth welcome/goodbye toasts via sessionStorage + AuthToastBridge; Sparkles/Loader2 CTA; no inline message
 - Stable scrollbar gutter on html; Auth drop w-screen
+- Navbar avatar no-squeeze (padding outside size-10)
+- Prod console: SSE/AI via `devLog`/`devWarn` only in development

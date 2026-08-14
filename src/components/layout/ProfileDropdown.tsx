@@ -98,7 +98,7 @@ export function ProfileDropdown({
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="size-10 overflow-hidden rounded-full border border-white/20 bg-white/10 p-0 transition hover:border-white/40 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+        className="size-10 min-w-10 shrink-0 overflow-hidden rounded-full border border-white/20 bg-white/10 p-0 transition hover:border-white/40 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
         aria-expanded={open}
         aria-haspopup="menu"
         aria-label="Open profile menu"

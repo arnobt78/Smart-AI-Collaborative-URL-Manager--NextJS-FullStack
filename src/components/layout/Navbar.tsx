@@ -142,8 +142,8 @@ export default function Navbar() {
             </span>
           </Link>
 
-          {/* Desktop Navigation */}
-          <div className="hidden sm:flex items-center gap-3 lg:gap-4 flex-wrap">
+          {/* Desktop Navigation — nowrap so avatar never wraps/squeezes */}
+          <div className="hidden sm:flex items-center gap-3 lg:gap-4 flex-nowrap">
             <Link
               href="/browse"
               onClick={(e) => handleNavigation(e, "/browse")}
@@ -166,26 +166,29 @@ export default function Navbar() {
               My Lists
             </Link>
 
-            <div className="pl-2 lg:pl-4 size-10 shrink-0 flex items-center justify-center">
-              {showProfile && user ? (
-                <ProfileDropdown
-                  email={user.email}
-                  onNavigate={handleNavigation}
-                />
-              ) : showProfileSkeleton ? (
-                <div
-                  className="size-10 animate-pulse rounded-full border border-white/20 bg-white/10"
-                  aria-hidden
-                />
-              ) : (
-                <div className="size-10" aria-hidden />
-              )}
+            {/* Padding outside size-10 — padding+size on same node squashed the avatar */}
+            <div className="pl-2 lg:pl-4 shrink-0">
+              <div className="size-10 min-w-10 min-h-10 shrink-0 flex items-center justify-center">
+                {showProfile && user ? (
+                  <ProfileDropdown
+                    email={user.email}
+                    onNavigate={handleNavigation}
+                  />
+                ) : showProfileSkeleton ? (
+                  <div
+                    className="size-10 min-w-10 min-h-10 animate-pulse rounded-full border border-white/20 bg-white/10"
+                    aria-hidden
+                  />
+                ) : (
+                  <div className="size-10 min-w-10 min-h-10" aria-hidden />
+                )}
+              </div>
             </div>
           </div>
 
           {/* Mobile: profile + hamburger */}
           <div className="flex items-center gap-2 sm:hidden">
-            <div className="size-10 shrink-0 flex items-center justify-center">
+            <div className="size-10 min-w-10 min-h-10 shrink-0 flex items-center justify-center">
               {showProfile && user ? (
                 <ProfileDropdown
                   email={user.email}
@@ -193,11 +196,11 @@ export default function Navbar() {
                 />
               ) : showProfileSkeleton ? (
                 <div
-                  className="size-10 animate-pulse rounded-full border border-white/20 bg-white/10"
+                  className="size-10 min-w-10 min-h-10 animate-pulse rounded-full border border-white/20 bg-white/10"
                   aria-hidden
                 />
               ) : (
-                <div className="size-10" aria-hidden />
+                <div className="size-10 min-w-10 min-h-10" aria-hidden />
               )}
             </div>
             <button

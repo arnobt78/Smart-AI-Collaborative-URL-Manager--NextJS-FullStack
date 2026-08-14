@@ -4,7 +4,8 @@
 
 ## Done
 - AI / guardrails / SafeImage / observability / deps / SEO / Portable Auth UI
-- Flash/navbar/Select · welcome/goodbye toasts + Sparkles CTA · scrollbar-gutter stable
+- Flash/navbar/Select · toasts · Sparkles CTA · scrollbar-gutter · avatar no-squeeze
+- Prod console quiet: `devLog`/`devWarn` (`lib/dev-log.ts`) for SSE/AI paths
 
 ## Human
 - HA-0001 Firewall Challenge + AI Deny
@@ -12,5 +13,5 @@
 
 ## Next
 ```text
-Load .agile-v/STATE.md. C1 auth UX + gutter done. HA-0001. No densify/Zod/Next16 unless new REQ.
+Load .agile-v/STATE.md. C1 auth UX + quiet prod console. HA-0001. No densify/Zod/Next16 unless new REQ.
 ```

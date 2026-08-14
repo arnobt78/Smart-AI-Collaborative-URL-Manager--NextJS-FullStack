@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { currentList, type UrlItem } from "@/stores/urlListStore";
+import { devLog } from "@/lib/dev-log";
 
 interface RealtimeEvent {
   type: string;
@@ -159,9 +160,9 @@ export function useRealtimeList(listId: string | null) {
           // Handle different event types
           if (data.type === "connected") {
             // Connected to list updates
-            console.log(`✅ [SSE] Connected to list updates for listId: ${listId}`);
+            devLog(`✅ [SSE] Connected to list updates for listId: ${listId}`);
           } else if (data.type === "list_updated") {
-            console.log(`📨 [SSE] Received list_updated event:`, {
+            devLog(`📨 [SSE] Received list_updated event:`, {
               listId,
               action: data.action,
               timestamp: data.timestamp,
@@ -209,7 +210,7 @@ export function useRealtimeList(listId: string | null) {
                   action: data.action || "list_updated",
                 };
                 
-                console.log(`🔔 [REALTIME] Dispatching unified-update for collaborator action:`, unifiedUpdateEvent);
+                devLog(`🔔 [REALTIME] Dispatching unified-update for collaborator action:`, unifiedUpdateEvent);
                 
                 window.dispatchEvent(
                   new CustomEvent("unified-update", {
@@ -364,7 +365,7 @@ export function useRealtimeList(listId: string | null) {
         const delay = Math.min(1000 * Math.pow(2, reconnectAttemptsRef.current - 1), 30000);
         
         if (process.env.NODE_ENV === "development") {
-          console.log(`🔄 [API] SSE reconnecting in ${delay}ms (attempt ${reconnectAttemptsRef.current})`);
+          devLog(`🔄 [API] SSE reconnecting in ${delay}ms (attempt ${reconnectAttemptsRef.current})`);
         }
         
         reconnectTimeoutRef.current = setTimeout(() => {

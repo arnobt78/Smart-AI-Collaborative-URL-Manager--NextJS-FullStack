@@ -8,5 +8,6 @@
 | Flash/navbar/Select | PASS | WARN (pre-existing `any`) | HomePage/Navbar/Auth only |
 | Auth welcome/goodbye toasts + CTA | PASS | PASS | auth-toast + AuthToastBridge |
 | Stable scrollbar gutter | PASS | — | html scrollbar-gutter; Auth inset-0 |
+| Avatar no-squeeze + quiet prod console | PASS | — | Navbar min-w-10; devLog for SSE/AI |
 
 Out of scope: densify/JWT SSR, Zod/SHA, Next 16.

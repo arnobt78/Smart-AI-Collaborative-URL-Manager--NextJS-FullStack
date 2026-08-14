@@ -11,6 +11,7 @@ import {
   invalidateListQueries,
   invalidateBrowseQueries,
 } from "@/utils/queryInvalidation";
+import { devLog, devWarn } from "@/lib/dev-log";
 
 // ============================================
 // QUERY KEYS - Centralized for consistency
@@ -916,7 +917,7 @@ export function setupSSECacheSync() {
       const timeSinceSSEConnect = globalSSEConnectedTime
         ? Date.now() - globalSSEConnectedTime
         : null;
-      console.log(`📥 [SSE CACHE SYNC] Received unified-update event:`, {
+      devLog(`📥 [SSE CACHE SYNC] Received unified-update event:`, {
         listId,
         slug,
         action,
@@ -929,7 +930,7 @@ export function setupSSECacheSync() {
       });
 
       if (!listId) {
-        console.warn(
+        devWarn(
           `⚠️ [SSE CACHE SYNC] unified-update event missing listId, ignoring`
         );
         return;
@@ -958,7 +959,7 @@ export function setupSSECacheSync() {
             // If event is recent (within last 60 seconds), it's real-time - bypass grace period
             if (timeSinceEvent < 60000) {
               shouldIgnoreGracePeriod = true;
-              console.log(
+              devLog(
                 `✅ [SSE CACHE SYNC] Recent collaborator action (${timeSinceEvent}ms ago, ${Math.round(
                   timeSinceEvent / 1000
                 )}s) - bypassing grace period (action: ${action})`
@@ -971,12 +972,12 @@ export function setupSSECacheSync() {
                 if (timeSinceSSEConnect >= initialLoadGracePeriod) {
                   // Past grace period, safe to process even old events
                   shouldIgnoreGracePeriod = true;
-                  console.log(
+                  devLog(
                     `✅ [SSE CACHE SYNC] Historical collaborator action but past grace period (${timeSinceSSEConnect}ms since SSE connect) - processing (action: ${action})`
                   );
                 } else {
                   // Still in grace period and event is old - ignore it
-                  console.log(
+                  devLog(
                     `⏭️ [SSE CACHE SYNC] Historical collaborator action during grace period (${timeSinceEvent}ms old, ${timeSinceSSEConnect}ms since SSE connect) - ignoring (action: ${action})`
                   );
                 }
@@ -985,14 +986,14 @@ export function setupSSECacheSync() {
           } catch (e) {
             // Invalid timestamp - treat as recent collaborator action (might be from mutation)
             shouldIgnoreGracePeriod = true;
-            console.log(
+            devLog(
               `✅ [SSE CACHE SYNC] Collaborator action with invalid timestamp - treating as recent, bypassing grace period (action: ${action})`
             );
           }
         } else {
           // No timestamp - treat as recent collaborator action (likely from mutation dispatch)
           shouldIgnoreGracePeriod = true;
-          console.log(
+          devLog(
             `✅ [SSE CACHE SYNC] Collaborator action without timestamp - treating as recent, bypassing grace period (action: ${action})`
           );
         }
@@ -1005,7 +1006,7 @@ export function setupSSECacheSync() {
         const timeSinceSSEConnect = now - globalSSEConnectedTime;
 
         if (timeSinceSSEConnect < initialLoadGracePeriod) {
-          console.log(
+          devLog(
             `⏭️ [SSE CACHE SYNC] Ignoring unified-update event during initial load grace period (${timeSinceSSEConnect}ms since SSE connect, action: ${action})`
           );
           return;
@@ -1023,7 +1024,7 @@ export function setupSSECacheSync() {
       }
 
       if (!listSlug) {
-        console.warn(
+        devWarn(
           `⚠️ [SSE CACHE SYNC] Cannot invalidate - no slug found (listId: ${listId}, slug: ${slug})`
         );
         return;
@@ -1052,7 +1053,7 @@ export function setupSSECacheSync() {
 
       // Skip if we've already processed this exact event recently (shared across all instances)
       if (globalProcessedInvocations.has(invocationKey)) {
-        console.log(
+        devLog(
           `⏭️ [SSE CACHE SYNC] Skipping duplicate unified-update event (deduplicated by rounded timestamp): ${invocationKey}`
         );
         return;
@@ -1077,14 +1078,14 @@ export function setupSSECacheSync() {
       globalInvalidationTimeout = setTimeout(() => {
         // CRITICAL: Invalidate unified query to trigger refetch
         // This ensures collaborators see real-time updates (SSE -> unified-update event -> invalidation -> refetch)
-        console.log(
+        devLog(
           `🔄 [SSE CACHE SYNC] Invalidating unified query for: ${listSlug} (action: ${action})`
         );
         queryClient.invalidateQueries({
           queryKey: listQueryKeys.unified(listSlug!),
         });
         globalInvalidationTimeout = null;
-        console.log(
+        devLog(
           `✅ [SSE CACHE SYNC] Unified query invalidated, refetch should trigger updates?activityLimit=30`
         );
       }, invalidationDelay);
