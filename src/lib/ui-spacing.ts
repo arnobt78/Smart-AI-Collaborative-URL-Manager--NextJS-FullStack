@@ -19,11 +19,11 @@ export const MARKETING_STACK = "flex flex-col gap-6 sm:gap-8";
 /** Auth + form field groups */
 export const FORM_STACK = "space-y-3 sm:space-y-4";
 
-/** Vertical card lists (My Lists) */
-export const LIST_STACK = "flex flex-col space-y-4 sm:space-y-6";
+/** Vertical card lists (My Lists) — gap-* (space-y collapses between bordered cards) */
+export const LIST_STACK = "flex flex-col gap-4 sm:gap-6";
 
-/** Title + subtitle blocks */
-export const PAGE_HEADER = "flex flex-col ";
+/** Title + subtitle — no gap between lines (tight stack) */
+export const PAGE_HEADER = "flex flex-col gap-0";
 
 /** Align with Card Header/Content pad where raw divs mimic cards */
 export const CARD_PAD = "p-2 sm:p-4";

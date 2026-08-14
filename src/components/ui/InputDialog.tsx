@@ -144,12 +144,12 @@ export function InputDialog({
             />
           </div>
 
-          <div className="flex justify-end gap-2 pt-2">
+          <div className="flex justify-end gap-2 sm:gap-3 pt-2">
             <Button
               type="button"
               onClick={handleCancel}
               disabled={isLoading}
-              className="px-4 py-2 text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              variant="ghost"
             >
               {cancelText}
             </Button>
@@ -158,11 +158,7 @@ export function InputDialog({
               onClick={handleConfirm}
               disabled={isLoading}
               isLoading={isLoading}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors disabled:opacity-70 disabled:cursor-not-allowed ${
-                variant === "destructive"
-                  ? "bg-red-600 hover:bg-red-700 text-white"
-                  : "bg-blue-600 hover:bg-blue-700 text-white"
-              }`}
+              variant={variant === "destructive" ? "destructive" : "primary"}
             >
               {isLoading ? "Sending..." : confirmText}
             </Button>

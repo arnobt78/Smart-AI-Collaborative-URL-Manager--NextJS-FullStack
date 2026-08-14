@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
+import { CreateNewListButton } from "@/components/ui/CreateNewListButton";
 import { Badge } from "@/components/ui/Badge";
 import { AlertDialog } from "@/components/ui/AlertDialog";
 import { useToast } from "@/components/ui/Toaster";
@@ -15,7 +16,7 @@ import {
   type UserList,
 } from "@/hooks/useListQueries";
 import { cn } from "@/lib/utils";
-import { LIST_STACK, PAGE_STACK } from "@/lib/ui-spacing";
+import { LIST_STACK, PAGE_HEADER, PAGE_STACK } from "@/lib/ui-spacing";
 
 // Keep type alias for backward compatibility
 type List = UserList;
@@ -137,22 +138,15 @@ export default function ListsPageClient() {
   return (
     <div className={cn("min-h-screen w-full", PAGE_STACK)}>
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-medium bg-gradient-to-r from-blue-300 to-purple-300 bg-clip-text text-transparent">
+        <div className={PAGE_HEADER}>
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-medium bg-gradient-to-r from-blue-300 to-purple-300 bg-clip-text text-transparent leading-tight">
             My Lists
           </h1>
-          <p className="mt-1 sm:mt-2 text-sm sm:text-base text-white/70">
+          <p className="text-sm sm:text-base text-white/70 leading-snug">
             Manage and organize your URL collections
           </p>
         </div>
-        {!isLoading && (
-          <Button
-            href="/new"
-            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white text-sm sm:text-base shadow-lg hover:shadow-xl transition-all duration-200 w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-2"
-          >
-            Create New List
-          </Button>
-        )}
+        {!isLoading && <CreateNewListButton />}
       </div>
 
       <div className={LIST_STACK}>
@@ -383,12 +377,7 @@ export default function ListsPageClient() {
               Start organizing your URLs by creating your first list
             </p>
             <div className="mt-6 sm:mt-8">
-              <Button
-                href="/new"
-                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white text-sm sm:text-base shadow-lg hover:shadow-xl transition-all duration-200 w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-2"
-              >
-                Create New List
-              </Button>
+              <CreateNewListButton />
             </div>
           </div>
         )}

@@ -6,10 +6,12 @@ import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { Textarea } from "@/components/ui/Textarea";
 import { useToast } from "@/components/ui/Toaster";
-import { PencilIcon } from "@heroicons/react/24/outline";
 import { useUnifiedListQuery } from "@/hooks/useListQueries";
 import { useQueryClient } from "@tanstack/react-query";
 import { invalidateListQueries } from "@/utils/queryInvalidation";
+import { cn } from "@/lib/utils";
+import { PAGE_HEADER, PAGE_STACK } from "@/lib/ui-spacing";
+import { Save } from "lucide-react";
 
 export default function EditListPageClient() {
   const { slug } = useParams();
@@ -102,11 +104,11 @@ export default function EditListPageClient() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen w-full">
+      <div className={cn("min-h-screen w-full", PAGE_STACK)}>
         {/* Header Skeleton */}
-        <div className="text-left mb-4">
-          <div className="h-8 bg-white/10 rounded w-48  animate-pulse" />
-          <div className="h-5 bg-white/10 rounded w-96 animate-pulse" />
+        <div className={PAGE_HEADER}>
+          <div className="h-8 sm:h-9 bg-white/10 rounded w-48 animate-pulse" />
+          <div className="h-5 bg-white/10 rounded w-96 max-w-full animate-pulse" />
         </div>
 
         {/* Form Card Skeleton */}
@@ -159,19 +161,19 @@ export default function EditListPageClient() {
   }
 
   return (
-    <div className="min-h-screen w-full">
-      {/* Header Section */}
-      <div className="text-left ">
-        <h1 className="text-xl sm:text-2xl lg:text-3xl font-medium bg-gradient-to-r from-blue-300 via-purple-300 to-indigo-300 bg-clip-text text-transparent">
+    <div className={cn("min-h-screen w-full", PAGE_STACK)}>
+      {/* Header — title+sub tight (no mt between lines) */}
+      <div className={PAGE_HEADER}>
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-medium bg-gradient-to-r from-blue-300 via-purple-300 to-indigo-300 bg-clip-text text-transparent leading-tight">
           Edit List
         </h1>
-        <p className="text-white/70 text-sm sm:text-base lg:text-lg max-w-7xl mx-auto mt-1 sm:mt-2">
+        <p className="text-white/70 text-sm sm:text-base leading-snug">
           Update your list details and settings
         </p>
       </div>
 
       {/* Form Card */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-white/10 via-white/5 to-white/3 backdrop-blur-md border border-white/20 rounded-xl sm:rounded-2xl shadow-2xl p-2 sm:p-4 xl:p-10">
+      <div className="relative overflow-hidden bg-gradient-to-br from-white/10 via-white/5 to-white/3 backdrop-blur-md border border-white/20 rounded-xl sm:rounded-2xl shadow-2xl p-2 sm:p-4">
         {/* Animated background effect */}
         <div className="absolute inset-0 bg-gradient-to-r from-blue-500/0 via-purple-500/5 to-indigo-500/0 animate-pulse pointer-events-none" />
 
@@ -265,17 +267,19 @@ export default function EditListPageClient() {
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-2 sm:gap-4 pt-4">
               <Button
                 type="button"
-                variant="outline"
+                variant="ghost"
                 onClick={() => router.back()}
-                className="text-white border-white/30 hover:bg-white/10 transition-all duration-200 order-2 sm:order-1 text-sm sm:text-base py-2 sm:py-3 w-full sm:w-auto"
+                className="order-2 sm:order-1 w-full sm:w-auto"
               >
                 Cancel
               </Button>
               <Button
                 type="submit"
                 isLoading={isSaving}
-                className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 hover:from-blue-700 hover:via-purple-700 hover:to-indigo-700 text-white font-medium py-2 sm:py-3 lg:py-4 rounded-lg sm:rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 text-sm sm:text-base lg:text-lg order-1 sm:order-2 w-full sm:w-auto"
+                variant="primary"
+                className="order-1 sm:order-2 w-full sm:w-auto"
               >
+                <Save className="h-4 w-4 shrink-0" aria-hidden />
                 {isSaving ? "Saving..." : "Save Changes"}
               </Button>
             </div>

@@ -2,7 +2,8 @@
 
 import React, { useEffect } from "react";
 import ReactDOM from "react-dom";
-import { X } from "lucide-react";
+import { Check, Trash2, X } from "lucide-react";
+import { Button } from "@/components/ui/Button";
 
 interface AlertDialogProps {
   open: boolean;
@@ -25,24 +26,19 @@ export function AlertDialog({
   onConfirm,
   variant = "default",
 }: AlertDialogProps) {
-  // Prevent body scroll when dialog is open
   useEffect(() => {
     if (open) {
-      // Save current scroll position
       const scrollY = window.scrollY;
-      // Lock body scroll
       document.body.style.position = "fixed";
       document.body.style.top = `-${scrollY}px`;
       document.body.style.width = "100%";
       document.body.style.overflow = "hidden";
 
       return () => {
-        // Restore body scroll
         document.body.style.position = "";
         document.body.style.top = "";
         document.body.style.width = "";
         document.body.style.overflow = "";
-        // Restore scroll position
         window.scrollTo(0, scrollY);
       };
     }
@@ -59,7 +55,6 @@ export function AlertDialog({
     onOpenChange(false);
   };
 
-  // Use portal to render at document root level, ensuring proper viewport positioning
   const dialogContent = (
     <div
       className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-md p-4"
@@ -73,7 +68,7 @@ export function AlertDialog({
       }}
     >
       <div
-        className="relative w-full max-w-md mx-3 sm:mx-4 bg-gradient-to-br from-zinc-900 to-zinc-800 rounded-xl sm:rounded-2xl shadow-2xl border border-white/20 p-2 sm:p-4 max-h-[90vh] overflow-y-auto"
+        className="relative w-full max-w-md mx-3 sm:mx-4 flex flex-col gap-4 sm:gap-6 bg-gradient-to-br from-zinc-900 to-zinc-800 rounded-xl sm:rounded-2xl shadow-2xl border border-white/20 p-4 sm:p-6 max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <button
@@ -84,36 +79,36 @@ export function AlertDialog({
           <X className="h-4 w-4 sm:h-5 sm:w-5" />
         </button>
 
-        <div className="pr-6 sm:pr-8">
-          <h3 className="text-lg sm:text-xl font-medium text-white ">
+        <div className="pr-6 sm:pr-8 flex flex-col gap-1">
+          <h3 className="text-lg sm:text-xl font-medium text-white leading-tight">
             {title}
           </h3>
-          <p className="text-sm sm:text-base text-white/70 ">{description}</p>
+          <p className="text-sm sm:text-base text-white/70 leading-snug">
+            {description}
+          </p>
         </div>
 
-        <div className="flex justify-end gap-2">
-          <button
-            onClick={handleCancel}
-            className="px-4 py-2 text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-colors font-medium"
-          >
+        <div className="flex justify-end gap-2 sm:gap-3">
+          <Button type="button" variant="ghost" onClick={handleCancel}>
             {cancelText}
-          </button>
-          <button
+          </Button>
+          <Button
+            type="button"
+            variant={variant === "destructive" ? "destructive" : "primary"}
             onClick={handleConfirm}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-              variant === "destructive"
-                ? "bg-red-600 hover:bg-red-700 text-white"
-                : "bg-blue-600 hover:bg-blue-700 text-white"
-            }`}
           >
+            {variant === "destructive" ? (
+              <Trash2 className="h-4 w-4 shrink-0" aria-hidden />
+            ) : (
+              <Check className="h-4 w-4 shrink-0" aria-hidden />
+            )}
             {confirmText}
-          </button>
+          </Button>
         </div>
       </div>
     </div>
   );
 
-  // Render to document.body using portal for proper viewport positioning
   if (typeof window === "undefined") {
     return null;
   }

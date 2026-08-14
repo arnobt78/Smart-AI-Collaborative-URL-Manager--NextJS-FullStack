@@ -10,6 +10,9 @@ import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { Switch } from "@/components/ui/Switch";
 import {
+  glassActionButtonClass,
+} from "@/lib/ui/glass-button-styles";
+import {
   Copy,
   Check,
   Globe,
@@ -949,7 +952,7 @@ export default function ListPageClient() {
           </div>
 
           {/* Right Side: Setup Schedule and Health Check Buttons */}
-          <div className="flex items-center  flex-wrap">
+          <div className="flex items-center gap-2 sm:gap-2 flex-wrap">
             {/* Setup Schedule Button */}
             <button
               type="button"
@@ -1006,7 +1009,10 @@ export default function ListPageClient() {
                 }
               }}
               disabled={isSettingUpSchedule}
-              className="flex-shrink-0 px-2 sm:px-3 py-1 rounded-md sm:rounded-lg bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/30 text-white/90 text-xs font-medium transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 sm:gap-1"
+              className={glassActionButtonClass(
+                "violet",
+                "shrink-0 h-8 px-2 sm:px-3 text-xs",
+              )}
               title="Setup scheduled jobs (daily health checks, weekly metadata refresh)"
             >
               <Activity
@@ -1078,7 +1084,10 @@ export default function ListPageClient() {
                   }
                 }}
                 disabled={isRefreshingMetadata}
-                className="flex-shrink-0 px-2 sm:px-3 py-1 rounded-md sm:rounded-lg bg-green-600/20 hover:bg-green-600/30 border border-green-500/30 text-white/90 text-xs font-medium transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 sm:gap-1"
+                className={glassActionButtonClass(
+                  "emerald",
+                  "shrink-0 h-8 px-2 sm:px-3 text-xs",
+                )}
                 title="Refresh metadata for all URLs with improved extractor"
               >
                 <RefreshCw
@@ -1170,7 +1179,10 @@ export default function ListPageClient() {
                   }
                 }}
                 disabled={isCheckingHealth}
-                className="flex-shrink-0 px-2 sm:px-3 py-1 rounded-md sm:rounded-lg bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30 text-white/90 text-xs font-medium transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 sm:gap-1"
+                className={glassActionButtonClass(
+                  "blue",
+                  "shrink-0 h-8 px-2 sm:px-3 text-xs",
+                )}
                 title="Check URL health status for this list"
               >
                 <Activity
@@ -1264,9 +1276,10 @@ export default function ListPageClient() {
           </div>
         )}
       </div>
-      <UrlList />
-
-      {/* PermissionManager handles all collaborator dialogs internally */}
+      {/* Gap between Activity Feed / header card and Active URLs row */}
+      <div className="mt-6 sm:mt-8">
+        <UrlList />
+      </div>
     </div>
   );
 }

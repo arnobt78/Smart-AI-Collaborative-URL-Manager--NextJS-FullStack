@@ -5,7 +5,7 @@
 Live: https://daily-urlist.vercel.app/ · Resume: `.agile-v/STATE.md`
 
 ## Status (C1)
-Done: Auth UX · quiet prod logs · list-switch · Visit URLs · Collaborators/Card pad · no HomePage spinner · Smart Collections single pad · home refresh (wasAuthed cookie SSR, static BG, PostHog island) · central `ui-spacing` stacks · `MARKETING_STACK` + nav unclip.  
+Done: Auth UX · quiet prod logs · list-switch · Visit URLs · Collaborators/Card pad · no HomePage spinner · Smart Collections single pad · home refresh (wasAuthed cookie SSR, static BG, PostHog island) · central `ui-spacing` stacks · Auth split viewport (welcome+form together; no 8s gate) · stock glass shadow-glow (`src/lib/ui/glass-*`; Auth Sparkles).  
 Human: HA-0001; match Sentry org/token before upload.  
 Out of scope: densify/JWT SSR, Zod/SHA, Next 16, Prisma 7.
 
@@ -25,6 +25,12 @@ Visit: `openExternalUrl` / `ensureAbsoluteHttpUrl` in `lib/utils.ts` (schemeless
 
 ## Spacing
 `src/lib/ui-spacing.ts` — `PAGE_STACK` / `SECTION_STACK` / `MARKETING_STACK` / `FORM_STACK` / `LIST_STACK` / `PAGE_HEADER` / `CARD_PAD` on page roots (not per-child mb)
+
+## Auth layout
+`Auth.tsx` — `md:grid-cols-2` inside `max-w-7xl`: left Welcome typewriter + about-process (no divider/left logo); right labeled Sign In + Sign up row. No 8s overlay. Sign In uses `glassPrimaryButtonClass("blue")` + Sparkles.
+
+## Glass UI
+`src/lib/ui/glass-button-styles.ts` (primary/action/ghost) · `glass-badge-styles.ts` · `glass-card-styles.ts` — ported from stock-inventory; Tailwind content includes `src/lib`.
 
 ## Validate
 `tsc` · `lint` · `prisma generate` · `build` → `.agile-v/VALIDATION_SUMMARY.md`

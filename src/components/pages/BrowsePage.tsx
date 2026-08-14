@@ -94,10 +94,10 @@ export default function BrowsePage() {
     <div className={cn("min-h-screen w-full", PAGE_STACK)}>
       {/* Header */}
       <div className={PAGE_HEADER}>
-        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-medium text-white">
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-medium text-white leading-tight">
           🌐 Discover Public Lists
         </h1>
-        <p className="text-white/60 text-xs sm:text-sm lg:text-base">
+        <p className="text-white/60 text-xs sm:text-sm lg:text-base leading-snug">
           Browse and explore curated URL collections from the community
         </p>
       </div>
@@ -115,10 +115,8 @@ export default function BrowsePage() {
               className="pl-9 sm:pl-10 bg-white/5 border-white/10 text-white placeholder:text-white/40 text-sm sm:text-base py-2 sm:py-2"
             />
           </div>
-          <Button
-            type="submit"
-            className="px-4 sm:px-6 bg-blue-600 hover:bg-blue-700 text-white text-sm sm:text-base py-2 sm:py-2 w-full sm:w-auto"
-          >
+          <Button type="submit" variant="primary" className="w-full sm:w-auto">
+            <Search className="h-4 w-4 shrink-0" aria-hidden />
             Search
           </Button>
         </div>

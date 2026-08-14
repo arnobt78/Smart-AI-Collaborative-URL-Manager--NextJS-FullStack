@@ -211,11 +211,11 @@ export default function BusinessInsightsPage(
     <div className={cn("min-h-screen w-full", PAGE_STACK)}>
       {/* Header */}
       <div className={PAGE_HEADER}>
-        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-medium text-white flex items-center gap-2 sm:gap-2 flex-wrap">
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-medium text-white flex items-center gap-2 sm:gap-2 flex-wrap leading-tight">
           <BarChart3 className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-blue-400 flex-shrink-0" />
           <span>Business Insights</span>
         </h1>
-        <p className="text-white/60 text-xs sm:text-sm lg:text-base">
+        <p className="text-white/60 text-xs sm:text-sm lg:text-base leading-snug">
           Track your URLs, lists, and engagement metrics
         </p>
       </div>

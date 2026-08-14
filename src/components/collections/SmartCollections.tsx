@@ -470,10 +470,10 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
           </button>
         </div>
 
-        <div className="space-y-2 sm:space-y-3">
+        <div className="flex flex-col gap-3 sm:gap-4">
           {/* Loading State — only when cold (no suggestions yet) */}
           {isLoading && !hasSuggestions && (
-            <div className="space-y-2 sm:space-y-3">
+            <div className="flex flex-col gap-3 sm:gap-4">
               <Skeleton className="h-32 w-full" />
               <Skeleton className="h-32 w-full" />
             </div>
@@ -481,12 +481,12 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
 
           {/* Collection Suggestions — stay visible during refetch */}
           {hasSuggestions && (
-            <div>
-              <h4 className="text-xs sm:text-sm font-medium text-white  sm: flex items-center ">
-                <FolderPlus className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+            <div className="flex flex-col gap-3 sm:gap-4">
+              <h4 className="text-xs sm:text-sm font-medium text-white flex items-center gap-2">
+                <FolderPlus className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
                 <span>Suggested Collections ({suggestions.length})</span>
               </h4>
-              <div className="space-y-2 sm:space-y-3">
+              <div className="flex flex-col gap-3 sm:gap-4">
                 {suggestions.map((suggestion) => (
                   <div
                     key={suggestion.id}
@@ -495,11 +495,11 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
                     <div className="flex items-start justify-between gap-2 sm:gap-4 flex-col sm:flex-row">
                       <div className="flex-1 min-w-0 w-full sm:w-auto">
                         {/* Title - Full width on phone */}
-                        <h5 className="font-medium text-white text-sm sm:text-base w-full mb-1.5 sm: break-words">
+                        <h5 className="font-medium text-white text-sm sm:text-base w-full mb-1.5 break-words">
                           {suggestion.name}
                         </h5>
-                        {/* URLs and Category Badges - Separate row */}
-                        <div className="flex items-center  mb-1.5 sm: flex-wrap">
+                        {/* URLs and Category Badges */}
+                        <div className="flex items-center gap-2 mb-1.5 flex-wrap">
                           <Badge variant="secondary" className="text-xs">
                             {suggestion.urls.length} URLs
                           </Badge>
@@ -510,12 +510,12 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
                           )}
                         </div>
                         {/* Description - Full text on phone */}
-                        <p className="text-xs sm:text-sm text-white/60 mb-1.5 sm: break-words">
+                        <p className="text-xs sm:text-sm text-white/60 mb-1.5 break-words">
                           {suggestion.description}
                         </p>
-                        <div className="flex items-center  text-xs text-white/50 flex-wrap">
+                        <div className="flex items-center gap-2 text-xs text-white/50 flex-wrap">
                           <span>Confidence: {suggestion.confidence}%</span>
-                          <span>•</span>
+                          <span aria-hidden>•</span>
                           <span className="break-words">
                             {suggestion.reason}
                           </span>
@@ -523,6 +523,7 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
                       </div>
                       <Button
                         size="sm"
+                        variant="primary"
                         onClick={() => {
                           // Prevent action if viewer (disabled state)
                           if (!permissions.canEdit) return;
@@ -531,7 +532,7 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
                         disabled={
                           isCreating === suggestion.id || !permissions.canEdit
                         }
-                        className={`shrink-0 bg-blue-600 hover:bg-blue-700 text-white border-0 w-full sm:w-auto text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2 ${
+                        className={`shrink-0 w-full sm:w-auto ${
                           !permissions.canEdit
                             ? "opacity-50 cursor-not-allowed"
                             : ""
@@ -544,12 +545,12 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
                       >
                         {isCreating === suggestion.id ? (
                           <>
-                            <Loader2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2 animate-spin" />
+                            <Loader2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0 animate-spin" />
                             Creating...
                           </>
                         ) : (
                           <>
-                            <FolderPlus className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
+                            <FolderPlus className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
                             Create
                           </>
                         )}
@@ -563,9 +564,9 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
 
           {/* Duplicate Detection - Only show if duplicates have been fetched */}
           {showDuplicates && (isLoadingDuplicates || hasDuplicates) && (
-            <div>
-              <div className="flex items-center justify-between gap-2  sm:">
-                <h4 className="text-xs sm:text-sm font-medium text-white flex items-center  min-w-0 flex-1">
+            <div className="flex flex-col gap-3 sm:gap-4">
+              <div className="flex items-center justify-between gap-2">
+                <h4 className="text-xs sm:text-sm font-medium text-white flex items-center gap-2 min-w-0 flex-1">
                   <AlertTriangle className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-yellow-400 shrink-0" />
                   <span className="truncate">
                     {isLoadingDuplicates
@@ -617,7 +618,7 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
                                 {dup.duplicates.map((d, i) => (
                                   <div
                                     key={i}
-                                    className="text-[10px] sm:text-xs text-white/70 flex items-start  flex-wrap"
+                                    className="text-[10px] sm:text-xs text-white/70 flex items-start gap-1.5 flex-wrap"
                                   >
                                     <Copy className="h-3 w-3 shrink-0 mt-0.5" />
                                     <span className="break-words flex-1 min-w-0">
@@ -701,7 +702,7 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
           )}
 
           {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center pt-2 border-t border-white/10 gap-2">
+          <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center pt-3 sm:pt-4 border-t border-white/10 gap-2 sm:gap-3">
             {/* Check Duplicates Button (on-demand) */}
             <button
               type="button"

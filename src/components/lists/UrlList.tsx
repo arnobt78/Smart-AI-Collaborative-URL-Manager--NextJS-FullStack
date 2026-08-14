@@ -2574,29 +2574,25 @@ export function UrlList() {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="flex flex-col gap-4 sm:gap-6">
       {/* Tabs for Active/Archived and Add URL Button */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 sm:gap-2 border-b border-white/10 pb-2">
-        <div className="flex items-center gap-2 sm:gap-2 flex-1 sm:flex-none">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4 border-b border-white/10 pb-3 sm:pb-4">
+        <div className="flex items-center gap-2 sm:gap-3 flex-1 sm:flex-none">
           <Button
             type="button"
             onClick={() => setShowArchived(false)}
-            className={`text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2 flex-1 sm:flex-none ${
-              !showArchived
-                ? "bg-blue-600 text-white"
-                : "bg-white/10 text-white/70 hover:bg-white/20"
-            }`}
+            variant={!showArchived ? "action" : "ghost"}
+            size="sm"
+            className="flex-1 sm:flex-none"
           >
             Active URLs ({list.urls?.length || 0})
           </Button>
           <Button
             type="button"
             onClick={() => setShowArchived(true)}
-            className={`text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2 flex-1 sm:flex-none ${
-              showArchived
-                ? "bg-blue-600 text-white"
-                : "bg-white/10 text-white/70 hover:bg-white/20"
-            }`}
+            variant={showArchived ? "action" : "ghost"}
+            size="sm"
+            className="flex-1 sm:flex-none"
           >
             <ArchiveBoxIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
             Archived ({archivedUrls.length})
@@ -2620,11 +2616,12 @@ export function UrlList() {
                 setError(undefined);
               }
             }}
-            className={`bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white flex items-center justify-center  transition-all duration-200 shadow-md hover:shadow-lg text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2 w-full sm:w-auto ${
+            className={`inline-flex items-center justify-center gap-2 transition-all duration-200 text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2 w-full sm:w-auto ${
               !permissions.canEdit ? "opacity-50 cursor-not-allowed" : ""
             }`}
+            variant="glassEmerald"
           >
-            <CirclePlus className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+            <CirclePlus className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
             Add URL
           </Button>
         )}

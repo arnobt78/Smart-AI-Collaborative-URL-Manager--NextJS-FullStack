@@ -116,19 +116,17 @@ export default function Navbar({ initialWasAuthed = false }: NavbarProps) {
   };
 
   const renderProfileSlot = () => (
-    // Fixed 40×40 shell — overflow-visible so avatar/menu are never clipped
+    // size-10 shell — ProfileDropdown positions menu with top-full (below trigger)
     <div className="relative size-10 min-h-10 min-w-10 shrink-0 overflow-visible">
       {showProfile && user ? (
-        <div className="absolute inset-0 overflow-visible">
-          <ProfileDropdown email={user.email} onNavigate={handleNavigation} />
-        </div>
+        <ProfileDropdown email={user.email} onNavigate={handleNavigation} />
       ) : showProfileSkeleton ? (
         <div
-          className="absolute inset-0 animate-pulse rounded-full border border-white/20 bg-white/10"
+          className="size-10 animate-pulse rounded-full border border-white/20 bg-white/10"
           aria-hidden
         />
       ) : (
-        <div className="absolute inset-0" aria-hidden />
+        <div className="size-10" aria-hidden />
       )}
     </div>
   );

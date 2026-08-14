@@ -25,6 +25,7 @@ import {
   useRemoveCollaborator,
   listQueryKeys,
 } from "@/hooks/useListQueries";
+import { glassPrimaryButtonClass } from "@/lib/ui/glass-button-styles";
 
 export interface Collaborator {
   email: string;
@@ -222,13 +223,13 @@ export function PermissionManager({
 
   const addCollaboratorButton = (
     <Button
-      variant="outline"
+      variant="glassEmerald"
       size="sm"
       onClick={() => setInviteDialogOpen(true)}
-      disabled={!canInvite} // Disable for viewers
-      className="flex items-center  border-white/20 bg-white/5 text-white hover:bg-white/10 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2 w-full sm:w-auto shrink-0"
+      disabled={!canInvite}
+      className="w-full sm:w-auto shrink-0"
     >
-      <UserPlus className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+      <UserPlus className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" aria-hidden />
       <span>Add Collaborator</span>
     </Button>
   );
@@ -510,7 +511,6 @@ export function PermissionManager({
                       }}
                       disabled={addCollaboratorMutation.isPending}
                       variant="ghost"
-                      className="text-white/80 hover:text-white hover:bg-white/10"
                     >
                       Cancel
                     </Button>
@@ -521,7 +521,7 @@ export function PermissionManager({
                         addCollaboratorMutation.isPending || !newEmail.trim()
                       }
                       isLoading={addCollaboratorMutation.isPending}
-                      className="bg-blue-600 hover:bg-blue-700 text-white"
+                      variant="glass"
                     >
                       {addCollaboratorMutation.isPending
                         ? "Sending..."
@@ -539,7 +539,7 @@ export function PermissionManager({
       {roleChangeDialog.open && typeof window !== "undefined" && document.body
         ? ReactDOM.createPortal(
             <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-md">
-              <div className="relative w-full max-w-md mx-4 bg-gradient-to-br from-zinc-900 to-zinc-800 rounded-2xl shadow-2xl border border-white/20 p-6">
+              <div className="relative w-full max-w-md mx-4 flex flex-col gap-4 sm:gap-6 bg-gradient-to-br from-zinc-900 to-zinc-800 rounded-2xl shadow-2xl border border-white/20 p-6">
                 <button
                   onClick={() =>
                     setRoleChangeDialog({
@@ -553,15 +553,15 @@ export function PermissionManager({
                 >
                   <X className="h-5 w-5" />
                 </button>
-                <div className="pr-8">
-                  <h3 className="text-xl font-medium text-white ">
+                <div className="pr-8 flex flex-col gap-1">
+                  <h3 className="text-xl font-medium text-white leading-tight">
                     Change Collaborator Role
                   </h3>
-                  <p className="text-white/70 ">
+                  <p className="text-white/70 text-sm leading-snug">
                     Choose a role for {roleChangeDialog.email}:
                   </p>
                 </div>
-                <div className="mt-4 flex gap-2 ">
+                <div className="flex gap-3 sm:gap-4">
                   <button
                     type="button"
                     onClick={() =>
@@ -605,7 +605,7 @@ export function PermissionManager({
                     </div>
                   </button>
                 </div>
-                <div className="flex justify-end gap-2">
+                <div className="flex justify-end gap-2 sm:gap-3">
                   <button
                     onClick={() =>
                       setRoleChangeDialog({
@@ -615,7 +615,7 @@ export function PermissionManager({
                       })
                     }
                     disabled={updateRoleMutation.isPending}
-                    className="px-4 py-2 text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-colors font-medium disabled:opacity-50"
+                    className="px-4 py-2 text-white/80 hover:text-white border border-white/10 bg-white/5 hover:bg-white/10 rounded-xl backdrop-blur-sm transition-colors font-medium disabled:opacity-50"
                   >
                     Cancel
                   </button>
@@ -624,7 +624,7 @@ export function PermissionManager({
                       handleUpdateRole(roleChangeDialog.currentRole)
                     }
                     disabled={updateRoleMutation.isPending}
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                    className={glassPrimaryButtonClass("blue", "px-4 py-2 text-sm")}
                   >
                     {updateRoleMutation.isPending && (
                       <svg

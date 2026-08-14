@@ -16,3 +16,6 @@
 | 2026-08-14 | Home refresh: wasAuthed cookie SSR + static BG + PostHog island; no Auth flash / profile jump. |
 | 2026-08-14 | Central ui-spacing tokens; PAGE/SECTION/FORM/LIST stacks restore collapsed pages. |
 | 2026-08-14 | MARKETING_STACK + Auth footer hide + navbar avatar/menu unclip z-[100]. |
+| 2026-08-14 | Auth split viewport: welcome+about | Sign In together; no 8s gate. |
+| 2026-08-14 | Auth UI polish: max-w-7xl, no divider/logo box, gaps, Sign up row. |
+| 2026-08-14 | Stock glass shadow-glow port (`src/lib/ui/glass-*`); CTAs + Auth Sparkles; deleted dead `ui-button.ts`. |

@@ -1,40 +1,83 @@
-import { ButtonHTMLAttributes, forwardRef } from 'react';
-import Link from 'next/link';
-import { clsx } from 'clsx';
-import { twMerge } from 'tailwind-merge';
+import { ButtonHTMLAttributes, forwardRef } from "react";
+import Link from "next/link";
+import { clsx } from "clsx";
+import { twMerge } from "tailwind-merge";
+import {
+  GLASS_ACTION_BUTTON,
+  GLASS_BUTTON_DISABLED,
+  GLASS_BUTTON_ICON_HOVER,
+  GLASS_GHOST_BUTTON,
+  GLASS_PRIMARY_BUTTON,
+} from "@/lib/ui/glass-button-styles";
+
+export type ButtonVariant =
+  | "primary"
+  | "secondary"
+  | "outline"
+  | "ghost"
+  | "glass"
+  | "glassPurple"
+  | "glassAmber"
+  | "glassEmerald"
+  | "glassRose"
+  | "glassNeutral"
+  | "action"
+  | "actionViolet"
+  | "actionEmerald"
+  | "destructive";
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'outline' | 'ghost';
-  size?: 'sm' | 'md' | 'lg';
+  variant?: ButtonVariant;
+  size?: "sm" | "md" | "lg";
   isLoading?: boolean;
   href?: string;
 }
 
+/**
+ * Button — stock-inventory shadow-glow primary/action recipes.
+ * Prefer meaningful lucide icons as first child on labeled CTAs.
+ */
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant = 'primary', size = 'md', isLoading, href, children, ...props }, ref) => {
-    const baseStyles = 'inline-flex items-center justify-center rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 disabled:cursor-not-allowed';
-    
-    const variants = {
-      primary: 'bg-blue-600 text-white hover:bg-blue-700 focus-visible:ring-blue-600',
-      secondary: 'bg-gray-100 text-gray-900 hover:bg-gray-200 focus-visible:ring-gray-500',
-      outline: 'border border-gray-300 bg-transparent hover:bg-gray-100 focus-visible:ring-gray-500',
-      ghost: 'hover:bg-gray-100 hover:text-gray-900 focus-visible:ring-gray-500',
+  (
+    {
+      className,
+      variant = "primary",
+      size = "md",
+      isLoading,
+      href,
+      children,
+      ...props
+    },
+    ref,
+  ) => {
+    const baseStyles =
+      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/50 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950";
+
+    const variants: Record<ButtonVariant, string> = {
+      primary: `${GLASS_BUTTON_ICON_HOVER} ${GLASS_BUTTON_DISABLED} ${GLASS_PRIMARY_BUTTON.blue}`,
+      glass: `${GLASS_BUTTON_ICON_HOVER} ${GLASS_BUTTON_DISABLED} ${GLASS_PRIMARY_BUTTON.blue}`,
+      glassPurple: `${GLASS_BUTTON_ICON_HOVER} ${GLASS_BUTTON_DISABLED} ${GLASS_PRIMARY_BUTTON.violet}`,
+      glassAmber: `${GLASS_BUTTON_ICON_HOVER} ${GLASS_BUTTON_DISABLED} ${GLASS_PRIMARY_BUTTON.amber}`,
+      glassEmerald: `${GLASS_BUTTON_ICON_HOVER} ${GLASS_BUTTON_DISABLED} ${GLASS_PRIMARY_BUTTON.emerald}`,
+      glassRose: `${GLASS_BUTTON_ICON_HOVER} ${GLASS_BUTTON_DISABLED} ${GLASS_PRIMARY_BUTTON.rose}`,
+      destructive: `${GLASS_BUTTON_ICON_HOVER} ${GLASS_BUTTON_DISABLED} ${GLASS_PRIMARY_BUTTON.rose}`,
+      action: `${GLASS_BUTTON_ICON_HOVER} ${GLASS_BUTTON_DISABLED} ${GLASS_ACTION_BUTTON.blue}`,
+      actionViolet: `${GLASS_BUTTON_ICON_HOVER} ${GLASS_BUTTON_DISABLED} ${GLASS_ACTION_BUTTON.violet}`,
+      actionEmerald: `${GLASS_BUTTON_ICON_HOVER} ${GLASS_BUTTON_DISABLED} ${GLASS_ACTION_BUTTON.emerald}`,
+      glassNeutral: GLASS_GHOST_BUTTON,
+      secondary: GLASS_GHOST_BUTTON,
+      ghost: GLASS_GHOST_BUTTON,
+      outline: `${GLASS_BUTTON_ICON_HOVER} ${GLASS_BUTTON_DISABLED} ${GLASS_ACTION_BUTTON.sky}`,
     };
 
     const sizes = {
-      sm: 'h-8 px-3 text-sm',
-      md: 'h-10 px-4',
-      lg: 'h-12 px-6 text-lg',
+      sm: "h-8 px-3 text-xs sm:text-sm",
+      md: "h-11 px-4 text-sm",
+      lg: "h-12 px-6 text-base",
     };
 
     const classes = twMerge(
-      clsx(
-        baseStyles,
-        variants[variant],
-        sizes[size],
-        isLoading && 'cursor-wait',
-        className
-      )
+      clsx(baseStyles, variants[variant], sizes[size], isLoading && "cursor-wait", className),
     );
 
     if (href) {
@@ -49,15 +92,16 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       <button
         ref={ref}
         className={classes}
-        disabled={isLoading}
+        disabled={isLoading || props.disabled}
         {...props}
       >
         {isLoading ? (
           <svg
-            className="mr-2 h-4 w-4 animate-spin"
+            className="h-4 w-4 shrink-0 animate-spin"
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"
+            aria-hidden
           >
             <circle
               className="opacity-25"
@@ -77,9 +121,9 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         {children}
       </button>
     );
-  }
+  },
 );
 
-Button.displayName = 'Button';
+Button.displayName = "Button";
 
-export { Button, type ButtonProps }; 
+export { Button, type ButtonProps };

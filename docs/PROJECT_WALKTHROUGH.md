@@ -11,7 +11,8 @@ Next 15 URL bookmark manager. Demo: https://daily-urlist.vercel.app/
 - Pages → `components/pages/*` · `app/api/**` · SEO `layout.tsx` + sitemap
 - Auth: `Auth.tsx` · `ProfileDropdown` · `UserAvatar` · `lib/robohash.ts` · `constants/auth.ts`
 - Flash: SSR `WAS_AUTHED_COOKIE` / `session_token` → `useWasAuthedHint` · guests Auth · returning Marketing (no spinner)
-- Auth UI: welcome `MARKETING_STACK` · sign-in header `SECTION_STACK` · Sign up footer hidden (`_handleSignUp` kept)
+- Auth UI: split viewport inside `max-w-7xl` — left Welcome typewriter + about-process (no center divider / left logo); right labeled Sign In + Sign up row; no 8s overlay
+- CTAs: `src/lib/ui/glass-*` shadow-glow (stock recipe); Auth Sign In Sparkles
 - Navbar: `h-14 overflow-visible` · profile shell visible · menu `z-[100]` · static brand
 - BG: static `FloatingBackground` (no `animate-float`) · PostHog `PostHogPageview` Suspense island only
 - Spacing: `lib/ui-spacing.ts` PAGE/SECTION/MARKETING/FORM/LIST/PAGE_HEADER/CARD_PAD

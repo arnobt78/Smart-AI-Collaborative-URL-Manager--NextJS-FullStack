@@ -20,5 +20,8 @@
 | Home refresh flash / BG / navbar       | PASS | PASS                      | was-authed cookie SSR; static BG; PostHog Suspense island; typed Navbar |
 | Central UI spacing                     | PASS | PASS                      | ui-spacing PAGE/SECTION/FORM/LIST; Browse/Lists/Insights/API/Home/Auth |
 | Auth/Home/Navbar polish                | PASS | PASS                      | MARKETING_STACK; Sign up footer hidden; nav overflow-visible; menu z-100 |
+| Auth split viewport                    | PASS | PASS                      | md:grid-cols-2; no 8s overlay; labeled form; about-process left |
+| Auth UI polish                         | PASS | PASS                      | max-w-7xl; no divider/left logo; reserved typewriter; gaps; Sign up row; CTA pt |
+| Stock glass shadow-glow                | PASS | PASS (pre-existing WARN)  | glass-* tokens; Button; Auth Sparkles + 0_15px_35px glow verified in browser |
 
 Out of scope: densify/JWT SSR, Zod/SHA, Next 16, Prisma 7.

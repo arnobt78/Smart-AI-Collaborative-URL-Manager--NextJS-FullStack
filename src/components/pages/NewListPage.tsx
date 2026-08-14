@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "@/hooks/useSession";
 import Auth from "@/components/Auth";
@@ -12,15 +12,11 @@ import {
   invalidateAllListsQueries,
   invalidateListQueries,
 } from "@/utils/queryInvalidation";
-import {
-  LinkIcon,
-  ArrowTopRightOnSquareIcon,
-} from "@heroicons/react/24/outline";
-
-interface SessionUser {
-  id: string;
-  email: string;
-}
+import { ArrowTopRightOnSquareIcon } from "@heroicons/react/24/outline";
+import { FolderPlus } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { FORM_STACK, PAGE_HEADER, PAGE_STACK } from "@/lib/ui-spacing";
+import { Button } from "@/components/ui/Button";
 
 export default function NewListPageClient() {
   const router = useRouter();
@@ -112,11 +108,11 @@ export default function NewListPageClient() {
 
   if (loading) {
     return (
-      <div className="min-h-screen w-full">
+      <div className={cn("min-h-screen w-full", PAGE_STACK)}>
         {/* Header Skeleton */}
-        <div className="text-left mb-4">
-          <div className="h-8 bg-white/10 rounded w-56  animate-pulse" />
-          <div className="h-5 bg-white/10 rounded w-96 animate-pulse" />
+        <div className={PAGE_HEADER}>
+          <div className="h-8 sm:h-9 bg-white/10 rounded w-56 animate-pulse" />
+          <div className="h-5 bg-white/10 rounded w-96 max-w-full animate-pulse" />
         </div>
 
         {/* Form Card Skeleton */}
@@ -197,13 +193,13 @@ export default function NewListPageClient() {
   }
 
   return (
-    <div className="min-h-screen w-full">
-      {/* Header Section */}
-      <div className="text-left ">
-        <h1 className="text-xl sm:text-2xl lg:text-3xl font-medium bg-gradient-to-r from-blue-300 via-purple-300 to-indigo-300 bg-clip-text text-transparent">
+    <div className={cn("min-h-screen w-full", PAGE_STACK)}>
+      {/* Header — PAGE_HEADER = title+sub tight (no mt between lines) */}
+      <div className={PAGE_HEADER}>
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-medium bg-gradient-to-r from-blue-300 via-purple-300 to-indigo-300 bg-clip-text text-transparent leading-tight">
           Create a New List
         </h1>
-        <p className="text-white/70 text-sm sm:text-base lg:text-lg max-w-7xl mx-auto mt-1 sm:mt-2">
+        <p className="text-white/70 text-sm sm:text-base leading-snug">
           Organize your favorite URLs into beautiful, shareable collections
         </p>
       </div>
@@ -216,7 +212,7 @@ export default function NewListPageClient() {
         <div className="relative z-10">
           <form
             onSubmit={handleSubmit}
-            className="space-y-2 sm:space-y-4 lg:space-y-8"
+            className={cn(FORM_STACK, "lg:space-y-8")}
           >
             <div className="space-y-2">
               <label className="flex text-sm sm:text-base lg:text-lg font-medium text-white  items-center gap-2">
@@ -361,17 +357,11 @@ export default function NewListPageClient() {
               </div>
             )}
 
-            <button
-              type="submit"
-              className="group relative w-full sm:w-fit bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 hover:from-blue-700 hover:via-purple-700 hover:to-indigo-700 text-white font-medium py-2 sm:py-3 px-4 sm:px-6 rounded-lg sm:rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 text-sm sm:text-base lg:text-lg overflow-hidden"
-            >
-              {/* Shine effect */}
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
-              <span className="relative z-10 flex items-center justify-center gap-2">
-                <span>Create List</span>
-                <ArrowTopRightOnSquareIcon className="h-4 w-4 sm:h-5 sm:w-5 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
-              </span>
-            </button>
+            <Button type="submit" variant="glassPurple" size="lg" className="w-full sm:w-auto">
+              <FolderPlus className="h-4 w-4 sm:h-5 sm:w-5 shrink-0" aria-hidden />
+              Create List
+              <ArrowTopRightOnSquareIcon className="h-4 w-4 sm:h-5 sm:w-5 shrink-0" aria-hidden />
+            </Button>
           </form>
         </div>
       </div>

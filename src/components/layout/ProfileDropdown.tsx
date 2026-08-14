@@ -2,7 +2,9 @@
 
 /**
  * ProfileDropdown — PORTABLE_AUTH_UI_GUIDE §2.2
- * Custom absolute menu (no Radix modal) so sticky Navbar does not scroll-lock / jump.
+ * Positions like shadcn DropdownMenuContent (side=bottom, align=end):
+ * `top-full` + `right-0` under the trigger — no manual flow/mt hacks.
+ * Kept as custom panel (not Radix) so sticky Navbar does not scroll-lock.
  * Order: name+email → separator → utility links → separator → Logout.
  */
 import { useEffect, useRef, useState } from "react";
@@ -23,7 +25,7 @@ export type ProfileDropdownProps = {
   /** Preserve Navbar import-guard navigation */
   onNavigate?: (
     e: React.MouseEvent<HTMLAnchorElement>,
-    href: string
+    href: string,
   ) => void;
 };
 
@@ -70,9 +72,7 @@ export function ProfileDropdown({
       });
 
       if (response.ok) {
-        // Queue goodbye for Auth page after hard redirect
         queueAuthToast({ kind: "goodbye", name });
-        // Densify: clear all React Query + session hint before hard redirect
         queryClient.clear();
         if (typeof window !== "undefined") {
           setWasAuthedHintClient(false);
@@ -92,11 +92,12 @@ export function ProfileDropdown({
   };
 
   return (
-    <div className="relative size-10 h-full w-full" ref={rootRef}>
+    // Relative trigger box — menu uses top-full (below) + right-0 (align end)
+    <div className="relative size-10 shrink-0" ref={rootRef}>
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="absolute inset-0 m-0 box-border flex size-10 items-center justify-center overflow-hidden rounded-full border border-white/20 bg-white/10 p-0 leading-none appearance-none transition hover:border-white/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50 focus-visible:ring-offset-0"
+        className="flex size-10 items-center justify-center overflow-hidden rounded-full border border-white/20 bg-white/10 p-0 leading-none appearance-none transition hover:border-white/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50 focus-visible:ring-offset-0"
         aria-expanded={open}
         aria-haspopup="menu"
         aria-label="Open profile menu"
@@ -113,7 +114,8 @@ export function ProfileDropdown({
       {open && (
         <div
           role="menu"
-          className="absolute right-0 z-[100] mt-2 w-56 origin-top-right rounded-xl border border-white/20 bg-gradient-to-br from-zinc-900/95 to-zinc-800/95 p-1 shadow-2xl backdrop-blur-md sm:w-64 animate-in fade-in-0 zoom-in-95 slide-in-from-top-2 duration-150"
+          // shadcn-equivalent: side=bottom → top-full; align=end → right-0; sideOffset ≈ gap-1.5
+          className="absolute right-0 top-full z-[100] mt-1.5 w-56 origin-top-right rounded-xl border border-white/20 bg-gradient-to-br from-zinc-900/95 to-zinc-800/95 p-1 shadow-2xl backdrop-blur-md sm:w-64 animate-in fade-in-0 zoom-in-95 slide-in-from-top-2 duration-150"
         >
           <div className="px-3 pt-2 pb-1">
             <p className="truncate text-sm font-medium text-white">{name}</p>

@@ -15,6 +15,9 @@
 - Home refresh: `urlist_was_authed` cookie + session_token SSR hint; static FloatingBackground; PostHog Suspense island; profile skeleton-first
 - Central UI spacing: `lib/ui-spacing.ts` PAGE/SECTION/FORM/LIST stacks on Browse/Lists/Insights/API/Home/Auth; main `py-6 sm:py-10`
 - Auth/Home/Navbar polish: `MARKETING_STACK`; hide Sign up footer; nav overflow-visible + dropdown `z-[100]`
+- Auth split viewport: `md:grid-cols-2` welcome+about | labeled Sign In; removed 8s blocking overlay
+- Auth UI polish: max-w-7xl shell; no center divider/left logo; reserved typewriter heights; feature gaps; Sign up row; CTA spacer
+- Stock glass shadow-glow port: `src/lib/ui/glass-{button,badge,card}-styles.ts`; Button variants; Auth Sign In Sparkles + primary blue glow; PermissionManager/CTAs aligned; dead `ui-button.ts` removed
 
 ## Human
 
@@ -24,5 +27,5 @@
 ## Next
 
 ```text
-Load .agile-v/STATE.md. C1 UX polish (MARKETING_STACK, nav unclip). HA-0001. No densify/Zod/Next16/Prisma7 unless REQ.
+Load .agile-v/STATE.md. C1 glass glow ported (stock recipe). HA-0001. No densify/Zod/Next16/Prisma7 unless REQ.
 ```

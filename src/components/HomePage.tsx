@@ -10,6 +10,7 @@ import { useWasAuthedHint } from "@/hooks/useWasAuthedHint";
 import Auth from "./Auth";
 import { LinkIcon, ShareIcon, PhotoIcon } from "@heroicons/react/24/outline";
 import { Button } from "@/components/ui/Button";
+import { CreateNewListButton } from "@/components/ui/CreateNewListButton";
 import { OptimizedImage } from "@/components/ui/OptimizedImage";
 import { cn } from "@/lib/utils";
 import {
@@ -70,12 +71,7 @@ function MarketingHome() {
             resources, bookmarks, and collections with others.
           </p>
           <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 justify-center px-2">
-            <Button
-              href="/new"
-              className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 hover:from-blue-700 hover:via-purple-700 hover:to-indigo-700 text-white text-base sm:text-lg font-medium px-6 sm:px-8 py-2 sm:py-3 rounded-xl shadow-md hover:shadow-xl transition-all duration-200 w-full sm:w-auto"
-            >
-              Create New List
-            </Button>
+            <CreateNewListButton size="lg" className="text-base sm:text-lg px-6 sm:px-8" />
             <Button
               href="/lists"
               variant="outline"
@@ -178,12 +174,11 @@ function MarketingHome() {
           <p className="text-sm sm:text-base lg:text-xl text-white/60 px-2">
             Start organizing and sharing your favorite URLs today.
           </p>
-          <Button
-            href="/new"
-            className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 hover:from-blue-700 hover:via-purple-700 hover:to-indigo-700 text-white text-sm sm:text-base lg:text-lg font-medium px-6 sm:px-8 py-2 sm:py-3 rounded-xl shadow-md hover:shadow-xl transition-all duration-200 w-full sm:w-auto"
-          >
-            Get Started Now With Your Daily URL List
-          </Button>
+          <CreateNewListButton
+            size="lg"
+            label="Get Started Now With Your Daily URL List"
+            className="text-sm sm:text-base lg:text-lg px-6 sm:px-8"
+          />
         </div>
       </section>
     </div>
