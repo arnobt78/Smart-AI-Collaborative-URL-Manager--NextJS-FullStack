@@ -1,7 +1,9 @@
 // AI-Powered Smart Collections Service
 // Provides URL grouping, categorization, duplicate detection, and smart recommendations
+// Uses shared free-tier model chains from providers.ts + client.ts
 
 import { AI_PROVIDERS, type AIProvider } from "./providers";
+import { callProviderWithModelChain } from "./client";
 import { findSimilarUrls } from "@/lib/vector";
 import { redis } from "@/lib/redis";
 import type { UrlItem } from "@/stores/urlListStore";
@@ -616,114 +618,20 @@ Respond ONLY with valid JSON, no additional text.`;
   }
 
   /**
-   * Call AI provider
+   * Call AI provider via shared free-tier model chain (providers.ts + client.ts)
    */
   private async callAIProvider(
     provider: AIProvider,
     prompt: string
   ): Promise<string> {
-    const providerConfig = AI_PROVIDERS[provider];
-    const apiKey = providerConfig.apiKey;
-
-    if (!apiKey) {
-      throw new Error(`${providerConfig.displayName} API key not configured`);
-    }
-
-    switch (provider) {
-      case "gemini": {
-        const response = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              contents: [{ parts: [{ text: prompt }] }],
-              generationConfig: {
-                temperature: 0.3,
-                maxOutputTokens: 500,
-              },
-            }),
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error(`Gemini API error: ${response.status}`);
-        }
-
-        const data = await response.json();
-        return data.candidates?.[0]?.content?.parts?.[0]?.text || "{}";
-      }
-
-      case "groq": {
-        const response = await fetch(
-          "https://api.groq.com/openai/v1/chat/completions",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${apiKey}`,
-            },
-            body: JSON.stringify({
-              model: "llama-3.1-8b-instant",
-              messages: [
-                {
-                  role: "system",
-                  content: "You are a helpful assistant. Return only valid JSON.",
-                },
-                { role: "user", content: prompt },
-              ],
-              temperature: 0.3,
-              max_tokens: 500,
-            }),
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error(`Groq API error: ${response.status}`);
-        }
-
-        const data = await response.json();
-        return data.choices?.[0]?.message?.content || "{}";
-      }
-
-      case "openrouter": {
-        const response = await fetch(
-          "https://openrouter.ai/api/v1/chat/completions",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${apiKey}`,
-              "HTTP-Referer":
-                process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000",
-              "X-Title": "Daily Urlist - Smart Collections",
-            },
-            body: JSON.stringify({
-              model: "meta-llama/llama-3.2-3b-instruct:free",
-              messages: [
-                {
-                  role: "system",
-                  content: "Return only valid JSON.",
-                },
-                { role: "user", content: prompt },
-              ],
-              temperature: 0.3,
-              max_tokens: 500,
-            }),
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error(`OpenRouter API error: ${response.status}`);
-        }
-
-        const data = await response.json();
-        return data.choices?.[0]?.message?.content || "{}";
-      }
-
-      default:
-        throw new Error(`Unsupported provider: ${provider}`);
-    }
+    return callProviderWithModelChain(provider, prompt, {
+      maxTokens: 500,
+      temperature: 0.3,
+      system:
+        provider === "gemini"
+          ? undefined
+          : "You are a helpful assistant. Return only valid JSON.",
+    });
   }
 
   /**

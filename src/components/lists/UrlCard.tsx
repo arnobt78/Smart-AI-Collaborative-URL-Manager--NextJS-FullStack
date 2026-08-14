@@ -3,7 +3,7 @@
 import React from "react";
 import ReactDOM from "react-dom";
 import { useSession } from "@/hooks/useSession";
-import Image from "next/image";
+import { SafeImage } from "@/components/ui/safe-image";
 import {
   GlobeAltIcon,
   StarIcon,
@@ -83,15 +83,6 @@ export const UrlCard: React.FC<UrlCardProps> = ({
   dragHandleProps,
   canEdit = true, // Default to true for backward compatibility
 }) => {
-  // Log click count changes for debugging
-  React.useEffect(() => {
-    if (
-      process.env.NODE_ENV === "development" &&
-      url.clickCount !== undefined
-    ) {
-      // Removed excessive console log for URL card rendering
-    }
-  }, [url.id, url.clickCount, url.title]);
   const [imageError, setImageError] = React.useState(false);
   const [imageLoading, setImageLoading] = React.useState(true);
   const [currentImageUrl, setCurrentImageUrl] = React.useState<
@@ -349,7 +340,7 @@ export const UrlCard: React.FC<UrlCardProps> = ({
                 {imageLoading && (
                   <div className="absolute inset-0 bg-gray-800/40 rounded-xl animate-pulse" />
                 )}
-                <Image
+                <SafeImage
                   key={currentImageUrl}
                   src={currentImageUrl}
                   alt={title}
@@ -358,9 +349,8 @@ export const UrlCard: React.FC<UrlCardProps> = ({
                   className={`h-full w-full object-contain group-hover:scale-105 transition-transform duration-300 ${
                     imageError ? "opacity-0" : imageLoading ? "opacity-0" : ""
                   }`}
-                  unoptimized={currentImageUrl.startsWith("http")}
                   onError={() => {
-                    // Immediately stop showing spinner for failed image
+                    // Native fallback also failed — show placeholder
                     setImageLoading(false);
                     handleImageError();
                   }}

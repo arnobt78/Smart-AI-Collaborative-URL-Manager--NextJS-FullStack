@@ -1,10 +1,12 @@
 import type { Metadata, Viewport } from "next";
+import { Suspense } from "react";
 import { Inter, Roboto_Mono } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import FloatingBackground from "@/components/layout/FloatingBackground";
 import { QueryProvider } from "@/components/providers/QueryProvider";
+import { PostHogProvider } from "@/components/providers/PostHogProvider";
 import { ToastProvider } from "@/components/ui/Toaster";
 // DISABLED: UserDataPrefetcher causes duplicate API calls
 // import { UserDataPrefetcher } from "@/components/prefetch/UserDataPrefetcher";
@@ -128,24 +130,28 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" data-scroll-behavior="smooth" suppressHydrationWarning>
       <body
         className={`${inter.variable} ${robotoMono.variable} font-sans antialiased`}
         suppressHydrationWarning
       >
         <QueryProvider>
-          <ToastProvider>
-            {/* DISABLED: UserDataPrefetcher causes duplicate API calls and slow page loads */}
-            {/* <UserDataPrefetcher /> */}
-            <FloatingBackground />
-            <div className="flex flex-col min-h-screen bg-transparent">
-              <Navbar />
-              <main className="flex-grow mx-auto max-w-7xl w-full px-1 sm:px-0 py-8 sm:py-12">
-                {children}
-              </main>
-              <Footer />
-            </div>
-          </ToastProvider>
+          <Suspense fallback={null}>
+            <PostHogProvider>
+              <ToastProvider>
+                {/* DISABLED: UserDataPrefetcher causes duplicate API calls and slow page loads */}
+                {/* <UserDataPrefetcher /> */}
+                <FloatingBackground />
+                <div className="flex flex-col min-h-screen bg-transparent">
+                  <Navbar />
+                  <main className="flex-grow mx-auto max-w-7xl w-full px-1 sm:px-0 py-8 sm:py-12">
+                    {children}
+                  </main>
+                  <Footer />
+                </div>
+              </ToastProvider>
+            </PostHogProvider>
+          </Suspense>
         </QueryProvider>
       </body>
     </html>

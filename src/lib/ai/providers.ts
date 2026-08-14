@@ -1,5 +1,12 @@
-// AI Provider configuration for URL enhancement
-// Adapted from ai-chat-bot project for Next.js server-side usage
+/**
+ * AI provider registry (Layer 1 — data, not logic).
+ *
+ * Free-tier model chains verified 2026-08-14 against docs/LLM_MODEL_SELECTION.md
+ * and live provider docs. Order within `models` is the inner fallback chain;
+ * callers walk providers in their own outer priority order.
+ *
+ * Env keys are unchanged so existing deployments keep working.
+ */
 
 export type AIProvider = "gemini" | "groq" | "openrouter" | "huggingface";
 
@@ -8,54 +15,96 @@ export interface ProviderConfig {
   displayName: string;
   available: boolean;
   apiKey: string;
+  /** OpenAI-compatible chat URL, or Gemini generateContent base host for gemini */
   baseUrl: string;
+  /**
+   * Ordered free-tier model IDs for this provider.
+   * First entry is preferred; later entries are tried on retriable failures.
+   */
+  models: string[];
+  /** Convenience alias for models[0] — primary model for display / legacy reads */
   model: string;
   icon: string;
+  /** Extra headers for OpenAI-compatible providers (e.g. OpenRouter referer) */
+  extraHeaders?: Record<string, string>;
 }
 
+const GEMINI_MODELS = [
+  "gemini-2.5-flash",
+  "gemini-2.5-flash-lite",
+  "gemini-2.0-flash", // last-resort still-free Flash
+] as const;
+
+// Groq: llama-3.1-8b-instant / llama-3.3-70b-versatile shut down 2026-08-16
+const GROQ_MODELS = [
+  "openai/gpt-oss-20b",
+  "openai/gpt-oss-120b",
+  "qwen/qwen3.6-27b",
+] as const;
+
+// OpenRouter: only :free IDs or openrouter/free (live free list 2026-08-14)
+const OPENROUTER_MODELS = [
+  "openai/gpt-oss-20b:free",
+  "google/gemma-4-31b-it:free",
+  "nvidia/nemotron-nano-9b-v2:free",
+  "openrouter/free",
+] as const;
+
+// Hugging Face Inference Providers router — prefer gpt-oss + Qwen fallbacks
+const HUGGINGFACE_MODELS = [
+  "openai/gpt-oss-20b:fastest",
+  "openai/gpt-oss-120b:fastest",
+  "Qwen/Qwen2.5-7B-Instruct",
+] as const;
+
 export const AI_PROVIDERS: Record<AIProvider, ProviderConfig> = {
-  // Google Gemini AI - 1.5M free tokens/month
   gemini: {
     name: "gemini",
     displayName: "Google Gemini",
     available: true,
     apiKey: process.env.GOOGLE_GEMINI_API_KEY || "",
-    baseUrl:
-      "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent",
-    model: "gemini-2.0-flash",
+    // Path is built per-model in client.ts; host base kept for clarity
+    baseUrl: "https://generativelanguage.googleapis.com/v1beta",
+    models: [...GEMINI_MODELS],
+    model: GEMINI_MODELS[0],
     icon: "🤖",
   },
 
-  // Groq API - Fast Llama 3 Turbo (Always-free daily quota)
   groq: {
     name: "groq",
-    displayName: "Groq (Llama 3)",
+    displayName: "Groq",
     available: true,
     apiKey: process.env.GROQ_LLAMA_API_KEY || "",
     baseUrl: "https://api.groq.com/openai/v1/chat/completions",
-    model: "llama-3.1-8b-instant",
+    models: [...GROQ_MODELS],
+    model: GROQ_MODELS[0],
     icon: "⚡",
   },
 
-  // OpenRouter - Multi-model aggregator (Free quotas from partner models)
   openrouter: {
     name: "openrouter",
     displayName: "OpenRouter",
     available: true,
     apiKey: process.env.OPENROUTER_API_KEY || "",
     baseUrl: "https://openrouter.ai/api/v1/chat/completions",
-    model: "meta-llama/llama-3.2-3b-instruct:free",
+    models: [...OPENROUTER_MODELS],
+    model: OPENROUTER_MODELS[0],
     icon: "💬",
+    extraHeaders: {
+      "HTTP-Referer":
+        process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000",
+      "X-Title": "Daily Urlist",
+    },
   },
 
-  // Hugging Face Inference Providers API
   huggingface: {
     name: "huggingface",
     displayName: "Hugging Face",
     available: true,
     apiKey: process.env.HUGGING_FACE_INFERENCE_API_KEY || "",
     baseUrl: "https://router.huggingface.co/v1/chat/completions",
-    model: "meta-llama/Llama-3.1-8B-Instruct",
+    models: [...HUGGINGFACE_MODELS],
+    model: HUGGINGFACE_MODELS[0],
     icon: "🔍",
   },
 };

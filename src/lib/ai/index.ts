@@ -7,3 +7,9 @@ export type {
 
 export { AI_PROVIDERS, getAvailableProviders, getProvider } from "./providers";
 export type { AIProvider, ProviderConfig } from "./providers";
+
+export {
+  callProviderWithModelChain,
+  ProviderRateLimitedError,
+} from "./client";
+export type { ChatCallOptions } from "./client";

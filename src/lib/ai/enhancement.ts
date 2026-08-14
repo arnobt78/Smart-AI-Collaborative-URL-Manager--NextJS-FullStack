@@ -1,7 +1,9 @@
 // AI Enhancement Service for URLs
 // Provides automatic categorization, tagging, description generation, and duplicate detection
+// Model IDs and HTTP calls live in providers.ts + client.ts (free-tier chains, 2026-08-14)
 
 import { AIProvider, getProvider, AI_PROVIDERS } from "./providers";
+import { callProviderWithModelChain } from "./client";
 
 export interface UrlMetadata {
   url: string;
@@ -30,152 +32,6 @@ export interface EnhancementOptions {
 }
 
 class AIEnhancementService {
-  private async callGeminiAPI(prompt: string, apiKey: string): Promise<string> {
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          contents: [
-            {
-              parts: [{ text: prompt }],
-            },
-          ],
-        }),
-      }
-    );
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(
-        `Gemini API error: ${response.status} - ${JSON.stringify(errorData)}`
-      );
-    }
-
-    const data = await response.json();
-    return data.candidates[0].content.parts[0].text.trim();
-  }
-
-  private async callGroqAPI(prompt: string, apiKey: string): Promise<string> {
-    const response = await fetch(
-      "https://api.groq.com/openai/v1/chat/completions",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${apiKey}`,
-        },
-        body: JSON.stringify({
-          model: "llama-3.1-8b-instant",
-          messages: [{ role: "user", content: prompt }],
-          max_tokens: 500,
-          temperature: 0.7,
-        }),
-      }
-    );
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(
-        `Groq API error: ${response.status} - ${JSON.stringify(errorData)}`
-      );
-    }
-
-    const data = await response.json();
-    return data.choices[0].message.content.trim();
-  }
-
-  private async callOpenRouterAPI(
-    prompt: string,
-    apiKey: string
-  ): Promise<string> {
-    const response = await fetch(
-      "https://openrouter.ai/api/v1/chat/completions",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${apiKey}`,
-          "HTTP-Referer":
-            process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000",
-          "X-Title": "Daily Urlist - URL Enhancement",
-        },
-        body: JSON.stringify({
-          model: "meta-llama/llama-3.2-3b-instruct:free",
-          messages: [{ role: "user", content: prompt }],
-          max_tokens: 500,
-          temperature: 0.7,
-        }),
-      }
-    );
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(
-        `OpenRouter API error: ${response.status} - ${JSON.stringify(
-          errorData
-        )}`
-      );
-    }
-
-    const data = await response.json();
-    return data.choices[0].message.content.trim();
-  }
-
-  private async callHuggingFaceAPI(
-    prompt: string,
-    apiKey: string
-  ): Promise<string> {
-    const models = [
-      "meta-llama/Llama-3.1-8B-Instruct",
-      "mistralai/Mistral-7B-Instruct-v0.3",
-      "HuggingFaceH4/zephyr-7b-beta",
-    ];
-
-    for (const model of models) {
-      try {
-        const response = await fetch(
-          "https://router.huggingface.co/v1/chat/completions",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${apiKey}`,
-            },
-            body: JSON.stringify({
-              model: model,
-              messages: [
-                {
-                  role: "system",
-                  content:
-                    "You are a helpful AI assistant that analyzes and categorizes URLs.",
-                },
-                { role: "user", content: prompt },
-              ],
-              max_tokens: 500,
-              temperature: 0.7,
-            }),
-          }
-        );
-
-        if (response.ok) {
-          const data = await response.json();
-          if (data?.choices?.[0]?.message?.content) {
-            return data.choices[0].message.content.trim();
-          }
-        }
-      } catch (_error) {
-        console.warn(`${model} failed, trying next...`);
-        continue;
-      }
-    }
-
-    throw new Error("All Hugging Face models failed");
-  }
-
   private buildEnhancementPrompt(
     metadata: UrlMetadata,
     options: EnhancementOptions
@@ -278,29 +134,19 @@ class AIEnhancementService {
     return result;
   }
 
+  /** Delegate to shared client — walks that provider's free-tier model chain */
   private async callAIProvider(
     provider: AIProvider,
     prompt: string
   ): Promise<string> {
-    const providerConfig = getProvider(provider);
-    const apiKey = providerConfig.apiKey;
-
-    if (!apiKey) {
-      throw new Error(`${providerConfig.displayName} API key not configured`);
-    }
-
-    switch (provider) {
-      case "gemini":
-        return await this.callGeminiAPI(prompt, apiKey);
-      case "groq":
-        return await this.callGroqAPI(prompt, apiKey);
-      case "openrouter":
-        return await this.callOpenRouterAPI(prompt, apiKey);
-      case "huggingface":
-        return await this.callHuggingFaceAPI(prompt, apiKey);
-      default:
-        throw new Error(`Unknown provider: ${provider}`);
-    }
+    return callProviderWithModelChain(provider, prompt, {
+      maxTokens: 500,
+      temperature: 0.7,
+      system:
+        provider === "huggingface"
+          ? "You are a helpful AI assistant that analyzes and categorizes URLs."
+          : undefined,
+    });
   }
 
   async enhanceUrl(

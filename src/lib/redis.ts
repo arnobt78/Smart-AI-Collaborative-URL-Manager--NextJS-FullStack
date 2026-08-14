@@ -1,5 +1,11 @@
 import { Redis } from "@upstash/redis";
 
+/**
+ * Upstash Redis client (existing) + thin null-safe cache helpers (REQ-0005).
+ * Env: UPSTASH_REDIS_REST_URL + UPSTASH_REDIS_REST_TOKEN (not UPSTASH_REDIS_URL).
+ * Caching is optional — helpers fail soft when Redis is not configured.
+ */
+
 // Initialize Redis client
 // Only initialize if environment variables are available
 let redis: Redis | null = null;
@@ -34,3 +40,42 @@ export const CACHE_TTL = {
   SIMILAR_URLS: 7200, // 2 hours
   URL_EMBEDDINGS: 86400, // 24 hours
 };
+
+/** Get cached value — returns null if missing or Redis unavailable */
+export async function getCache<T>(key: string): Promise<T | null> {
+  if (!redis) return null;
+  try {
+    return (await redis.get<T>(key)) ?? null;
+  } catch (error) {
+    console.error("Redis get error:", error);
+    return null;
+  }
+}
+
+/** Set cached value with optional TTL (seconds) */
+export async function setCache<T>(
+  key: string,
+  value: T,
+  ttlSeconds?: number
+): Promise<void> {
+  if (!redis) return;
+  try {
+    if (ttlSeconds) {
+      await redis.set(key, value, { ex: ttlSeconds });
+    } else {
+      await redis.set(key, value);
+    }
+  } catch (error) {
+    console.error("Redis set error:", error);
+  }
+}
+
+/** Delete cached key — no-op if Redis unavailable */
+export async function deleteCache(key: string): Promise<void> {
+  if (!redis) return;
+  try {
+    await redis.del(key);
+  } catch (error) {
+    console.error("Redis delete error:", error);
+  }
+}

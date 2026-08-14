@@ -1,7 +1,9 @@
 // AI-Powered Semantic Search Service
 // Provides semantic search beyond keyword matching using AI
+// Uses shared free-tier model chains from providers.ts + client.ts
 
 import { AI_PROVIDERS, type AIProvider } from "./providers";
+import { callProviderWithModelChain } from "./client";
 import type { UrlItem } from "@/stores/urlListStore";
 
 export interface SearchResult {
@@ -95,29 +97,19 @@ class SemanticSearchService {
     limit: number,
     minRelevanceScore: number
   ): Promise<SearchResult[]> {
-    let aiResponse: string;
-
-    switch (providerName) {
-      case "gemini": {
-        const apiKey = process.env.GOOGLE_GEMINI_API_KEY;
-        if (!apiKey) {
-          throw new Error("GEMINI_API_KEY not configured");
-        }
-        aiResponse = await this.callGeminiAPI(prompt, apiKey);
-        break;
-      }
-      case "groq": {
-        const apiKey = process.env.GROQ_LLAMA_API_KEY;
-        if (!apiKey) {
-          throw new Error("GROQ_API_KEY not configured");
-        }
-        aiResponse = await this.callGroqAPI(prompt, apiKey);
-        break;
-      }
-      default: {
-        throw new Error(`Unsupported provider: ${providerName}`);
-      }
+    // Search only uses gemini + groq (outer order preserved in semanticSearch)
+    if (providerName !== "gemini" && providerName !== "groq") {
+      throw new Error(`Unsupported provider: ${providerName}`);
     }
+
+    const aiResponse = await callProviderWithModelChain(providerName, prompt, {
+      maxTokens: 2048,
+      temperature: 0.3,
+      system:
+        providerName === "groq"
+          ? "You are a semantic search assistant. Return only valid JSON arrays."
+          : undefined,
+    });
 
     // Parse AI response and extract relevance scores
     const results = this.parseAIResponse(aiResponse, urls);
@@ -157,83 +149,6 @@ Format your response as JSON array:
 ]
 
 Only include URLs with relevance score >= 0.3. Return empty array if no relevant URLs found.`;
-  }
-
-  /**
-   * Call Gemini API
-   */
-  private async callGeminiAPI(prompt: string, apiKey: string): Promise<string> {
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          contents: [
-            {
-              parts: [{ text: prompt }],
-            },
-          ],
-          generationConfig: {
-            temperature: 0.3,
-            maxOutputTokens: 2048,
-          },
-        }),
-      }
-    );
-
-    if (!response.ok) {
-      const error = await response.text();
-      throw new Error(`Gemini API error: ${error}`);
-    }
-
-    const data = await response.json();
-    return (
-      data.candidates?.[0]?.content?.parts?.[0]?.text ||
-      "[]"
-    );
-  }
-
-  /**
-   * Call Groq API
-   */
-  private async callGroqAPI(prompt: string, apiKey: string): Promise<string> {
-    const response = await fetch(
-      "https://api.groq.com/openai/v1/chat/completions",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${apiKey}`,
-        },
-        body: JSON.stringify({
-          model: "llama-3.1-70b-versatile",
-          messages: [
-            {
-              role: "system",
-              content:
-                "You are a semantic search assistant. Return only valid JSON arrays.",
-            },
-            {
-              role: "user",
-              content: prompt,
-            },
-          ],
-          temperature: 0.3,
-          max_tokens: 2048,
-        }),
-      }
-    );
-
-    if (!response.ok) {
-      const error = await response.text();
-      throw new Error(`Groq API error: ${error}`);
-    }
-
-    const data = await response.json();
-    return data.choices?.[0]?.message?.content || "[]";
   }
 
   /**
