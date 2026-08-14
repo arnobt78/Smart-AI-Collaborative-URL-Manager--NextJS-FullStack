@@ -30,7 +30,6 @@ import {
   X,
   CheckCircle2,
   Search,
-  ExternalLink,
   Trash2,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -176,7 +175,7 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
         await fetch(
           `/api/lists/${listSlug}/collections?clearCache=true&_t=${Date.now()}`
         );
-      } catch (error) {
+      } catch (_error) {
         // Ignore cache clear errors
       }
 
@@ -420,7 +419,7 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
   if (!isExpanded && !isLoading && !hasSuggestions && !hasDuplicates) {
     return (
       <Card className="mb-4 sm:mb-6">
-        <CardContent className="pt-4 sm:pt-6">
+        <CardContent className="p-2 sm:p-4">
           <div className="flex items-center justify-between gap-2 sm:gap-3">
             <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
               <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-blue-400 flex-shrink-0" />
@@ -468,7 +467,7 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-4">
         {/* Loading State — only when cold (no suggestions yet) */}
         {isLoading && !hasSuggestions && (
           <div className="space-y-4">

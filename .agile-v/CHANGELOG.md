@@ -19,3 +19,4 @@
 - Import-flow console → `devLog` (UrlBulkImportExport, chrome parser, bulk-import API)
 - List UX: slug-safe unified placeholder + `currentList` sync; My Lists clickable title; silent Smart Collections create (no auto-nav)
 - Visit Site: schemeless URLs open via `ensureAbsoluteHttpUrl` + `openExternalUrl` (card + Similar URLs dialog)
+- Collaborators empty one-row; Card chrome `p-2 sm:p-4` (no lg:p-8 double gutter)

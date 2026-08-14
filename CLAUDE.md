@@ -5,7 +5,7 @@
 Live: https://daily-urlist.vercel.app/ · Resume: `.agile-v/STATE.md`
 
 ## Status (C1)
-Done: Auth UX · quiet prod logs · list-switch/cache sync · My Lists title nav · silent Smart Collections.  
+Done: Auth UX · quiet prod logs · list-switch/cache sync · My Lists title nav · silent Smart Collections · Visit absolute URLs · Collaborators one-row + Card pad.  
 Human: HA-0001; match Sentry org/token before upload.  
 Out of scope: densify/JWT SSR, Zod/SHA, Next 16, Prisma 7.
 

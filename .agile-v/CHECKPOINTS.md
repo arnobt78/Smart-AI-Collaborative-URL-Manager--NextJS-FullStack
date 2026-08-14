@@ -10,3 +10,4 @@
 | 2026-08-14 | Import-flow logs via devLog (prod silent). |
 | 2026-08-14 | List-switch slug-safe placeholder + currentList sync; My Lists title nav; silent Smart Collections. No densify. |
 | 2026-08-14 | Visit Site/dialog: ensureAbsoluteHttpUrl + openExternalUrl (schemeless → https). |
+| 2026-08-14 | Collaborators empty one-row; Card/SmartCollections pad p-2 sm:p-4 (no double gutter). |

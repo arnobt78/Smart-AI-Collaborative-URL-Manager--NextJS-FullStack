@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import ReactDOM from "react-dom";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -17,7 +17,7 @@ import {
   MoreVertical,
   Trash2,
 } from "lucide-react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { useListPermissions } from "@/hooks/useListPermissions";
 import {
   useAddCollaborator,
@@ -40,7 +40,6 @@ export interface PermissionManagerProps {
 
 export function PermissionManager({
   listId,
-  listTitle,
   listSlug,
   onUpdate,
 }: PermissionManagerProps) {
@@ -221,71 +220,81 @@ export function PermissionManager({
       : "bg-blue-500/30 text-blue-200 border-blue-400/50";
   };
 
-  return (
-    <div className="space-y-3 sm:space-y-4">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
-        <div className="flex items-center gap-2">
-          <Shield className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
-          <h3 className="text-base sm:text-lg font-semibold text-white">
-            Collaborators
-          </h3>
-          {collaborators.length > 0 && (
-            <Badge
-              variant="secondary"
-              className="ml-1 sm:ml-2 bg-blue-500/30 text-blue-200 border-blue-400/50 text-xs sm:text-sm"
-            >
-              {collaborators.length}
-            </Badge>
-          )}
-        </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setInviteDialogOpen(true)}
-          disabled={!canInvite} // Disable for viewers
-          className="flex items-center gap-1.5 sm:gap-2 border-white/20 bg-white/5 text-white hover:bg-white/10 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed text-xs sm:text-sm px-3 sm:px-4 py-1.5 sm:py-2 w-full sm:w-auto"
-        >
-          <UserPlus className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-          <span>Add Collaborator</span>
-        </Button>
-      </div>
+  const addCollaboratorButton = (
+    <Button
+      variant="outline"
+      size="sm"
+      onClick={() => setInviteDialogOpen(true)}
+      disabled={!canInvite} // Disable for viewers
+      className="flex items-center gap-1.5 sm:gap-2 border-white/20 bg-white/5 text-white hover:bg-white/10 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed text-xs sm:text-sm px-3 sm:px-4 py-1.5 sm:py-2 w-full sm:w-auto shrink-0"
+    >
+      <UserPlus className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+      <span>Add Collaborator</span>
+    </Button>
+  );
 
-      {/* Collaborators List */}
-      {isLoading ? (
-        <div className="space-y-2">
-          {[1, 2].map((i) => (
-            <div
-              key={i}
-              className="h-16 bg-white/5 border border-white/10 rounded-lg animate-pulse"
-            />
-          ))}
-        </div>
-      ) : collaborators.length === 0 ? (
-        <div className="text-center py-6 sm:py-8">
-          <UserPlus className="h-10 w-10 sm:h-12 sm:w-12 mx-auto mb-2 sm:mb-3 text-white/40" />
-          <p className="text-sm sm:text-base text-white/70">
-            No collaborators yet
+  const isEmpty = !isLoading && collaborators.length === 0;
+
+  return (
+    <div className={isEmpty ? undefined : "space-y-3 sm:space-y-4"}>
+      {/* Empty: one compact row — title | invite copy | Add. Populated/loading: header + list */}
+      {isEmpty ? (
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-2 shrink-0">
+            <Shield className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
+            <h3 className="text-base sm:text-lg font-semibold text-white">
+              Collaborators
+            </h3>
+          </div>
+          <p className="flex-1 min-w-0 text-xs sm:text-sm text-white/60 text-center sm:truncate">
+            No collaborators yet · Invite others to collaborate on this list
           </p>
-          <p className="text-xs sm:text-sm mt-1 text-white/50 px-2">
-            Invite others to collaborate on this list
-          </p>
+          {addCollaboratorButton}
         </div>
       ) : (
-        <div className="space-y-2">
-          {/* Deduplicate collaborators before rendering to prevent duplicate keys */}
-          {(collaborators as Collaborator[])
-            .reduce<Collaborator[]>((acc, collaborator) => {
-              const emailLower = collaborator.email.toLowerCase();
-              const exists = acc.some(
-                (c) => c.email.toLowerCase() === emailLower
-              );
-              if (!exists) {
-                acc.push(collaborator);
-              }
-              return acc;
-            }, [])
-            .map((collaborator, index) => (
+        <>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
+            <div className="flex items-center gap-2">
+              <Shield className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
+              <h3 className="text-base sm:text-lg font-semibold text-white">
+                Collaborators
+              </h3>
+              {collaborators.length > 0 && (
+                <Badge
+                  variant="secondary"
+                  className="ml-1 sm:ml-2 bg-blue-500/30 text-blue-200 border-blue-400/50 text-xs sm:text-sm"
+                >
+                  {collaborators.length}
+                </Badge>
+              )}
+            </div>
+            {addCollaboratorButton}
+          </div>
+
+          {isLoading ? (
+            <div className="space-y-2">
+              {[1, 2].map((i) => (
+                <div
+                  key={i}
+                  className="h-16 bg-white/5 border border-white/10 rounded-lg animate-pulse"
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {/* Deduplicate collaborators before rendering to prevent duplicate keys */}
+              {(collaborators as Collaborator[])
+                .reduce<Collaborator[]>((acc, collaborator) => {
+                  const emailLower = collaborator.email.toLowerCase();
+                  const exists = acc.some(
+                    (c) => c.email.toLowerCase() === emailLower
+                  );
+                  if (!exists) {
+                    acc.push(collaborator);
+                  }
+                  return acc;
+                }, [])
+                .map((collaborator, index) => (
               <div
                 key={`${collaborator.email.toLowerCase()}-${index}`}
                 className="bg-white/5 border border-white/10 rounded-lg p-3 sm:p-4 hover:bg-white/10 transition-colors"
@@ -386,7 +395,9 @@ export function PermissionManager({
                 )}
               </div>
             ))}
-        </div>
+            </div>
+          )}
+        </>
       )}
 
       {/* Add Collaborator Dialog - Custom Implementation with Role Selection */}
@@ -422,8 +433,8 @@ export function PermissionManager({
                     Add Collaborator
                   </h3>
                   <p className="text-white/70">
-                    Invite someone to collaborate on this list. They'll receive
-                    an email invitation.
+                    Invite someone to collaborate on this list. They&apos;ll
+                    receive an email invitation.
                   </p>
                 </div>
                 <div className="space-y-4">

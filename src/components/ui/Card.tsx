@@ -16,6 +16,7 @@ const Card = React.forwardRef<
 ));
 Card.displayName = "Card";
 
+/** Card chrome: single pad scale (p-2 sm:p-4) — avoid lg:p-8 stacking with page wrappers. */
 const CardHeader = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>

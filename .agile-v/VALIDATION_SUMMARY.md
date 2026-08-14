@@ -13,5 +13,6 @@
 | Import-flow quiet prod | PASS | — | UrlBulkImportExport + chrome + bulk-import → devLog |
 | List switch + collections UX | PASS | PASS | slug-safe placeholder; title nav; silent create; warm-cache skeletons |
 | Visit Site open external URL | PASS | PASS | ensureAbsoluteHttpUrl + openExternalUrl; UrlCard card+dialog |
+| Collaborators row + Card pad | PASS | PASS | empty one-row; Card p-2 sm:p-4; SmartCollections no stacked pt |
 
 Out of scope: densify/JWT SSR, Zod/SHA, Next 16, Prisma 7.
