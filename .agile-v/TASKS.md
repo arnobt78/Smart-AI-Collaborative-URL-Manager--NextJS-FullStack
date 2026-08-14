@@ -1,10 +1,10 @@
 # TASKS.md — C1
 
 ## Done
-Bootstrap · AI models · guardrails · SafeImage · Redis/Sentry/PostHog · `.env.example` · dep upgrade · remove next-auth/dnd/vitest · README/SECURITY · SEO/sitemap
+Bootstrap · AI · guardrails · SafeImage · observability · deps audit 0 · README/SECURITY/SEO · Portable Auth UI (Robohash Select + ProfileDropdown)
 
 ## Open (human)
 HA-0001 Firewall · Sentry org/token verify
 
 ## Deferred
-RSC shells (REQ-0009) · densify/Zod/SHA/Next16 unless new cycle
+RSC shells · densify/Zod/SHA/Next16 unless new cycle

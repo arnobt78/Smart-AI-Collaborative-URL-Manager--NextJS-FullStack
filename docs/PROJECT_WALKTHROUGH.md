@@ -3,21 +3,16 @@
 Compact agent map. Code = source of truth.
 
 ## App
-Next 15 App Router URL bookmark manager: CRUD lists/URLs, AI, collab SSE, Redis, vector, QStash, Cloudinary. Demo: https://daily-urlist.vercel.app/
+Next 15 URL bookmark manager. Demo: https://daily-urlist.vercel.app/
 
 ## Layout
-- `src/app/**/page.tsx` → `src/components/pages/*`
-- `src/app/api/**` Route Handlers · `layout.tsx` SEO metadata + JSON-LD
-- `sitemap.ts` / `robots.ts` · `SECURITY.md` private vuln reports
-- Hooks: `useListQueries` + `queryInvalidation` · Auth: `src/lib/auth.ts` cookies
-- Redis helpers · AI `providers`+`client` · `SafeImage` on UrlCard
-- Prisma: `List.urls` / `archivedUrls` JSON
+- Pages → `src/components/pages/*` · API Route Handlers · SEO in `layout.tsx`
+- Auth UI: `Auth.tsx` guest Select · `ProfileDropdown` · `UserAvatar` · `lib/robohash.ts` · `constants/auth.ts`
+- Hooks: `useSession` · `useListQueries` + `queryInvalidation` · cookie auth `lib/auth.ts`
+- Prisma: `List.urls` JSON · no user name/image columns (display = email local-part)
 
 ## Versions
-Next **15.5.23** · React **18** · Prisma **6.19.3** · Jest only · audit **0**
+Next **15.5.23** · React **18** · Prisma **6.19.3** · Jest · audit **0**
 
 ## Env
-`.env.example` · secrets in `.env.local`/Vercel only
-
-## Docs
-`README.md` · `LLM_MODEL_SELECTION.md` · `VERCEL_PRODUCTION_GUARDRAILS.md` · `SAFE_IMAGE_*` · `Redis_Sentry_PostHog_*` · `.agile-v/`
+`.env.example` · secrets in `.env.local`/Vercel

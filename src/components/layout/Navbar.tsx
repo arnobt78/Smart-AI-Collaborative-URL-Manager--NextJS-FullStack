@@ -1,29 +1,59 @@
 "use client";
 
+/**
+ * Navbar — sticky glass header.
+ * Authenticated: ProfileDropdown holds API Docs / API Status / Logout (PORTABLE_AUTH_UI_GUIDE §2.2).
+ * Top-level links stay: Public URL, Analytics, My Lists.
+ */
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import {
   LinkIcon,
-  ArrowRightStartOnRectangleIcon,
   Bars3Icon,
   XMarkIcon,
 } from "@heroicons/react/24/outline";
 import { useTypewriter } from "@/hooks/useTypewriter";
-import { IconButton } from "@/components/ui/HoverTooltip";
-import { useQueryClient } from "@tanstack/react-query";
 import { abortRegistry } from "@/utils/abortRegistry";
+import { useSession } from "@/hooks/useSession";
+import { ProfileDropdown } from "@/components/layout/ProfileDropdown";
+import { WAS_AUTHED_KEY } from "@/constants/auth";
 
 export default function Navbar() {
-  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const router = useRouter();
-  const queryClient = useQueryClient();
+  const [mounted, setMounted] = useState(false);
+  const [wasAuthedHint, setWasAuthedHint] = useState(false);
+  const { user, isLoading, isAuthenticated } = useSession();
   const { displayText, isComplete } = useTypewriter({
     text: "Daily Urlist",
     speed: 200,
     delay: 2500,
   });
+
+  // Guide §3 — defer localStorage until mounted (avoid hydration mismatch)
+  useEffect(() => {
+    setMounted(true);
+    try {
+      setWasAuthedHint(localStorage.getItem(WAS_AUTHED_KEY) === "1");
+    } catch {
+      setWasAuthedHint(false);
+    }
+  }, []);
+
+  // Keep wasAuthed in sync when session resolves
+  useEffect(() => {
+    if (!mounted) return;
+    if (isAuthenticated && user?.email) {
+      localStorage.setItem(WAS_AUTHED_KEY, "1");
+      setWasAuthedHint(true);
+    } else if (!isLoading && !isAuthenticated) {
+      localStorage.removeItem(WAS_AUTHED_KEY);
+      setWasAuthedHint(false);
+    }
+  }, [mounted, isAuthenticated, isLoading, user?.email]);
+
+  const showProfileSkeleton =
+    mounted && wasAuthedHint && isLoading && !user;
+  const showProfile = Boolean(user?.email);
 
   // Handle navigation with import check
   const handleNavigation = (
@@ -50,10 +80,7 @@ export default function Navbar() {
         // This ensures RSC requests don't get stuck
         try {
           if (abortRegistry) {
-            // Force abort all requests
             abortRegistry.forceAbortAllGlobal();
-
-            // Ensure interception is stopped
             abortRegistry.stopGlobalInterception();
 
             if (process.env.NODE_ENV === "development") {
@@ -63,7 +90,6 @@ export default function Navbar() {
             }
           }
 
-          // Clear ALL Next.js router caches aggressively
           const nextRouter = (window as any).__NEXT_DATA__?.router;
           if (nextRouter?.prefetchCache) {
             nextRouter.prefetchCache.clear();
@@ -88,64 +114,19 @@ export default function Navbar() {
             console.log(`🧹 [NAVBAR] Cleared all Next.js router caches`);
           }
         } catch (e) {
-          // Ignore errors
           if (process.env.NODE_ENV === "development") {
             console.warn(`⚠️ [NAVBAR] Error during cleanup:`, e);
           }
         }
 
-        // CRITICAL: Always use window.location for forced navigation
-        // This bypasses Next.js router and prevents stuck RSC requests
-        // Use a small delay to ensure cleanup completes
         setTimeout(() => {
-          // Clear flags before navigation
           (window as any).__bulkImportActive = false;
           (window as any).__bulkImportJustCompleted = false;
-
-          // Force full page reload to ensure clean state
           window.location.href = href;
         }, 100);
 
         return;
       }
-    }
-
-    // Normal navigation - let Next.js handle it
-  };
-
-  const handleLogout = async () => {
-    if (isLoggingOut) return;
-
-    setIsLoggingOut(true);
-    try {
-      const response = await fetch("/api/auth/signout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-      });
-
-      if (response.ok) {
-        // CRITICAL: Clear ALL React Query cache before logout
-        // This ensures no user-specific data remains cached for the next user
-        queryClient.clear(); // Remove all queries from cache
-
-        // Clear localStorage cache as well (if used)
-        if (typeof window !== "undefined") {
-          const keys = Object.keys(localStorage);
-          keys.forEach((key) => {
-            if (key.startsWith("react-query:")) {
-              localStorage.removeItem(key);
-            }
-          });
-        }
-
-        // Clear browser session/cookies and redirect to home (which will show Auth page)
-        // Use window.location.href to force a full page reload and clear all state
-        window.location.href = "/";
-      } else {
-        setIsLoggingOut(false);
-      }
-    } catch (error) {
-      setIsLoggingOut(false);
     }
   };
 
@@ -153,7 +134,6 @@ export default function Navbar() {
     <nav className="bg-transparent backdrop-blur-md sticky top-0 z-50">
       <div className="mx-auto max-w-7xl px-2 sm:px-0 py-2 sm:py-3">
         <div className="flex items-center justify-between">
-          {/* Logo/Brand - Responsive sizing */}
           <Link
             href="/"
             onClick={(e) => handleNavigation(e, "/")}
@@ -170,7 +150,7 @@ export default function Navbar() {
             </div>
           </Link>
 
-          {/* Desktop Navigation - Hidden on mobile */}
+          {/* Desktop Navigation */}
           <div className="hidden sm:flex items-center gap-3 lg:gap-4 flex-wrap">
             <Link
               href="/browse"
@@ -187,20 +167,6 @@ export default function Navbar() {
               Analytics
             </Link>
             <Link
-              href="/api-status"
-              onClick={(e) => handleNavigation(e, "/api-status")}
-              className="text-white/80 hover:text-white font-medium transition-colors font-mono text-sm lg:text-base"
-            >
-              API Status
-            </Link>
-            <Link
-              href="/api-docs"
-              onClick={(e) => handleNavigation(e, "/api-docs")}
-              className="text-white/80 hover:text-white font-medium transition-colors font-mono text-sm lg:text-base"
-            >
-              API Docs
-            </Link>
-            <Link
               href="/lists"
               onClick={(e) => handleNavigation(e, "/lists")}
               className="text-white/80 hover:text-white font-medium transition-colors font-mono text-sm lg:text-base"
@@ -208,34 +174,34 @@ export default function Navbar() {
               My Lists
             </Link>
 
-            <div className="pl-4 lg:pl-8">
-              <IconButton
-                icon={
-                  <ArrowRightStartOnRectangleIcon
-                    className={`h-4 w-4 sm:h-5 sm:w-5 ${
-                      isLoggingOut ? "animate-pulse" : ""
-                    }`}
-                  />
-                }
-                onClick={handleLogout}
-                tooltip={isLoggingOut ? "Logging out..." : "Logout"}
-                variant="default"
-              />
+            <div className="pl-2 lg:pl-4">
+              {showProfile && user ? (
+                <ProfileDropdown
+                  email={user.email}
+                  onNavigate={handleNavigation}
+                />
+              ) : showProfileSkeleton ? (
+                <div
+                  className="size-10 animate-pulse rounded-full border border-white/20 bg-white/10"
+                  aria-hidden
+                />
+              ) : null}
             </div>
           </div>
 
-          {/* Mobile Menu Button - Visible only on mobile */}
+          {/* Mobile: profile + hamburger */}
           <div className="flex items-center gap-2 sm:hidden">
-            <IconButton
-              icon={
-                <ArrowRightStartOnRectangleIcon
-                  className={`h-5 w-5 ${isLoggingOut ? "animate-pulse" : ""}`}
-                />
-              }
-              onClick={handleLogout}
-              tooltip={isLoggingOut ? "Logging out..." : "Logout"}
-              variant="default"
-            />
+            {showProfile && user ? (
+              <ProfileDropdown
+                email={user.email}
+                onNavigate={handleNavigation}
+              />
+            ) : showProfileSkeleton ? (
+              <div
+                className="size-10 animate-pulse rounded-full border border-white/20 bg-white/10"
+                aria-hidden
+              />
+            ) : null}
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className="p-2 text-white/80 hover:text-white transition-colors"
@@ -250,7 +216,7 @@ export default function Navbar() {
           </div>
         </div>
 
-        {/* Mobile Menu - Dropdown on mobile */}
+        {/* Mobile Menu — Browse / Analytics / Lists only (API + Logout live in ProfileDropdown) */}
         {isMobileMenuOpen && (
           <div className="sm:hidden mt-3 pb-3 border-t border-white/10 pt-3">
             <div className="flex flex-col gap-3">
@@ -273,26 +239,6 @@ export default function Navbar() {
                 className="text-white/80 hover:text-white font-medium transition-colors font-mono text-sm py-2 px-2 rounded-lg hover:bg-white/5"
               >
                 Analytics
-              </Link>
-              <Link
-                href="/api-status"
-                onClick={(e) => {
-                  handleNavigation(e, "/api-status");
-                  setIsMobileMenuOpen(false);
-                }}
-                className="text-white/80 hover:text-white font-medium transition-colors font-mono text-sm py-2 px-2 rounded-lg hover:bg-white/5"
-              >
-                API Status
-              </Link>
-              <Link
-                href="/api-docs"
-                onClick={(e) => {
-                  handleNavigation(e, "/api-docs");
-                  setIsMobileMenuOpen(false);
-                }}
-                className="text-white/80 hover:text-white font-medium transition-colors font-mono text-sm py-2 px-2 rounded-lg hover:bg-white/5"
-              >
-                API Docs
               </Link>
               <Link
                 href="/lists"

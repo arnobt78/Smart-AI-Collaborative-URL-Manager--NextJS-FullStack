@@ -1,12 +1,9 @@
 # VALIDATION_SUMMARY.md
 
-## 2026-08-14
+## 2026-08-14 Portable Auth UI
 | Check | Result |
 |-------|--------|
 | tsc | PASS |
 | lint | PASS (0 errors) |
-| test | PASS (20 pass / 5 skip) |
-| build | PASS (prior dep wave) |
-| npm audit | **0** |
 
-Scope OK: deps, observability, docs, SEO. Out of scope: densify/JWT SSR, Zod/SHA, Next 16.
+Scope: guest Select avatars · ProfileDropdown · wasAuthed skeleton. Routes `/api-docs` `/api-status` unchanged.

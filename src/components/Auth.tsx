@@ -2,10 +2,13 @@
 
 import { useState, useEffect, useRef } from "react";
 import { OptimizedImage } from "@/components/ui/OptimizedImage";
+import { UserAvatar } from "@/components/ui/UserAvatar";
 import { useTypewriter } from "@/hooks/useTypewriter";
 import { useToast } from "@/components/ui/Toaster";
 import { useQueryClient } from "@tanstack/react-query";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Users } from "lucide-react";
+import { TEST_ACCOUNTS, WAS_AUTHED_KEY } from "@/constants/auth";
+import { robohashUrl } from "@/lib/robohash";
 
 export default function Auth() {
   const { toast } = useToast();
@@ -18,6 +21,8 @@ export default function Auth() {
   const [showSubtitle, setShowSubtitle] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [isGuestDropdownOpen, setIsGuestDropdownOpen] = useState(false);
+  /** Selected demo account id — PORTABLE_AUTH_UI_GUIDE §2.1 */
+  const [selectedGuestId, setSelectedGuestId] = useState<string | null>(null);
   const guestDropdownRef = useRef<HTMLDivElement>(null);
 
   // Get redirect URL from sessionStorage (set when user tries to access protected resource)
@@ -53,6 +58,12 @@ export default function Auth() {
     // Reset welcome state when component mounts/becomes visible
     setShowWelcome(true);
     setShowSubtitle(false);
+
+    // Prefetch Robohash for demo accounts so Select rows paint without delay
+    TEST_ACCOUNTS.forEach((account) => {
+      const img = new Image();
+      img.src = robohashUrl(account.email, 72);
+    });
   }, []);
 
   useEffect(() => {
@@ -138,6 +149,8 @@ export default function Auth() {
 
           // Dispatch event for components that listen to session updates
           window.dispatchEvent(new CustomEvent("session-updated"));
+          // Guide §3 — Navbar avatar skeleton instead of Login flash on refresh
+          localStorage.setItem(WAS_AUTHED_KEY, "1");
 
           // Wait a moment for the session cookie to be set on the server
           // Then invalidate and refetch the session to ensure it's properly loaded
@@ -229,6 +242,8 @@ export default function Auth() {
 
           // Dispatch event for components that listen to session updates
           window.dispatchEvent(new CustomEvent("session-updated"));
+          // Guide §3 — Navbar avatar skeleton instead of Login flash on refresh
+          localStorage.setItem(WAS_AUTHED_KEY, "1");
 
           // Wait a moment for the session cookie to be set on the server
           // Then invalidate and refetch the session to ensure it's properly loaded
@@ -368,16 +383,40 @@ export default function Auth() {
           </div>
 
           <form className="space-y-4 sm:space-y-6">
-            {/* Guest User Selection Dropdown - Demo Feature */}
-            {/* Allows recruiters/reviewers to quickly test the application with pre-filled credentials */}
-            {/* Button always displays "Select as Guest User" regardless of selection */}
+            {/* Guest Select — PORTABLE_AUTH_UI_GUIDE §2.1: avatar + name + email, fill/clear */}
             <div className="relative" ref={guestDropdownRef}>
               <button
                 type="button"
                 onClick={() => setIsGuestDropdownOpen(!isGuestDropdownOpen)}
-                className="w-full rounded-lg sm:rounded-xl border border-white/20 bg-white/10 backdrop-blur-sm px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base text-white focus:outline-none focus:ring-2 focus:ring-[#00ff99] focus:border-transparent transition-all min-h-[44px] sm:min-h-[48px] flex items-center justify-between cursor-pointer"
+                className="w-full rounded-lg sm:rounded-xl border border-white/20 bg-white/10 backdrop-blur-sm px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base text-white focus:outline-none focus:ring-2 focus:ring-[#00ff99] focus:border-transparent transition-all min-h-[44px] sm:min-h-[48px] flex items-center justify-between cursor-pointer gap-2"
               >
-                <span className="text-white">Select as Guest User</span>
+                <span className="flex min-w-0 items-center gap-2">
+                  {selectedGuestId ? (
+                    <UserAvatar
+                      seed={
+                        TEST_ACCOUNTS.find((a) => a.id === selectedGuestId)
+                          ?.email ?? email
+                      }
+                      src={
+                        TEST_ACCOUNTS.find((a) => a.id === selectedGuestId)
+                          ?.image
+                      }
+                      size={28}
+                      className="shrink-0"
+                    />
+                  ) : (
+                    <Users
+                      className="h-4 w-4 shrink-0 text-white/70"
+                      aria-hidden
+                    />
+                  )}
+                  <span className="truncate text-white">
+                    {selectedGuestId
+                      ? TEST_ACCOUNTS.find((a) => a.id === selectedGuestId)
+                          ?.label ?? "Select as Guest User"
+                      : "Select as Guest User"}
+                  </span>
+                </span>
                 <ChevronDown
                   className={`w-4 h-4 text-white/60 transition-transform duration-200 flex-shrink-0 ${
                     isGuestDropdownOpen ? "rotate-180" : ""
@@ -385,7 +424,6 @@ export default function Auth() {
                 />
               </button>
 
-              {/* Dropdown Menu */}
               {isGuestDropdownOpen && (
                 <div
                   className={`
@@ -396,35 +434,48 @@ export default function Auth() {
                     animate-in fade-in-0 zoom-in-95 slide-in-from-top-2 duration-200
                   `}
                 >
-                  {/* CRITICAL: Remove py-padding, make entire div clickable */}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      // CRITICAL: Auto-fill guest user credentials for demo purposes
-                      // This allows recruiters/reviewers to quickly test the application
-                      setEmail("test@example.com");
-                      setPassword("12345678");
-                      setIsGuestDropdownOpen(false);
-                    }}
-                    className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-white/80 hover:bg-white/10 hover:text-white transition-all duration-150 text-left cursor-pointer"
-                  >
-                    <span>Guest User</span>
-                  </button>
+                  {TEST_ACCOUNTS.map((account) => (
+                    <button
+                      key={account.id}
+                      type="button"
+                      onClick={() => {
+                        setEmail(account.email);
+                        setPassword(account.password);
+                        setSelectedGuestId(account.id);
+                        setIsGuestDropdownOpen(false);
+                      }}
+                      className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-white/80 hover:bg-white/10 hover:text-white transition-all duration-150 text-left cursor-pointer"
+                    >
+                      <UserAvatar
+                        seed={account.email}
+                        src={account.image}
+                        size={36}
+                      />
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-medium text-white">
+                          {account.label}
+                        </p>
+                        <p className="truncate text-xs text-white/60">
+                          {account.email}
+                        </p>
+                      </div>
+                    </button>
+                  ))}
 
-                  {/* Clear Input Option - Clears guest user credentials */}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      // CRITICAL: Clear guest user credentials
-                      // This allows users to reset and enter their own credentials
-                      setEmail("");
-                      setPassword("");
-                      setIsGuestDropdownOpen(false);
-                    }}
-                    className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-white/80 hover:bg-white/10 hover:text-white transition-all duration-150 text-left cursor-pointer border-t border-white/10"
-                  >
-                    <span>Clear Input</span>
-                  </button>
+                  {selectedGuestId && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEmail("");
+                        setPassword("");
+                        setSelectedGuestId(null);
+                        setIsGuestDropdownOpen(false);
+                      }}
+                      className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-white/80 hover:bg-white/10 hover:text-white transition-all duration-150 text-left cursor-pointer border-t border-white/10"
+                    >
+                      <span>Clear Selection</span>
+                    </button>
+                  )}
                 </div>
               )}
             </div>
@@ -434,7 +485,10 @@ export default function Auth() {
                 type="email"
                 required
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  setSelectedGuestId(null);
+                }}
                 className="w-full rounded-lg sm:rounded-xl border border-white/20 bg-white/10 backdrop-blur-sm px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00ff99] focus:border-transparent transition-all"
                 placeholder="Email address"
               />
@@ -444,7 +498,10 @@ export default function Auth() {
                 type="password"
                 required
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  setSelectedGuestId(null);
+                }}
                 className="w-full rounded-lg sm:rounded-xl border border-white/20 bg-white/10 backdrop-blur-sm px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00ff99] focus:border-transparent transition-all"
                 placeholder="Password"
               />

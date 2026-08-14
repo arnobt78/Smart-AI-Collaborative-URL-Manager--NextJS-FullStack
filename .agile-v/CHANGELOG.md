@@ -8,3 +8,4 @@
 - Redis helpers; `.env.example`; docs walkthrough
 - Safe dep upgrade: Next 15.5.23, Prisma 6.19.3, nodemailer 9; removed unused next-auth/dnd/vitest; audit 0
 - Educational README + SECURITY.md; SEO metadata + sitemap.xml
+- Portable Auth UI: Robohash guest Select + ProfileDropdown (API Docs/Status/Logout)
