@@ -484,7 +484,7 @@ export function Comments({ listId, urlId, currentUserId }: CommentsProps) {
                       onChange={(e) => setEditContent(e.target.value)}
                       className="min-h-[70px] sm:min-h-[80px] resize-none bg-white/5 border-white/10 text-white placeholder:text-white/50 text-sm"
                     />
-                    <div className="flex justify-end gap-1 sm:gap-2">
+                    <div className="flex justify-end ">
                       <Button
                         type="button"
                         onClick={handleCancelEdit}

@@ -23,7 +23,7 @@ export default function GlobalError({
     <html lang="en">
       <body className="min-h-screen bg-slate-950 text-white antialiased">
         <div className="mx-auto flex min-h-screen max-w-lg flex-col items-center justify-center gap-4 px-4 text-center">
-          <h2 className="text-2xl font-semibold">Something went wrong</h2>
+          <h2 className="text-2xl font-medium">Something went wrong</h2>
           <p className="text-white/70">
             We&apos;ve been notified and are working on a fix.
           </p>

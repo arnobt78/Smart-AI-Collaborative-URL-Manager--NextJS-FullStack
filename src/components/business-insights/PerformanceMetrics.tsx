@@ -87,7 +87,7 @@ export function PerformanceMetrics({
       const firstPayload = payload[0];
       return (
         <div className="bg-gray-900 border border-white/20 rounded-lg p-3 shadow-lg">
-          <p className="text-white text-sm font-semibold mb-1">
+          <p className="text-white text-sm font-medium mb-1">
             {firstPayload.name || "Unknown"}
           </p>
           <p
@@ -95,7 +95,7 @@ export function PerformanceMetrics({
             style={{ color: firstPayload.color }}
           >
             Count:{" "}
-            <span className="font-semibold">{firstPayload.value ?? "N/A"}</span>
+            <span className="font-medium">{firstPayload.value ?? "N/A"}</span>
           </p>
         </div>
       );
@@ -115,7 +115,7 @@ export function PerformanceMetrics({
             <TrendingUp className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-400" />
           </CardHeader>
           <CardContent>
-            <div className="text-xl sm:text-2xl font-bold text-white">
+            <div className="text-xl sm:text-2xl font-medium text-white">
               {data.avgUrlsPerList}
             </div>
           </CardContent>
@@ -129,7 +129,7 @@ export function PerformanceMetrics({
             <Link2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-purple-400" />
           </CardHeader>
           <CardContent>
-            <div className="text-xl sm:text-2xl font-bold text-white">
+            <div className="text-xl sm:text-2xl font-medium text-white">
               {data.listsWithCollaborators}
             </div>
           </CardContent>
@@ -143,7 +143,7 @@ export function PerformanceMetrics({
             <Link2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-green-400" />
           </CardHeader>
           <CardContent>
-            <div className="text-xl sm:text-2xl font-bold text-white">
+            <div className="text-xl sm:text-2xl font-medium text-white">
               {data.totalUrls}
             </div>
           </CardContent>
@@ -155,7 +155,9 @@ export function PerformanceMetrics({
         {/* Public vs Private Distribution */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm sm:text-base">List Distribution</CardTitle>
+            <CardTitle className="text-sm sm:text-base">
+              List Distribution
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div
@@ -195,7 +197,9 @@ export function PerformanceMetrics({
         {/* Top Lists by URL Count */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm sm:text-base">Top Lists by URL Count</CardTitle>
+            <CardTitle className="text-sm sm:text-base">
+              Top Lists by URL Count
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div
@@ -215,7 +219,11 @@ export function PerformanceMetrics({
                     height={80}
                     interval="preserveStartEnd"
                   />
-                  <YAxis stroke="#ffffff60" style={{ fontSize: "10px" }} className="text-[10px] sm:text-xs" />
+                  <YAxis
+                    stroke="#ffffff60"
+                    style={{ fontSize: "10px" }}
+                    className="text-[10px] sm:text-xs"
+                  />
                   <Tooltip
                     contentStyle={{
                       backgroundColor: "#1f2937",

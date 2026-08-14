@@ -107,7 +107,7 @@ export function OverviewCards({ data, isLoading }: OverviewCardsProps) {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-xl sm:text-2xl font-bold text-white mb-1">
+              <div className="text-xl sm:text-2xl font-medium text-white mb-1">
                 {card.value.toLocaleString()}
               </div>
               {card.change !== null && card.change > 0 && (

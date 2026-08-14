@@ -9,23 +9,21 @@ Next 15 URL bookmark manager. Demo: https://daily-urlist.vercel.app/
 ## Layout
 
 - Pages → `components/pages/*` · `app/api/**` · SEO `layout.tsx` + sitemap
-- Auth UI: `Auth.tsx` · `ProfileDropdown` · `UserAvatar` · `lib/robohash.ts` · `constants/auth.ts`
-- Flash gate: `HomePage` + `urlist:wasAuthed` → Auth for guests; Marketing when session/wasAuthed (no NeutralWait spinner)
-- Navbar: static `Daily Urlist` · fixed `size-10` profile slot · guest Select fixed `size-7` lead + always Clear
-- Auth toasts: `lib/auth-toast.ts` + `AuthToastBridge` (welcome/goodbye after hard redirect); Sparkles CTA
-- Layout: `html { scrollbar-gutter: stable }` — no horizontal jump; Auth overlay `inset-0` (no `w-screen`)
-- Navbar avatar: padding outside `size-10` + `min-w-10 shrink-0`
-- Logs: `lib/dev-log.ts` — SSE/AI/import quiet in production
-- Deploy: Sentry sourcemaps only if `SENTRY_UPLOAD_SOURCEMAPS=1`; `prisma.config.ts` seed
-- Hooks: `useSession` · `useListQueries` + `queryInvalidation` · cookie `lib/auth.ts`
-- Lists UX: unified placeholder same-slug only · ListPage syncs `currentList` from RQ · My Lists title → `/list/[slug]` · Smart Collections create stays on page
-- Visit: `lib/utils.ts` `ensureAbsoluteHttpUrl` + `openExternalUrl` (UrlCard Visit Site + Similar URLs dialog)
-- Collaborators: empty state one-row; Card `p-2 sm:p-4` (no lg:p-8)
-- Smart Collections: one outer `p-2 sm:p-4` shell; title row `pb-1 sm:pb-4`
-- Docs: `README.md` · `SECURITY.md` · `PORTABLE_AUTH_UI_GUIDE.md`
-- Out of scope (separate REQ): densify/Zod/SHA/JWT-null SSR
-- Local DB: `.env` / `.env.local` → remote Postgres `77.42.71.87:25432` (gitignored)
-- Out of scope (separate REQ): densify/Zod/SHA/JWT-null SSR
+- Auth: `Auth.tsx` · `ProfileDropdown` · `UserAvatar` · `lib/robohash.ts` · `constants/auth.ts`
+- Flash: SSR `WAS_AUTHED_COOKIE` / `session_token` → `useWasAuthedHint` · guests Auth · returning Marketing (no spinner)
+- Auth UI: welcome `MARKETING_STACK` · sign-in header `SECTION_STACK` · Sign up footer hidden (`_handleSignUp` kept)
+- Navbar: `h-14 overflow-visible` · profile shell visible · menu `z-[100]` · static brand
+- BG: static `FloatingBackground` (no `animate-float`) · PostHog `PostHogPageview` Suspense island only
+- Spacing: `lib/ui-spacing.ts` PAGE/SECTION/MARKETING/FORM/LIST/PAGE_HEADER/CARD_PAD
+- Layout main: `py-6 sm:py-10` · `html { scrollbar-gutter: stable }`
+- Auth toasts: `lib/auth-toast.ts` + `AuthToastBridge`
+- Logs: `lib/dev-log.ts` — SSE/AI/import quiet in prod
+- Deploy: Sentry upload only if `SENTRY_UPLOAD_SOURCEMAPS=1` · `prisma.config.ts` seed
+- Lists: slug-safe placeholder · ListPage `currentList` sync · My Lists title → `/list/[slug]` · SC create stays
+- Visit: `ensureAbsoluteHttpUrl` + `openExternalUrl`
+- Collaborators empty one-row · Card/SC `p-2 sm:p-4`
+- Local DB: `.env` / `.env.local` → remote `77.42.71.87:25432` (gitignored)
+- Out of scope: densify / Zod / SHA / JWT-null SSR / Next 16 / Prisma 7
 
 ## Versions
 

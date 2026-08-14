@@ -399,7 +399,7 @@ export function ActivityFeed({ listId, limit = 50 }: ActivityFeedProps) {
                 {getActionIcon(activity.action)}
               </div>
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
+                <div className="flex items-center  flex-wrap">
                   <span className="text-xs font-medium text-white/90 truncate">
                     {activity.user.email}
                   </span>

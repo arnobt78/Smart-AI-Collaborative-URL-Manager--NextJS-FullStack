@@ -276,9 +276,9 @@
   @apply bg-gray-300 rounded-full hover:bg-gray-400 transition-colors;
 }
 
-/* Focus Styles */
+/* Focus Styles — ring-offset can nudge sticky chrome; offset-0 keeps layout stable */
 :focus-visible {
-  @apply outline-none ring-2 ring-blue-500 ring-offset-2;
+  @apply outline-none ring-2 ring-blue-500 ring-offset-0;
 }
 
 /* Selection Styles */

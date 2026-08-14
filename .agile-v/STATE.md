@@ -12,6 +12,9 @@
 - HomePage: no NeutralWait spinner — Auth or Marketing immediately via wasAuthed
 - Smart Collections: single `p-2 sm:p-4` shell + title `pb-1 sm:pb-4` (no double pad)
 - Local/prod DB: use remote `77.42.71.87:25432` in `.env` / `.env.local` (not localhost tunnel)
+- Home refresh: `urlist_was_authed` cookie + session_token SSR hint; static FloatingBackground; PostHog Suspense island; profile skeleton-first
+- Central UI spacing: `lib/ui-spacing.ts` PAGE/SECTION/FORM/LIST stacks on Browse/Lists/Insights/API/Home/Auth; main `py-6 sm:py-10`
+- Auth/Home/Navbar polish: `MARKETING_STACK`; hide Sign up footer; nav overflow-visible + dropdown `z-[100]`
 
 ## Human
 
@@ -21,5 +24,5 @@
 ## Next
 
 ```text
-Load .agile-v/STATE.md. C1 UX waves done (Visit, Collaborators, Home spinner, SC pad). HA-0001. No densify/Zod/Next16/Prisma7 unless REQ.
+Load .agile-v/STATE.md. C1 UX polish (MARKETING_STACK, nav unclip). HA-0001. No densify/Zod/Next16/Prisma7 unless REQ.
 ```

@@ -115,7 +115,7 @@ export default function EditListPageClient() {
             <div className="space-y-6 sm:space-y-8 animate-pulse">
               {/* Title Field Skeleton */}
               <div className="space-y-2">
-                <label className="flex text-base sm:text-lg font-semibold  items-center gap-2">
+                <label className="flex text-base sm:text-lg font-medium  items-center gap-2">
                   <div className="w-1.5 h-1.5 rounded-full bg-white/10" />
                   <div className="h-5 bg-white/10 rounded w-16" />
                   <div className="h-5 w-2 bg-white/10 rounded" />
@@ -126,7 +126,7 @@ export default function EditListPageClient() {
 
               {/* Description Field Skeleton */}
               <div className="space-y-2">
-                <label className="flex text-base sm:text-lg font-semibold  items-center gap-2">
+                <label className="flex text-base sm:text-lg font-medium  items-center gap-2">
                   <div className="w-1.5 h-1.5 rounded-full bg-white/10" />
                   <div className="h-5 bg-white/10 rounded w-24" />
                   <div className="h-4 bg-white/10 rounded w-16" />
@@ -161,8 +161,8 @@ export default function EditListPageClient() {
   return (
     <div className="min-h-screen w-full">
       {/* Header Section */}
-      <div className="text-left mb-4 sm:mb-6">
-        <h1 className="text-xl sm:text-2xl lg:text-3xl font-semibold bg-gradient-to-r from-blue-300 via-purple-300 to-indigo-300 bg-clip-text text-transparent">
+      <div className="text-left ">
+        <h1 className="text-xl sm:text-2xl lg:text-3xl font-medium bg-gradient-to-r from-blue-300 via-purple-300 to-indigo-300 bg-clip-text text-transparent">
           Edit List
         </h1>
         <p className="text-white/70 text-sm sm:text-base lg:text-lg max-w-7xl mx-auto mt-1 sm:mt-2">
@@ -178,13 +178,13 @@ export default function EditListPageClient() {
         <div className="relative z-10">
           <form
             onSubmit={handleSubmit}
-            className="space-y-3 sm:space-y-6 lg:space-y-8"
+            className="space-y-2 sm:space-y-4 lg:space-y-8"
           >
             {/* Title Field */}
             <div className="space-y-2">
               <label
                 htmlFor="title"
-                className="flex text-sm sm:text-base lg:text-lg font-semibold text-white  items-center gap-2"
+                className="flex text-sm sm:text-base lg:text-lg font-medium text-white  items-center gap-2"
               >
                 <span className="w-1.5 h-1.5 rounded-full bg-blue-400"></span>
                 Title <span className="text-red-400">*</span>
@@ -207,7 +207,7 @@ export default function EditListPageClient() {
             <div className="space-y-2">
               <label
                 htmlFor="description"
-                className="flex text-sm sm:text-base lg:text-lg font-semibold text-white  items-center gap-2"
+                className="flex text-sm sm:text-base lg:text-lg font-medium text-white  items-center gap-2"
               >
                 <span className="w-1.5 h-1.5 rounded-full bg-pink-400"></span>
                 Description{" "}
@@ -256,7 +256,7 @@ export default function EditListPageClient() {
             {/* Error Display */}
             {error && (
               <div className="bg-red-500/10 border border-red-400/30 rounded-lg sm:rounded-xl p-3 sm:p-4 text-red-300 text-xs sm:text-sm lg:text-base flex items-start gap-2">
-                <span className="text-red-400 font-bold">⚠</span>
+                <span className="text-red-400 font-medium">⚠</span>
                 <span>{error}</span>
               </div>
             )}
@@ -274,7 +274,7 @@ export default function EditListPageClient() {
               <Button
                 type="submit"
                 isLoading={isSaving}
-                className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 hover:from-blue-700 hover:via-purple-700 hover:to-indigo-700 text-white font-bold py-2 sm:py-3 lg:py-4 rounded-lg sm:rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 text-sm sm:text-base lg:text-lg order-1 sm:order-2 w-full sm:w-auto"
+                className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 hover:from-blue-700 hover:via-purple-700 hover:to-indigo-700 text-white font-medium py-2 sm:py-3 lg:py-4 rounded-lg sm:rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 text-sm sm:text-base lg:text-lg order-1 sm:order-2 w-full sm:w-auto"
               >
                 {isSaving ? "Saving..." : "Save Changes"}
               </Button>

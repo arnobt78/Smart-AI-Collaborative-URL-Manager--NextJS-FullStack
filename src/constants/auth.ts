@@ -45,3 +45,9 @@ export const UTILITY_NAVIGATION_ITEMS: UtilityNavItem[] = [
 
 /** localStorage flag — avoid Login flash before Profile on refresh (guide §3). */
 export const WAS_AUTHED_KEY = "urlist:wasAuthed";
+
+/**
+ * Non-httpOnly cookie mirror of WAS_AUTHED_KEY — SSR-readable via cookies().
+ * See src/lib/was-authed.ts for set/clear helpers.
+ */
+export const WAS_AUTHED_COOKIE = "urlist_was_authed";

@@ -2620,7 +2620,7 @@ export function UrlList() {
                 setError(undefined);
               }
             }}
-            className={`bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white flex items-center justify-center gap-1 sm:gap-2 transition-all duration-200 shadow-md hover:shadow-lg text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2 w-full sm:w-auto ${
+            className={`bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white flex items-center justify-center  transition-all duration-200 shadow-md hover:shadow-lg text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2 w-full sm:w-auto ${
               !permissions.canEdit ? "opacity-50 cursor-not-allowed" : ""
             }`}
           >
@@ -2856,10 +2856,10 @@ export function UrlList() {
               <div className="mx-auto w-32 h-32 bg-gradient-to-br from-gray-500/20 via-gray-500/20 to-transparent rounded-full flex items-center justify-center shadow-inner border border-gray-400/30">
                 <ArchiveBoxIcon className="h-16 w-16 text-gray-400" />
               </div>
-              <h3 className="mt-6 text-2xl font-semibold text-white">
+              <h3 className="mt-6 text-2xl font-medium text-white">
                 No Archived URLs
               </h3>
-              <p className="mt-3 text-lg text-white/60 max-w-md mx-auto">
+              <p className="mt-2 text-lg text-white/60 max-w-md mx-auto">
                 Archived URLs will appear here. You can restore them at any
                 time.
               </p>
@@ -2868,11 +2868,11 @@ export function UrlList() {
             archivedUrlsList.map((url) => (
               <div
                 key={url.id}
-                className="bg-white/5 backdrop-blur-md rounded-xl border border-white/20 p-4 sm:p-6"
+                className="bg-white/5 backdrop-blur-md rounded-xl border border-white/20 p-2 sm:p-4"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-white ">
+                    <h3 className="text-lg font-medium text-white ">
                       {url.title || url.url}
                     </h3>
                     {url.url !== url.title && (
@@ -2920,10 +2920,8 @@ export function UrlList() {
           <div className="mx-auto w-32 h-32 bg-gradient-to-br from-blue-500/20 via-blue-500/20 to-transparent rounded-full flex items-center justify-center shadow-inner border border-blue-400/30">
             <LinkIcon className="h-16 w-16 text-blue-400" />
           </div>
-          <h3 className="mt-6 text-2xl font-semibold text-white">
-            No URLs Yet
-          </h3>
-          <p className="mt-3 text-lg text-white/60 max-w-md mx-auto">
+          <h3 className="mt-6 text-2xl font-medium text-white">No URLs Yet</h3>
+          <p className="mt-2 text-lg text-white/60 max-w-md mx-auto">
             Start building your collection by adding your first URL using the
             form above
           </p>

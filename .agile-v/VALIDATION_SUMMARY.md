@@ -17,5 +17,8 @@
 | Collaborators row + Card pad           | PASS | PASS                      | empty one-row; Card p-2 sm:p-4; SmartCollections no stacked pt        |
 | HomePage no spinner                    | PASS | PASS                      | NeutralWait removed; wasAuthed → Auth/Marketing only                  |
 | Smart Collections single pad           | PASS | PASS                      | one p-2 sm:p-4 shell; title                                           |
+| Home refresh flash / BG / navbar       | PASS | PASS                      | was-authed cookie SSR; static BG; PostHog Suspense island; typed Navbar |
+| Central UI spacing                     | PASS | PASS                      | ui-spacing PAGE/SECTION/FORM/LIST; Browse/Lists/Insights/API/Home/Auth |
+| Auth/Home/Navbar polish                | PASS | PASS                      | MARKETING_STACK; Sign up footer hidden; nav overflow-visible; menu z-100 |
 
 Out of scope: densify/JWT SSR, Zod/SHA, Next 16, Prisma 7.

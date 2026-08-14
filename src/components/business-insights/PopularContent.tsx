@@ -97,7 +97,7 @@ export function PopularContent({
                     >
                       {url.title || url.url}
                     </a>
-                    <div className="flex items-center gap-1 sm:gap-2 mt-1 flex-wrap">
+                    <div className="flex items-center  mt-1 flex-wrap">
                       <Link
                         href={`/list/${url.listSlug}`}
                         className="text-white/60 hover:text-white/80 text-xs truncate"
@@ -142,7 +142,7 @@ export function PopularContent({
                   className="flex items-center justify-between p-2 sm:p-3 rounded-lg bg-white/5 border border-white/10 hover:border-blue-400/30 transition-all group"
                 >
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1 sm:gap-2 mb-1">
+                    <div className="flex items-center  mb-1">
                       <h4 className="text-white group-hover:text-blue-400 transition-colors text-xs sm:text-sm font-medium truncate">
                         {list.title}
                       </h4>

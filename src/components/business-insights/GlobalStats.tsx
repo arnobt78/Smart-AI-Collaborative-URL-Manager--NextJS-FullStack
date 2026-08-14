@@ -64,7 +64,7 @@ const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
             className="text-white text-sm"
             style={{ color: entry.color }}
           >
-            {entry.name}: <span className="font-semibold">{entry.value}</span>
+            {entry.name}: <span className="font-medium">{entry.value}</span>
           </p>
         ))}
       </div>
@@ -122,7 +122,7 @@ export function GlobalStats({ data, isLoading }: GlobalStatsProps) {
             <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-400" />
           </CardHeader>
           <CardContent>
-            <div className="text-xl sm:text-2xl font-bold text-white">
+            <div className="text-xl sm:text-2xl font-medium text-white">
               {data.totalUsers.toLocaleString()}
             </div>
             <p className="text-xs text-white/60 mt-1">
@@ -140,7 +140,7 @@ export function GlobalStats({ data, isLoading }: GlobalStatsProps) {
             <Activity className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-green-400" />
           </CardHeader>
           <CardContent>
-            <div className="text-xl sm:text-2xl font-bold text-white">
+            <div className="text-xl sm:text-2xl font-medium text-white">
               {data.liveUsersNow}
             </div>
             <p className="text-xs text-white/60 mt-1">
@@ -157,7 +157,7 @@ export function GlobalStats({ data, isLoading }: GlobalStatsProps) {
             <List className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-purple-400" />
           </CardHeader>
           <CardContent>
-            <div className="text-xl sm:text-2xl font-bold text-white">
+            <div className="text-xl sm:text-2xl font-medium text-white">
               {data.totalLists.toLocaleString()}
             </div>
             <p className="text-xs text-white/60 mt-1">
@@ -175,7 +175,7 @@ export function GlobalStats({ data, isLoading }: GlobalStatsProps) {
             <Link2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-green-400" />
           </CardHeader>
           <CardContent>
-            <div className="text-xl sm:text-2xl font-bold text-white">
+            <div className="text-xl sm:text-2xl font-medium text-white">
               {data.totalUrls.toLocaleString()}
             </div>
             <p className="text-xs text-white/60 mt-1">
@@ -196,7 +196,7 @@ export function GlobalStats({ data, isLoading }: GlobalStatsProps) {
             <TrendingUp className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-400" />
           </CardHeader>
           <CardContent>
-            <div className="text-xl sm:text-2xl font-bold text-white">
+            <div className="text-xl sm:text-2xl font-medium text-white">
               {data.avgUrlsPerList}
             </div>
           </CardContent>
@@ -207,7 +207,7 @@ export function GlobalStats({ data, isLoading }: GlobalStatsProps) {
             <CardTitle className="text-xs sm:text-sm font-medium text-white/70">
               List Distribution
             </CardTitle>
-            <div className="flex gap-1 sm:gap-2">
+            <div className="flex ">
               <Globe className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-green-400" />
               <Lock className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-yellow-400" />
             </div>
@@ -238,7 +238,7 @@ export function GlobalStats({ data, isLoading }: GlobalStatsProps) {
             <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-purple-400" />
           </CardHeader>
           <CardContent>
-            <div className="text-xl sm:text-2xl font-bold text-white">
+            <div className="text-xl sm:text-2xl font-medium text-white">
               {data.listsWithCollaborators}
             </div>
           </CardContent>

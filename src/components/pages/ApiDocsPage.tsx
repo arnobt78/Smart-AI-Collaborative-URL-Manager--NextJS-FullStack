@@ -4,6 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/Tabs";
 import { BookOpen, Code, Lock, Globe, Link2 } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { PAGE_HEADER, PAGE_STACK } from "@/lib/ui-spacing";
 
 interface ApiEndpoint {
   method: "GET" | "POST" | "PATCH" | "DELETE";
@@ -354,10 +356,10 @@ const allEndpoints: Record<string, ApiEndpoint[]> = {
 
 export default function ApiDocsPage() {
   return (
-    <div className="min-h-screen w-full">
+    <div className={cn("min-h-screen w-full", PAGE_STACK)}>
       {/* Header */}
-      <div className="mb-6 sm:mb-8">
-        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white  flex items-center gap-2 sm:gap-2 flex-wrap">
+      <div className={PAGE_HEADER}>
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-medium text-white flex items-center gap-2 sm:gap-2 flex-wrap">
           <BookOpen className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-blue-400 flex-shrink-0" />
           <span>API Documentation</span>
         </h1>
@@ -367,22 +369,22 @@ export default function ApiDocsPage() {
       </div>
 
       {/* Authentication Info */}
-      <Card className="mb-6 border-blue-400/30">
+      <Card className="border-blue-400/30">
         <CardHeader>
           <div className="flex items-center gap-2">
             <Lock className="h-5 w-5 text-blue-400" />
             <CardTitle>Authentication</CardTitle>
           </div>
         </CardHeader>
-        <CardContent>
-          <p className="text-white/80 text-sm ">
+        <CardContent className="flex flex-col gap-2">
+          <p className="text-white/80 text-sm">
             Most API endpoints require authentication via session cookie. Make
             sure you&apos;re logged in before making requests.
           </p>
-          <code className="text-xs text-white/60 bg-white/5 px-2 py-1 rounded">
+          <code className="text-xs text-white/60 bg-white/5 px-2 py-1 rounded w-fit">
             Cookie: session_token
           </code>
-          <p className="text-white/60 text-xs mt-2">
+          <p className="text-white/60 text-xs">
             Note: Some endpoints like{" "}
             <code className="text-blue-400">/api/lists/public</code> and{" "}
             <code className="text-blue-400">/api/metadata</code> are publicly
@@ -393,10 +395,10 @@ export default function ApiDocsPage() {
 
       {/* API Endpoints by Category */}
       <Tabs defaultValue="Authentication" className="w-full">
-        <TabsList className="grid w-full grid-cols-4 mb-4 sm:mb-6 gap-1 sm:gap-2">
+        <TabsList className="grid w-full grid-cols-4 ">
           <TabsTrigger
             value="Authentication"
-            className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2"
+            className="flex items-center  text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2"
           >
             <Lock className="h-3 w-3 sm:h-4 sm:w-4" />
             <span className="hidden sm:inline">Auth</span>
@@ -404,21 +406,21 @@ export default function ApiDocsPage() {
           </TabsTrigger>
           <TabsTrigger
             value="Lists"
-            className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2"
+            className="flex items-center  text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2"
           >
             <Link2 className="h-3 w-3 sm:h-4 sm:w-4" />
             Lists
           </TabsTrigger>
           <TabsTrigger
             value="Utility"
-            className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2"
+            className="flex items-center  text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2"
           >
             <Code className="h-3 w-3 sm:h-4 sm:w-4" />
             Utility
           </TabsTrigger>
           <TabsTrigger
             value="Business Insights"
-            className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2"
+            className="flex items-center  text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2"
           >
             <Globe className="h-3 w-3 sm:h-4 sm:w-4" />
             <span className="hidden sm:inline">Insights</span>

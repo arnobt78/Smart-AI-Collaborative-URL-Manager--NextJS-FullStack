@@ -2,31 +2,31 @@ export default function AboutPage() {
   return (
     <div className="min-h-screen w-full">
       <div className="max-w-7xl mx-auto px-4 sm:px-0">
-        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-6 sm:mb-8">
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-medium text-white ">
           About The Daily Urlist
         </h1>
         <div className="prose prose-invert max-w-none">
-          <p className="text-base sm:text-lg text-white/80 mb-4 sm:mb-6">
+          <p className="text-base sm:text-lg text-white/80 ">
             The Daily Urlist is a modern URL bookmarking and sharing platform
             designed to help you organize and share your favorite web resources
             efficiently. Built with Next.js and featuring real-time
             collaboration, AI-powered organization, and beautiful
             visualizations.
           </p>
-          <h2 className="text-xl sm:text-2xl font-semibold text-white mt-6 sm:mt-8  sm:mb-4">
+          <h2 className="text-xl sm:text-2xl font-medium text-white mt-6 sm:mt-8  sm:mb-4">
             Our Mission
           </h2>
-          <p className="text-base sm:text-lg text-white/80 mb-4 sm:mb-6">
+          <p className="text-base sm:text-lg text-white/80 ">
             We aim to simplify the way people collect, organize, and share web
             resources. Whether you&apos;re a researcher, student, professional,
             or just someone who loves to curate content, The Daily Urlist
             provides you with the tools to manage your digital resources
             effectively.
           </p>
-          <h2 className="text-xl sm:text-2xl font-semibold text-white mt-6 sm:mt-8  sm:mb-4">
+          <h2 className="text-xl sm:text-2xl font-medium text-white mt-6 sm:mt-8  sm:mb-4">
             Features
           </h2>
-          <ul className="list-disc list-inside text-base sm:text-lg text-white/80 mb-4 sm:mb-6 space-y-2">
+          <ul className="list-disc list-inside text-base sm:text-lg text-white/80  space-y-2">
             <li>
               Create and manage multiple URL lists with drag-and-drop reordering
             </li>
@@ -44,7 +44,7 @@ export default function AboutPage() {
             <li>Business insights and analytics for your URLs and lists</li>
             <li>Secure authentication and data protection</li>
           </ul>
-          <h2 className="text-xl sm:text-2xl font-semibold text-white mt-6 sm:mt-8  sm:mb-4">
+          <h2 className="text-xl sm:text-2xl font-medium text-white mt-6 sm:mt-8  sm:mb-4">
             Contact
           </h2>
           <p className="text-base sm:text-lg text-white/80">

@@ -424,7 +424,7 @@ export const UrlCard: React.FC<UrlCardProps> = ({
                 {/* Title with Health Status directly after text */}
                 <div className=" min-w-0">
                   <h3
-                    className="font-bold text-base sm:text-lg lg:text-xl text-white group-hover:text-blue-400 transition-colors font-joti inline break-words"
+                    className="font-medium text-base sm:text-lg lg:text-xl text-white group-hover:text-blue-400 transition-colors font-joti inline break-words"
                     title={title}
                   >
                     {title}
@@ -445,7 +445,7 @@ export const UrlCard: React.FC<UrlCardProps> = ({
                 {url.isPinned && (
                   <div className=" flex items-center gap-1">
                     <Pin className="h-3.5 w-3.5 text-yellow-400 fill-yellow-400" />
-                    <span className="px-2 py-0.5 bg-yellow-500/20 border border-yellow-400/30 text-yellow-300 rounded-md text-xs font-semibold">
+                    <span className="px-2 py-0.5 bg-yellow-500/20 border border-yellow-400/30 text-yellow-300 rounded-md text-xs font-medium">
                       Pinned
                     </span>
                   </div>
@@ -455,7 +455,7 @@ export const UrlCard: React.FC<UrlCardProps> = ({
                 {(url.category || (url.tags && url.tags.length > 0)) && (
                   <div className="flex items-center gap-2  flex-wrap">
                     {url.category && (
-                      <span className="px-2 py-1 bg-blue-500/20 border border-blue-400/30 text-blue-300 rounded-md text-xs font-semibold whitespace-nowrap">
+                      <span className="px-2 py-1 bg-blue-500/20 border border-blue-400/30 text-blue-300 rounded-md text-xs font-medium whitespace-nowrap">
                         {url.category}
                       </span>
                     )}
@@ -488,7 +488,7 @@ export const UrlCard: React.FC<UrlCardProps> = ({
                         })}
                       </span>
                       {new Date(url.reminder) < new Date() && (
-                        <span className="ml-2 px-2 py-0.5 bg-red-500/20 border border-red-400/30 text-red-300 rounded text-xs font-semibold">
+                        <span className="ml-2 px-2 py-0.5 bg-red-500/20 border border-red-400/30 text-red-300 rounded text-xs font-medium">
                           Overdue
                         </span>
                       )}
@@ -497,7 +497,7 @@ export const UrlCard: React.FC<UrlCardProps> = ({
                           new Date(
                             new Date().setDate(new Date().getDate() + 7),
                           ) && (
-                          <span className="ml-2 px-2 py-0.5 bg-orange-500/20 border border-orange-400/30 text-orange-300 rounded text-xs font-semibold">
+                          <span className="ml-2 px-2 py-0.5 bg-orange-500/20 border border-orange-400/30 text-orange-300 rounded text-xs font-medium">
                             Soon
                           </span>
                         )}
@@ -673,7 +673,7 @@ export const UrlCard: React.FC<UrlCardProps> = ({
         <div className="px-6 pb-4 pt-0 border-t border-white/10">
           <div className="flex items-start gap-2 text-yellow-200 text-sm font-delicious pt-4">
             <ExclamationCircleIcon className="h-5 w-5 flex-shrink-0 mt-0.5" />
-            <span className="font-semibold">Note:</span>
+            <span className="font-medium">Note:</span>
             <span>{url.notes}</span>
           </div>
         </div>
@@ -731,9 +731,9 @@ export const UrlCard: React.FC<UrlCardProps> = ({
               onClick={(e) => e.stopPropagation()}
             >
               {/* Header - Fixed */}
-              <div className="flex items-start justify-between p-4 sm:p-6 border-b border-white/10 flex-shrink-0 bg-gradient-to-br from-zinc-900 to-zinc-800">
+              <div className="flex items-start justify-between p-2 sm:p-4 border-b border-white/10 flex-shrink-0 bg-gradient-to-br from-zinc-900 to-zinc-800">
                 <div className="flex-1 min-w-0 pr-4">
-                  <h3 className="text-xl font-bold text-white line-clamp-2 break-words">
+                  <h3 className="text-xl font-medium text-white line-clamp-2 break-words">
                     Similar URLs to &quot;{url.title || url.url}&quot;
                   </h3>
                   <p className="text-sm text-white/60 mt-1">
@@ -751,7 +751,7 @@ export const UrlCard: React.FC<UrlCardProps> = ({
 
               {/* Content - Scrollable */}
               <div
-                className="overflow-y-scroll overflow-x-hidden p-4 sm:p-6 custom-scrollbar"
+                className="overflow-y-scroll overflow-x-hidden p-2 sm:p-4 custom-scrollbar"
                 style={{
                   flex: "1 1 auto",
                   minHeight: 0,
@@ -789,7 +789,7 @@ export const UrlCard: React.FC<UrlCardProps> = ({
                         <div className="flex items-start justify-between gap-4">
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2  flex-wrap">
-                              <span className="px-2 py-0.5 bg-blue-500/20 border border-blue-400/30 text-blue-300 rounded text-xs font-semibold whitespace-nowrap">
+                              <span className="px-2 py-0.5 bg-blue-500/20 border border-blue-400/30 text-blue-300 rounded text-xs font-medium whitespace-nowrap">
                                 {Math.round(result.relevanceScore * 100)}% match
                               </span>
                               {result.url.category && (
@@ -798,7 +798,7 @@ export const UrlCard: React.FC<UrlCardProps> = ({
                                 </span>
                               )}
                             </div>
-                            <h4 className="font-semibold text-white mb-1 break-words">
+                            <h4 className="font-medium text-white mb-1 break-words">
                               {result.url.title || result.url.url}
                             </h4>
                             {result.url.description && (
@@ -858,9 +858,9 @@ export const UrlCard: React.FC<UrlCardProps> = ({
               onClick={(e) => e.stopPropagation()}
             >
               {/* Header - Fixed */}
-              <div className="flex items-start justify-between p-4 sm:p-6 border-b border-white/10 flex-shrink-0 bg-gradient-to-br from-zinc-900 to-zinc-800">
+              <div className="flex items-start justify-between p-2 sm:p-4 border-b border-white/10 flex-shrink-0 bg-gradient-to-br from-zinc-900 to-zinc-800">
                 <div className="flex-1 min-w-0 pr-4">
-                  <h3 className="text-base sm:text-lg lg:text-xl font-bold text-white line-clamp-2 break-words">
+                  <h3 className="text-base sm:text-lg lg:text-xl font-medium text-white line-clamp-2 break-words">
                     Comments
                   </h3>
                   <p className="text-sm text-white/60 mt-1">
@@ -878,7 +878,7 @@ export const UrlCard: React.FC<UrlCardProps> = ({
 
               {/* Content - Scrollable */}
               <div
-                className="overflow-y-scroll overflow-x-hidden p-4 sm:p-6 custom-scrollbar"
+                className="overflow-y-scroll overflow-x-hidden p-2 sm:p-4 custom-scrollbar"
                 style={{
                   flex: "1 1 auto",
                   minHeight: 0,

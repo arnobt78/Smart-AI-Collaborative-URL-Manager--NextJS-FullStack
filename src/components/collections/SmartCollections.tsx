@@ -417,13 +417,13 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
 
   if (!isExpanded && !isLoading && !hasSuggestions && !hasDuplicates) {
     return (
-      <Card className="mb-4 sm:mb-6">
+      <Card className="">
         <CardContent className="p-2 sm:p-4">
           <div className="flex items-center justify-between gap-2 sm:gap-2">
             <div className="flex items-center gap-2 sm:gap-2 min-w-0 flex-1">
               <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-blue-400 flex-shrink-0" />
               <div className="min-w-0">
-                <h3 className="font-semibold text-white text-sm sm:text-base truncate">
+                <h3 className="font-medium text-white text-sm sm:text-base truncate">
                   Smart Collections
                 </h3>
                 <p className="text-xs sm:text-sm text-white/60 truncate">
@@ -446,7 +446,7 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
   }
 
   return (
-    <Card className="mb-4 sm:mb-6">
+    <Card className="">
       {/* Single pad shell — title + body share one p-2 sm:p-4 (no Header+Content double pad) */}
       <div className="p-2 sm:p-4 space-y-2 sm:space-y-3">
         <div className="flex items-center justify-between gap-2 sm:gap-2 ">
@@ -482,7 +482,7 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
           {/* Collection Suggestions — stay visible during refetch */}
           {hasSuggestions && (
             <div>
-              <h4 className="text-xs sm:text-sm font-semibold text-white  sm:mb-3 flex items-center gap-1 sm:gap-2">
+              <h4 className="text-xs sm:text-sm font-medium text-white  sm: flex items-center ">
                 <FolderPlus className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 <span>Suggested Collections ({suggestions.length})</span>
               </h4>
@@ -495,11 +495,11 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
                     <div className="flex items-start justify-between gap-2 sm:gap-4 flex-col sm:flex-row">
                       <div className="flex-1 min-w-0 w-full sm:w-auto">
                         {/* Title - Full width on phone */}
-                        <h5 className="font-semibold text-white text-sm sm:text-base w-full mb-1.5 sm: break-words">
+                        <h5 className="font-medium text-white text-sm sm:text-base w-full mb-1.5 sm: break-words">
                           {suggestion.name}
                         </h5>
                         {/* URLs and Category Badges - Separate row */}
-                        <div className="flex items-center gap-1 sm:gap-2 mb-1.5 sm: flex-wrap">
+                        <div className="flex items-center  mb-1.5 sm: flex-wrap">
                           <Badge variant="secondary" className="text-xs">
                             {suggestion.urls.length} URLs
                           </Badge>
@@ -513,7 +513,7 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
                         <p className="text-xs sm:text-sm text-white/60 mb-1.5 sm: break-words">
                           {suggestion.description}
                         </p>
-                        <div className="flex items-center gap-1 sm:gap-2 text-xs text-white/50 flex-wrap">
+                        <div className="flex items-center  text-xs text-white/50 flex-wrap">
                           <span>Confidence: {suggestion.confidence}%</span>
                           <span>•</span>
                           <span className="break-words">
@@ -564,8 +564,8 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
           {/* Duplicate Detection - Only show if duplicates have been fetched */}
           {showDuplicates && (isLoadingDuplicates || hasDuplicates) && (
             <div>
-              <div className="flex items-center justify-between gap-2  sm:mb-3">
-                <h4 className="text-xs sm:text-sm font-semibold text-white flex items-center gap-1 sm:gap-2 min-w-0 flex-1">
+              <div className="flex items-center justify-between gap-2  sm:">
+                <h4 className="text-xs sm:text-sm font-medium text-white flex items-center  min-w-0 flex-1">
                   <AlertTriangle className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-yellow-400 shrink-0" />
                   <span className="truncate">
                     {isLoadingDuplicates
@@ -617,7 +617,7 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
                                 {dup.duplicates.map((d, i) => (
                                   <div
                                     key={i}
-                                    className="text-[10px] sm:text-xs text-white/70 flex items-start gap-1 sm:gap-2 flex-wrap"
+                                    className="text-[10px] sm:text-xs text-white/70 flex items-start  flex-wrap"
                                   >
                                     <Copy className="h-3 w-3 shrink-0 mt-0.5" />
                                     <span className="break-words flex-1 min-w-0">
@@ -691,7 +691,7 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
           {/* Empty State - Only show if no suggestions and duplicates section not expanded */}
           {!isLoading && !hasSuggestions && !showDuplicates && (
             <div className="text-center py-8">
-              <CheckCircle2 className="h-12 w-12 text-white/20 mx-auto mb-3" />
+              <CheckCircle2 className="h-12 w-12 text-white/20 mx-auto " />
               <p className="text-white/60 text-sm">
                 No collection suggestions available yet.
                 <br />

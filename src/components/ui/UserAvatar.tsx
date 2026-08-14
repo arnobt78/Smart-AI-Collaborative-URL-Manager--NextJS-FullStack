@@ -48,14 +48,14 @@ export function UserAvatar({
     <span
       className={cn(
         "inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full border border-white/20 bg-white/10",
-        className
+        className,
       )}
       style={{ width: size, height: size }}
       aria-hidden={alt ? undefined : true}
     >
       {showInitials ? (
         <span
-          className="font-semibold text-white/90"
+          className="font-medium text-white/90"
           style={{ fontSize: Math.max(10, size * 0.35) }}
         >
           {initialsFromSeed(seed)}

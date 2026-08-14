@@ -115,11 +115,11 @@ export function InputDialog({
         </button>
 
         <div className="pr-6 sm:pr-8">
-          <h3 className="text-lg sm:text-xl font-bold text-white ">{title}</h3>
+          <h3 className="text-lg sm:text-xl font-medium text-white ">
+            {title}
+          </h3>
           {description && (
-            <p className="text-sm sm:text-base text-white/70 mb-4 sm:mb-6">
-              {description}
-            </p>
+            <p className="text-sm sm:text-base text-white/70 ">{description}</p>
           )}
         </div>
 

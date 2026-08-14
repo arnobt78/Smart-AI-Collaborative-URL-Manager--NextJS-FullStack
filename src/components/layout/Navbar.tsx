@@ -4,56 +4,52 @@
  * Navbar — sticky glass header.
  * Authenticated: ProfileDropdown holds API Docs / API Status / Logout (PORTABLE_AUTH_UI_GUIDE §2.2).
  * Top-level links stay: Public URL, Analytics, My Lists.
+ * initialWasAuthed from SSR cookie → profile skeleton on first paint (no empty→jump).
  */
-import { useState, useEffect } from "react";
 import Link from "next/link";
 import { LinkIcon, Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
+import { useState } from "react";
 import { abortRegistry } from "@/utils/abortRegistry";
 import { useSession } from "@/hooks/useSession";
+import { useWasAuthedHint } from "@/hooks/useWasAuthedHint";
 import { ProfileDropdown } from "@/components/layout/ProfileDropdown";
-import { WAS_AUTHED_KEY } from "@/constants/auth";
 
-export default function Navbar() {
+/** Bulk-import navigation guards (set by import UI on window). */
+type UrlistWindow = Window & {
+  __bulkImportActive?: boolean;
+  __bulkImportJustCompleted?: boolean;
+  __NEXT_DATA__?: { router?: { prefetchCache?: { clear?: () => void } } };
+  __nextRouter?: {
+    isPending?: boolean;
+    cache?: { clear?: () => void };
+  };
+  __nextFetchCache?: { clear?: () => void };
+};
+
+export type NavbarProps = {
+  /** From cookies() urlist_was_authed — skeleton on first paint for returning users */
+  initialWasAuthed?: boolean;
+};
+
+export default function Navbar({ initialWasAuthed = false }: NavbarProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
-  const [wasAuthedHint, setWasAuthedHint] = useState(false);
-  const { user, isLoading, isAuthenticated } = useSession();
+  const { user, isLoading } = useSession();
+  const wasAuthedHint = useWasAuthedHint(initialWasAuthed);
 
-  // Guide §3 — defer localStorage until mounted (avoid hydration mismatch)
-  useEffect(() => {
-    setMounted(true);
-    try {
-      setWasAuthedHint(localStorage.getItem(WAS_AUTHED_KEY) === "1");
-    } catch {
-      setWasAuthedHint(false);
-    }
-  }, []);
-
-  // Keep wasAuthed in sync when session resolves
-  useEffect(() => {
-    if (!mounted) return;
-    if (isAuthenticated && user?.email) {
-      localStorage.setItem(WAS_AUTHED_KEY, "1");
-      setWasAuthedHint(true);
-    } else if (!isLoading && !isAuthenticated) {
-      localStorage.removeItem(WAS_AUTHED_KEY);
-      setWasAuthedHint(false);
-    }
-  }, [mounted, isAuthenticated, isLoading, user?.email]);
-
-  const showProfileSkeleton = mounted && wasAuthedHint && isLoading && !user;
   const showProfile = Boolean(user?.email);
+  // Skeleton as soon as SSR/client hint says returning user — never empty slot jump
+  const showProfileSkeleton =
+    !showProfile && wasAuthedHint && (isLoading || !user);
 
   // Handle navigation with import check
   const handleNavigation = (
     e: React.MouseEvent<HTMLAnchorElement>,
     href: string,
   ) => {
-    // Check if import is active or just completed
     if (typeof window !== "undefined") {
-      const isImportActive = (window as any).__bulkImportActive === true;
-      const importJustCompleted =
-        (window as any).__bulkImportJustCompleted === true;
+      const win = window as UrlistWindow;
+      const isImportActive = win.__bulkImportActive === true;
+      const importJustCompleted = win.__bulkImportJustCompleted === true;
 
       if (isImportActive || importJustCompleted) {
         e.preventDefault();
@@ -79,12 +75,12 @@ export default function Navbar() {
             }
           }
 
-          const nextRouter = (window as any).__NEXT_DATA__?.router;
+          const nextRouter = win.__NEXT_DATA__?.router;
           if (nextRouter?.prefetchCache) {
-            nextRouter.prefetchCache.clear();
+            nextRouter.prefetchCache.clear?.();
           }
 
-          const routerInstance = (window as any).__nextRouter;
+          const routerInstance = win.__nextRouter;
           if (routerInstance) {
             if (routerInstance.isPending !== undefined) {
               routerInstance.isPending = false;
@@ -94,23 +90,23 @@ export default function Navbar() {
             }
           }
 
-          const nextFetchCache = (window as any).__nextFetchCache;
-          if (nextFetchCache) {
+          const nextFetchCache = win.__nextFetchCache;
+          if (nextFetchCache?.clear) {
             nextFetchCache.clear();
           }
 
           if (process.env.NODE_ENV === "development") {
             console.log(`🧹 [NAVBAR] Cleared all Next.js router caches`);
           }
-        } catch (e) {
+        } catch (err) {
           if (process.env.NODE_ENV === "development") {
-            console.warn(`⚠️ [NAVBAR] Error during cleanup:`, e);
+            console.warn(`⚠️ [NAVBAR] Error during cleanup:`, err);
           }
         }
 
         setTimeout(() => {
-          (window as any).__bulkImportActive = false;
-          (window as any).__bulkImportJustCompleted = false;
+          win.__bulkImportActive = false;
+          win.__bulkImportJustCompleted = false;
           window.location.href = href;
         }, 100);
 
@@ -119,88 +115,83 @@ export default function Navbar() {
     }
   };
 
+  const renderProfileSlot = () => (
+    // Fixed 40×40 shell — overflow-visible so avatar/menu are never clipped
+    <div className="relative size-10 min-h-10 min-w-10 shrink-0 overflow-visible">
+      {showProfile && user ? (
+        <div className="absolute inset-0 overflow-visible">
+          <ProfileDropdown email={user.email} onNavigate={handleNavigation} />
+        </div>
+      ) : showProfileSkeleton ? (
+        <div
+          className="absolute inset-0 animate-pulse rounded-full border border-white/20 bg-white/10"
+          aria-hidden
+        />
+      ) : (
+        <div className="absolute inset-0" aria-hidden />
+      )}
+    </div>
+  );
+
   return (
-    <nav className="bg-transparent backdrop-blur-md sticky top-0 z-50">
-      <div className="mx-auto max-w-7xl px-2 sm:px-0 py-2 sm:py-3">
-        <div className="flex items-center justify-between">
+    <nav
+      className={`bg-transparent backdrop-blur-md sticky top-0 z-50 shrink-0 overflow-visible ${
+        isMobileMenuOpen ? "min-h-14" : "h-14"
+      }`}
+    >
+      <div className="mx-auto flex max-w-7xl flex-col overflow-visible px-2 sm:px-0">
+        <div className="flex h-14 w-full items-center justify-between overflow-visible">
           <Link
             href="/"
             onClick={(e) => handleNavigation(e, "/")}
-            className="flex items-center gap-2 sm:gap-2 text-base sm:text-xl font-bold text-white hover:text-blue-400 transition-all duration-300 font-mono group"
+            className="flex h-10 items-center gap-2 text-base sm:text-xl font-medium text-white hover:text-blue-400 transition-colors font-mono group"
           >
-            <div className="bg-transparent transition-transform duration-300 group-hover:scale-110 shrink-0">
-              <LinkIcon className="h-6 w-6 sm:h-8 sm:w-8 text-blue-600 stroke-[2.5px] drop-shadow-[0_0_10px_rgba(59,130,246,0.5)]" />
+            <div className="bg-transparent shrink-0 flex items-center">
+              <LinkIcon className="h-7 w-7 sm:h-8 sm:w-8 text-blue-600 stroke-[2.5px] drop-shadow-[0_0_10px_rgba(59,130,246,0.5)]" />
             </div>
-            {/* Static brand — no typewriter/cursor (stable height/width) */}
-            <span className="gradient-color drop-shadow-[0_0_15px_rgba(59,130,246,0.3)] text-lg sm:text-xl lg:text-2xl font-extrabold tracking-tight leading-none inline-block min-h-[1.25em]">
+            {/* Fixed line box — font swap must not change nav / avatar vertical align */}
+            <span className="gradient-color drop-shadow-[0_0_15px_rgba(59,130,246,0.3)] text-lg sm:text-xl lg:text-2xl font-extrabold tracking-tight leading-none inline-flex h-8 items-center">
               Daily Urlist
             </span>
           </Link>
 
           {/* Desktop Navigation — nowrap so avatar never wraps/squeezes */}
-          <div className="hidden sm:flex items-center gap-2 lg:gap-4 flex-nowrap">
+          <div className="hidden sm:flex h-10 items-center gap-2 lg:gap-4 flex-nowrap">
             <Link
               href="/browse"
               onClick={(e) => handleNavigation(e, "/browse")}
-              className="text-white/80 hover:text-white font-medium transition-colors font-mono text-sm lg:text-base"
+              className="text-white/80 hover:text-white font-medium transition-colors font-mono text-sm lg:text-base leading-none"
             >
               Public URL
             </Link>
             <Link
               href="/business-insights"
               onClick={(e) => handleNavigation(e, "/business-insights")}
-              className="text-white/80 hover:text-white font-medium transition-colors font-mono text-sm lg:text-base"
+              className="text-white/80 hover:text-white font-medium transition-colors font-mono text-sm lg:text-base leading-none"
             >
               Analytics
             </Link>
             <Link
               href="/lists"
               onClick={(e) => handleNavigation(e, "/lists")}
-              className="text-white/80 hover:text-white font-medium transition-colors font-mono text-sm lg:text-base"
+              className="text-white/80 hover:text-white font-medium transition-colors font-mono text-sm lg:text-base leading-none"
             >
               My Lists
             </Link>
 
             {/* Padding outside size-10 — padding+size on same node squashed the avatar */}
-            <div className="pl-2 lg:pl-4 shrink-0">
-              <div className="size-10 min-w-10 min-h-10 shrink-0 flex items-center justify-center">
-                {showProfile && user ? (
-                  <ProfileDropdown
-                    email={user.email}
-                    onNavigate={handleNavigation}
-                  />
-                ) : showProfileSkeleton ? (
-                  <div
-                    className="size-10 min-w-10 min-h-10 animate-pulse rounded-full border border-white/20 bg-white/10"
-                    aria-hidden
-                  />
-                ) : (
-                  <div className="size-10 min-w-10 min-h-10" aria-hidden />
-                )}
-              </div>
+            <div className="pl-2 lg:pl-4 shrink-0 flex items-center">
+              {renderProfileSlot()}
             </div>
           </div>
 
           {/* Mobile: profile + hamburger */}
-          <div className="flex items-center gap-2 sm:hidden">
-            <div className="size-10 min-w-10 min-h-10 shrink-0 flex items-center justify-center">
-              {showProfile && user ? (
-                <ProfileDropdown
-                  email={user.email}
-                  onNavigate={handleNavigation}
-                />
-              ) : showProfileSkeleton ? (
-                <div
-                  className="size-10 min-w-10 min-h-10 animate-pulse rounded-full border border-white/20 bg-white/10"
-                  aria-hidden
-                />
-              ) : (
-                <div className="size-10 min-w-10 min-h-10" aria-hidden />
-              )}
-            </div>
+          <div className="flex h-10 items-center gap-2 sm:hidden">
+            {renderProfileSlot()}
             <button
+              type="button"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="p-2 text-white/80 hover:text-white transition-colors"
+              className="flex size-10 items-center justify-center p-0 text-white/80 hover:text-white transition-colors"
               aria-label="Toggle menu"
             >
               {isMobileMenuOpen ? (
@@ -214,7 +205,7 @@ export default function Navbar() {
 
         {/* Mobile Menu — Browse / Analytics / Lists only (API + Logout live in ProfileDropdown) */}
         {isMobileMenuOpen && (
-          <div className="sm:hidden mt-3 pb-3 border-t border-white/10 pt-3">
+          <div className="sm:hidden pb-3 border-t border-white/10 pt-2">
             <div className="flex flex-col gap-2">
               <Link
                 href="/browse"

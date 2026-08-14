@@ -7,9 +7,17 @@ import { useTypewriter } from "@/hooks/useTypewriter";
 import { useToast } from "@/components/ui/Toaster";
 import { useQueryClient } from "@tanstack/react-query";
 import { ChevronDown, Users, Sparkles, Loader2 } from "lucide-react";
-import { TEST_ACCOUNTS, WAS_AUTHED_KEY } from "@/constants/auth";
+import { TEST_ACCOUNTS } from "@/constants/auth";
 import { displayNameFromEmail, robohashUrl } from "@/lib/robohash";
 import { queueAuthToast } from "@/lib/auth-toast";
+import { setWasAuthedHintClient } from "@/lib/was-authed";
+import { cn } from "@/lib/utils";
+import {
+  CARD_PAD,
+  FORM_STACK,
+  MARKETING_STACK,
+  SECTION_STACK,
+} from "@/lib/ui-spacing";
 
 export default function Auth() {
   const { toast } = useToast();
@@ -107,7 +115,8 @@ export default function Auth() {
     };
   }, [isGuestDropdownOpen]);
 
-  const handleSignUp = async (e: React.FormEvent) => {
+  /** Kept for future signup UI — not shown (no dedicated signup page). */
+  const _handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     if (loading) return;
     setLoading(true);
@@ -153,8 +162,8 @@ export default function Auth() {
 
           // Dispatch event for components that listen to session updates
           window.dispatchEvent(new CustomEvent("session-updated"));
-          // Guide §3 — Navbar avatar skeleton instead of Login flash on refresh
-          localStorage.setItem(WAS_AUTHED_KEY, "1");
+          // Guide §3 — LS + cookie so SSR paints Marketing / profile skeleton
+          setWasAuthedHintClient(true);
 
           // Wait a moment for the session cookie to be set on the server
           // Then invalidate and refetch the session to ensure it's properly loaded
@@ -246,8 +255,8 @@ export default function Auth() {
 
           // Dispatch event for components that listen to session updates
           window.dispatchEvent(new CustomEvent("session-updated"));
-          // Guide §3 — Navbar avatar skeleton instead of Login flash on refresh
-          localStorage.setItem(WAS_AUTHED_KEY, "1");
+          // Guide §3 — LS + cookie so SSR paints Marketing / profile skeleton
+          setWasAuthedHintClient(true);
 
           // Wait a moment for the session cookie to be set on the server
           // Then invalidate and refetch the session to ensure it's properly loaded
@@ -311,7 +320,7 @@ export default function Auth() {
           src="/global.svg"
           alt="Decorative background"
           fill
-          className="object-cover animate-float"
+          className="object-cover"
           priority
           publicAsset
         />
@@ -320,34 +329,37 @@ export default function Auth() {
       {/* Welcome Overlay */}
       {showWelcome && (
         <div className="absolute inset-0 z-50 flex flex-col items-center justify-center">
-          <div className="relative z-[2] flex flex-col items-center justify-center w-full">
-            {/* Welcome Content */}
-            <div className="flex flex-col items-center mb-6 sm:mb-8">
-              <div className="text-center mb-4 sm:mb-6 animate-fade-in">
-                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[#00ff99] drop-shadow-[0_0_15px_rgba(0,255,153,0.6)]">
-                  Welcome!
-                </h1>
-              </div>
-              <div className="w-24 h-24 sm:w-32 sm:h-32 mb-4 sm:mb-6">
-                <OptimizedImage
-                  src="/favicon.ico"
-                  alt="Urlist Logo"
-                  width={128}
-                  height={128}
-                  priority
-                  className="w-full h-full"
-                  publicAsset
-                />
-              </div>
+          {/* Single MARKETING_STACK: Welcome → logo → typewriter (even gaps) */}
+          <div
+            className={cn(
+              "relative z-[2] w-full max-w-2xl items-center px-2 sm:px-3",
+              MARKETING_STACK,
+            )}
+          >
+            <div className="text-center animate-fade-in">
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-medium text-[#00ff99] drop-shadow-[0_0_15px_rgba(0,255,153,0.6)]">
+                Welcome!
+              </h1>
+            </div>
+            <div className="w-24 h-24 sm:w-32 sm:h-32">
+              <OptimizedImage
+                src="/favicon.ico"
+                alt="Urlist Logo"
+                width={128}
+                height={128}
+                priority
+                className="w-full h-full"
+                publicAsset
+              />
             </div>
 
             {/* Typewriter Container */}
-            <div className="flex flex-col items-center gap-2 sm:gap-4 px-2 sm:px-3">
-              <div className="bg-[rgba(20,20,30,0.8)] border-2 border-[#7b8ebc] rounded-xl sm:rounded-2xl px-4 sm:px-6 py-3 sm:py-4 shadow-[0_8px_32px_rgba(0,0,0,0.3)] backdrop-blur-md max-w-2xl w-full">
+            <div className="flex flex-col items-center gap-2 sm:gap-4 w-full">
+              <div className="bg-[rgba(20,20,30,0.8)] border-2 border-[#7b8ebc] rounded-xl sm:rounded-2xl px-4 sm:px-6 py-3 sm:py-4 shadow-[0_8px_32px_rgba(0,0,0,0.3)] backdrop-blur-md w-full">
                 <pre className="font-mono text-base sm:text-lg lg:text-xl xl:text-2xl text-[#00ff99] drop-shadow-[0_0_10px_rgba(0,255,153,0.5)] whitespace-pre-wrap leading-tight">
                   {typewriterText}
                   {isMainComplete && (
-                    <span className="inline-block text-[#00ff99] font-bold text-lg sm:text-xl lg:text-2xl animate-cursor-blink">
+                    <span className="inline-block text-[#00ff99] font-medium text-lg sm:text-xl lg:text-2xl animate-cursor-blink">
                       _
                     </span>
                   )}
@@ -356,7 +368,7 @@ export default function Auth() {
               {showSubtitle && (
                 <div className="font-sans text-sm sm:text-base lg:text-lg xl:text-xl text-[#7b8ebc] text-center animate-slide-up px-2">
                   {subtitleText}
-                  <span className="inline-block text-[#7b8ebc] font-bold text-base sm:text-lg lg:text-xl animate-cursor-blink">
+                  <span className="inline-block text-[#7b8ebc] font-medium text-base sm:text-lg lg:text-xl animate-cursor-blink">
                     _
                   </span>
                 </div>
@@ -372,9 +384,15 @@ export default function Auth() {
           showWelcome ? "opacity-0 pointer-events-none" : "opacity-100"
         }`}
       >
-        <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl sm:rounded-2xl p-2 sm:p-4 shadow-2xl">
-          <div className="text-center mb-6 sm:mb-8">
-            <div className="flex justify-center mb-3 sm:mb-4">
+        <div
+          className={cn(
+            "bg-white/10 backdrop-blur-md border border-white/20 rounded-xl sm:rounded-2xl shadow-2xl",
+            CARD_PAD,
+            SECTION_STACK,
+          )}
+        >
+          <div className={cn("text-center items-center", SECTION_STACK)}>
+            <div className="flex justify-center">
               <OptimizedImage
                 src="/favicon.ico"
                 alt="Logo"
@@ -384,7 +402,7 @@ export default function Auth() {
                 publicAsset
               />
             </div>
-            <h2 className="text-2xl sm:text-3xl font-bold text-white mb-1 sm:">
+            <h2 className="text-2xl sm:text-3xl font-medium text-white">
               Sign In
             </h2>
             <p className="text-sm sm:text-base text-gray-300">
@@ -392,7 +410,7 @@ export default function Auth() {
             </p>
           </div>
 
-          <form className="space-y-3 sm:space-y-6">
+          <form className={FORM_STACK}>
             {/* Guest Select — fixed lead slot + always-visible Clear (no layout shift) */}
             <div className="relative" ref={guestDropdownRef}>
               <button
@@ -519,7 +537,7 @@ export default function Auth() {
                 type="submit"
                 onClick={handleSignIn}
                 disabled={loading}
-                className="w-full min-h-[48px] bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white text-sm sm:text-base font-semibold py-2 sm:py-3 rounded-lg sm:rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center justify-center gap-2"
+                className="w-full min-h-[48px] bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white text-sm sm:text-base font-medium py-2 sm:py-3 rounded-lg sm:rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center justify-center gap-2"
               >
                 {loading ? (
                   <>
@@ -539,20 +557,7 @@ export default function Auth() {
                   </>
                 )}
               </button>
-
-              <div className="text-center text-xs sm:text-sm">
-                <span className="text-gray-300">
-                  Don&apos;t have an account?{" "}
-                </span>
-                <button
-                  type="button"
-                  onClick={handleSignUp}
-                  disabled={loading}
-                  className="font-semibold text-[#00ff99] hover:text-[#00cc77] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Sign up
-                </button>
-              </div>
+              {/* Sign up footer hidden — no dedicated signup page (_handleSignUp retained) */}
             </div>
           </form>
         </div>

@@ -85,10 +85,10 @@ export function AlertDialog({
         </button>
 
         <div className="pr-6 sm:pr-8">
-          <h3 className="text-lg sm:text-xl font-bold text-white ">{title}</h3>
-          <p className="text-sm sm:text-base text-white/70 mb-4 sm:mb-6">
-            {description}
-          </p>
+          <h3 className="text-lg sm:text-xl font-medium text-white ">
+            {title}
+          </h3>
+          <p className="text-sm sm:text-base text-white/70 ">{description}</p>
         </div>
 
         <div className="flex justify-end gap-2">

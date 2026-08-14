@@ -10,12 +10,10 @@ import Link from "next/link";
 import { useQueryClient } from "@tanstack/react-query";
 import { Activity, FileText, LogOut } from "lucide-react";
 import { UserAvatar } from "@/components/ui/UserAvatar";
-import {
-  UTILITY_NAVIGATION_ITEMS,
-  WAS_AUTHED_KEY,
-} from "@/constants/auth";
+import { UTILITY_NAVIGATION_ITEMS } from "@/constants/auth";
 import { displayNameFromEmail } from "@/lib/robohash";
 import { queueAuthToast } from "@/lib/auth-toast";
+import { setWasAuthedHintClient } from "@/lib/was-authed";
 
 export type ProfileDropdownProps = {
   email: string;
@@ -77,7 +75,7 @@ export function ProfileDropdown({
         // Densify: clear all React Query + session hint before hard redirect
         queryClient.clear();
         if (typeof window !== "undefined") {
-          localStorage.removeItem(WAS_AUTHED_KEY);
+          setWasAuthedHintClient(false);
           Object.keys(localStorage).forEach((key) => {
             if (key.startsWith("react-query:")) {
               localStorage.removeItem(key);
@@ -94,22 +92,28 @@ export function ProfileDropdown({
   };
 
   return (
-    <div className="relative" ref={rootRef}>
+    <div className="relative size-10 h-full w-full" ref={rootRef}>
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="size-10 min-w-10 shrink-0 overflow-hidden rounded-full border border-white/20 bg-white/10 p-0 transition hover:border-white/40 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+        className="absolute inset-0 m-0 box-border flex size-10 items-center justify-center overflow-hidden rounded-full border border-white/20 bg-white/10 p-0 leading-none appearance-none transition hover:border-white/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50 focus-visible:ring-offset-0"
         aria-expanded={open}
         aria-haspopup="menu"
         aria-label="Open profile menu"
       >
-        <UserAvatar seed={email} src={image} size={40} alt={name} />
+        <UserAvatar
+          seed={email}
+          src={image}
+          size={40}
+          alt={name}
+          className="border-0 bg-transparent size-full"
+        />
       </button>
 
       {open && (
         <div
           role="menu"
-          className="absolute right-0 z-50 mt-2 w-56 origin-top-right rounded-xl border border-white/20 bg-gradient-to-br from-zinc-900/95 to-zinc-800/95 p-1 shadow-2xl backdrop-blur-md sm:w-64 animate-in fade-in-0 zoom-in-95 slide-in-from-top-2 duration-150"
+          className="absolute right-0 z-[100] mt-2 w-56 origin-top-right rounded-xl border border-white/20 bg-gradient-to-br from-zinc-900/95 to-zinc-800/95 p-1 shadow-2xl backdrop-blur-md sm:w-64 animate-in fade-in-0 zoom-in-95 slide-in-from-top-2 duration-150"
         >
           <div className="px-3 pt-2 pb-1">
             <p className="truncate text-sm font-medium text-white">{name}</p>

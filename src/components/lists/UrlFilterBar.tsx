@@ -71,7 +71,7 @@ export function UrlFilterBar({ sortOption, setSortOption }: UrlFilterBarProps) {
         >
           {/* Sort Options */}
           <div className="px-1 sm:px-2 py-1">
-            <div className="px-2 sm:px-3 py-1 text-xs font-semibold text-white/60 uppercase tracking-wider">
+            <div className="px-2 sm:px-3 py-1 text-xs font-medium text-white/60 uppercase tracking-wider">
               Sort By
             </div>
             <button
@@ -169,7 +169,7 @@ export function UrlFilterBar({ sortOption, setSortOption }: UrlFilterBarProps) {
 
           {/* Filter Options */}
           <div className="px-1 sm:px-2 py-1">
-            <div className="px-2 sm:px-3 py-1 text-xs font-semibold text-white/60 uppercase tracking-wider">
+            <div className="px-2 sm:px-3 py-1 text-xs font-medium text-white/60 uppercase tracking-wider">
               Filters
             </div>
             <button

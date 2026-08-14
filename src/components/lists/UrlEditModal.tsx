@@ -161,7 +161,7 @@ export function UrlEditModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-3 sm:p-4 backdrop-blur-md overflow-y-auto">
       <div className="w-full max-w-xl max-h-[90vh] my-4 sm:my-8 rounded-xl sm:rounded-2xl bg-gradient-to-br from-zinc-900 to-zinc-800 p-2 sm:p-4 shadow-2xl border border-white/20 overflow-y-auto">
-        <h2 className="text-xl sm:text-2xl font-bold text-white flex items-center gap-2">
+        <h2 className="text-xl sm:text-2xl font-medium text-white flex items-center gap-2">
           <PencilIcon className="h-5 w-5 sm:h-6 sm:w-6 text-blue-400" />
           Edit URL
         </h2>
@@ -184,7 +184,7 @@ export function UrlEditModal({
               editingReminder || undefined,
             );
           }}
-          className="mt-4 sm:mt-6 lg:mt-8 space-y-3 sm:space-y-6"
+          className="mt-4 sm:mt-6 lg:mt-8 space-y-2 sm:space-y-4"
         >
           <div>
             <label className="block text-sm sm:text-base font-medium text-white">
@@ -226,7 +226,7 @@ export function UrlEditModal({
               className="mt-2 text-sm sm:text-base lg:text-lg shadow-sm"
             />
             {editingUrl?.url && (
-              <div className="mt-3">
+              <div className="mt-2">
                 <UrlEnhancer
                   url={editingUrl.url}
                   title={editingUrl.title}
@@ -287,7 +287,7 @@ export function UrlEditModal({
             <Button
               type="submit"
               disabled={isEditing}
-              className="bg-blue-600 hover:bg-blue-700 text-white text-sm sm:text-base lg:text-lg font-semibold px-4 sm:px-6 py-2 sm:py-2 rounded-lg sm:rounded-xl shadow-md hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto"
+              className="bg-blue-600 hover:bg-blue-700 text-white text-sm sm:text-base lg:text-lg font-medium px-4 sm:px-6 py-2 sm:py-2 rounded-lg sm:rounded-xl shadow-md hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto"
             >
               {isEditing ? "Saving..." : "Save Changes"}
             </Button>

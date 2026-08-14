@@ -14,6 +14,8 @@ import {
   setupSSECacheSync,
   type UserList,
 } from "@/hooks/useListQueries";
+import { cn } from "@/lib/utils";
+import { LIST_STACK, PAGE_STACK } from "@/lib/ui-spacing";
 
 // Keep type alias for backward compatibility
 type List = UserList;
@@ -30,7 +32,7 @@ export default function ListsPageClient() {
   }, []);
 
   // Use React Query for fetching lists with automatic refetching
-  const { data: listsData, isLoading, refetch } = useAllListsQuery();
+  const { data: listsData, isLoading } = useAllListsQuery();
   const lists = listsData?.lists || [];
 
   // Use React Query mutation for deleting lists
@@ -48,7 +50,8 @@ export default function ListsPageClient() {
     if (!listToDelete) return;
 
     const id = listToDelete.id;
-    const listTitle = listToDelete.title || listToDelete.slug;
+    const _listTitle = listToDelete.title || listToDelete.slug;
+    void _listTitle;
 
     // Use React Query mutation (handles optimistic updates, rollback, and toasts automatically)
     // OPTIMIZATION: No need to call refetch() - mutation's onSuccess already invalidates and triggers refetch
@@ -132,10 +135,10 @@ export default function ListsPageClient() {
   };
 
   return (
-    <div className="min-h-screen w-full">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 sm:mb-8 gap-4">
+    <div className={cn("min-h-screen w-full", PAGE_STACK)}>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-blue-300 to-purple-300 bg-clip-text text-transparent">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-medium bg-gradient-to-r from-blue-300 to-purple-300 bg-clip-text text-transparent">
             My Lists
           </h1>
           <p className="mt-1 sm:mt-2 text-sm sm:text-base text-white/70">
@@ -152,21 +155,21 @@ export default function ListsPageClient() {
         )}
       </div>
 
-      <div className="mt-8 space-y-3">
+      <div className={LIST_STACK}>
         {isLoading && lists.length === 0 ? (
           // Skeleton only when no cached lists (warm cache → no flash)
           <>
             {Array.from({ length: skeletonCount }).map((_, i) => (
               <div
                 key={i}
-                className="group relative overflow-hidden rounded-xl border border-white/20 bg-gradient-to-br from-white/5 to-white/3 backdrop-blur-md p-4 sm:p-6 shadow-md animate-pulse"
+                className="group relative overflow-hidden rounded-xl border border-white/20 bg-gradient-to-br from-white/5 to-white/3 backdrop-blur-md p-2 sm:p-4 shadow-md animate-pulse"
               >
                 {/* Subtle glow effect skeleton */}
                 <div className="absolute inset-0 bg-gradient-to-br from-blue-500/0 via-purple-500/0 to-indigo-500/0 rounded-xl pointer-events-none" />
 
                 <div className="relative z-10">
                   {/* Header Row */}
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-3">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 ">
                     <div className="flex-1 min-w-0">
                       {/* Title with badges skeleton */}
                       <div className="flex items-start gap-2 sm:gap-2 flex-wrap ">
@@ -178,7 +181,7 @@ export default function ListsPageClient() {
 
                       {/* Description Preview skeleton */}
                       <div className="h-4 bg-white/10 rounded w-full mb-1" />
-                      <div className="h-4 bg-white/10 rounded w-3/4 mb-3" />
+                      <div className="h-4 bg-white/10 rounded w-3/4 " />
 
                       {/* Stats Row skeleton */}
                       <div className="flex flex-wrap items-center gap-2 sm:gap-4">
@@ -235,21 +238,21 @@ export default function ListsPageClient() {
             return (
               <div
                 key={list.id}
-                className="group relative overflow-hidden rounded-xl border border-white/20 bg-gradient-to-br from-white/5 to-white/3 backdrop-blur-md p-4 sm:p-6 shadow-md hover:shadow-xl transition-all duration-300 hover:border-blue-400/40 hover:from-white/10 hover:to-white/5"
+                className="group relative overflow-hidden rounded-xl border border-white/20 bg-gradient-to-br from-white/5 to-white/3 backdrop-blur-md p-2 sm:p-4 shadow-md hover:shadow-xl transition-all duration-300 hover:border-blue-400/40 hover:from-white/10 hover:to-white/5"
               >
                 {/* Subtle glow effect on hover */}
                 <div className="absolute inset-0 bg-gradient-to-br from-blue-500/0 via-purple-500/0 to-indigo-500/0 group-hover:from-blue-500/5 group-hover:via-purple-500/5 group-hover:to-indigo-500/5 transition-all duration-300 rounded-xl pointer-events-none" />
 
                 <div className="relative z-10">
                   {/* Header Row */}
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-3">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 ">
                     <div className="flex-1 min-w-0">
                       {/* Title with badges */}
                       <div className="flex items-start gap-2 sm:gap-2 flex-wrap ">
                         <button
                           type="button"
                           onClick={() => router.push(`/list/${list.slug}`)}
-                          className="text-left text-base sm:text-lg lg:text-xl xl:text-2xl font-bold text-white group-hover:text-blue-300 transition-colors truncate max-w-full hover:underline underline-offset-2"
+                          className="text-left text-base sm:text-lg lg:text-xl xl:text-2xl font-medium text-white group-hover:text-blue-300 transition-colors truncate max-w-full hover:underline underline-offset-2"
                         >
                           {list.title || `List: ${list.slug}`}
                         </button>
@@ -278,7 +281,7 @@ export default function ListsPageClient() {
 
                       {/* Description Preview */}
                       {description && (
-                        <p className="text-sm text-white/70 line-clamp-2 mb-3">
+                        <p className="text-sm text-white/70 line-clamp-2 ">
                           {description}
                         </p>
                       )}

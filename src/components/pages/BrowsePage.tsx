@@ -8,6 +8,12 @@ import { Input } from "@/components/ui/Input";
 import { Badge } from "@/components/ui/Badge";
 import { Search, Globe, Eye, Users } from "lucide-react";
 import { usePublicListsQuery } from "@/hooks/useBrowseQueries";
+import { cn } from "@/lib/utils";
+import {
+  CARD_PAD,
+  PAGE_HEADER,
+  PAGE_STACK,
+} from "@/lib/ui-spacing";
 
 interface UrlItem {
   id: string;
@@ -21,7 +27,7 @@ interface UrlItem {
   clickCount?: number;
 }
 
-interface PublicList {
+interface _PublicList {
   id: string;
   slug: string;
   title: string;
@@ -85,10 +91,10 @@ export default function BrowsePage() {
   };
 
   return (
-    <div className="min-h-screen w-full">
+    <div className={cn("min-h-screen w-full", PAGE_STACK)}>
       {/* Header */}
-      <div className="mb-6 sm:mb-8">
-        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-semibold text-white ">
+      <div className={PAGE_HEADER}>
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-medium text-white">
           🌐 Discover Public Lists
         </h1>
         <p className="text-white/60 text-xs sm:text-sm lg:text-base">
@@ -97,7 +103,7 @@ export default function BrowsePage() {
       </div>
 
       {/* Search Bar */}
-      <form onSubmit={handleSearch} className="mb-4 sm:mb-6">
+      <form onSubmit={handleSearch}>
         <div className="flex flex-col sm:flex-row gap-2 sm:gap-2">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-white/40" />
@@ -124,47 +130,58 @@ export default function BrowsePage() {
           {[...Array(6)].map((_, i) => (
             <div
               key={i}
-              className="group bg-white/5 border border-white/10 rounded-xl p-4 sm:p-6 animate-pulse"
+              className={cn(
+                "group bg-white/5 border border-white/10 rounded-xl animate-pulse flex flex-col gap-2",
+                CARD_PAD,
+              )}
             >
-              <div className="flex items-start justify-between mb-3">
+              <div className="flex items-start justify-between">
                 <div className="h-5 sm:h-6 bg-white/10 rounded flex-1" />
                 <div className="h-4 sm:h-5 w-12 sm:w-16 bg-white/10 rounded-full ml-2" />
               </div>
-              <div className="h-3 sm:h-4 bg-white/10 rounded  w-2/3" />
-              <div className="h-3 sm:h-4 bg-white/10 rounded w-1/2 mb-4" />
-              <div className="flex items-center gap-2 sm:gap-4 mb-4">
+              <div className="h-3 sm:h-4 bg-white/10 rounded w-2/3" />
+              <div className="h-3 sm:h-4 bg-white/10 rounded w-1/2" />
+              <div className="flex items-center gap-2 sm:gap-4">
                 <div className="h-3 w-16 sm:w-20 bg-white/10 rounded" />
                 <div className="h-3 w-12 sm:w-16 bg-white/10 rounded" />
               </div>
-              <div className="mt-4 pt-4 border-t border-white/10">
+              <div className="pt-2 border-t border-white/10">
                 <div className="h-3 w-20 sm:w-24 bg-white/10 rounded" />
               </div>
             </div>
           ))}
         </div>
       ) : lists.length === 0 ? (
-        <div className="text-center py-8 sm:py-12 bg-white/5 border border-white/10 rounded-xl px-4">
-          <Globe className="w-10 h-10 sm:w-12 sm:h-12 text-white/40 mx-auto mb-4" />
+        <div
+          className={cn(
+            "text-center py-8 sm:py-12 bg-white/5 border border-white/10 rounded-xl flex flex-col items-center gap-2",
+            CARD_PAD,
+          )}
+        >
+          <Globe className="w-10 h-10 sm:w-12 sm:h-12 text-white/40" />
           <p className="text-white/60 text-base sm:text-lg">
             {search
               ? "No lists found matching your search"
               : "No public lists available yet"}
           </p>
-          <p className="text-white/40 text-xs sm:text-sm mt-2">
+          <p className="text-white/40 text-xs sm:text-sm">
             Be the first to create a public list!
           </p>
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4 sm:mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {lists.map((list) => (
               <Link
                 key={list.id}
                 href={`/list/${list.slug}`}
-                className="group bg-white/5 border border-white/10 rounded-xl p-4 sm:p-6 hover:bg-white/10 hover:border-blue-400/30 transition-all duration-200 cursor-pointer"
+                className={cn(
+                  "group bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 hover:border-blue-400/30 transition-all duration-200 cursor-pointer flex flex-col gap-2",
+                  CARD_PAD,
+                )}
               >
-                <div className="flex items-start justify-between mb-3 gap-2">
-                  <h3 className="text-base sm:text-lg font-semibold text-white group-hover:text-blue-400 transition-colors line-clamp-2 flex-1">
+                <div className="flex items-start justify-between gap-2">
+                  <h3 className="text-base sm:text-lg font-medium text-white group-hover:text-blue-400 transition-colors line-clamp-2 flex-1">
                     {list.title}
                   </h3>
                   <Badge variant="success" className="flex-shrink-0 text-xs">
@@ -174,7 +191,7 @@ export default function BrowsePage() {
                 </div>
 
                 {list.description && (
-                  <p className="text-xs sm:text-sm text-white/60 mb-3 sm:mb-4 line-clamp-2">
+                  <p className="text-xs sm:text-sm text-white/60 line-clamp-2">
                     {list.description}
                   </p>
                 )}
@@ -194,8 +211,8 @@ export default function BrowsePage() {
                   </div>
                 </div>
 
-                <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-white/10">
-                  <span className="text-xs sm:text-sm font-semibold text-blue-400 group-hover:text-blue-300">
+                <div className="pt-2 border-t border-white/10">
+                  <span className="text-xs sm:text-sm font-medium text-blue-400 group-hover:text-blue-300">
                     View List →
                   </span>
                 </div>

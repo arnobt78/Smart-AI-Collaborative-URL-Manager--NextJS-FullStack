@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { signUp, createSession } from "@/lib/auth";
 import { cookies } from "next/headers";
 import { sendWelcomeEmail } from "@/lib/email";
+import { WAS_AUTHED_COOKIE } from "@/constants/auth";
+import { wasAuthedCookieSetOptions } from "@/lib/was-authed";
 
 export async function POST(req: NextRequest) {
   try {
@@ -28,6 +30,8 @@ export async function POST(req: NextRequest) {
       maxAge: 30 * 24 * 60 * 60, // 30 days
       path: "/",
     });
+    // SSR wasAuthed hint — Marketing + profile skeleton on next hard refresh
+    cookieStore.set(WAS_AUTHED_COOKIE, "1", wasAuthedCookieSetOptions());
 
     // Send welcome email (don't fail signup if email fails)
     try {

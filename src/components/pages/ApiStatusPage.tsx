@@ -4,6 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { CheckCircle2, AlertCircle, Clock, Activity } from "lucide-react";
 import { useApiStatusQuery } from "@/hooks/useBrowseQueries";
+import { cn } from "@/lib/utils";
+import { PAGE_HEADER, PAGE_STACK } from "@/lib/ui-spacing";
 
 export default function ApiStatusPage() {
   // CRITICAL: Use React Query with refetchInterval for real-time status monitoring
@@ -22,15 +24,15 @@ export default function ApiStatusPage() {
 
   if (isLoading || !statusData?.status) {
     return (
-      <div className="min-h-screen w-full">
+      <div className={cn("min-h-screen w-full", PAGE_STACK)}>
         {/* Header Skeleton */}
-        <div className="mb-8">
-          <div className="h-10 bg-white/10 rounded w-64  animate-pulse" />
+        <div className={PAGE_HEADER}>
+          <div className="h-10 bg-white/10 rounded w-64 animate-pulse" />
           <div className="h-5 bg-white/10 rounded w-96 animate-pulse" />
         </div>
 
         {/* Overall Status Card Skeleton */}
-        <Card className="mb-6 animate-pulse">
+        <Card className=" animate-pulse">
           <CardHeader>
             <div className="flex items-center justify-between">
               <div className="h-6 bg-white/10 rounded w-32" />
@@ -111,10 +113,10 @@ export default function ApiStatusPage() {
   };
 
   return (
-    <div className="min-h-screen w-full">
+    <div className={cn("min-h-screen w-full", PAGE_STACK)}>
       {/* Header */}
-      <div className="mb-6 sm:mb-8">
-        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white  flex items-center gap-2 sm:gap-2 flex-wrap">
+      <div className={PAGE_HEADER}>
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-medium text-white flex items-center gap-2 sm:gap-2 flex-wrap">
           <Activity className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-blue-400 flex-shrink-0" />
           <span>API Status</span>
         </h1>
@@ -124,7 +126,7 @@ export default function ApiStatusPage() {
       </div>
 
       {/* Overall Status */}
-      <Card className="mb-4 sm:mb-6">
+      <Card>
         <CardHeader>
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
             <CardTitle className="text-base sm:text-lg">
@@ -196,7 +198,7 @@ export default function ApiStatusPage() {
                 </div>
                 <div className="text-left sm:text-right">
                   <p className="text-white/60 text-xs mb-1">Response Time</p>
-                  <p className="text-sm sm:text-base text-white font-semibold">
+                  <p className="text-sm sm:text-base text-white font-medium">
                     {endpoint.responseTime}ms
                   </p>
                 </div>

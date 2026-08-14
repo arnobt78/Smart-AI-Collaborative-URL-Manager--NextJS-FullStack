@@ -1,14 +1,17 @@
 import type { Metadata, Viewport } from "next";
 import { Suspense } from "react";
 import { Inter, Roboto_Mono } from "next/font/google";
+import { cookies } from "next/headers";
 import "./globals.css";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import FloatingBackground from "@/components/layout/FloatingBackground";
 import { QueryProvider } from "@/components/providers/QueryProvider";
-import { PostHogProvider } from "@/components/providers/PostHogProvider";
+import { PostHogPageview } from "@/components/providers/PostHogProvider";
 import { ToastProvider } from "@/components/ui/Toaster";
 import { AuthToastBridge } from "@/components/AuthToastBridge";
+import { WAS_AUTHED_COOKIE } from "@/constants/auth";
+import { isWasAuthedCookieValue } from "@/lib/was-authed";
 // DISABLED: UserDataPrefetcher causes duplicate API calls
 // import { UserDataPrefetcher } from "@/components/prefetch/UserDataPrefetcher";
 
@@ -27,8 +30,7 @@ const robotoMono = Roboto_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL("https://daily-urlist.vercel.app"),
   title: {
-    default:
-      "The Daily Urlist | Smart AI Collaborative URL Bookmark Manager",
+    default: "The Daily Urlist | Smart AI Collaborative URL Bookmark Manager",
     template: "%s | The Daily Urlist",
   },
   description:
@@ -100,8 +102,7 @@ export const metadata: Metadata = {
     locale: "en_US",
     url: "https://daily-urlist.vercel.app/",
     siteName: "The Daily Urlist",
-    title:
-      "The Daily Urlist | Smart AI Collaborative URL Bookmark Manager",
+    title: "The Daily Urlist | Smart AI Collaborative URL Bookmark Manager",
     description:
       "Organize, share, and collaborate on URL collections with AI enhancement, vector search, drag-and-drop, rich previews, and real-time updates. Built by Arnob Mahmud.",
     images: [
@@ -123,8 +124,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title:
-      "The Daily Urlist | Smart AI Collaborative URL Bookmark Manager",
+    title: "The Daily Urlist | Smart AI Collaborative URL Bookmark Manager",
     description:
       "AI collaborative URL bookmark manager: lists, rich previews, import/export, vector search, and real-time collaboration. https://daily-urlist.vercel.app/",
     images: [
@@ -141,7 +141,9 @@ export const metadata: Metadata = {
   abstract:
     "Full-stack Next.js URL bookmarking platform with AI, collaboration, and semantic search.",
   bookmarks: ["https://daily-urlist.vercel.app/"],
-  archives: ["https://github.com/arnobt78/Daily-URL-Bookmark-Notes-Dairy--NextJS-FullStack"],
+  archives: [
+    "https://github.com/arnobt78/Daily-URL-Bookmark-Notes-Dairy--NextJS-FullStack",
+  ],
   assets: ["https://daily-urlist.vercel.app/favicon.ico"],
   other: {
     "contact:email": "contact@arnobmahmud.com",
@@ -159,19 +161,24 @@ export const viewport: Viewport = {
   ],
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  // SSR wasAuthed / session_token → Navbar profile skeleton on first paint
+  const cookieStore = await cookies();
+  const initialWasAuthed =
+    isWasAuthedCookieValue(cookieStore.get(WAS_AUTHED_COOKIE)?.value) ||
+    Boolean(cookieStore.get("session_token")?.value);
+
   const jsonLd = {
     "@context": "https://schema.org",
     "@graph": [
       {
         "@type": "WebApplication",
         name: "The Daily Urlist",
-        alternateName:
-          "Smart AI Collaborative URL Bookmark Manager",
+        alternateName: "Smart AI Collaborative URL Bookmark Manager",
         url: "https://daily-urlist.vercel.app/",
         description:
           "Create, organize, and share URL lists with AI enhancement, vector search, and real-time collaboration.",
@@ -213,24 +220,25 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
         <QueryProvider>
-          <Suspense fallback={null}>
-            <PostHogProvider>
-              <ToastProvider>
-                {/* Pending welcome/goodbye toasts survive hard redirects */}
-                <AuthToastBridge />
-                {/* DISABLED: UserDataPrefetcher causes duplicate API calls and slow page loads */}
-                {/* <UserDataPrefetcher /> */}
-                <FloatingBackground />
-                <div className="flex flex-col min-h-screen bg-transparent">
-                  <Navbar />
-                  <main className="flex-grow mx-auto max-w-7xl w-full px-1 sm:px-0 py-8 sm:py-12">
-                    {children}
-                  </main>
-                  <Footer />
-                </div>
-              </ToastProvider>
-            </PostHogProvider>
-          </Suspense>
+          <ToastProvider>
+            {/* Pending welcome/goodbye toasts survive hard redirects */}
+            <AuthToastBridge />
+            {/* DISABLED: UserDataPrefetcher causes duplicate API calls and slow page loads */}
+            {/* <UserDataPrefetcher /> */}
+            {/* Static BG outside Suspense — never remounts with searchParams */}
+            <FloatingBackground />
+            <div className="flex flex-col min-h-screen bg-transparent">
+              <Navbar initialWasAuthed={initialWasAuthed} />
+              <main className="flex-grow mx-auto max-w-7xl w-full px-2 sm:px-0 py-6 sm:py-10">
+                {children}
+              </main>
+              <Footer />
+            </div>
+            {/* PostHog island only — useSearchParams must not blank chrome */}
+            <Suspense fallback={null}>
+              <PostHogPageview />
+            </Suspense>
+          </ToastProvider>
         </QueryProvider>
       </body>
     </html>

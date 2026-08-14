@@ -650,9 +650,9 @@ export default function ListPageClient() {
     return (
       <div className="min-h-screen w-full">
         {/* Header Card Skeleton */}
-        <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-4 sm:p-6 mb-6 shadow-xl">
+        <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-2 sm:p-4  shadow-xl">
           {/* First Row: Title/Info on Left, Buttons on Right */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4 mb-3 sm:mb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4  sm:mb-4">
             {/* Left Side: Title, URL Count, Visibility Badge, Toggle */}
             <div className="flex flex-col gap-2 sm:gap-2">
               {/* Title Skeleton */}
@@ -721,7 +721,7 @@ export default function ListPageClient() {
           </div>
 
           {/* Activity Feed Section Skeleton */}
-          <div className="mt-6 bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-4 sm:p-6 shadow-xl">
+          <div className="mt-6 bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-2 sm:p-4 shadow-xl">
             <Skeleton className="h-6 w-32 mb-4" />
             <div className="space-y-2">
               {[1, 2, 3].map((i) => (
@@ -738,7 +738,7 @@ export default function ListPageClient() {
         </div>
 
         {/* URL List Skeleton */}
-        <div className="space-y-6 mb-8">
+        <div className="space-y-6 mb-4">
           {/* Search and Sort Skeleton */}
           <div className="flex flex-col gap-2 mb-4 w-full sm:flex-row sm:items-center sm:gap-4">
             <Skeleton className="h-12 w-full sm:max-w-2xl" />
@@ -753,7 +753,7 @@ export default function ListPageClient() {
 
           {/* Add URL Form Skeleton */}
           <div className="bg-white/5 backdrop-blur-md p-2 sm:p-4 rounded-xl border border-white/20">
-            <Skeleton className="h-12 w-full mb-3" />
+            <Skeleton className="h-12 w-full " />
             <Skeleton className="h-24 w-full mb-4" />
             <div className="flex justify-end gap-2">
               <Skeleton className="h-10 w-20" />
@@ -797,7 +797,7 @@ export default function ListPageClient() {
     return (
       <div className="min-h-screen w-full">
         <div className="text-center">
-          <h1 className="text-3xl font-bold">List not found</h1>
+          <h1 className="text-3xl font-medium">List not found</h1>
           <p className="mt-2 text-gray-600">
             The list you&apos;re looking for doesn&apos;t exist or has been
             deleted.
@@ -813,13 +813,13 @@ export default function ListPageClient() {
   return (
     <div className="min-h-screen w-full">
       {/* Header Card */}
-      <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-xl sm:rounded-2xl p-2 sm:p-4 mb-4 sm:mb-6 shadow-xl">
+      <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-xl sm:rounded-2xl p-2 sm:p-4  shadow-xl">
         {/* First Row: Title/Info on Left, Buttons on Right */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4 mb-3 sm:mb-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4  sm:mb-4">
           {/* Left Side: Title, URL Count, Visibility Badge, Toggle */}
           <div className="flex flex-col gap-2 sm:gap-2">
             {/* Title */}
-            <h1 className="text-base sm:text-lg lg:text-xl xl:text-2xl font-bold text-white break-words">
+            <h1 className="text-base sm:text-lg lg:text-xl xl:text-2xl font-medium text-white break-words">
               {list.title || `List: ${list.slug}`}
             </h1>
 
@@ -949,7 +949,7 @@ export default function ListPageClient() {
           </div>
 
           {/* Right Side: Setup Schedule and Health Check Buttons */}
-          <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
+          <div className="flex items-center  flex-wrap">
             {/* Setup Schedule Button */}
             <button
               type="button"
@@ -1188,7 +1188,7 @@ export default function ListPageClient() {
         </div>
 
         {/* Second Row: Shareable Link */}
-        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-2 flex-wrap pt-3 sm:pt-0 border-t border-white/10 sm:border-t-0">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-2 flex-wrap pt-2 sm:pt-0 border-t border-white/10 sm:border-t-0">
           <span className="text-xs sm:text-sm font-light text-white/70 whitespace-nowrap">
             Shareable Link:
           </span>
@@ -1241,7 +1241,7 @@ export default function ListPageClient() {
 
         {/* Collaborators Section - PermissionManager */}
         {list.id && list.slug && (
-          <div className="mt-3 sm:mt-4 bg-gradient-to-br from-white/5 to-white/3 backdrop-blur-md border border-white/10 rounded-xl sm:rounded-2xl p-2 sm:p-4 shadow-xl">
+          <div className="mt-2 sm:mt-4 bg-gradient-to-br from-white/5 to-white/3 backdrop-blur-md border border-white/10 rounded-xl sm:rounded-2xl p-2 sm:p-4 shadow-xl">
             <PermissionManager
               listId={list.id}
               listTitle={list.title || "Untitled List"}

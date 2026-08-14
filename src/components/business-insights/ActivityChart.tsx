@@ -51,7 +51,7 @@ const CustomTooltip = ({ active, payload }: CustomTooltipProps) => {
             className="text-white text-sm"
             style={{ color: entry.color }}
           >
-            {entry.name}: <span className="font-semibold">{entry.value}</span>
+            {entry.name}: <span className="font-medium">{entry.value}</span>
           </p>
         ))}
       </div>
@@ -111,7 +111,7 @@ export function ActivityChart({
             setActiveTab(value);
           }}
         >
-          <TabsList className="mb-4 grid grid-cols-3 gap-1 sm:gap-2">
+          <TabsList className="mb-4 grid grid-cols-3 ">
             <TabsTrigger
               value="7"
               className="text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2"

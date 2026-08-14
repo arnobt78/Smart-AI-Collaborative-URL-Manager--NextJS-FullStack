@@ -38,7 +38,7 @@ export function ToastComponent({ toast, onClose }: ToastProps) {
     <div
       className={cn(
         "group relative w-full max-w-md bg-white/5 backdrop-blur-md border rounded-lg shadow-lg p-4 transition-all duration-300 animate-slide-up",
-        variantStyles[toast.variant || "default"]
+        variantStyles[toast.variant || "default"],
       )}
     >
       <button
@@ -50,7 +50,7 @@ export function ToastComponent({ toast, onClose }: ToastProps) {
       </button>
 
       {toast.title && (
-        <div className="font-semibold text-sm mb-1 pr-6">{toast.title}</div>
+        <div className="font-medium text-sm mb-1 pr-6">{toast.title}</div>
       )}
       <div className="text-sm pr-6">{toast.description}</div>
     </div>

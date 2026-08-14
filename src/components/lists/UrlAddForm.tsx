@@ -295,7 +295,7 @@ export function UrlAddForm({
           <Button
             type="button"
             onClick={handleClear}
-            className="bg-gray-600 hover:bg-gray-700 text-white text-xs sm:text-sm font-semibold px-2 sm:px-3 py-1 sm:py-2 rounded-lg shadow-md hover:shadow-xl transition-all duration-200 w-full sm:w-auto"
+            className="bg-gray-600 hover:bg-gray-700 text-white text-xs sm:text-sm font-medium px-2 sm:px-3 py-1 sm:py-2 rounded-lg shadow-md hover:shadow-xl transition-all duration-200 w-full sm:w-auto"
           >
             Clear
           </Button>
@@ -303,7 +303,7 @@ export function UrlAddForm({
         <Button
           type="submit"
           isLoading={isLoading}
-          className="bg-blue-600 hover:bg-blue-700 text-white text-sm sm:text-base lg:text-lg font-semibold px-6 sm:px-8 py-2 sm:py-2 rounded-lg sm:rounded-xl shadow-md hover:shadow-xl transition-all duration-200 whitespace-nowrap flex items-center justify-center gap-2 cursor-pointer font-delicious w-full sm:w-auto"
+          className="bg-blue-600 hover:bg-blue-700 text-white text-sm sm:text-base lg:text-lg font-medium px-6 sm:px-8 py-2 sm:py-2 rounded-lg sm:rounded-xl shadow-md hover:shadow-xl transition-all duration-200 whitespace-nowrap flex items-center justify-center gap-2 cursor-pointer font-delicious w-full sm:w-auto"
         >
           <CirclePlus className="h-4 w-4 sm:h-5 sm:w-5" />
           Add URL

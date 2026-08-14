@@ -226,7 +226,7 @@ export function PermissionManager({
       size="sm"
       onClick={() => setInviteDialogOpen(true)}
       disabled={!canInvite} // Disable for viewers
-      className="flex items-center gap-1 sm:gap-2 border-white/20 bg-white/5 text-white hover:bg-white/10 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2 w-full sm:w-auto shrink-0"
+      className="flex items-center  border-white/20 bg-white/5 text-white hover:bg-white/10 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2 w-full sm:w-auto shrink-0"
     >
       <UserPlus className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
       <span>Add Collaborator</span>
@@ -242,7 +242,7 @@ export function PermissionManager({
         <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-2">
           <div className="flex items-center gap-2 shrink-0">
             <Shield className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
-            <h3 className="text-base sm:text-lg font-semibold text-white">
+            <h3 className="text-base sm:text-lg font-medium text-white">
               Collaborators
             </h3>
           </div>
@@ -256,7 +256,7 @@ export function PermissionManager({
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
             <div className="flex items-center gap-2">
               <Shield className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
-              <h3 className="text-base sm:text-lg font-semibold text-white">
+              <h3 className="text-base sm:text-lg font-medium text-white">
                 Collaborators
               </h3>
               {collaborators.length > 0 && (
@@ -312,7 +312,7 @@ export function PermissionManager({
                             <div
                               className={`${getRoleBadgeColor(
                                 collaborator.role,
-                              )} inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold border`}
+                              )} inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border`}
                             >
                               {getRoleIcon(collaborator.role)}
                               <span className="capitalize">
@@ -322,7 +322,7 @@ export function PermissionManager({
                           </div>
                         </div>
                       </div>
-                      <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+                      <div className="flex items-center  flex-shrink-0">
                         {expandedCollaborator === collaborator.email ? (
                           <Button
                             variant="ghost"
@@ -349,7 +349,7 @@ export function PermissionManager({
                       </div>
                     </div>
                     {expandedCollaborator === collaborator.email && (
-                      <div className="mt-3 pt-3 border-t border-white/10 flex items-center justify-end gap-2">
+                      <div className="mt-2 pt-2 border-t border-white/10 flex items-center justify-end gap-2">
                         <Button
                           variant="ghost"
                           size="sm"
@@ -428,8 +428,8 @@ export function PermissionManager({
                 >
                   <X className="h-5 w-5" />
                 </button>
-                <div className="pr-8 mb-6">
-                  <h3 className="text-xl font-bold text-white ">
+                <div className="pr-8 ">
+                  <h3 className="text-xl font-medium text-white ">
                     Add Collaborator
                   </h3>
                   <p className="text-white/70">
@@ -554,14 +554,14 @@ export function PermissionManager({
                   <X className="h-5 w-5" />
                 </button>
                 <div className="pr-8">
-                  <h3 className="text-xl font-bold text-white ">
+                  <h3 className="text-xl font-medium text-white ">
                     Change Collaborator Role
                   </h3>
-                  <p className="text-white/70 mb-6">
+                  <p className="text-white/70 ">
                     Choose a role for {roleChangeDialog.email}:
                   </p>
                 </div>
-                <div className="mt-4 flex gap-2 mb-6">
+                <div className="mt-4 flex gap-2 ">
                   <button
                     type="button"
                     onClick={() =>
