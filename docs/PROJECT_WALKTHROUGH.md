@@ -21,8 +21,10 @@ Next 15 URL bookmark manager. Demo: https://daily-urlist.vercel.app/
 - Lists UX: unified placeholder same-slug only · ListPage syncs `currentList` from RQ · My Lists title → `/list/[slug]` · Smart Collections create stays on page
 - Visit: `lib/utils.ts` `ensureAbsoluteHttpUrl` + `openExternalUrl` (UrlCard Visit Site + Similar URLs dialog)
 - Collaborators: empty state one-row; Card `p-2 sm:p-4` (no lg:p-8)
-- Smart Collections: one outer `p-2 sm:p-4` shell; title row ``
+- Smart Collections: one outer `p-2 sm:p-4` shell; title row `pb-1 sm:pb-4`
 - Docs: `README.md` · `SECURITY.md` · `PORTABLE_AUTH_UI_GUIDE.md`
+- Out of scope (separate REQ): densify/Zod/SHA/JWT-null SSR
+- Local DB: `.env` / `.env.local` → remote Postgres `77.42.71.87:25432` (gitignored)
 - Out of scope (separate REQ): densify/Zod/SHA/JWT-null SSR
 
 ## Versions
