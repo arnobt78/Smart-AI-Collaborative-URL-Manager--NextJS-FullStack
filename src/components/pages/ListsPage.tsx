@@ -13,7 +13,6 @@ import {
   Calendar,
   Clock,
   Users,
-  ExternalLink,
 } from "lucide-react";
 import {
   useAllListsQuery,
@@ -160,8 +159,8 @@ export default function ListsPageClient() {
       </div>
 
       <div className="mt-8 space-y-4">
-        {isLoading ? (
-          // Skeleton loaders matching the exact card structure
+        {isLoading && lists.length === 0 ? (
+          // Skeleton only when no cached lists (warm cache → no flash)
           <>
             {Array.from({ length: skeletonCount }).map((_, i) => (
               <div
@@ -225,8 +224,6 @@ export default function ListsPageClient() {
                       <div className="h-10 w-10 bg-white/10 rounded-lg border border-transparent" />
                       {/* Delete Button skeleton */}
                       <div className="h-10 w-10 bg-white/10 rounded-lg border border-transparent" />
-                      {/* View List Button skeleton */}
-                      <div className="h-10 bg-white/10 rounded-lg w-24 sm:w-32" />
                     </div>
                   </div>
                 </div>
@@ -255,9 +252,13 @@ export default function ListsPageClient() {
                     <div className="flex-1 min-w-0">
                       {/* Title with badges */}
                       <div className="flex items-start gap-2 sm:gap-3 flex-wrap mb-2">
-                        <h2 className="text-base sm:text-lg lg:text-xl xl:text-2xl font-bold text-white group-hover:text-blue-300 transition-colors truncate">
+                        <button
+                          type="button"
+                          onClick={() => router.push(`/list/${list.slug}`)}
+                          className="text-left text-base sm:text-lg lg:text-xl xl:text-2xl font-bold text-white group-hover:text-blue-300 transition-colors truncate max-w-full hover:underline underline-offset-2"
+                        >
                           {list.title || `List: ${list.slug}`}
-                        </h2>
+                        </button>
                         {/* Visibility Badge */}
                         {list.isPublic !== undefined && (
                           <Badge
@@ -366,13 +367,6 @@ export default function ListsPageClient() {
                         title="Delete List"
                       >
                         <TrashIcon className="h-4 w-4 sm:h-5 sm:w-5" />
-                      </Button>
-                      <Button
-                        onClick={() => router.push(`/list/${list.slug}`)}
-                        className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 hover:from-blue-700 hover:via-purple-700 hover:to-indigo-700 text-white text-xs sm:text-sm font-semibold shadow-md hover:shadow-lg transition-all duration-200 w-full sm:w-auto flex items-center gap-1.5 sm:gap-2 group/btn px-3 sm:px-4 py-2 sm:py-2.5"
-                      >
-                        <span>View List</span>
-                        <ExternalLink className="h-3.5 w-3.5 sm:h-4 sm:w-4 group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5 transition-transform" />
                       </Button>
                     </div>
                   </div>

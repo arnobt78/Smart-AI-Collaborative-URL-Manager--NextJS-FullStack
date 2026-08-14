@@ -116,3 +116,15 @@ Append-only. Newest entries at bottom.
 | Decision | Disable Sentry sourcemap upload unless `SENTRY_UPLOAD_SOURCEMAPS=1`; `silent`+`telemetry:false`; replace `disableLogger`; move seed to `prisma.config.ts` |
 | Rationale | Token org ≠ `SENTRY_ORG` caused non-fatal but noisy sentry-cli Errors; package.json#prisma deprecated |
 | Status | Implemented |
+
+---
+
+## DEC-0010 — List switch: slug-safe RQ placeholder + currentList sync
+
+| Field | Value |
+|-------|-------|
+| Timestamp | 2026-08-14 |
+| Agent | Cursor Build |
+| Decision | `useUnifiedListQuery` placeholder only when same slug; ListPage syncs/clears `currentList` from RQ; My Lists title nav; Smart Collections create no auto-nav. Densify still deferred. |
+| Rationale | Cache-hit skips queryFn so store stayed on prior list; cross-slug placeholder painted wrong data; create `router.push` remounted ListPage skeleton |
+| Status | Implemented |

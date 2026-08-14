@@ -17,3 +17,4 @@
 - Prod console: SSE/AI via `devLog`/`devWarn` only in development
 - Clean Vercel logs: Sentry sourcemaps opt-in; prisma.config.ts seed
 - Import-flow console → `devLog` (UrlBulkImportExport, chrome parser, bulk-import API)
+- List UX: slug-safe unified placeholder + `currentList` sync; My Lists clickable title; silent Smart Collections create (no auto-nav)

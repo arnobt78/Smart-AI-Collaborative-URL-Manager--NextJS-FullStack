@@ -143,8 +143,9 @@ export function useUnifiedListQuery(slug: string, enabled: boolean = true) {
     // Normal navigation uses cache instantly (no API calls)
     refetchOnMount: true, // Refetch only when stale (after invalidation)
     refetchOnReconnect: false, // Don't refetch on reconnect
-    // CRITICAL: Use stale data immediately if available, fetch fresh in background
-    placeholderData: (previousData) => previousData, // Keep previous data visible while refetching
+    // Same-list refetch only — never reuse another slug's list as placeholder (wrong-list bug)
+    placeholderData: (previousData) =>
+      previousData?.list?.slug === slug ? previousData : undefined,
   });
 }
 

@@ -11,5 +11,6 @@
 | Avatar no-squeeze + quiet prod console | PASS | — | Navbar min-w-10; devLog for SSE/AI |
 | Clean Vercel deploy logs | PASS | — | Sentry upload opt-in; prisma.config.ts |
 | Import-flow quiet prod | PASS | — | UrlBulkImportExport + chrome + bulk-import → devLog |
+| List switch + collections UX | PASS | PASS | slug-safe placeholder; title nav; silent create; warm-cache skeletons |
 
 Out of scope: densify/JWT SSR, Zod/SHA, Next 16, Prisma 7.

@@ -353,7 +353,7 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
         throw new Error(error.error || "Failed to create collection");
       }
 
-      const data = await response.json();
+      await response.json();
 
       toast({
         title: "Collection Created",
@@ -361,11 +361,7 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
         variant: "success",
       });
 
-      // Invalidate React Query cache to refresh list data and remove created suggestion
-      queryClient.invalidateQueries({
-        queryKey: listQueryKeys.unified(listSlug),
-      });
-      queryClient.invalidateQueries({ queryKey: listQueryKeys.allLists() });
+      // Drop suggestion optimistically; invalidate in background (stay on current list)
       queryClient.setQueryData<{ suggestions: CollectionSuggestion[] }>(
         [...listQueryKeys.collections(listId), list?.urls?.length],
         (oldData) => {
@@ -377,13 +373,10 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
           };
         }
       );
-
-      // Navigate to new collection using Next.js router
-      if (data.collection?.slug) {
-        setTimeout(() => {
-          router.push(`/list/${data.collection.slug}`);
-        }, 1000);
-      }
+      queryClient.invalidateQueries({
+        queryKey: listQueryKeys.unified(listSlug),
+      });
+      queryClient.invalidateQueries({ queryKey: listQueryKeys.allLists() });
     } catch (error) {
       // Handle expected errors silently (no error overlay):
       // - 401 Unauthorized (user lost access)
@@ -476,16 +469,16 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
       </CardHeader>
 
       <CardContent className="space-y-6">
-        {/* Loading State */}
-        {isLoading && (
+        {/* Loading State — only when cold (no suggestions yet) */}
+        {isLoading && !hasSuggestions && (
           <div className="space-y-4">
             <Skeleton className="h-32 w-full" />
             <Skeleton className="h-32 w-full" />
           </div>
         )}
 
-        {/* Collection Suggestions */}
-        {!isLoading && hasSuggestions && (
+        {/* Collection Suggestions — stay visible during refetch */}
+        {hasSuggestions && (
           <div>
             <h4 className="text-xs sm:text-sm font-semibold text-white mb-2 sm:mb-3 flex items-center gap-1.5 sm:gap-2">
               <FolderPlus className="h-3.5 w-3.5 sm:h-4 sm:w-4" />

@@ -47,7 +47,7 @@ export default function ListPageClient() {
     isLoading: sessionLoading,
     isAuthenticated,
   } = useSession();
-  const list = useStore(currentList);
+  const storeList = useStore(currentList);
   const permissions = useListPermissions(); // Get permissions for current list and user
   const listSlug = typeof slug === "string" ? slug : "";
   const queryClient = useQueryClient();
@@ -61,8 +61,16 @@ export default function ListPageClient() {
   const {
     data: unifiedData,
     isLoading: isLoadingQuery,
+    isPlaceholderData,
     refetch,
   } = useUnifiedListQuery(listSlug, !!listSlug && !sessionLoading);
+
+  // Prefer RQ cache for the active slug — store alone lags on cache-hit navigations
+  const list =
+    (unifiedData?.list?.slug === listSlug && !isPlaceholderData
+      ? unifiedData.list
+      : undefined) ??
+    (storeList?.id && storeList.slug === listSlug ? storeList : undefined);
 
   // CRITICAL: Start with loading=false to show cached data immediately
   // Only show loading if we truly have no data
@@ -78,6 +86,26 @@ export default function ListPageClient() {
   const syncInProgress = useRef<string | null>(null); // Track if sync is currently in progress for a list
   const hasFetchedRef = useRef<string | null>(null);
   const hasRedirectedRef = useRef<boolean>(false); // Track if we've already redirected to prevent duplicate redirects
+
+  // Clear stale store when navigating to a different slug (cache-hit skips queryFn)
+  useEffect(() => {
+    if (!listSlug) return;
+    const store = currentList.get();
+    if (store?.slug && store.slug !== listSlug) {
+      currentList.set({});
+    }
+  }, [listSlug]);
+
+  // Sync RQ cache → currentList when queryFn did not run (staleTime Infinity cache hit)
+  useEffect(() => {
+    if (
+      unifiedData?.list &&
+      unifiedData.list.slug === listSlug &&
+      !isPlaceholderData
+    ) {
+      currentList.set(unifiedData.list);
+    }
+  }, [unifiedData, listSlug, isPlaceholderData]);
   const hasCheckedAuthRef = useRef<boolean>(false); // Track if we've checked authentication to prevent duplicate redirects
 
   // CRITICAL: Set mounted state after component mounts (prevents hydration errors)
@@ -609,22 +637,15 @@ export default function ListPageClient() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [list?.id]); // Only run when list ID changes
 
-  // CRITICAL: Show skeleton immediately if:
-  // 1. Session is loading (waiting for authentication check)
-  // 2. User is not authenticated and query is still loading (waiting to confirm 401)
-  // 3. No data available and query is loading
-  // This prevents flicker by showing skeleton before redirect happens
-  const hasAnyData =
-    unifiedData?.list?.id || (list && list.id && list.slug === listSlug);
+  // Matched slug only — never treat another list's placeholder as "have data"
+  const hasAnyData = !!(list && list.id && list.slug === listSlug);
 
-  // Show skeleton if session is loading OR if not authenticated and query is still loading
-  // This prevents showing list content before redirect happens
+  // Full-page skeleton only when no matched-slug data (warm cache → no flash)
   const shouldShowLoading =
-    !mounted || // Not mounted yet (prevent hydration mismatch)
-    sessionLoading || // Session is loading (waiting for auth check)
-    (!isAuthenticated && isLoadingQuery && !hasAnyData && listSlug) || // Not authenticated and query loading (likely 401)
-    (!hasAnyData && isLoadingQuery && listSlug); // No data and query loading
-
+    !mounted ||
+    sessionLoading ||
+    (!isAuthenticated && isLoadingQuery && !hasAnyData && listSlug) ||
+    (!hasAnyData && isLoadingQuery && listSlug);
   if (shouldShowLoading) {
     return (
       <div className="min-h-screen w-full">
@@ -772,7 +793,7 @@ export default function ListPageClient() {
     );
   }
 
-  if (!list) {
+  if (!list?.id) {
     return (
       <div className="min-h-screen w-full">
         <div className="text-center">
