@@ -7,11 +7,7 @@
  */
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import {
-  LinkIcon,
-  Bars3Icon,
-  XMarkIcon,
-} from "@heroicons/react/24/outline";
+import { LinkIcon, Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
 import { abortRegistry } from "@/utils/abortRegistry";
 import { useSession } from "@/hooks/useSession";
 import { ProfileDropdown } from "@/components/layout/ProfileDropdown";
@@ -45,14 +41,13 @@ export default function Navbar() {
     }
   }, [mounted, isAuthenticated, isLoading, user?.email]);
 
-  const showProfileSkeleton =
-    mounted && wasAuthedHint && isLoading && !user;
+  const showProfileSkeleton = mounted && wasAuthedHint && isLoading && !user;
   const showProfile = Boolean(user?.email);
 
   // Handle navigation with import check
   const handleNavigation = (
     e: React.MouseEvent<HTMLAnchorElement>,
-    href: string
+    href: string,
   ) => {
     // Check if import is active or just completed
     if (typeof window !== "undefined") {
@@ -66,7 +61,7 @@ export default function Navbar() {
 
         if (process.env.NODE_ENV === "development") {
           console.log(
-            `⏸️ [NAVBAR] Navigation blocked - import active: ${isImportActive}, just completed: ${importJustCompleted}`
+            `⏸️ [NAVBAR] Navigation blocked - import active: ${isImportActive}, just completed: ${importJustCompleted}`,
           );
         }
 
@@ -79,7 +74,7 @@ export default function Navbar() {
 
             if (process.env.NODE_ENV === "development") {
               console.log(
-                `🧹 [NAVBAR] Force cleaned up abort registry before navigation`
+                `🧹 [NAVBAR] Force cleaned up abort registry before navigation`,
               );
             }
           }
@@ -131,7 +126,7 @@ export default function Navbar() {
           <Link
             href="/"
             onClick={(e) => handleNavigation(e, "/")}
-            className="flex items-center gap-2 sm:gap-3 text-base sm:text-xl font-bold text-white hover:text-blue-400 transition-all duration-300 font-mono group"
+            className="flex items-center gap-2 sm:gap-2 text-base sm:text-xl font-bold text-white hover:text-blue-400 transition-all duration-300 font-mono group"
           >
             <div className="bg-transparent transition-transform duration-300 group-hover:scale-110 shrink-0">
               <LinkIcon className="h-6 w-6 sm:h-8 sm:w-8 text-blue-600 stroke-[2.5px] drop-shadow-[0_0_10px_rgba(59,130,246,0.5)]" />
@@ -143,7 +138,7 @@ export default function Navbar() {
           </Link>
 
           {/* Desktop Navigation — nowrap so avatar never wraps/squeezes */}
-          <div className="hidden sm:flex items-center gap-3 lg:gap-4 flex-nowrap">
+          <div className="hidden sm:flex items-center gap-2 lg:gap-4 flex-nowrap">
             <Link
               href="/browse"
               onClick={(e) => handleNavigation(e, "/browse")}
@@ -220,7 +215,7 @@ export default function Navbar() {
         {/* Mobile Menu — Browse / Analytics / Lists only (API + Logout live in ProfileDropdown) */}
         {isMobileMenuOpen && (
           <div className="sm:hidden mt-3 pb-3 border-t border-white/10 pt-3">
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-2">
               <Link
                 href="/browse"
                 onClick={(e) => {

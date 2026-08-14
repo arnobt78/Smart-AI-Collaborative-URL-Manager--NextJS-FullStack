@@ -29,7 +29,7 @@ export function Tooltip({
   if (!isShown) return null;
 
   const positionClasses = {
-    top: "bottom-full mb-2",
+    top: "bottom-full ",
     bottom: "top-full mt-2",
     left: "right-full mr-2",
     right: "left-full ml-2",

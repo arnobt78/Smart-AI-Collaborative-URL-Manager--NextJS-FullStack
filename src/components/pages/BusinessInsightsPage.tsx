@@ -152,7 +152,7 @@ export default function BusinessInsightsPage(
       <div className="min-h-screen w-full">
         {/* Header Skeleton */}
         <div className="mb-8">
-          <div className="h-10 bg-white/10 rounded w-64 mb-2 animate-pulse flex items-center gap-3">
+          <div className="h-10 bg-white/10 rounded w-64  animate-pulse flex items-center gap-2">
             <div className="h-8 w-8 bg-white/10 rounded" />
             <div className="h-6 bg-white/10 rounded flex-1" />
           </div>
@@ -209,7 +209,7 @@ export default function BusinessInsightsPage(
     <div className="min-h-screen w-full">
       {/* Header */}
       <div className="mb-6 sm:mb-8">
-        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-2 flex items-center gap-2 sm:gap-3 flex-wrap">
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white  flex items-center gap-2 sm:gap-2 flex-wrap">
           <BarChart3 className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-blue-400 flex-shrink-0" />
           <span>Business Insights</span>
         </h1>

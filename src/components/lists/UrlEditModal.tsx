@@ -184,7 +184,7 @@ export function UrlEditModal({
               editingReminder || undefined,
             );
           }}
-          className="mt-4 sm:mt-6 lg:mt-8 space-y-4 sm:space-y-6"
+          className="mt-4 sm:mt-6 lg:mt-8 space-y-3 sm:space-y-6"
         >
           <div>
             <label className="block text-sm sm:text-base font-medium text-white">
@@ -275,7 +275,7 @@ export function UrlEditModal({
               className="mt-2 text-sm sm:text-base lg:text-lg shadow-sm"
             />
           </div>
-          <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-3 mt-6 sm:mt-8">
+          <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-2 mt-6 sm:mt-8">
             <Button
               type="button"
               variant="outline"

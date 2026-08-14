@@ -652,14 +652,14 @@ export default function ListPageClient() {
         {/* Header Card Skeleton */}
         <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-4 sm:p-6 mb-6 shadow-xl">
           {/* First Row: Title/Info on Left, Buttons on Right */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-3 sm:mb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4 mb-3 sm:mb-4">
             {/* Left Side: Title, URL Count, Visibility Badge, Toggle */}
-            <div className="flex flex-col gap-2 sm:gap-3">
+            <div className="flex flex-col gap-2 sm:gap-2">
               {/* Title Skeleton */}
               <Skeleton className="h-6 sm:h-7 md:h-8 w-48 sm:w-64" />
 
               {/* Badges and Toggle Row Skeleton */}
-              <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+              <div className="flex items-center gap-2 sm:gap-2 flex-wrap">
                 {/* URL Count Badge Skeleton */}
                 <Skeleton className="h-5 w-16 rounded-full" />
 
@@ -667,7 +667,7 @@ export default function ListPageClient() {
                 <Skeleton className="h-5 w-20 sm:w-32 rounded-full" />
 
                 {/* Private/Public Toggle Skeleton */}
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-1">
                   <Skeleton className="h-6 w-12 rounded-full" />
                   <Skeleton className="h-3 w-12 hidden sm:block" />
                 </div>
@@ -685,7 +685,7 @@ export default function ListPageClient() {
           {/* Second Row: Shareable Link Skeleton */}
           <div className="flex items-center gap-2 flex-wrap pt-2 sm:pt-0 border-t border-white/10 sm:border-t-0">
             <Skeleton className="h-4 w-24" />
-            <div className="flex items-center gap-1.5 flex-1 min-w-0">
+            <div className="flex items-center gap-1 flex-1 min-w-0">
               <Skeleton className="h-4 w-32 sm:w-48 flex-1" />
               <Skeleton className="h-8 w-8 rounded-lg" />
             </div>
@@ -694,7 +694,7 @@ export default function ListPageClient() {
           {/* Collaborators Section Skeleton */}
           <div className="mt-4">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
                 <Skeleton className="h-9 w-9 rounded-xl" />
                 <Skeleton className="h-6 w-32" />
               </div>
@@ -723,9 +723,9 @@ export default function ListPageClient() {
           {/* Activity Feed Section Skeleton */}
           <div className="mt-6 bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-4 sm:p-6 shadow-xl">
             <Skeleton className="h-6 w-32 mb-4" />
-            <div className="space-y-3">
+            <div className="space-y-2">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="flex items-center gap-3">
+                <div key={i} className="flex items-center gap-2">
                   <Skeleton className="h-10 w-10 rounded-full" />
                   <div className="flex-1 space-y-2">
                     <Skeleton className="h-4 w-full" />
@@ -755,7 +755,7 @@ export default function ListPageClient() {
           <div className="bg-white/5 backdrop-blur-md p-2 sm:p-4 rounded-xl border border-white/20">
             <Skeleton className="h-12 w-full mb-3" />
             <Skeleton className="h-24 w-full mb-4" />
-            <div className="flex justify-end gap-3">
+            <div className="flex justify-end gap-2">
               <Skeleton className="h-10 w-20" />
               <Skeleton className="h-10 w-32" />
             </div>
@@ -815,16 +815,16 @@ export default function ListPageClient() {
       {/* Header Card */}
       <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-xl sm:rounded-2xl p-2 sm:p-4 mb-4 sm:mb-6 shadow-xl">
         {/* First Row: Title/Info on Left, Buttons on Right */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-3 sm:mb-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4 mb-3 sm:mb-4">
           {/* Left Side: Title, URL Count, Visibility Badge, Toggle */}
-          <div className="flex flex-col gap-2 sm:gap-3">
+          <div className="flex flex-col gap-2 sm:gap-2">
             {/* Title */}
             <h1 className="text-base sm:text-lg lg:text-xl xl:text-2xl font-bold text-white break-words">
               {list.title || `List: ${list.slug}`}
             </h1>
 
             {/* Badges and Toggle Row */}
-            <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+            <div className="flex items-center gap-2 sm:gap-2 flex-wrap">
               {/* URL Count Badge */}
               <Badge variant="secondary" className="text-xs sm:text-sm w-fit">
                 {list.urls?.length || 0}{" "}
@@ -856,7 +856,7 @@ export default function ListPageClient() {
               </Badge>
 
               {/* Private/Public Toggle - Disabled for viewers */}
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1">
                 <Switch
                   checked={list.isPublic ?? false}
                   disabled={isToggling || !permissions.canInvite}
@@ -949,7 +949,7 @@ export default function ListPageClient() {
           </div>
 
           {/* Right Side: Setup Schedule and Health Check Buttons */}
-          <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+          <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
             {/* Setup Schedule Button */}
             <button
               type="button"
@@ -1006,7 +1006,7 @@ export default function ListPageClient() {
                 }
               }}
               disabled={isSettingUpSchedule}
-              className="flex-shrink-0 px-2 sm:px-3 py-1 rounded-md sm:rounded-lg bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/30 text-white/90 text-xs font-medium transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 sm:gap-1.5"
+              className="flex-shrink-0 px-2 sm:px-3 py-1 rounded-md sm:rounded-lg bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/30 text-white/90 text-xs font-medium transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 sm:gap-1"
               title="Setup scheduled jobs (daily health checks, weekly metadata refresh)"
             >
               <Activity
@@ -1078,7 +1078,7 @@ export default function ListPageClient() {
                   }
                 }}
                 disabled={isRefreshingMetadata}
-                className="flex-shrink-0 px-2 sm:px-3 py-1 rounded-md sm:rounded-lg bg-green-600/20 hover:bg-green-600/30 border border-green-500/30 text-white/90 text-xs font-medium transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 sm:gap-1.5"
+                className="flex-shrink-0 px-2 sm:px-3 py-1 rounded-md sm:rounded-lg bg-green-600/20 hover:bg-green-600/30 border border-green-500/30 text-white/90 text-xs font-medium transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 sm:gap-1"
                 title="Refresh metadata for all URLs with improved extractor"
               >
                 <RefreshCw
@@ -1170,7 +1170,7 @@ export default function ListPageClient() {
                   }
                 }}
                 disabled={isCheckingHealth}
-                className="flex-shrink-0 px-2 sm:px-3 py-1 rounded-md sm:rounded-lg bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30 text-white/90 text-xs font-medium transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 sm:gap-1.5"
+                className="flex-shrink-0 px-2 sm:px-3 py-1 rounded-md sm:rounded-lg bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30 text-white/90 text-xs font-medium transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 sm:gap-1"
                 title="Check URL health status for this list"
               >
                 <Activity
@@ -1192,7 +1192,7 @@ export default function ListPageClient() {
           <span className="text-xs sm:text-sm font-light text-white/70 whitespace-nowrap">
             Shareable Link:
           </span>
-          <div className="flex items-center gap-1.5 flex-1 min-w-0">
+          <div className="flex items-center gap-1 flex-1 min-w-0">
             <span className="text-xs sm:text-sm text-white/90 truncate">
               {mounted && list?.slug
                 ? `${window.location.origin}/list/${list.slug}`

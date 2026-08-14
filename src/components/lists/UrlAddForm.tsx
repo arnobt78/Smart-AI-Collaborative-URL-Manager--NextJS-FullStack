@@ -226,7 +226,7 @@ export function UrlAddForm({
     <form
       onSubmit={handleSubmit}
       className={`
-        flex flex-col gap-3 sm:gap-4 bg-white/5 backdrop-blur-md rounded-xl shadow-xl border border-white/20 mx-auto
+        flex flex-col gap-2 sm:gap-4 bg-white/5 backdrop-blur-md rounded-xl shadow-xl border border-white/20 mx-auto
         transition-all duration-300 ease-in-out overflow-hidden
         ${
           isExpanded
@@ -235,7 +235,7 @@ export function UrlAddForm({
         }
       `}
     >
-      <div className="space-y-3">
+      <div className="space-y-2">
         <Input
           type="url"
           value={newUrl}
@@ -249,7 +249,7 @@ export function UrlAddForm({
 
         {/* AI Enhancement - Compact mode for inline use */}
         {newUrl && (
-          <div className="flex items-start gap-3">
+          <div className="flex items-start gap-2">
             <div className="flex-1">
               <UrlEnhancer
                 url={newUrl}
@@ -269,7 +269,7 @@ export function UrlAddForm({
             max-h-[500px] opacity-100
           `}
         >
-          <div className="space-y-3">
+          <div className="space-y-2">
             {/* Tags input - visible when URL is entered or enhancement provides tags */}
             <Input
               type="text"
@@ -290,12 +290,12 @@ export function UrlAddForm({
         </div>
       )}
 
-      <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-3">
+      <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-2">
         {newUrl && (
           <Button
             type="button"
             onClick={handleClear}
-            className="bg-gray-600 hover:bg-gray-700 text-white text-xs sm:text-sm font-semibold px-2 sm:px-4 py-1 sm:py-2 rounded-lg shadow-md hover:shadow-xl transition-all duration-200 w-full sm:w-auto"
+            className="bg-gray-600 hover:bg-gray-700 text-white text-xs sm:text-sm font-semibold px-2 sm:px-3 py-1 sm:py-2 rounded-lg shadow-md hover:shadow-xl transition-all duration-200 w-full sm:w-auto"
           >
             Clear
           </Button>

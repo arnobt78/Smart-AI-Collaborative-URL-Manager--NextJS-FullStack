@@ -44,9 +44,7 @@ const CustomTooltip = ({ active, payload }: CustomTooltipProps) => {
   if (active && payload && payload.length) {
     return (
       <div className="bg-gray-900 border border-white/20 rounded-lg p-3 shadow-lg">
-        <p className="text-white/60 text-sm mb-2">
-          {payload[0]?.payload?.date}
-        </p>
+        <p className="text-white/60 text-sm ">{payload[0]?.payload?.date}</p>
         {payload.map((entry, index) => (
           <p
             key={index}

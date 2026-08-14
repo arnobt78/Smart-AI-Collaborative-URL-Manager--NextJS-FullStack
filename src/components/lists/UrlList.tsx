@@ -2576,12 +2576,12 @@ export function UrlList() {
   return (
     <div className="space-y-8">
       {/* Tabs for Active/Archived and Add URL Button */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 sm:gap-3 border-b border-white/10 pb-2">
-        <div className="flex items-center gap-2 sm:gap-3 flex-1 sm:flex-none">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 sm:gap-2 border-b border-white/10 pb-2">
+        <div className="flex items-center gap-2 sm:gap-2 flex-1 sm:flex-none">
           <Button
             type="button"
             onClick={() => setShowArchived(false)}
-            className={`text-xs sm:text-sm px-2 sm:px-4 py-1 sm:py-2 flex-1 sm:flex-none ${
+            className={`text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2 flex-1 sm:flex-none ${
               !showArchived
                 ? "bg-blue-600 text-white"
                 : "bg-white/10 text-white/70 hover:bg-white/20"
@@ -2592,7 +2592,7 @@ export function UrlList() {
           <Button
             type="button"
             onClick={() => setShowArchived(true)}
-            className={`text-xs sm:text-sm px-2 sm:px-4 py-1 sm:py-2 flex-1 sm:flex-none ${
+            className={`text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2 flex-1 sm:flex-none ${
               showArchived
                 ? "bg-blue-600 text-white"
                 : "bg-white/10 text-white/70 hover:bg-white/20"
@@ -2620,7 +2620,7 @@ export function UrlList() {
                 setError(undefined);
               }
             }}
-            className={`bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white flex items-center justify-center gap-1.5 sm:gap-2 transition-all duration-200 shadow-md hover:shadow-lg text-xs sm:text-sm px-2 sm:px-4 py-1 sm:py-2 w-full sm:w-auto ${
+            className={`bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white flex items-center justify-center gap-1 sm:gap-2 transition-all duration-200 shadow-md hover:shadow-lg text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2 w-full sm:w-auto ${
               !permissions.canEdit ? "opacity-50 cursor-not-allowed" : ""
             }`}
           >
@@ -2651,7 +2651,7 @@ export function UrlList() {
 
       {/* Search, Filter, and Import/Export bar - Same Row, Responsive */}
       {!showArchived && (
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 mb-4 w-full">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-2 mb-4 w-full">
           {/* Row 1 on phone: Search and Filter */}
           <div className="flex items-center gap-2 sm:contents">
             {/* Search Input */}
@@ -2872,14 +2872,14 @@ export function UrlList() {
               >
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-white mb-2">
+                    <h3 className="text-lg font-semibold text-white ">
                       {url.title || url.url}
                     </h3>
                     {url.url !== url.title && (
-                      <p className="text-sm text-white/60 mb-2">{url.url}</p>
+                      <p className="text-sm text-white/60 ">{url.url}</p>
                     )}
                     {url.description && (
-                      <p className="text-sm text-white/70 mb-2">
+                      <p className="text-sm text-white/70 ">
                         {url.description}
                       </p>
                     )}

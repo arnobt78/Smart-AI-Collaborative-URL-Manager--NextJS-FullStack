@@ -51,7 +51,7 @@ export function PopularContent({
               <div className="h-6 bg-white/10 rounded w-1/3" />
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {[...Array(5)].map((_, j) => (
                   <div key={j} className="h-16 bg-white/10 rounded" />
                 ))}
@@ -74,7 +74,7 @@ export function PopularContent({
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-2 sm:space-y-3">
+          <div className="space-y-2 sm:space-y-2">
             {popularUrls.length === 0 ? (
               <p className="text-white/60 text-xs sm:text-sm text-center py-6 sm:py-8">
                 No URLs yet
@@ -83,7 +83,7 @@ export function PopularContent({
               popularUrls.map((url) => (
                 <div
                   key={url.id}
-                  className="flex items-start gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg bg-white/5 border border-white/10 hover:border-blue-400/30 transition-all"
+                  className="flex items-start gap-2 sm:gap-2 p-2 sm:p-3 rounded-lg bg-white/5 border border-white/10 hover:border-blue-400/30 transition-all"
                 >
                   {url.isFavorite && (
                     <Star className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-yellow-400 flex-shrink-0 mt-0.5 sm:mt-1 fill-yellow-400" />
@@ -97,7 +97,7 @@ export function PopularContent({
                     >
                       {url.title || url.url}
                     </a>
-                    <div className="flex items-center gap-1.5 sm:gap-2 mt-1 flex-wrap">
+                    <div className="flex items-center gap-1 sm:gap-2 mt-1 flex-wrap">
                       <Link
                         href={`/list/${url.listSlug}`}
                         className="text-white/60 hover:text-white/80 text-xs truncate"
@@ -129,7 +129,7 @@ export function PopularContent({
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-2 sm:space-y-3">
+          <div className="space-y-2 sm:space-y-2">
             {activeLists.length === 0 ? (
               <p className="text-white/60 text-xs sm:text-sm text-center py-6 sm:py-8">
                 No lists yet
@@ -142,7 +142,7 @@ export function PopularContent({
                   className="flex items-center justify-between p-2 sm:p-3 rounded-lg bg-white/5 border border-white/10 hover:border-blue-400/30 transition-all group"
                 >
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1.5 sm:gap-2 mb-1">
+                    <div className="flex items-center gap-1 sm:gap-2 mb-1">
                       <h4 className="text-white group-hover:text-blue-400 transition-colors text-xs sm:text-sm font-medium truncate">
                         {list.title}
                       </h4>
@@ -152,7 +152,7 @@ export function PopularContent({
                         <Lock className="h-3 w-3 text-yellow-400 flex-shrink-0" />
                       )}
                     </div>
-                    <div className="flex items-center gap-2 sm:gap-3 text-xs text-white/60">
+                    <div className="flex items-center gap-2 sm:gap-2 text-xs text-white/60">
                       <span>{list.urlCount} URLs</span>
                       {list.collaborators > 0 && (
                         <>

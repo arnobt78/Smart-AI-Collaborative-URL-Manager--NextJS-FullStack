@@ -88,7 +88,7 @@ export default function BrowsePage() {
     <div className="min-h-screen w-full">
       {/* Header */}
       <div className="mb-6 sm:mb-8">
-        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-semibold text-white mb-2">
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-semibold text-white ">
           🌐 Discover Public Lists
         </h1>
         <p className="text-white/60 text-xs sm:text-sm lg:text-base">
@@ -98,7 +98,7 @@ export default function BrowsePage() {
 
       {/* Search Bar */}
       <form onSubmit={handleSearch} className="mb-4 sm:mb-6">
-        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-2">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-white/40" />
             <Input
@@ -130,9 +130,9 @@ export default function BrowsePage() {
                 <div className="h-5 sm:h-6 bg-white/10 rounded flex-1" />
                 <div className="h-4 sm:h-5 w-12 sm:w-16 bg-white/10 rounded-full ml-2" />
               </div>
-              <div className="h-3 sm:h-4 bg-white/10 rounded mb-2 w-2/3" />
+              <div className="h-3 sm:h-4 bg-white/10 rounded  w-2/3" />
               <div className="h-3 sm:h-4 bg-white/10 rounded w-1/2 mb-4" />
-              <div className="flex items-center gap-3 sm:gap-4 mb-4">
+              <div className="flex items-center gap-2 sm:gap-4 mb-4">
                 <div className="h-3 w-16 sm:w-20 bg-white/10 rounded" />
                 <div className="h-3 w-12 sm:w-16 bg-white/10 rounded" />
               </div>
@@ -179,7 +179,7 @@ export default function BrowsePage() {
                   </p>
                 )}
 
-                <div className="flex items-center gap-3 sm:gap-4 text-xs text-white/50 flex-wrap">
+                <div className="flex items-center gap-2 sm:gap-4 text-xs text-white/50 flex-wrap">
                   <div className="flex items-center gap-1">
                     <Users className="w-3 h-3" />
                     <span className="truncate max-w-[100px] sm:max-w-none">
@@ -210,7 +210,7 @@ export default function BrowsePage() {
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page === 1}
                 variant="outline"
-                className="text-white border-white/20 text-xs sm:text-sm px-2 sm:px-4 py-1 sm:py-2"
+                className="text-white border-white/20 text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2"
               >
                 Previous
               </Button>
@@ -221,7 +221,7 @@ export default function BrowsePage() {
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                 disabled={page === totalPages}
                 variant="outline"
-                className="text-white border-white/20 text-xs sm:text-sm px-2 sm:px-4 py-1 sm:py-2"
+                className="text-white border-white/20 text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2"
               >
                 Next
               </Button>

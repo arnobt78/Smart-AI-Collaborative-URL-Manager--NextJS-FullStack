@@ -61,7 +61,7 @@ interface TimeInfoProps {
 }
 
 const TimeInfo = ({ icon, label, date }: TimeInfoProps) => (
-  <div className="flex items-center gap-1.5 text-white/60 text-sm font-delicious">
+  <div className="flex items-center gap-1 text-white/60 text-sm font-delicious">
     {icon}
     <span>{label}</span>
     <span className="text-white/40">{date.toLocaleDateString()}</span>
@@ -326,7 +326,7 @@ export const UrlCard: React.FC<UrlCardProps> = ({
           <Grip className="h-5 w-5 text-white/40 hover:text-blue-400 transition-colors pointer-events-none" />
         </div>
       )}
-      <div className="flex flex-col sm:flex-row p-3 sm:p-4 gap-3 sm:gap-4">
+      <div className="flex flex-col sm:flex-row p-3 sm:p-4 gap-2 sm:gap-4">
         {/* Image Section */}
         <div className="md:w-1/5 w-full flex-shrink-0 flex items-center justify-center">
           <div className="relative w-24 h-24 sm:w-28 sm:h-28 md:w-full md:h-full aspect-square overflow-hidden rounded-lg sm:rounded-xl shadow-sm bg-gray-900/30 backdrop-blur-md border border-white/10 flex items-center justify-center">
@@ -334,7 +334,7 @@ export const UrlCard: React.FC<UrlCardProps> = ({
               <div className="absolute inset-0 bg-gray-800/40 rounded-xl animate-pulse" />
             ) : !currentImageUrl || imageError ? (
               <div className="flex flex-col items-center justify-center h-full w-full text-white/40">
-                <GlobeAltIcon className="h-12 w-12 mb-2" />
+                <GlobeAltIcon className="h-12 w-12 " />
                 <span className="text-sm">No image available</span>
               </div>
             ) : (
@@ -390,7 +390,7 @@ export const UrlCard: React.FC<UrlCardProps> = ({
           {shouldShowSkeleton ? (
             <>
               {/* Skeleton for title */}
-              <div className="flex-1 min-w-0 space-y-3">
+              <div className="flex-1 min-w-0 space-y-2">
                 <div className="h-7 bg-gray-800/40 rounded-lg w-3/4 animate-pulse" />
                 {/* Skeleton for category/tags */}
                 <div className="flex gap-2">
@@ -406,8 +406,8 @@ export const UrlCard: React.FC<UrlCardProps> = ({
                 </div>
               </div>
               {/* Skeleton for action buttons */}
-              <div className="flex items-center justify-between gap-3">
-                <div className="flex items-center gap-3">
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
                   {[1, 2, 3, 4, 5].map((i) => (
                     <div
                       key={i}
@@ -422,7 +422,7 @@ export const UrlCard: React.FC<UrlCardProps> = ({
             <>
               <div className="flex-1 min-w-0">
                 {/* Title with Health Status directly after text */}
-                <div className="mb-2 min-w-0">
+                <div className=" min-w-0">
                   <h3
                     className="font-bold text-base sm:text-lg lg:text-xl text-white group-hover:text-blue-400 transition-colors font-joti inline break-words"
                     title={title}
@@ -443,7 +443,7 @@ export const UrlCard: React.FC<UrlCardProps> = ({
 
                 {/* Pinned Badge */}
                 {url.isPinned && (
-                  <div className="mb-2 flex items-center gap-1">
+                  <div className=" flex items-center gap-1">
                     <Pin className="h-3.5 w-3.5 text-yellow-400 fill-yellow-400" />
                     <span className="px-2 py-0.5 bg-yellow-500/20 border border-yellow-400/30 text-yellow-300 rounded-md text-xs font-semibold">
                       Pinned
@@ -453,7 +453,7 @@ export const UrlCard: React.FC<UrlCardProps> = ({
 
                 {/* Category and Tags Display - Same Line */}
                 {(url.category || (url.tags && url.tags.length > 0)) && (
-                  <div className="flex items-center gap-2 mb-2 flex-wrap">
+                  <div className="flex items-center gap-2  flex-wrap">
                     {url.category && (
                       <span className="px-2 py-1 bg-blue-500/20 border border-blue-400/30 text-blue-300 rounded-md text-xs font-semibold whitespace-nowrap">
                         {url.category}
@@ -476,7 +476,7 @@ export const UrlCard: React.FC<UrlCardProps> = ({
 
                 {/* Reminder Display */}
                 {url.reminder && (
-                  <div className="mb-2 flex items-center gap-2">
+                  <div className=" flex items-center gap-2">
                     <BellIcon className="h-4 w-4 text-yellow-400" />
                     <span className="text-sm text-yellow-300 font-medium">
                       Reminder:{" "}
@@ -518,7 +518,7 @@ export const UrlCard: React.FC<UrlCardProps> = ({
                 )}
               </div>
               {/* Action buttons row with timestamp */}
-              <div className="flex items-center justify-between gap-3 flex-wrap">
+              <div className="flex items-center justify-between gap-2 flex-wrap">
                 <div className="flex items-center gap-2 flex-wrap">
                   <IconButton
                     icon={<ArrowTopRightOnSquareIcon />}
@@ -642,7 +642,7 @@ export const UrlCard: React.FC<UrlCardProps> = ({
                     variant="default"
                   />
                 </div>
-                <div className="flex items-center gap-3 text-white/60 text-sm font-delicious">
+                <div className="flex items-center gap-2 text-white/60 text-sm font-delicious">
                   <TimeInfo
                     icon={<ClockIcon className="h-4 w-4" />}
                     label="Added"
@@ -763,7 +763,7 @@ export const UrlCard: React.FC<UrlCardProps> = ({
               >
                 {loadingSimilarUrls ? (
                   <div className="flex items-center justify-center py-12">
-                    <div className="flex flex-col items-center gap-3">
+                    <div className="flex flex-col items-center gap-2">
                       <div className="w-8 h-8 border-4 border-blue-400 border-t-transparent rounded-full animate-spin" />
                       <p className="text-white/60">Finding similar URLs...</p>
                     </div>
@@ -780,7 +780,7 @@ export const UrlCard: React.FC<UrlCardProps> = ({
                     </p>
                   </div>
                 ) : (
-                  <div className="space-y-4 pb-2">
+                  <div className="space-y-3 pb-2">
                     {similarUrls.map((result) => (
                       <div
                         key={result.url.id}
@@ -788,7 +788,7 @@ export const UrlCard: React.FC<UrlCardProps> = ({
                       >
                         <div className="flex items-start justify-between gap-4">
                           <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-2 flex-wrap">
+                            <div className="flex items-center gap-2  flex-wrap">
                               <span className="px-2 py-0.5 bg-blue-500/20 border border-blue-400/30 text-blue-300 rounded text-xs font-semibold whitespace-nowrap">
                                 {Math.round(result.relevanceScore * 100)}% match
                               </span>
@@ -802,11 +802,11 @@ export const UrlCard: React.FC<UrlCardProps> = ({
                               {result.url.title || result.url.url}
                             </h4>
                             {result.url.description && (
-                              <p className="text-sm text-white/70 mb-2 line-clamp-2">
+                              <p className="text-sm text-white/70  line-clamp-2">
                                 {result.url.description}
                               </p>
                             )}
-                            <p className="text-xs text-white/50 mb-2 break-all">
+                            <p className="text-xs text-white/50  break-all">
                               {result.url.url}
                             </p>
                             {result.matchReason && (

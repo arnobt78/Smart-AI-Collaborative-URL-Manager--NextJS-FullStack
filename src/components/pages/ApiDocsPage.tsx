@@ -357,7 +357,7 @@ export default function ApiDocsPage() {
     <div className="min-h-screen w-full">
       {/* Header */}
       <div className="mb-6 sm:mb-8">
-        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-2 flex items-center gap-2 sm:gap-3 flex-wrap">
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white  flex items-center gap-2 sm:gap-2 flex-wrap">
           <BookOpen className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-blue-400 flex-shrink-0" />
           <span>API Documentation</span>
         </h1>
@@ -375,7 +375,7 @@ export default function ApiDocsPage() {
           </div>
         </CardHeader>
         <CardContent>
-          <p className="text-white/80 text-sm mb-2">
+          <p className="text-white/80 text-sm ">
             Most API endpoints require authentication via session cookie. Make
             sure you&apos;re logged in before making requests.
           </p>
@@ -427,13 +427,13 @@ export default function ApiDocsPage() {
         </TabsList>
 
         {Object.entries(allEndpoints).map(([category, endpoints]) => (
-          <TabsContent key={category} value={category} className="space-y-4">
+          <TabsContent key={category} value={category} className="space-y-3">
             {endpoints.map((endpoint, index) => (
               <Card key={index}>
                 <CardHeader>
-                  <div className="flex items-start justify-between gap-3 sm:gap-4">
+                  <div className="flex items-start justify-between gap-2 sm:gap-4">
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 sm:gap-3 mb-2 flex-wrap">
+                      <div className="flex items-center gap-2 sm:gap-2  flex-wrap">
                         <Badge
                           variant={
                             endpoint.method === "GET"

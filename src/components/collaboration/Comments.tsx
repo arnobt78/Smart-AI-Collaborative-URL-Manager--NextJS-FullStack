@@ -426,7 +426,7 @@ export function Comments({ listId, urlId, currentUserId }: CommentsProps) {
   };
 
   return (
-    <div className="space-y-3 sm:space-y-4">
+    <div className="space-y-2 sm:space-y-3">
       {/* Comments Header */}
       <div className="flex items-center gap-2">
         <MessageSquare className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white/70" />
@@ -449,7 +449,7 @@ export function Comments({ listId, urlId, currentUserId }: CommentsProps) {
             <Button
               type="submit"
               disabled={!newComment.trim() || createMutation.isPending}
-              className="px-2 sm:px-4 py-1 text-xs"
+              className="px-2 sm:px-3 py-1 text-xs"
             >
               {createMutation.isPending ? "Posting..." : "Post Comment"}
             </Button>
@@ -458,7 +458,7 @@ export function Comments({ listId, urlId, currentUserId }: CommentsProps) {
       )}
 
       {/* Comments List */}
-      <div className="space-y-2 sm:space-y-3 max-h-[400px] overflow-y-auto custom-scrollbar">
+      <div className="space-y-2 sm:space-y-2 max-h-[400px] overflow-y-auto custom-scrollbar">
         {isLoading ? (
           <div className="text-xs sm:text-sm text-white/50 text-center py-3 sm:py-4">
             Loading comments...
@@ -484,7 +484,7 @@ export function Comments({ listId, urlId, currentUserId }: CommentsProps) {
                       onChange={(e) => setEditContent(e.target.value)}
                       className="min-h-[70px] sm:min-h-[80px] resize-none bg-white/5 border-white/10 text-white placeholder:text-white/50 text-sm"
                     />
-                    <div className="flex justify-end gap-1.5 sm:gap-2">
+                    <div className="flex justify-end gap-1 sm:gap-2">
                       <Button
                         type="button"
                         onClick={handleCancelEdit}
@@ -507,7 +507,7 @@ export function Comments({ listId, urlId, currentUserId }: CommentsProps) {
                   </div>
                 ) : (
                   <>
-                    <div className="flex items-start justify-between gap-2 mb-1.5 sm:mb-2">
+                    <div className="flex items-start justify-between gap-2 mb-1.5 sm:">
                       <div className="flex-1 min-w-0">
                         <div className="text-xs font-medium text-white/90 truncate">
                           {comment.user.email}

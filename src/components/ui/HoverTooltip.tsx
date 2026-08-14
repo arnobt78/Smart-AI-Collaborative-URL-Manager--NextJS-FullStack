@@ -28,7 +28,7 @@ export function HoverTooltip({
   }, []);
 
   const positionClasses = {
-    top: "bottom-full left-1/2 transform -translate-x-1/2 mb-2",
+    top: "bottom-full left-1/2 transform -translate-x-1/2 ",
     bottom: "top-full left-1/2 transform -translate-x-1/2 mt-2",
     left: "right-full top-1/2 transform -translate-y-1/2 mr-2",
     right: "left-full top-1/2 transform -translate-y-1/2 ml-2",
@@ -67,7 +67,7 @@ export function HoverTooltip({
         switch (position) {
           case "top":
             // Position above the element, centered horizontally
-            top = rect.top - 8; // 8px margin (mb-2)
+            top = rect.top - 8; // 8px margin ()
             left = rect.left + rect.width / 2;
 
             // Adjust to stay within container bounds

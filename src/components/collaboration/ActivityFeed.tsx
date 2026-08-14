@@ -71,7 +71,10 @@ export function ActivityFeed({ listId, limit = 50 }: ActivityFeedProps) {
         activities: ActivityItem[];
       }>(cacheKey);
 
-      if (queryState?.data?.activities && Array.isArray(queryState.data.activities)) {
+      if (
+        queryState?.data?.activities &&
+        Array.isArray(queryState.data.activities)
+      ) {
         setActivities(queryState.data.activities);
       }
     };
@@ -82,10 +85,12 @@ export function ActivityFeed({ listId, limit = 50 }: ActivityFeedProps) {
     // Subscribe to query cache updates to detect when data becomes available
     const unsubscribe = queryClient.getQueryCache().subscribe((event) => {
       // Check if this event is for our query and if data is available
-      if (event?.query?.queryKey && 
-          JSON.stringify(event.query.queryKey) === JSON.stringify(cacheKey) &&
-          event.query.state.status === 'success' &&
-          event.query.state.data) {
+      if (
+        event?.query?.queryKey &&
+        JSON.stringify(event.query.queryKey) === JSON.stringify(cacheKey) &&
+        event.query.state.status === "success" &&
+        event.query.state.data
+      ) {
         updateActivitiesFromCache();
       }
     });
@@ -127,7 +132,7 @@ export function ActivityFeed({ listId, limit = 50 }: ActivityFeedProps) {
 
     window.addEventListener(
       "unified-activities-updated",
-      handleUnifiedActivitiesUpdate
+      handleUnifiedActivitiesUpdate,
     );
 
     // Listen for unified-update events (from SSE)
@@ -237,7 +242,7 @@ export function ActivityFeed({ listId, limit = 50 }: ActivityFeedProps) {
       window.removeEventListener("unified-update", handleUnifiedUpdate);
       window.removeEventListener(
         "unified-activities-updated",
-        handleUnifiedActivitiesUpdate
+        handleUnifiedActivitiesUpdate,
       );
       window.removeEventListener("activity-updated", handleActivityUpdate);
       window.removeEventListener("activity-added", handleActivityAdded);
@@ -365,7 +370,7 @@ export function ActivityFeed({ listId, limit = 50 }: ActivityFeedProps) {
   };
 
   return (
-    <div className="space-y-3 sm:space-y-4">
+    <div className="space-y-2 sm:space-y-3">
       {/* Header */}
       <div className="flex items-center gap-2">
         <Activity className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white/70" />
@@ -375,7 +380,7 @@ export function ActivityFeed({ listId, limit = 50 }: ActivityFeedProps) {
       </div>
 
       {/* Activities List */}
-      <div className="space-y-2 sm:space-y-3 max-h-[400px] sm:max-h-[500px] overflow-y-auto custom-scrollbar">
+      <div className="space-y-2 sm:space-y-2 max-h-[400px] sm:max-h-[500px] overflow-y-auto custom-scrollbar">
         {isLoading ? (
           <div className="text-xs sm:text-sm text-white/50 text-center py-3 sm:py-4">
             Loading activities...
@@ -388,13 +393,13 @@ export function ActivityFeed({ listId, limit = 50 }: ActivityFeedProps) {
           activities.map((activity) => (
             <div
               key={activity.id}
-              className="flex items-start gap-2 sm:gap-3 bg-white/5 rounded-lg p-2.5 sm:p-3 border border-white/10"
+              className="flex items-start gap-2 sm:gap-2 bg-white/5 rounded-lg p-2.5 sm:p-3 border border-white/10"
             >
               <div className="flex-shrink-0 mt-0.5">
                 {getActionIcon(activity.action)}
               </div>
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
                   <span className="text-xs font-medium text-white/90 truncate">
                     {activity.user.email}
                   </span>

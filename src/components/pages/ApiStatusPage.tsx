@@ -25,7 +25,7 @@ export default function ApiStatusPage() {
       <div className="min-h-screen w-full">
         {/* Header Skeleton */}
         <div className="mb-8">
-          <div className="h-10 bg-white/10 rounded w-64 mb-2 animate-pulse" />
+          <div className="h-10 bg-white/10 rounded w-64  animate-pulse" />
           <div className="h-5 bg-white/10 rounded w-96 animate-pulse" />
         </div>
 
@@ -67,14 +67,14 @@ export default function ApiStatusPage() {
             <div className="h-6 bg-white/10 rounded w-32" />
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
+            <div className="space-y-2">
               {[...Array(4)].map((_, i) => (
                 <div
                   key={i}
                   className="flex items-center justify-between p-4 rounded-lg bg-white/5 border border-white/10"
                 >
                   <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-1">
+                    <div className="flex items-center gap-2 mb-1">
                       <div className="h-5 bg-white/10 rounded w-32" />
                       <div className="h-5 w-20 bg-white/10 rounded-full" />
                     </div>
@@ -114,7 +114,7 @@ export default function ApiStatusPage() {
     <div className="min-h-screen w-full">
       {/* Header */}
       <div className="mb-6 sm:mb-8">
-        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-2 flex items-center gap-2 sm:gap-3 flex-wrap">
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white  flex items-center gap-2 sm:gap-2 flex-wrap">
           <Activity className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-blue-400 flex-shrink-0" />
           <span>API Status</span>
         </h1>
@@ -127,12 +127,14 @@ export default function ApiStatusPage() {
       <Card className="mb-4 sm:mb-6">
         <CardHeader>
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
-            <CardTitle className="text-base sm:text-lg">System Status</CardTitle>
+            <CardTitle className="text-base sm:text-lg">
+              System Status
+            </CardTitle>
             {statusData?.status && getStatusBadge(statusData.status.overall)}
           </div>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4">
             <div>
               <p className="text-white/60 text-sm mb-1">Database</p>
               <div className="flex items-center gap-2">
@@ -175,15 +177,17 @@ export default function ApiStatusPage() {
           <CardTitle>API Endpoints</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-3">
+          <div className="space-y-2">
             {statusData?.endpoints?.map((endpoint) => (
               <div
                 key={endpoint.endpoint}
                 className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0 p-3 sm:p-4 rounded-lg bg-white/5 border border-white/10"
               >
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 sm:gap-3 mb-1 flex-wrap">
-                    <h3 className="text-sm sm:text-base text-white font-medium">{endpoint.name}</h3>
+                  <div className="flex items-center gap-2 sm:gap-2 mb-1 flex-wrap">
+                    <h3 className="text-sm sm:text-base text-white font-medium">
+                      {endpoint.name}
+                    </h3>
                     {getStatusBadge(endpoint.status)}
                   </div>
                   <p className="text-white/60 text-xs sm:text-sm font-mono break-all">

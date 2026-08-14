@@ -176,7 +176,7 @@ export function UrlEnhancer({
               </button>
             </div>
             {result.category && (
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1">
                 <FolderOpen className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
                 <span className="text-xs text-gray-600 dark:text-gray-300 mr-1">
                   Category:
@@ -187,7 +187,7 @@ export function UrlEnhancer({
               </div>
             )}
             {result.tags && result.tags.length > 0 && (
-              <div className="flex items-center gap-1.5 flex-wrap">
+              <div className="flex items-center gap-1 flex-wrap">
                 <Tags className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400 flex-shrink-0" />
                 <span className="text-xs text-gray-600 dark:text-gray-300">
                   Tags:
@@ -203,9 +203,9 @@ export function UrlEnhancer({
               </div>
             )}
             {result.summary && (
-              <div className="flex items-start gap-1.5 pt-1 border-t border-green-200 dark:border-green-700">
+              <div className="flex items-start gap-1 pt-1 border-t border-green-200 dark:border-green-700">
                 <FileText className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400 mt-0.5 flex-shrink-0" />
-                <div className="flex-1 flex items-start gap-1.5">
+                <div className="flex-1 flex items-start gap-1">
                   <span className="text-xs font-semibold text-gray-600 dark:text-gray-300 whitespace-nowrap">
                     Summary:
                   </span>
@@ -222,12 +222,12 @@ export function UrlEnhancer({
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       <button
         type="button"
         onClick={handleEnhance}
         disabled={loading || !url}
-        className="group relative w-full flex items-center justify-center gap-3 px-6 py-3 bg-gradient-to-r from-violet-500 via-purple-500 to-fuchsia-500 text-white rounded-xl hover:from-violet-600 hover:via-purple-600 hover:to-fuchsia-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 shadow-lg hover:shadow-2xl hover:scale-[1.02] active:scale-[0.98] overflow-hidden"
+        className="group relative w-full flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-violet-500 via-purple-500 to-fuchsia-500 text-white rounded-xl hover:from-violet-600 hover:via-purple-600 hover:to-fuchsia-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 shadow-lg hover:shadow-2xl hover:scale-[1.02] active:scale-[0.98] overflow-hidden"
       >
         <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/30 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
         {loading ? (
@@ -247,7 +247,7 @@ export function UrlEnhancer({
       </button>
 
       {error && (
-        <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl flex items-start gap-3 animate-in fade-in slide-in-from-top-2">
+        <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl flex items-start gap-2 animate-in fade-in slide-in-from-top-2">
           <XCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
           <div className="flex-1">
             <p className="text-sm font-semibold text-red-800 dark:text-red-200 mb-1">
@@ -259,9 +259,9 @@ export function UrlEnhancer({
       )}
 
       {result && result.success && showResult && (
-        <div className="p-5 bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 dark:from-green-900/20 dark:via-emerald-900/20 dark:to-teal-900/20 border border-green-200 dark:border-green-800 rounded-xl space-y-4 animate-in fade-in slide-in-from-bottom-4 shadow-lg">
+        <div className="p-5 bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 dark:from-green-900/20 dark:via-emerald-900/20 dark:to-teal-900/20 border border-green-200 dark:border-green-800 rounded-xl space-y-3 animate-in fade-in slide-in-from-bottom-4 shadow-lg">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
               <div className="p-2 bg-green-100 dark:bg-green-900/40 rounded-lg">
                 <CheckCircle2 className="w-5 h-5 text-green-600 dark:text-green-400" />
               </div>
@@ -287,7 +287,7 @@ export function UrlEnhancer({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {result.category && (
               <div className="p-3 bg-white/50 dark:bg-black/20 rounded-lg border border-green-200 dark:border-green-800">
-                <div className="flex items-center gap-2 mb-2">
+                <div className="flex items-center gap-2 ">
                   <FolderOpen className="w-4 h-4 text-blue-500" />
                   <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">
                     Category
@@ -301,13 +301,13 @@ export function UrlEnhancer({
 
             {result.tags && result.tags.length > 0 && (
               <div className="p-3 bg-white/50 dark:bg-black/20 rounded-lg border border-green-200 dark:border-green-800">
-                <div className="flex items-center gap-2 mb-2">
+                <div className="flex items-center gap-2 ">
                   <Tags className="w-4 h-4 text-purple-500" />
                   <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">
                     Tags ({result.tags.length})
                   </p>
                 </div>
-                <div className="flex flex-wrap gap-1.5">
+                <div className="flex flex-wrap gap-1">
                   {result.tags.map((tag, index) => (
                     <span
                       key={index}
@@ -323,7 +323,7 @@ export function UrlEnhancer({
 
           {result.summary && (
             <div className="p-3 bg-white/50 dark:bg-black/20 rounded-lg border border-green-200 dark:border-green-800">
-              <div className="flex items-center gap-2 mb-2">
+              <div className="flex items-center gap-2 ">
                 <FileText className="w-4 h-4 text-teal-500" />
                 <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">
                   Summary

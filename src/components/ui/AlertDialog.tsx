@@ -85,15 +85,13 @@ export function AlertDialog({
         </button>
 
         <div className="pr-6 sm:pr-8">
-          <h3 className="text-lg sm:text-xl font-bold text-white mb-2">
-            {title}
-          </h3>
+          <h3 className="text-lg sm:text-xl font-bold text-white ">{title}</h3>
           <p className="text-sm sm:text-base text-white/70 mb-4 sm:mb-6">
             {description}
           </p>
         </div>
 
-        <div className="flex justify-end gap-3">
+        <div className="flex justify-end gap-2">
           <button
             onClick={handleCancel}
             className="px-4 py-2 text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-colors font-medium"

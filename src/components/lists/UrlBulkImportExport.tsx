@@ -2309,7 +2309,7 @@ export function UrlBulkImportExport({
             onClick={() => setShowExportMenu(!showExportMenu)}
             disabled={isExporting !== null || urls.length === 0}
             className={`
-              relative flex items-center justify-center gap-1.5 sm:gap-2 px-2 sm:px-4 py-2 rounded-xl
+              relative flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 rounded-xl
               transition-all duration-200 shadow-md hover:shadow-lg
               text-xs sm:text-sm font-medium whitespace-nowrap
               ${
@@ -2397,7 +2397,7 @@ export function UrlBulkImportExport({
             onClick={() => setShowImportMenu(!showImportMenu)}
             disabled={isImporting || !canEdit}
             className={`
-              relative flex items-center justify-center gap-1.5 sm:gap-2 px-2 sm:px-4 py-2 rounded-xl
+              relative flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 rounded-xl
               transition-all duration-200 shadow-md hover:shadow-lg
               text-xs sm:text-sm font-medium whitespace-nowrap
               ${

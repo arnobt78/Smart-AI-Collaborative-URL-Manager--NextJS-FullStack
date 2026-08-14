@@ -419,8 +419,8 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
     return (
       <Card className="mb-4 sm:mb-6">
         <CardContent className="p-2 sm:p-4">
-          <div className="flex items-center justify-between gap-2 sm:gap-3">
-            <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+          <div className="flex items-center justify-between gap-2 sm:gap-2">
+            <div className="flex items-center gap-2 sm:gap-2 min-w-0 flex-1">
               <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-blue-400 flex-shrink-0" />
               <div className="min-w-0">
                 <h3 className="font-semibold text-white text-sm sm:text-base truncate">
@@ -448,9 +448,9 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
   return (
     <Card className="mb-4 sm:mb-6">
       {/* Single pad shell — title + body share one p-2 sm:p-4 (no Header+Content double pad) */}
-      <div className="p-2 sm:p-4 space-y-2 sm:space-y-4">
-        <div className="flex items-center justify-between gap-2 sm:gap-3 ">
-          <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+      <div className="p-2 sm:p-4 space-y-2 sm:space-y-3">
+        <div className="flex items-center justify-between gap-2 sm:gap-2 ">
+          <div className="flex items-center gap-2 sm:gap-2 min-w-0 flex-1">
             <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-blue-400 flex-shrink-0" />
             <div className="min-w-0">
               <CardTitle className="text-sm sm:text-base">
@@ -470,10 +470,10 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
           </button>
         </div>
 
-        <div className="space-y-2 sm:space-y-4">
+        <div className="space-y-2 sm:space-y-3">
           {/* Loading State — only when cold (no suggestions yet) */}
           {isLoading && !hasSuggestions && (
-            <div className="space-y-2 sm:space-y-4">
+            <div className="space-y-2 sm:space-y-3">
               <Skeleton className="h-32 w-full" />
               <Skeleton className="h-32 w-full" />
             </div>
@@ -482,11 +482,11 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
           {/* Collection Suggestions — stay visible during refetch */}
           {hasSuggestions && (
             <div>
-              <h4 className="text-xs sm:text-sm font-semibold text-white mb-2 sm:mb-3 flex items-center gap-1.5 sm:gap-2">
+              <h4 className="text-xs sm:text-sm font-semibold text-white  sm:mb-3 flex items-center gap-1 sm:gap-2">
                 <FolderPlus className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 <span>Suggested Collections ({suggestions.length})</span>
               </h4>
-              <div className="space-y-2 sm:space-y-4">
+              <div className="space-y-2 sm:space-y-3">
                 {suggestions.map((suggestion) => (
                   <div
                     key={suggestion.id}
@@ -495,11 +495,11 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
                     <div className="flex items-start justify-between gap-2 sm:gap-4 flex-col sm:flex-row">
                       <div className="flex-1 min-w-0 w-full sm:w-auto">
                         {/* Title - Full width on phone */}
-                        <h5 className="font-semibold text-white text-sm sm:text-base w-full mb-1.5 sm:mb-2 break-words">
+                        <h5 className="font-semibold text-white text-sm sm:text-base w-full mb-1.5 sm: break-words">
                           {suggestion.name}
                         </h5>
                         {/* URLs and Category Badges - Separate row */}
-                        <div className="flex items-center gap-1.5 sm:gap-2 mb-1.5 sm:mb-2 flex-wrap">
+                        <div className="flex items-center gap-1 sm:gap-2 mb-1.5 sm: flex-wrap">
                           <Badge variant="secondary" className="text-xs">
                             {suggestion.urls.length} URLs
                           </Badge>
@@ -510,10 +510,10 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
                           )}
                         </div>
                         {/* Description - Full text on phone */}
-                        <p className="text-xs sm:text-sm text-white/60 mb-1.5 sm:mb-2 break-words">
+                        <p className="text-xs sm:text-sm text-white/60 mb-1.5 sm: break-words">
                           {suggestion.description}
                         </p>
-                        <div className="flex items-center gap-1.5 sm:gap-2 text-xs text-white/50 flex-wrap">
+                        <div className="flex items-center gap-1 sm:gap-2 text-xs text-white/50 flex-wrap">
                           <span>Confidence: {suggestion.confidence}%</span>
                           <span>•</span>
                           <span className="break-words">
@@ -531,7 +531,7 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
                         disabled={
                           isCreating === suggestion.id || !permissions.canEdit
                         }
-                        className={`shrink-0 bg-blue-600 hover:bg-blue-700 text-white border-0 w-full sm:w-auto text-xs sm:text-sm px-2 sm:px-4 py-1 sm:py-2 ${
+                        className={`shrink-0 bg-blue-600 hover:bg-blue-700 text-white border-0 w-full sm:w-auto text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2 ${
                           !permissions.canEdit
                             ? "opacity-50 cursor-not-allowed"
                             : ""
@@ -564,8 +564,8 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
           {/* Duplicate Detection - Only show if duplicates have been fetched */}
           {showDuplicates && (isLoadingDuplicates || hasDuplicates) && (
             <div>
-              <div className="flex items-center justify-between gap-2 mb-2 sm:mb-3">
-                <h4 className="text-xs sm:text-sm font-semibold text-white flex items-center gap-1.5 sm:gap-2 min-w-0 flex-1">
+              <div className="flex items-center justify-between gap-2  sm:mb-3">
+                <h4 className="text-xs sm:text-sm font-semibold text-white flex items-center gap-1 sm:gap-2 min-w-0 flex-1">
                   <AlertTriangle className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-yellow-400 shrink-0" />
                   <span className="truncate">
                     {isLoadingDuplicates
@@ -594,7 +594,7 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
                 </div>
               )}
               {!isLoadingDuplicates && hasDuplicates && (
-                <div className="space-y-2 sm:space-y-4">
+                <div className="space-y-2 sm:space-y-3">
                   {duplicates.map((dup, idx) => {
                     const isDeleting = deletingDuplicateIds.has(dup.url.id);
 
@@ -603,8 +603,8 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
                         key={`${dup.url.id}-${idx}`}
                         className="border border-yellow-400/20 rounded-lg p-2 sm:p-4 bg-yellow-400/5"
                       >
-                        <div className="flex items-start gap-2 sm:gap-3 flex-col sm:flex-row">
-                          <div className="flex items-start gap-2 sm:gap-3 flex-1 min-w-0 w-full">
+                        <div className="flex items-start gap-2 sm:gap-2 flex-col sm:flex-row">
+                          <div className="flex items-start gap-2 sm:gap-2 flex-1 min-w-0 w-full">
                             <AlertTriangle className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-400 mt-0.5 shrink-0" />
                             <div className="flex-1 min-w-0 w-full">
                               <p className="text-xs sm:text-sm font-medium text-white break-words">
@@ -617,7 +617,7 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
                                 {dup.duplicates.map((d, i) => (
                                   <div
                                     key={i}
-                                    className="text-[10px] sm:text-xs text-white/70 flex items-start gap-1.5 sm:gap-2 flex-wrap"
+                                    className="text-[10px] sm:text-xs text-white/70 flex items-start gap-1 sm:gap-2 flex-wrap"
                                   >
                                     <Copy className="h-3 w-3 shrink-0 mt-0.5" />
                                     <span className="break-words flex-1 min-w-0">
@@ -652,7 +652,7 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
                                 setDeleteDialogOpen(true);
                               }}
                               disabled={isDeleting}
-                              className="shrink-0 px-2 sm:px-3 py-1 text-[10px] sm:text-xs rounded-md border border-red-400/30 bg-red-400/10 text-red-200 hover:bg-red-400/20 hover:border-red-400/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400/50 disabled:opacity-50 disabled:pointer-events-none disabled:cursor-not-allowed transition-colors flex items-center gap-1 sm:gap-1.5 w-full sm:w-auto justify-center sm:justify-start self-start sm:self-auto"
+                              className="shrink-0 px-2 sm:px-3 py-1 text-[10px] sm:text-xs rounded-md border border-red-400/30 bg-red-400/10 text-red-200 hover:bg-red-400/20 hover:border-red-400/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400/50 disabled:opacity-50 disabled:pointer-events-none disabled:cursor-not-allowed transition-colors flex items-center gap-1 sm:gap-1 w-full sm:w-auto justify-center sm:justify-start self-start sm:self-auto"
                               title="Remove this duplicate from current list"
                             >
                               {isDeleting ? (
@@ -679,7 +679,7 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
               )}
               {!isLoadingDuplicates && !hasDuplicates && (
                 <div className="text-center py-4 sm:py-6 border border-green-400/20 rounded-lg bg-green-400/5">
-                  <CheckCircle2 className="h-5 w-5 sm:h-6 sm:w-6 text-green-400 mx-auto mb-2" />
+                  <CheckCircle2 className="h-5 w-5 sm:h-6 sm:w-6 text-green-400 mx-auto " />
                   <p className="text-xs sm:text-sm text-white/70 px-2">
                     No duplicate URLs found across your lists!
                   </p>

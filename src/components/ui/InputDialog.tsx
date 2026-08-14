@@ -115,9 +115,7 @@ export function InputDialog({
         </button>
 
         <div className="pr-6 sm:pr-8">
-          <h3 className="text-lg sm:text-xl font-bold text-white mb-2">
-            {title}
-          </h3>
+          <h3 className="text-lg sm:text-xl font-bold text-white ">{title}</h3>
           {description && (
             <p className="text-sm sm:text-base text-white/70 mb-4 sm:mb-6">
               {description}
@@ -125,9 +123,9 @@ export function InputDialog({
           )}
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-3">
           <div>
-            <label className="block text-sm font-medium text-white mb-2">
+            <label className="block text-sm font-medium text-white ">
               {label}
             </label>
             <Input
@@ -146,7 +144,7 @@ export function InputDialog({
             />
           </div>
 
-          <div className="flex justify-end gap-3 pt-2">
+          <div className="flex justify-end gap-2 pt-2">
             <Button
               type="button"
               onClick={handleCancel}

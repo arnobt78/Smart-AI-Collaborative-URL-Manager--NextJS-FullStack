@@ -60,7 +60,7 @@ function MarketingHome() {
             Create and share lists of URLs easily. Perfect for sharing
             resources, bookmarks, and collections with others.
           </p>
-          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-2">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 justify-center px-2">
             <Button
               href="/new"
               className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 hover:from-blue-700 hover:via-purple-700 hover:to-indigo-700 text-white text-base sm:text-lg font-semibold px-6 sm:px-8 py-2 sm:py-3 rounded-xl shadow-md hover:shadow-xl transition-all duration-200 w-full sm:w-auto"
@@ -89,7 +89,7 @@ function MarketingHome() {
               <div className="bg-gradient-to-br from-blue-500/20 to-purple-500/20 backdrop-blur-md rounded-lg sm:rounded-xl p-2.5 sm:p-3 inline-block mb-3 sm:mb-4 group-hover:scale-110 transition-transform duration-300 border border-blue-400/30">
                 {feature.icon}
               </div>
-              <h3 className="text-base sm:text-lg lg:text-xl font-semibold text-white mb-2 sm:mb-3 group-hover:text-blue-400 transition-colors">
+              <h3 className="text-base sm:text-lg lg:text-xl font-semibold text-white  sm:mb-3 group-hover:text-blue-400 transition-colors">
                 {feature.title}
               </h3>
               <p className="text-sm sm:text-base text-white/60 leading-relaxed">
@@ -110,7 +110,7 @@ function MarketingHome() {
             <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-blue-500/20 backdrop-blur-md border border-blue-400/30 text-blue-400 flex items-center justify-center text-base sm:text-lg lg:text-xl font-semibold mx-auto mb-3 sm:mb-4">
               1
             </div>
-            <h3 className="text-base sm:text-lg lg:text-xl font-semibold text-white mb-2">
+            <h3 className="text-base sm:text-lg lg:text-xl font-semibold text-white ">
               Create a List
             </h3>
             <p className="text-sm sm:text-base text-white/60">
@@ -121,7 +121,7 @@ function MarketingHome() {
             <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-purple-500/20 backdrop-blur-md border border-purple-400/30 text-purple-400 flex items-center justify-center text-base sm:text-lg lg:text-xl font-semibold mx-auto mb-3 sm:mb-4">
               2
             </div>
-            <h3 className="text-base sm:text-lg lg:text-xl font-semibold text-white mb-2">
+            <h3 className="text-base sm:text-lg lg:text-xl font-semibold text-white ">
               Add URLs
             </h3>
             <p className="text-sm sm:text-base text-white/60">
@@ -132,7 +132,7 @@ function MarketingHome() {
             <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-indigo-500/20 backdrop-blur-md border border-indigo-400/30 text-indigo-400 flex items-center justify-center text-base sm:text-lg lg:text-xl font-semibold mx-auto mb-3 sm:mb-4">
               3
             </div>
-            <h3 className="text-base sm:text-lg lg:text-xl font-semibold text-white mb-2">
+            <h3 className="text-base sm:text-lg lg:text-xl font-semibold text-white ">
               Share
             </h3>
             <p className="text-sm sm:text-base text-white/60">

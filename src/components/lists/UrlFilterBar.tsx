@@ -81,7 +81,7 @@ export function UrlFilterBar({ sortOption, setSortOption }: UrlFilterBarProps) {
                 setIsFilterDropdownOpen(false);
               }}
               className={`
-                w-full flex items-center gap-2 sm:gap-3 px-2 sm:px-3 py-2 sm:py-2 rounded-lg
+                w-full flex items-center gap-2 sm:gap-2 px-2 sm:px-3 py-2 sm:py-2 rounded-lg
                 text-xs sm:text-sm font-medium transition-all duration-150
                 ${
                   sortOption === "latest"
@@ -103,7 +103,7 @@ export function UrlFilterBar({ sortOption, setSortOption }: UrlFilterBarProps) {
                 setIsFilterDropdownOpen(false);
               }}
               className={`
-                w-full flex items-center gap-2 sm:gap-3 px-2 sm:px-3 py-2 sm:py-2 rounded-lg
+                w-full flex items-center gap-2 sm:gap-2 px-2 sm:px-3 py-2 sm:py-2 rounded-lg
                 text-xs sm:text-sm font-medium transition-all duration-150
                 ${
                   sortOption === "oldest"
@@ -125,7 +125,7 @@ export function UrlFilterBar({ sortOption, setSortOption }: UrlFilterBarProps) {
                 setIsFilterDropdownOpen(false);
               }}
               className={`
-                w-full flex items-center gap-2 sm:gap-3 px-2 sm:px-3 py-2 sm:py-2 rounded-lg
+                w-full flex items-center gap-2 sm:gap-2 px-2 sm:px-3 py-2 sm:py-2 rounded-lg
                 text-xs sm:text-sm font-medium transition-all duration-150
                 ${
                   sortOption === "az"
@@ -147,7 +147,7 @@ export function UrlFilterBar({ sortOption, setSortOption }: UrlFilterBarProps) {
                 setIsFilterDropdownOpen(false);
               }}
               className={`
-                w-full flex items-center gap-2 sm:gap-3 px-2 sm:px-3 py-2 sm:py-2 rounded-lg
+                w-full flex items-center gap-2 sm:gap-2 px-2 sm:px-3 py-2 sm:py-2 rounded-lg
                 text-xs sm:text-sm font-medium transition-all duration-150
                 ${
                   sortOption === "za"
@@ -179,7 +179,7 @@ export function UrlFilterBar({ sortOption, setSortOption }: UrlFilterBarProps) {
                 setIsFilterDropdownOpen(false);
               }}
               className={`
-                w-full flex items-center gap-2 sm:gap-3 px-2 sm:px-3 py-2 sm:py-2 rounded-lg
+                w-full flex items-center gap-2 sm:gap-2 px-2 sm:px-3 py-2 sm:py-2 rounded-lg
                 text-xs sm:text-sm font-medium transition-all duration-150
                 ${
                   sortOption === "favourite"
@@ -201,7 +201,7 @@ export function UrlFilterBar({ sortOption, setSortOption }: UrlFilterBarProps) {
                 setIsFilterDropdownOpen(false);
               }}
               className={`
-                w-full flex items-center gap-2 sm:gap-3 px-2 sm:px-3 py-2 sm:py-2 rounded-lg
+                w-full flex items-center gap-2 sm:gap-2 px-2 sm:px-3 py-2 sm:py-2 rounded-lg
                 text-xs sm:text-sm font-medium transition-all duration-150
                 ${
                   sortOption === "reminders"

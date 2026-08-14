@@ -152,7 +152,7 @@ export default function ListsPageClient() {
         )}
       </div>
 
-      <div className="mt-8 space-y-4">
+      <div className="mt-8 space-y-3">
         {isLoading && lists.length === 0 ? (
           // Skeleton only when no cached lists (warm cache → no flash)
           <>
@@ -169,7 +169,7 @@ export default function ListsPageClient() {
                   <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-3">
                     <div className="flex-1 min-w-0">
                       {/* Title with badges skeleton */}
-                      <div className="flex items-start gap-2 sm:gap-3 flex-wrap mb-2">
+                      <div className="flex items-start gap-2 sm:gap-2 flex-wrap ">
                         {/* Title skeleton */}
                         <div className="h-6 sm:h-7 md:h-8 bg-white/10 rounded w-48 sm:w-64" />
                         {/* Visibility Badge skeleton */}
@@ -181,30 +181,30 @@ export default function ListsPageClient() {
                       <div className="h-4 bg-white/10 rounded w-3/4 mb-3" />
 
                       {/* Stats Row skeleton */}
-                      <div className="flex flex-wrap items-center gap-3 sm:gap-4">
+                      <div className="flex flex-wrap items-center gap-2 sm:gap-4">
                         {/* URL Count badge skeleton */}
-                        <div className="flex items-center gap-1.5 bg-white/5 px-2 py-1 rounded-lg border border-white/10">
+                        <div className="flex items-center gap-1 bg-white/5 px-2 py-1 rounded-lg border border-white/10">
                           <div className="h-3.5 w-3.5 sm:h-4 sm:w-4 bg-white/10 rounded" />
                           <div className="h-4 bg-white/10 rounded w-6" />
                           <div className="h-4 bg-white/10 rounded w-12 hidden sm:block" />
                         </div>
 
                         {/* Collaborators badge skeleton */}
-                        <div className="flex items-center gap-1.5 bg-white/5 px-2 py-1 rounded-lg border border-white/10">
+                        <div className="flex items-center gap-1 bg-white/5 px-2 py-1 rounded-lg border border-white/10">
                           <div className="h-3.5 w-3.5 sm:h-4 sm:w-4 bg-white/10 rounded" />
                           <div className="h-4 bg-white/10 rounded w-4" />
                           <div className="h-4 bg-white/10 rounded w-16 hidden sm:block" />
                         </div>
 
                         {/* Created Date skeleton */}
-                        <div className="flex items-center gap-1.5">
+                        <div className="flex items-center gap-1">
                           <div className="h-3.5 w-3.5 sm:h-4 sm:w-4 bg-white/10 rounded" />
                           <div className="h-4 bg-white/10 rounded w-12 hidden sm:block" />
                           <div className="h-4 bg-white/10 rounded w-20" />
                         </div>
 
                         {/* Updated Date skeleton */}
-                        <div className="flex items-center gap-1.5">
+                        <div className="flex items-center gap-1">
                           <div className="h-3.5 w-3.5 sm:h-4 sm:w-4 bg-white/10 rounded" />
                           <div className="h-4 bg-white/10 rounded w-12 hidden sm:block" />
                           <div className="h-4 bg-white/10 rounded w-16" />
@@ -245,7 +245,7 @@ export default function ListsPageClient() {
                   <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-3">
                     <div className="flex-1 min-w-0">
                       {/* Title with badges */}
-                      <div className="flex items-start gap-2 sm:gap-3 flex-wrap mb-2">
+                      <div className="flex items-start gap-2 sm:gap-2 flex-wrap ">
                         <button
                           type="button"
                           onClick={() => router.push(`/list/${list.slug}`)}
@@ -284,9 +284,9 @@ export default function ListsPageClient() {
                       )}
 
                       {/* Stats Row */}
-                      <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-xs sm:text-sm">
+                      <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm">
                         {/* URL Count */}
-                        <span className="flex items-center gap-1.5 text-white/80 bg-white/5 px-2 py-1 rounded-lg border border-white/10">
+                        <span className="flex items-center gap-1 text-white/80 bg-white/5 px-2 py-1 rounded-lg border border-white/10">
                           <LinkIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-400" />
                           <span className="font-medium">{urlCount}</span>
                           <span className="text-white/60 hidden sm:inline">
@@ -296,7 +296,7 @@ export default function ListsPageClient() {
 
                         {/* Collaborators Count */}
                         {collaboratorCount > 0 && (
-                          <span className="flex items-center gap-1.5 text-white/80 bg-white/5 px-2 py-1 rounded-lg border border-white/10">
+                          <span className="flex items-center gap-1 text-white/80 bg-white/5 px-2 py-1 rounded-lg border border-white/10">
                             <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-purple-400" />
                             <span className="font-medium">
                               {collaboratorCount}
@@ -311,7 +311,7 @@ export default function ListsPageClient() {
 
                         {/* Created Date */}
                         {createdDate && (
-                          <span className="flex items-center gap-1.5 text-white/60">
+                          <span className="flex items-center gap-1 text-white/60">
                             <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-green-400" />
                             <span className="hidden sm:inline">Created</span>
                             <span className="font-medium">
@@ -325,7 +325,7 @@ export default function ListsPageClient() {
                           <>
                             {new Date(updatedDate).getTime() !==
                               new Date(createdDate).getTime() && (
-                              <span className="flex items-center gap-1.5 text-white/60">
+                              <span className="flex items-center gap-1 text-white/60">
                                 <Clock className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-orange-400" />
                                 <span className="hidden sm:inline">
                                   Updated

@@ -105,7 +105,7 @@ export default function EditListPageClient() {
       <div className="min-h-screen w-full">
         {/* Header Skeleton */}
         <div className="text-left mb-4">
-          <div className="h-8 bg-white/10 rounded w-48 mb-2 animate-pulse" />
+          <div className="h-8 bg-white/10 rounded w-48  animate-pulse" />
           <div className="h-5 bg-white/10 rounded w-96 animate-pulse" />
         </div>
 
@@ -115,29 +115,29 @@ export default function EditListPageClient() {
             <div className="space-y-6 sm:space-y-8 animate-pulse">
               {/* Title Field Skeleton */}
               <div className="space-y-2">
-                <label className="flex text-base sm:text-lg font-semibold mb-2 items-center gap-2">
+                <label className="flex text-base sm:text-lg font-semibold  items-center gap-2">
                   <div className="w-1.5 h-1.5 rounded-full bg-white/10" />
                   <div className="h-5 bg-white/10 rounded w-16" />
                   <div className="h-5 w-2 bg-white/10 rounded" />
                 </label>
-                <div className="w-full border border-white/20 bg-white/10 backdrop-blur-md rounded-xl px-2 sm:px-4 py-2 sm:py-3 h-12" />
+                <div className="w-full border border-white/20 bg-white/10 backdrop-blur-md rounded-xl px-2 sm:px-3 py-2 sm:py-3 h-12" />
                 <div className="h-4 bg-white/10 rounded w-40" />
               </div>
 
               {/* Description Field Skeleton */}
               <div className="space-y-2">
-                <label className="flex text-base sm:text-lg font-semibold mb-2 items-center gap-2">
+                <label className="flex text-base sm:text-lg font-semibold  items-center gap-2">
                   <div className="w-1.5 h-1.5 rounded-full bg-white/10" />
                   <div className="h-5 bg-white/10 rounded w-24" />
                   <div className="h-4 bg-white/10 rounded w-16" />
                 </label>
-                <div className="w-full border border-white/20 bg-white/10 backdrop-blur-md rounded-xl px-2 sm:px-4 py-2 sm:py-3 h-24" />
+                <div className="w-full border border-white/20 bg-white/10 backdrop-blur-md rounded-xl px-2 sm:px-3 py-2 sm:py-3 h-24" />
                 <div className="h-4 bg-white/10 rounded w-56" />
               </div>
 
               {/* Visibility Toggle Skeleton */}
               <div className="bg-white/5 border border-white/10 rounded-xl p-4 sm:p-5">
-                <div className="flex items-start gap-3">
+                <div className="flex items-start gap-2">
                   <div className="h-5 w-5 mt-0.5 border border-white/30 rounded bg-white/10" />
                   <div className="flex-1">
                     <div className="h-5 bg-white/10 rounded w-40 mb-1" />
@@ -147,7 +147,7 @@ export default function EditListPageClient() {
               </div>
 
               {/* Action Buttons Skeleton */}
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3 sm:gap-4 pt-4">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-2 sm:gap-4 pt-4">
                 <div className="h-12 bg-white/10 rounded border border-white/30 w-full sm:w-auto order-2 sm:order-1" />
                 <div className="h-12 bg-white/10 rounded w-full sm:w-auto order-1 sm:order-2" />
               </div>
@@ -178,13 +178,13 @@ export default function EditListPageClient() {
         <div className="relative z-10">
           <form
             onSubmit={handleSubmit}
-            className="space-y-4 sm:space-y-6 lg:space-y-8"
+            className="space-y-3 sm:space-y-6 lg:space-y-8"
           >
             {/* Title Field */}
             <div className="space-y-2">
               <label
                 htmlFor="title"
-                className="flex text-sm sm:text-base lg:text-lg font-semibold text-white mb-2 items-center gap-2"
+                className="flex text-sm sm:text-base lg:text-lg font-semibold text-white  items-center gap-2"
               >
                 <span className="w-1.5 h-1.5 rounded-full bg-blue-400"></span>
                 Title <span className="text-red-400">*</span>
@@ -196,7 +196,7 @@ export default function EditListPageClient() {
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="e.g., My Favorite Resources"
                 required
-                className="w-full border border-white/20 bg-white/10 backdrop-blur-md rounded-lg sm:rounded-xl px-2 sm:px-4 lg:px-5 py-2 sm:py-3 text-sm sm:text-base lg:text-lg text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-400/50 transition-all duration-200 shadow-inner"
+                className="w-full border border-white/20 bg-white/10 backdrop-blur-md rounded-lg sm:rounded-xl px-2 sm:px-3 py-2 sm:py-3 text-sm sm:text-base lg:text-lg text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-400/50 transition-all duration-200 shadow-inner"
               />
               <p className="text-xs sm:text-sm text-white/50">
                 Give your list a memorable name
@@ -207,7 +207,7 @@ export default function EditListPageClient() {
             <div className="space-y-2">
               <label
                 htmlFor="description"
-                className="flex text-sm sm:text-base lg:text-lg font-semibold text-white mb-2 items-center gap-2"
+                className="flex text-sm sm:text-base lg:text-lg font-semibold text-white  items-center gap-2"
               >
                 <span className="w-1.5 h-1.5 rounded-full bg-pink-400"></span>
                 Description{" "}
@@ -219,7 +219,7 @@ export default function EditListPageClient() {
                 id="description"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                className="text-sm sm:text-base lg:text-lg shadow-inner font-delicious rounded-lg sm:rounded-xl border border-white/20 bg-white/10 backdrop-blur-md focus:ring-2 focus:ring-pink-500 focus:border-pink-400/50 transition-all duration-200 px-2 sm:px-4 py-2 sm:py-3"
+                className="text-sm sm:text-base lg:text-lg shadow-inner font-delicious rounded-lg sm:rounded-xl border border-white/20 bg-white/10 backdrop-blur-md focus:ring-2 focus:ring-pink-500 focus:border-pink-400/50 transition-all duration-200 px-2 sm:px-3 py-2 sm:py-3"
                 placeholder="Describe what this list is about..."
                 rows={4}
               />
@@ -230,7 +230,7 @@ export default function EditListPageClient() {
 
             {/* Visibility Toggle */}
             <div className="bg-white/5 border border-white/10 rounded-lg sm:rounded-xl p-3 sm:p-4 lg:p-5">
-              <div className="flex items-start gap-2 sm:gap-3">
+              <div className="flex items-start gap-2 sm:gap-2">
                 <input
                   type="checkbox"
                   checked={isPublic}
@@ -262,7 +262,7 @@ export default function EditListPageClient() {
             )}
 
             {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3 sm:gap-4 pt-4">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-2 sm:gap-4 pt-4">
               <Button
                 type="button"
                 variant="outline"

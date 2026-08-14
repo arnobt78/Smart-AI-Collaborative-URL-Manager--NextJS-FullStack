@@ -13,7 +13,7 @@ export default function AboutPage() {
             collaboration, AI-powered organization, and beautiful
             visualizations.
           </p>
-          <h2 className="text-xl sm:text-2xl font-semibold text-white mt-6 sm:mt-8 mb-2 sm:mb-4">
+          <h2 className="text-xl sm:text-2xl font-semibold text-white mt-6 sm:mt-8  sm:mb-4">
             Our Mission
           </h2>
           <p className="text-base sm:text-lg text-white/80 mb-4 sm:mb-6">
@@ -23,7 +23,7 @@ export default function AboutPage() {
             provides you with the tools to manage your digital resources
             effectively.
           </p>
-          <h2 className="text-xl sm:text-2xl font-semibold text-white mt-6 sm:mt-8 mb-2 sm:mb-4">
+          <h2 className="text-xl sm:text-2xl font-semibold text-white mt-6 sm:mt-8  sm:mb-4">
             Features
           </h2>
           <ul className="list-disc list-inside text-base sm:text-lg text-white/80 mb-4 sm:mb-6 space-y-2">
@@ -44,7 +44,7 @@ export default function AboutPage() {
             <li>Business insights and analytics for your URLs and lists</li>
             <li>Secure authentication and data protection</li>
           </ul>
-          <h2 className="text-xl sm:text-2xl font-semibold text-white mt-6 sm:mt-8 mb-2 sm:mb-4">
+          <h2 className="text-xl sm:text-2xl font-semibold text-white mt-6 sm:mt-8  sm:mb-4">
             Contact
           </h2>
           <p className="text-base sm:text-lg text-white/80">

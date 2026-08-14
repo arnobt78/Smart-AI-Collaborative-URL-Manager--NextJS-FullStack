@@ -1,7 +1,12 @@
 "use client";
 
 import type { HealthStatus } from "@/lib/jobs/url-health";
-import { CheckCircleIcon, ExclamationTriangleIcon, XCircleIcon, QuestionMarkCircleIcon } from "@heroicons/react/24/outline";
+import {
+  CheckCircleIcon,
+  ExclamationTriangleIcon,
+  XCircleIcon,
+  QuestionMarkCircleIcon,
+} from "@heroicons/react/24/outline";
 import { HoverTooltip } from "@/components/ui/HoverTooltip";
 
 interface UrlHealthIndicatorProps {
@@ -86,20 +91,20 @@ export function UrlHealthIndicator({
   // Build detailed tooltip message
   const buildTooltipMessage = () => {
     const parts: string[] = [];
-    
+
     // Status label
     parts.push(`Status: ${config.label}`);
-    
+
     // HTTP status code
     if (httpStatus) {
       parts.push(`HTTP ${httpStatus}`);
     }
-    
+
     // Response time
     if (responseTime) {
       parts.push(`${responseTime}ms`);
     }
-    
+
     // Last checked
     if (checkedAt) {
       const checkedTime = formatCheckedAt(checkedAt);
@@ -107,14 +112,18 @@ export function UrlHealthIndicator({
         parts.push(`Checked: ${checkedTime}`);
       }
     }
-    
+
     return parts.join(" • ");
   };
 
   return (
-    <HoverTooltip message={buildTooltipMessage()} position="top" usePortal={true}>
+    <HoverTooltip
+      message={buildTooltipMessage()}
+      position="top"
+      usePortal={true}
+    >
       <div
-        className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-md ${config.bgColor} ${config.borderColor} border transition-colors cursor-help`}
+        className={`inline-flex items-center gap-1 px-2 py-1 rounded-md ${config.bgColor} ${config.borderColor} border transition-colors cursor-help`}
       >
         <Icon className={`h-4 w-4 ${config.color}`} />
         {showDetails && (
@@ -137,4 +146,3 @@ export function UrlHealthIndicator({
     </HoverTooltip>
   );
 }
-

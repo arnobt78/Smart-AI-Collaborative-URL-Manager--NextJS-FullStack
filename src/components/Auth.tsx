@@ -342,7 +342,7 @@ export default function Auth() {
             </div>
 
             {/* Typewriter Container */}
-            <div className="flex flex-col items-center gap-3 sm:gap-4 px-2 sm:px-4">
+            <div className="flex flex-col items-center gap-2 sm:gap-4 px-2 sm:px-3">
               <div className="bg-[rgba(20,20,30,0.8)] border-2 border-[#7b8ebc] rounded-xl sm:rounded-2xl px-4 sm:px-6 py-3 sm:py-4 shadow-[0_8px_32px_rgba(0,0,0,0.3)] backdrop-blur-md max-w-2xl w-full">
                 <pre className="font-mono text-base sm:text-lg lg:text-xl xl:text-2xl text-[#00ff99] drop-shadow-[0_0_10px_rgba(0,255,153,0.5)] whitespace-pre-wrap leading-tight">
                   {typewriterText}
@@ -384,7 +384,7 @@ export default function Auth() {
                 publicAsset
               />
             </div>
-            <h2 className="text-2xl sm:text-3xl font-bold text-white mb-1 sm:mb-2">
+            <h2 className="text-2xl sm:text-3xl font-bold text-white mb-1 sm:">
               Sign In
             </h2>
             <p className="text-sm sm:text-base text-gray-300">
@@ -392,13 +392,13 @@ export default function Auth() {
             </p>
           </div>
 
-          <form className="space-y-4 sm:space-y-6">
+          <form className="space-y-3 sm:space-y-6">
             {/* Guest Select — fixed lead slot + always-visible Clear (no layout shift) */}
             <div className="relative" ref={guestDropdownRef}>
               <button
                 type="button"
                 onClick={() => setIsGuestDropdownOpen(!isGuestDropdownOpen)}
-                className="w-full rounded-lg sm:rounded-xl border border-white/20 bg-white/10 backdrop-blur-md px-2 sm:px-4 py-2 sm:py-3 text-sm sm:text-base text-white focus:outline-none focus:ring-2 focus:ring-[#00ff99] focus:border-transparent transition-colors min-h-[48px] flex items-center justify-between cursor-pointer gap-2"
+                className="w-full rounded-lg sm:rounded-xl border border-white/20 bg-white/10 backdrop-blur-md px-2 sm:px-3 py-2 sm:py-3 text-sm sm:text-base text-white focus:outline-none focus:ring-2 focus:ring-[#00ff99] focus:border-transparent transition-colors min-h-[48px] flex items-center justify-between cursor-pointer gap-2"
               >
                 <span className="flex min-w-0 flex-1 items-center gap-2">
                   {/* Fixed 28px lead — Users or avatar share the same footprint */}
@@ -446,7 +446,7 @@ export default function Auth() {
                         setSelectedGuestId(account.id);
                         setIsGuestDropdownOpen(false);
                       }}
-                      className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-white/80 hover:bg-white/10 hover:text-white transition-colors duration-150 text-left cursor-pointer"
+                      className="w-full flex items-center gap-2 px-4 py-3 text-sm font-medium text-white/80 hover:bg-white/10 hover:text-white transition-colors duration-150 text-left cursor-pointer"
                     >
                       <UserAvatar
                         seed={account.email}
@@ -475,7 +475,7 @@ export default function Auth() {
                       setSelectedGuestId(null);
                       setIsGuestDropdownOpen(false);
                     }}
-                    className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-left border-t border-white/10 transition-colors duration-150 ${
+                    className={`w-full flex items-center gap-2 px-4 py-3 text-sm font-medium text-left border-t border-white/10 transition-colors duration-150 ${
                       selectedGuestId
                         ? "text-white/80 hover:bg-white/10 hover:text-white cursor-pointer"
                         : "text-white/30 cursor-not-allowed"
@@ -496,7 +496,7 @@ export default function Auth() {
                   setEmail(e.target.value);
                   setSelectedGuestId(null);
                 }}
-                className="w-full min-h-[48px] rounded-lg sm:rounded-xl border border-white/20 bg-white/10 backdrop-blur-md px-2 sm:px-4 py-2 sm:py-3 text-sm sm:text-base text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00ff99] focus:border-transparent transition-colors box-border"
+                className="w-full min-h-[48px] rounded-lg sm:rounded-xl border border-white/20 bg-white/10 backdrop-blur-md px-2 sm:px-3 py-2 sm:py-3 text-sm sm:text-base text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00ff99] focus:border-transparent transition-colors box-border"
                 placeholder="Email address"
               />
             </div>
@@ -509,12 +509,12 @@ export default function Auth() {
                   setPassword(e.target.value);
                   setSelectedGuestId(null);
                 }}
-                className="w-full min-h-[48px] rounded-lg sm:rounded-xl border border-white/20 bg-white/10 backdrop-blur-md px-2 sm:px-4 py-2 sm:py-3 text-sm sm:text-base text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00ff99] focus:border-transparent transition-colors box-border"
+                className="w-full min-h-[48px] rounded-lg sm:rounded-xl border border-white/20 bg-white/10 backdrop-blur-md px-2 sm:px-3 py-2 sm:py-3 text-sm sm:text-base text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00ff99] focus:border-transparent transition-colors box-border"
                 placeholder="Password"
               />
             </div>
 
-            <div className="space-y-3 sm:space-y-4">
+            <div className="space-y-2 sm:space-y-3">
               <button
                 type="submit"
                 onClick={handleSignIn}

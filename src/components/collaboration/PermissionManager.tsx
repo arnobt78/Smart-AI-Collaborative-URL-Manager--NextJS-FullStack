@@ -226,7 +226,7 @@ export function PermissionManager({
       size="sm"
       onClick={() => setInviteDialogOpen(true)}
       disabled={!canInvite} // Disable for viewers
-      className="flex items-center gap-1.5 sm:gap-2 border-white/20 bg-white/5 text-white hover:bg-white/10 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed text-xs sm:text-sm px-2 sm:px-4 py-1 sm:py-2 w-full sm:w-auto shrink-0"
+      className="flex items-center gap-1 sm:gap-2 border-white/20 bg-white/5 text-white hover:bg-white/10 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2 w-full sm:w-auto shrink-0"
     >
       <UserPlus className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
       <span>Add Collaborator</span>
@@ -236,10 +236,10 @@ export function PermissionManager({
   const isEmpty = !isLoading && collaborators.length === 0;
 
   return (
-    <div className={isEmpty ? undefined : "space-y-3 sm:space-y-4"}>
+    <div className={isEmpty ? undefined : "space-y-2 sm:space-y-3"}>
       {/* Empty: one compact row — title | invite copy | Add. Populated/loading: header + list */}
       {isEmpty ? (
-        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-2">
           <div className="flex items-center gap-2 shrink-0">
             <Shield className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
             <h3 className="text-base sm:text-lg font-semibold text-white">
@@ -300,7 +300,7 @@ export function PermissionManager({
                     className="bg-white/5 border border-white/10 rounded-lg p-3 sm:p-4 hover:bg-white/10 transition-colors"
                   >
                     <div className="flex items-center justify-between gap-2 sm:gap-0">
-                      <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+                      <div className="flex items-center gap-2 sm:gap-2 flex-1 min-w-0">
                         <div className="flex-shrink-0 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-purple-500/30 to-blue-500/30 border border-purple-400/50 flex items-center justify-center">
                           <Mail className="h-4 w-4 sm:h-5 sm:w-5 text-purple-200" />
                         </div>
@@ -322,7 +322,7 @@ export function PermissionManager({
                           </div>
                         </div>
                       </div>
-                      <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
+                      <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
                         {expandedCollaborator === collaborator.email ? (
                           <Button
                             variant="ghost"
@@ -429,7 +429,7 @@ export function PermissionManager({
                   <X className="h-5 w-5" />
                 </button>
                 <div className="pr-8 mb-6">
-                  <h3 className="text-xl font-bold text-white mb-2">
+                  <h3 className="text-xl font-bold text-white ">
                     Add Collaborator
                   </h3>
                   <p className="text-white/70">
@@ -437,9 +437,9 @@ export function PermissionManager({
                     receive an email invitation.
                   </p>
                 </div>
-                <div className="space-y-4">
+                <div className="space-y-3">
                   <div>
-                    <label className="block text-sm font-medium text-white mb-2">
+                    <label className="block text-sm font-medium text-white ">
                       Email Address
                     </label>
                     <Input
@@ -461,7 +461,7 @@ export function PermissionManager({
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-white mb-2">
+                    <label className="block text-sm font-medium text-white ">
                       Role
                     </label>
                     <div className="flex gap-2">
@@ -499,7 +499,7 @@ export function PermissionManager({
                       </button>
                     </div>
                   </div>
-                  <div className="flex justify-end gap-3 pt-2">
+                  <div className="flex justify-end gap-2 pt-2">
                     <Button
                       type="button"
                       onClick={() => {
@@ -554,7 +554,7 @@ export function PermissionManager({
                   <X className="h-5 w-5" />
                 </button>
                 <div className="pr-8">
-                  <h3 className="text-xl font-bold text-white mb-2">
+                  <h3 className="text-xl font-bold text-white ">
                     Change Collaborator Role
                   </h3>
                   <p className="text-white/70 mb-6">
@@ -605,7 +605,7 @@ export function PermissionManager({
                     </div>
                   </button>
                 </div>
-                <div className="flex justify-end gap-3">
+                <div className="flex justify-end gap-2">
                   <button
                     onClick={() =>
                       setRoleChangeDialog({

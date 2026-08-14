@@ -5,7 +5,7 @@ function BrowsePageSkeleton() {
   return (
     <main className="min-h-screen">
       <div className="mb-8">
-        <div className="h-12 bg-white/10 rounded mb-2 animate-pulse" />
+        <div className="h-12 bg-white/10 rounded  animate-pulse" />
         <div className="h-6 bg-white/10 rounded w-2/3 animate-pulse" />
       </div>
     </main>

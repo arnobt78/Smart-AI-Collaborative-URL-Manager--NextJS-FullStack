@@ -57,7 +57,7 @@ const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
   if (active && payload && payload.length) {
     return (
       <div className="bg-gray-900 border border-white/20 rounded-lg p-3 shadow-lg">
-        <p className="text-white/60 text-sm mb-2">{label || ""}</p>
+        <p className="text-white/60 text-sm ">{label || ""}</p>
         {payload.map((entry, index) => (
           <p
             key={index}
@@ -207,7 +207,7 @@ export function GlobalStats({ data, isLoading }: GlobalStatsProps) {
             <CardTitle className="text-xs sm:text-sm font-medium text-white/70">
               List Distribution
             </CardTitle>
-            <div className="flex gap-1.5 sm:gap-2">
+            <div className="flex gap-1 sm:gap-2">
               <Globe className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-green-400" />
               <Lock className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-yellow-400" />
             </div>
@@ -273,7 +273,11 @@ export function GlobalStats({ data, isLoading }: GlobalStatsProps) {
                   height={60}
                   interval="preserveStartEnd"
                 />
-                <YAxis stroke="#ffffff60" style={{ fontSize: "10px" }} className="text-[10px] sm:text-xs" />
+                <YAxis
+                  stroke="#ffffff60"
+                  style={{ fontSize: "10px" }}
+                  className="text-[10px] sm:text-xs"
+                />
                 <Tooltip content={<CustomTooltip />} />
                 <Legend
                   wrapperStyle={{ color: "#ffffff60", fontSize: "10px" }}

@@ -115,7 +115,7 @@ export default function NewListPageClient() {
       <div className="min-h-screen w-full">
         {/* Header Skeleton */}
         <div className="text-left mb-4">
-          <div className="h-8 bg-white/10 rounded w-56 mb-2 animate-pulse" />
+          <div className="h-8 bg-white/10 rounded w-56  animate-pulse" />
           <div className="h-5 bg-white/10 rounded w-96 animate-pulse" />
         </div>
 
@@ -125,56 +125,56 @@ export default function NewListPageClient() {
             <div className="space-y-6 sm:space-y-8 animate-pulse">
               {/* Title Field Skeleton */}
               <div className="space-y-2">
-                <label className="flex text-base sm:text-lg font-semibold mb-2 items-center gap-2">
+                <label className="flex text-base sm:text-lg font-semibold  items-center gap-2">
                   <div className="w-1.5 h-1.5 rounded-full bg-white/10" />
                   <div className="h-5 bg-white/10 rounded w-16" />
                   <div className="h-5 w-2 bg-white/10 rounded" />
                 </label>
-                <div className="w-full border border-white/20 bg-white/10 backdrop-blur-md rounded-xl px-2 sm:px-4 py-2 sm:py-3 h-12" />
+                <div className="w-full border border-white/20 bg-white/10 backdrop-blur-md rounded-xl px-2 sm:px-3 py-2 sm:py-3 h-12" />
                 <div className="h-4 bg-white/10 rounded w-40" />
               </div>
 
               {/* Custom Slug Field Skeleton */}
               <div className="space-y-2">
-                <label className="flex text-base sm:text-lg font-semibold mb-2 items-center gap-2">
+                <label className="flex text-base sm:text-lg font-semibold  items-center gap-2">
                   <div className="w-1.5 h-1.5 rounded-full bg-white/10" />
                   <div className="h-5 bg-white/10 rounded w-28" />
                   <div className="h-4 bg-white/10 rounded w-16" />
                 </label>
                 <div className="relative">
                   <div className="absolute left-4 top-1/2 -translate-y-1/2 h-4 bg-white/10 rounded w-12" />
-                  <div className="w-full border border-white/20 bg-white/10 backdrop-blur-md rounded-xl px-2 sm:px-4 pl-20 py-2 sm:py-3 h-12" />
+                  <div className="w-full border border-white/20 bg-white/10 backdrop-blur-md rounded-xl px-2 sm:px-3 pl-20 py-2 sm:py-3 h-12" />
                 </div>
                 <div className="h-4 bg-white/10 rounded w-64" />
               </div>
 
               {/* First URL Field Skeleton */}
               <div className="space-y-2">
-                <label className="flex text-base sm:text-lg font-semibold mb-2 items-center gap-2">
+                <label className="flex text-base sm:text-lg font-semibold  items-center gap-2">
                   <div className="w-1.5 h-1.5 rounded-full bg-white/10" />
                   <div className="h-5 bg-white/10 rounded w-20" />
                   <div className="h-4 bg-white/10 rounded w-16" />
                 </label>
-                <div className="space-y-3">
-                  <div className="w-full border border-white/20 bg-white/10 backdrop-blur-md rounded-xl px-2 sm:px-4 py-2 sm:py-3 h-12" />
+                <div className="space-y-2">
+                  <div className="w-full border border-white/20 bg-white/10 backdrop-blur-md rounded-xl px-2 sm:px-3 py-2 sm:py-3 h-12" />
                 </div>
                 <div className="h-4 bg-white/10 rounded w-64" />
               </div>
 
               {/* Description Field Skeleton */}
               <div className="space-y-2">
-                <label className="flex text-base sm:text-lg font-semibold mb-2 items-center gap-2">
+                <label className="flex text-base sm:text-lg font-semibold  items-center gap-2">
                   <div className="w-1.5 h-1.5 rounded-full bg-white/10" />
                   <div className="h-5 bg-white/10 rounded w-24" />
                   <div className="h-4 bg-white/10 rounded w-16" />
                 </label>
-                <div className="w-full border border-white/20 bg-white/10 backdrop-blur-md rounded-xl px-2 sm:px-4 py-2 sm:py-3 h-24" />
+                <div className="w-full border border-white/20 bg-white/10 backdrop-blur-md rounded-xl px-2 sm:px-3 py-2 sm:py-3 h-24" />
                 <div className="h-4 bg-white/10 rounded w-56" />
               </div>
 
               {/* Visibility Toggle Skeleton */}
               <div className="bg-white/5 border border-white/10 rounded-xl p-4 sm:p-5">
-                <div className="flex items-start gap-3">
+                <div className="flex items-start gap-2">
                   <div className="h-5 w-5 mt-0.5 border border-white/30 rounded bg-white/10" />
                   <div className="flex-1">
                     <div className="h-5 bg-white/10 rounded w-40 mb-1" />
@@ -216,10 +216,10 @@ export default function NewListPageClient() {
         <div className="relative z-10">
           <form
             onSubmit={handleSubmit}
-            className="space-y-4 sm:space-y-6 lg:space-y-8"
+            className="space-y-3 sm:space-y-6 lg:space-y-8"
           >
             <div className="space-y-2">
-              <label className="flex text-sm sm:text-base lg:text-lg font-semibold text-white mb-2 items-center gap-2">
+              <label className="flex text-sm sm:text-base lg:text-lg font-semibold text-white  items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-blue-400"></span>
                 Title <span className="text-red-400">*</span>
               </label>
@@ -229,7 +229,7 @@ export default function NewListPageClient() {
                 onChange={(e) =>
                   setFormData({ ...formData, title: e.target.value })
                 }
-                className="w-full border border-white/20 bg-white/10 backdrop-blur-md rounded-lg sm:rounded-xl px-2 sm:px-4 lg:px-5 py-2 sm:py-3 text-sm sm:text-base lg:text-lg text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-400/50 transition-all duration-200 shadow-inner"
+                className="w-full border border-white/20 bg-white/10 backdrop-blur-md rounded-lg sm:rounded-xl px-2 sm:px-3 py-2 sm:py-3 text-sm sm:text-base lg:text-lg text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-400/50 transition-all duration-200 shadow-inner"
                 placeholder="e.g., My Favorite Resources"
                 required
               />
@@ -238,7 +238,7 @@ export default function NewListPageClient() {
               </p>
             </div>
             <div className="space-y-2">
-              <label className="flex text-sm sm:text-base lg:text-lg font-semibold text-white mb-2 items-center gap-2">
+              <label className="flex text-sm sm:text-base lg:text-lg font-semibold text-white  items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-purple-400"></span>
                 Custom Slug{" "}
                 <span className="text-xs font-normal text-white/50">
@@ -255,7 +255,7 @@ export default function NewListPageClient() {
                   onChange={(e) =>
                     setFormData({ ...formData, slug: e.target.value })
                   }
-                  className="w-full border border-white/20 bg-white/10 backdrop-blur-md rounded-lg sm:rounded-xl px-2 sm:px-4 lg:px-5 pl-16 sm:pl-20 py-2 sm:py-3 text-sm sm:text-base lg:text-lg text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-400/50 transition-all duration-200 shadow-inner"
+                  className="w-full border border-white/20 bg-white/10 backdrop-blur-md rounded-lg sm:rounded-xl px-2 sm:px-3 pl-16 sm:pl-20 py-2 sm:py-3 text-sm sm:text-base lg:text-lg text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-400/50 transition-all duration-200 shadow-inner"
                   placeholder="custom-slug"
                 />
               </div>
@@ -264,21 +264,21 @@ export default function NewListPageClient() {
               </p>
             </div>
             <div className="space-y-2">
-              <label className="flex text-sm sm:text-base lg:text-lg font-semibold text-white mb-2 items-center gap-2">
+              <label className="flex text-sm sm:text-base lg:text-lg font-semibold text-white  items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-indigo-400"></span>
                 First URL{" "}
                 <span className="text-xs font-normal text-white/50">
                   (optional)
                 </span>
               </label>
-              <div className="space-y-3">
+              <div className="space-y-2">
                 <input
                   type="url"
                   value={formData.url}
                   onChange={(e) =>
                     setFormData({ ...formData, url: e.target.value })
                   }
-                  className="w-full border border-white/20 bg-white/10 backdrop-blur-md rounded-lg sm:rounded-xl px-2 sm:px-4 lg:px-5 py-2 sm:py-3 text-sm sm:text-base lg:text-lg text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400/50 transition-all duration-200 shadow-inner"
+                  className="w-full border border-white/20 bg-white/10 backdrop-blur-md rounded-lg sm:rounded-xl px-2 sm:px-3 py-2 sm:py-3 text-sm sm:text-base lg:text-lg text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400/50 transition-all duration-200 shadow-inner"
                   placeholder="https://example.com"
                 />
                 {formData.url && (
@@ -308,7 +308,7 @@ export default function NewListPageClient() {
               </p>
             </div>
             <div className="space-y-2">
-              <label className="flex text-sm sm:text-base lg:text-lg font-semibold text-white mb-2 items-center gap-2">
+              <label className="flex text-sm sm:text-base lg:text-lg font-semibold text-white  items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-pink-400"></span>
                 Description{" "}
                 <span className="text-xs font-normal text-white/50">
@@ -320,7 +320,7 @@ export default function NewListPageClient() {
                 onChange={(e) =>
                   setFormData({ ...formData, description: e.target.value })
                 }
-                className="text-sm sm:text-base lg:text-lg shadow-inner font-delicious rounded-lg sm:rounded-xl border border-white/20 bg-white/10 backdrop-blur-md focus:ring-2 focus:ring-pink-500 focus:border-pink-400/50 transition-all duration-200 px-2 sm:px-4 py-2 sm:py-3"
+                className="text-sm sm:text-base lg:text-lg shadow-inner font-delicious rounded-lg sm:rounded-xl border border-white/20 bg-white/10 backdrop-blur-md focus:ring-2 focus:ring-pink-500 focus:border-pink-400/50 transition-all duration-200 px-2 sm:px-3 py-2 sm:py-3"
                 placeholder="Describe what this list is about..."
                 rows={4}
               />
@@ -329,7 +329,7 @@ export default function NewListPageClient() {
               </p>
             </div>
             <div className="bg-white/5 border border-white/10 rounded-lg sm:rounded-xl p-3 sm:p-4 lg:p-5">
-              <div className="flex items-start gap-2 sm:gap-3">
+              <div className="flex items-start gap-2 sm:gap-2">
                 <input
                   type="checkbox"
                   checked={formData.is_public}
