@@ -104,3 +104,15 @@ Append-only. Newest entries at bottom.
 | Decision | Gate HomePage on `urlist:wasAuthed`; static Navbar brand; fixed guest Select slots. Defer densify/Zod/SHA/JWT SSR. |
 | Rationale | Marketing skeleton during `sessionLoading` caused homepage flash; typewriter/cursor + Select lead swap caused layout shift |
 | Status | Implemented |
+
+---
+
+## DEC-0008 — Auth toast handoff + stable scrollbar gutter
+
+| Field | Value |
+|-------|-------|
+| Timestamp | 2026-08-14 |
+| Agent | Cursor Build |
+| Decision | Queue welcome/goodbye in sessionStorage across hard redirects; AuthToastBridge consume; Sparkles loading CTA; html scrollbar-gutter stable |
+| Rationale | In-memory toasts die on location.href; inline Auth message duplicated toast; scrollbar appear/disappear caused layout shift |
+| Status | Implemented |

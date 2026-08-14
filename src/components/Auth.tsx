@@ -6,18 +6,22 @@ import { UserAvatar } from "@/components/ui/UserAvatar";
 import { useTypewriter } from "@/hooks/useTypewriter";
 import { useToast } from "@/components/ui/Toaster";
 import { useQueryClient } from "@tanstack/react-query";
-import { ChevronDown, Users } from "lucide-react";
+import { ChevronDown, Users, Sparkles, Loader2 } from "lucide-react";
 import { TEST_ACCOUNTS, WAS_AUTHED_KEY } from "@/constants/auth";
-import { robohashUrl } from "@/lib/robohash";
+import { displayNameFromEmail, robohashUrl } from "@/lib/robohash";
+import { queueAuthToast } from "@/lib/auth-toast";
 
 export default function Auth() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [showWelcome, setShowWelcome] = useState(true);
   const [loading, setLoading] = useState(false);
+  /** Which CTA is in flight — drives Signing in… / Signing up… label */
+  const [authAction, setAuthAction] = useState<"signin" | "signup" | null>(
+    null
+  );
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [message, setMessage] = useState("");
   const [showSubtitle, setShowSubtitle] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [isGuestDropdownOpen, setIsGuestDropdownOpen] = useState(false);
@@ -105,8 +109,9 @@ export default function Auth() {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (loading) return;
     setLoading(true);
-    setMessage("");
+    setAuthAction("signup");
 
     try {
       const response = await fetch("/api/auth/signup", {
@@ -119,19 +124,18 @@ export default function Auth() {
 
       if (!response.ok) {
         const errorMsg = data.error || "Failed to sign up";
-        setMessage(errorMsg);
         toast({
           title: "Sign Up Failed",
           description: errorMsg,
           variant: "error",
         });
+        setLoading(false);
+        setAuthAction(null);
       } else {
-        setMessage("Account created successfully!");
-        toast({
-          title: "Welcome! 🎉",
-          description:
-            "Account created successfully! Check your email for a welcome message.",
-          variant: "success",
+        // Queue welcome for homepage — hard redirect wipes in-memory toasts
+        queueAuthToast({
+          kind: "welcomeSignup",
+          name: displayNameFromEmail(email),
         });
 
         // CRITICAL: Clear all old user data cache before new signup
@@ -177,24 +181,24 @@ export default function Auth() {
             window.location.href = finalRedirectUrl;
           }, 1500); // Give time for cookie to be set and session to be ready
         }
+        // Keep loading until hard nav — do not re-enable CTA
       }
     } catch {
-      const errorMsg = "An unexpected error occurred";
-      setMessage(errorMsg);
       toast({
         title: "Error",
-        description: errorMsg,
+        description: "An unexpected error occurred",
         variant: "error",
       });
-    } finally {
       setLoading(false);
+      setAuthAction(null);
     }
   };
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (loading) return;
     setLoading(true);
-    setMessage("");
+    setAuthAction("signin");
 
     // Create AbortController for timeout
     const controller = new AbortController();
@@ -213,18 +217,18 @@ export default function Auth() {
 
       if (!response.ok) {
         const errorMsg = data.error || "Invalid email or password";
-        setMessage(errorMsg);
         toast({
           title: "Sign In Failed",
           description: errorMsg,
           variant: "error",
         });
+        setLoading(false);
+        setAuthAction(null);
       } else {
-        setMessage("Signed in successfully!");
-        toast({
-          title: "Welcome Back! 👋",
-          description: "Signed in successfully!",
-          variant: "success",
+        // Queue welcome for homepage — hard redirect wipes in-memory toasts
+        queueAuthToast({
+          kind: "welcome",
+          name: displayNameFromEmail(email),
         });
 
         // CRITICAL: Clear all old user data cache before new login
@@ -270,31 +274,37 @@ export default function Auth() {
             window.location.href = finalRedirectUrl;
           }, 1200); // Give time for cookie to be set and session to be ready
         }
+        // Keep loading until hard nav — do not re-enable CTA
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       clearTimeout(timeoutId);
       let errorMsg = "An unexpected error occurred";
-      
-      if (error.name === "AbortError") {
+
+      if (error instanceof DOMException && error.name === "AbortError") {
         errorMsg = "Request timed out. Please try again.";
       } else if (error instanceof Error) {
-        errorMsg = error.message || errorMsg;
+        if (error.name === "AbortError") {
+          errorMsg = "Request timed out. Please try again.";
+        } else {
+          errorMsg = error.message || errorMsg;
+        }
       }
-      
-      console.error("Sign in error:", error);
-      setMessage(errorMsg);
+
+      if (process.env.NODE_ENV === "development") {
+        console.error("Sign in error:", error);
+      }
       toast({
         title: "Error",
         description: errorMsg,
         variant: "error",
       });
-    } finally {
       setLoading(false);
+      setAuthAction(null);
     }
   };
 
   return (
-    <div className="fixed inset-0 w-screen h-screen flex flex-col items-center justify-center overflow-hidden bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950 z-50">
+    <div className="fixed inset-0 flex flex-col items-center justify-center overflow-hidden bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950 z-50">
       {/* Background Image */}
       <div className="absolute inset-0 w-full h-full opacity-20 pointer-events-none">
         <OptimizedImage
@@ -509,20 +519,32 @@ export default function Auth() {
               />
             </div>
 
-            {message && (
-              <div className="text-center text-sm sm:text-base font-medium text-[#00ff99] animate-fade-in px-2">
-                {message}
-              </div>
-            )}
-
             <div className="space-y-3 sm:space-y-4">
               <button
                 type="submit"
                 onClick={handleSignIn}
                 disabled={loading}
-                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white text-sm sm:text-base font-semibold py-2.5 sm:py-3 rounded-lg sm:rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full min-h-[48px] bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white text-sm sm:text-base font-semibold py-2.5 sm:py-3 rounded-lg sm:rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center justify-center gap-2"
               >
-                {loading ? "Loading..." : "Sign in"}
+                {loading ? (
+                  <>
+                    <Loader2
+                      className="h-4 w-4 shrink-0 animate-spin"
+                      aria-hidden
+                    />
+                    <span>
+                      {authAction === "signup"
+                        ? "Signing up…"
+                        : "Signing in…"}
+                    </span>
+                    <Sparkles className="h-4 w-4 shrink-0" aria-hidden />
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="h-4 w-4 shrink-0" aria-hidden />
+                    <span>Sign in</span>
+                  </>
+                )}
               </button>
 
               <div className="text-center text-xs sm:text-sm">
@@ -533,7 +555,7 @@ export default function Auth() {
                   type="button"
                   onClick={handleSignUp}
                   disabled={loading}
-                  className="font-semibold text-[#00ff99] hover:text-[#00cc77] transition-colors disabled:opacity-50"
+                  className="font-semibold text-[#00ff99] hover:text-[#00cc77] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Sign up
                 </button>

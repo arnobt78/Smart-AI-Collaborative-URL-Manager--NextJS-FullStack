@@ -10,6 +10,8 @@ Next 15 URL bookmark manager. Demo: https://daily-urlist.vercel.app/
 - Auth UI: `Auth.tsx` · `ProfileDropdown` · `UserAvatar` · `lib/robohash.ts` · `constants/auth.ts`
 - Flash gate: `HomePage` + `urlist:wasAuthed` → Auth immediately when logged out (no marketing skeleton)
 - Navbar: static `Daily Urlist` · fixed `size-10` profile slot · guest Select fixed `size-7` lead + always Clear
+- Auth toasts: `lib/auth-toast.ts` + `AuthToastBridge` (welcome/goodbye after hard redirect); Sparkles CTA
+- Layout: `html { scrollbar-gutter: stable }` — no horizontal jump; Auth overlay `inset-0` (no `w-screen`)
 - Hooks: `useSession` · `useListQueries` + `queryInvalidation` · cookie `lib/auth.ts`
 - Docs: `README.md` · `SECURITY.md` · `PORTABLE_AUTH_UI_GUIDE.md`
 - Out of scope (separate REQ): densify/Zod/SHA/JWT-null SSR

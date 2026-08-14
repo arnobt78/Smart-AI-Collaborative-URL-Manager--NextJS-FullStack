@@ -8,6 +8,7 @@ import FloatingBackground from "@/components/layout/FloatingBackground";
 import { QueryProvider } from "@/components/providers/QueryProvider";
 import { PostHogProvider } from "@/components/providers/PostHogProvider";
 import { ToastProvider } from "@/components/ui/Toaster";
+import { AuthToastBridge } from "@/components/AuthToastBridge";
 // DISABLED: UserDataPrefetcher causes duplicate API calls
 // import { UserDataPrefetcher } from "@/components/prefetch/UserDataPrefetcher";
 
@@ -215,6 +216,8 @@ export default function RootLayout({
           <Suspense fallback={null}>
             <PostHogProvider>
               <ToastProvider>
+                {/* Pending welcome/goodbye toasts survive hard redirects */}
+                <AuthToastBridge />
                 {/* DISABLED: UserDataPrefetcher causes duplicate API calls and slow page loads */}
                 {/* <UserDataPrefetcher /> */}
                 <FloatingBackground />

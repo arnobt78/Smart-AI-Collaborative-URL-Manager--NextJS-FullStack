@@ -15,6 +15,7 @@ import {
   WAS_AUTHED_KEY,
 } from "@/constants/auth";
 import { displayNameFromEmail } from "@/lib/robohash";
+import { queueAuthToast } from "@/lib/auth-toast";
 
 export type ProfileDropdownProps = {
   email: string;
@@ -71,6 +72,8 @@ export function ProfileDropdown({
       });
 
       if (response.ok) {
+        // Queue goodbye for Auth page after hard redirect
+        queueAuthToast({ kind: "goodbye", name });
         // Densify: clear all React Query + session hint before hard redirect
         queryClient.clear();
         if (typeof window !== "undefined") {
