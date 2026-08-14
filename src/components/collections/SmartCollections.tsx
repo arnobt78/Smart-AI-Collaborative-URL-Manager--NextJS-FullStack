@@ -449,7 +449,7 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
     <Card className="mb-4 sm:mb-6">
       {/* Single pad shell — title + body share one p-2 sm:p-4 (no Header+Content double pad) */}
       <div className="p-2 sm:p-4 space-y-2 sm:space-y-4">
-        <div className="flex items-center justify-between gap-2 sm:gap-3 pb-1 sm:pb-4">
+        <div className="flex items-center justify-between gap-2 sm:gap-3 ">
           <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
             <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-blue-400 flex-shrink-0" />
             <div className="min-w-0">

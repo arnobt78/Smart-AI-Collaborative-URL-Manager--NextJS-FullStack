@@ -3,9 +3,11 @@
 Compact agent map. Code = source of truth.
 
 ## App
+
 Next 15 URL bookmark manager. Demo: https://daily-urlist.vercel.app/
 
 ## Layout
+
 - Pages → `components/pages/*` · `app/api/**` · SEO `layout.tsx` + sitemap
 - Auth UI: `Auth.tsx` · `ProfileDropdown` · `UserAvatar` · `lib/robohash.ts` · `constants/auth.ts`
 - Flash gate: `HomePage` + `urlist:wasAuthed` → Auth for guests; Marketing when session/wasAuthed (no NeutralWait spinner)
@@ -19,12 +21,14 @@ Next 15 URL bookmark manager. Demo: https://daily-urlist.vercel.app/
 - Lists UX: unified placeholder same-slug only · ListPage syncs `currentList` from RQ · My Lists title → `/list/[slug]` · Smart Collections create stays on page
 - Visit: `lib/utils.ts` `ensureAbsoluteHttpUrl` + `openExternalUrl` (UrlCard Visit Site + Similar URLs dialog)
 - Collaborators: empty state one-row; Card `p-2 sm:p-4` (no lg:p-8)
-- Smart Collections: one outer `p-2 sm:p-4` shell; title row `pb-1 sm:pb-4`
+- Smart Collections: one outer `p-2 sm:p-4` shell; title row ``
 - Docs: `README.md` · `SECURITY.md` · `PORTABLE_AUTH_UI_GUIDE.md`
 - Out of scope (separate REQ): densify/Zod/SHA/JWT-null SSR
 
 ## Versions
+
 Next **15.5.23** · React **18** · Prisma **6.19.3** · Jest · audit **0**
 
 ## Env
+
 `.env.example` · secrets `.env.local`/Vercel only

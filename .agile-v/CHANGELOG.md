@@ -1,6 +1,7 @@
 # CHANGELOG.md
 
 ## 2026-08-14 C1
+
 - AI free-tier model chains + shared client
 - Vercel guardrails (headers, robots, vercel.json)
 - SafeImage on UrlCard
@@ -21,4 +22,4 @@
 - Visit Site: schemeless URLs open via `ensureAbsoluteHttpUrl` + `openExternalUrl` (card + Similar URLs dialog)
 - Collaborators empty one-row; Card chrome `p-2 sm:p-4` (no lg:p-8 double gutter)
 - HomePage: no NeutralWait spinner (Auth or Marketing via wasAuthed)
-- Smart Collections: single pad shell `p-2 sm:p-4` + title `pb-1 sm:pb-4`
+- Smart Collections: single pad shell `p-2 sm:p-4` + title ``
