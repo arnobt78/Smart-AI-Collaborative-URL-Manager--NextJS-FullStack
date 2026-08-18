@@ -46,5 +46,5 @@
 ## Next
 
 ```text
-Commit and push the user-authorized remaining Navbar, Footer, and parallax document changes. HA-0001 remains human-owned. Prisma 7 requires a separate migration plan; no densify/Zod changes are implied.
+Commit `3fbccb3` pushed to `main`; working tree is clean. HA-0001 remains human-owned. Prisma 7 requires a separate migration plan for RISK-0016; no densify/Zod changes are implied.
 ```
