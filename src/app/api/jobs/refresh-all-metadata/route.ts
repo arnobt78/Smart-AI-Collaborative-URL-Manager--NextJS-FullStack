@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { updateList } from "@/lib/db";
 import type { UrlItem } from "@/stores/urlListStore";
@@ -8,7 +8,7 @@ import type { UrlItem } from "@/stores/urlListStore";
  * Refresh metadata for URLs in all lists
  * Called by QStash weekly cron job
  */
-export async function POST(_request: NextRequest) {
+export async function POST() {
   try {
     console.log("🔄 [METADATA REFRESH] Starting metadata refresh for all lists...");
 
@@ -132,4 +132,3 @@ export async function POST(_request: NextRequest) {
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
-

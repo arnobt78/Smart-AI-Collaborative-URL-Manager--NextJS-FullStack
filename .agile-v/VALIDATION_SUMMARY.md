@@ -25,3 +25,40 @@
 | Stock glass shadow-glow                | PASS | PASS (pre-existing WARN)  | glass-* tokens; Button; Auth Sparkles + 0_15px_35px glow verified in browser |
 
 Out of scope: densify/JWT SSR, Zod/SHA, Next 16, Prisma 7.
+
+## 2026-08-18 — GATE-0011 planning audit (no implementation run)
+
+| Scope | Command / evidence | Result | Notes |
+|-------|--------------------|--------|-------|
+| Type safety baseline | `npx tsc --noEmit` | PASS | Executed against pre-implementation repository state. |
+| Lint baseline | `npm run lint` | WARN | Command completed with 235 warnings; REQ-0014 tracks remediation. No claim of a clean lint run. |
+| Agile V planning records | `git diff --check -- .agile-v` | PASS | Requirements, tasks, gate, checkpoint, risks, and decision records are whitespace-clean. |
+
+## 2026-08-18 — UI remediation implementation evidence
+
+| Scope | Command | Result | Notes |
+|-------|---------|--------|-------|
+| REQ-0010 to REQ-0013 | `npx tsc --noEmit` | PASS | Shared controls, Auth motion, Smart Collections disclosure, and URL workspace changes compile. |
+| REQ-0010 to REQ-0013 | `npm test -- --runInBand` | PASS | 3 suites passed; 20 tests passed; 1 suite and 5 tests skipped. |
+| REQ-0010 to REQ-0013 | `npm run build` | PASS | Production build completed successfully. |
+| REQ-0014 | `npm run lint` | OPEN | Warning count reduced from 235 to 232; repository-wide remediation is not complete. |
+
+## 2026-08-18 — continued implementation audit
+
+| Scope | Command | Result | Notes |
+|-------|---------|--------|-------|
+| URL workspace, import, cache, real-time, metadata, and auth remediation | `npx tsc --noEmit` | PASS | Removed unsafe browser-global and abort-signal casts, no-op debug code, and unused symbols while preserving mutation/invalidation behavior. |
+| Focused changed modules | `npx next lint --file …` | PASS | UrlList, UrlBulkImportExport, useRealtimeList, useListQueries, dragOrderCache, urlListStore, urlMetadata, and auth are clean. |
+| Regression suite | `npm test -- --runInBand` | PASS | 3 suites passed; 20 tests passed; 1 suite and 5 tests skipped. |
+| Production build | `npm run build` | PASS | Prisma generation, compilation, type checking, static generation, and build traces completed. |
+| REQ-0014 | `npm run lint` | OPEN | Warning count reduced from 235 to 103; no lint-rule suppression was used. |
+
+## 2026-08-18 — zero-warning completion
+
+| Scope | Command | Result | Notes |
+|-------|---------|--------|-------|
+| REQ-0014 | `npm run lint` | PASS | Zero ESLint warnings/errors; no lint-rule suppression. |
+| Type safety | `npx tsc --noEmit` | PASS | Strict TypeScript check completed. |
+| Regression suite | `npm test -- --runInBand` | PASS | 3 suites passed; 20 tests passed; 1 suite and 5 tests skipped. |
+| Production build | `npm run build` | PASS | Prisma generation and optimized Next.js build completed. |
+| Runtime configuration | `package.json` | PASS | Vercel runtime pinned to Node.js `24.x`; unrelated projects were not modified. |

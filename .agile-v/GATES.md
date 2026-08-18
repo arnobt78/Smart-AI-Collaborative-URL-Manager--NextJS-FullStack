@@ -6,7 +6,9 @@
 Stage 1 Requirements → Stage 2 Validation → [Human Gate 1] → Stage 3 Synthesis → Stage 4 Verification → [Human Gate 2] → Stage 5 Acceptance
 ```
 
-Current: **paused before Stage 3** at **Human Gate 1**.
+Current: **Stage 3 synthesis authorized** by Human Gate 1 (GATE-0011).
+
+Reconciliation note (2026-08-18): commits and prior validation records document C1 implementation activity, but `APPROVALS.md` has no matching approved record for the original GATE-0001 token. This is retained as historical evidence, not retroactively approved. It does not authorize further implementation.
 
 ---
 
@@ -15,13 +17,41 @@ Current: **paused before Stage 3** at **Human Gate 1**.
 | Field | Value |
 |-------|-------|
 | Type | Human-Decision |
-| Status | **PENDING** |
+| Status | APPROVED 2026-08-18 |
 | Checkpoint | See `CHECKPOINTS.md` |
 | Evidence | Analysis in `STATE.md`; REQs in `REQUIREMENTS.md`; tasks in `TASKS.md` |
 | Required human action | Approve a track (D recommended) or custom REQ subset; answer unresolved questions if possible |
 | Resume condition | Matching approval recorded in `APPROVALS.md` + `STATE.md` |
 
 **Must NOT proceed to implementation until approved.**
+
+---
+
+## GATE-0010 — Human Gate 1 (superseded before approval)
+
+| Field | Value |
+|-------|-------|
+| Type | Human-Decision |
+| Status | SUPERSEDED by GATE-0011 |
+| Checkpoint | `C1-HG1-REQ-0010-2026-08-18` in `CHECKPOINTS.md` |
+| Evidence | REQ-0010 in `REQUIREMENTS.md`; TASK-0010 in `TASKS.md`; DEC-0011 and RISK-0011 |
+| Required human action | None; use GATE-0011 for the expanded scope. |
+| Resume condition | Not applicable. |
+
+---
+
+## GATE-0011 — Human Gate 1 (UI remediation plan approval)
+
+| Field | Value |
+|-------|-------|
+| Type | Human-Decision |
+| Status | **PENDING** |
+| Checkpoint | `C1-HG1-UI-REMEDIATION-2026-08-18` in `CHECKPOINTS.md` |
+| Evidence | REQ-0010 to REQ-0014; TASK-0011 to TASK-0015; DEC-0012/0013; RISK-0011 to RISK-0014 |
+| Required human action | Completed — user approved all scoped requirements. |
+| Resume condition | Satisfied by matching `APPROVALS.md` entry. |
+
+Implementation is authorized. Gate 2 remains required before any release decision.
 
 ---
 

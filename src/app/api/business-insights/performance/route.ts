@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import type { UrlItem } from "@/stores/urlListStore";
 
-export async function GET(req: NextRequest) {
+export async function GET(_: NextRequest) {
   try {
     const user = await getCurrentUser();
     if (!user) {
@@ -15,7 +16,7 @@ export async function GET(req: NextRequest) {
 
     // Calculate performance metrics
     const totalUrls = lists.reduce((sum, list) => {
-      return sum + ((list.urls as any[])?.length || 0);
+      return sum + ((list.urls as unknown as UrlItem[])?.length || 0);
     }, 0);
 
     const avgUrlsPerList = lists.length > 0 ? totalUrls / lists.length : 0;
@@ -25,7 +26,7 @@ export async function GET(req: NextRequest) {
       .map((list) => ({
         slug: list.slug,
         title: list.title,
-        urlCount: (list.urls as any[])?.length || 0,
+        urlCount: (list.urls as unknown as UrlItem[])?.length || 0,
       }))
       .sort((a, b) => b.urlCount - a.urlCount)
       .slice(0, 5);

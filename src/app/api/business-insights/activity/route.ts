@@ -53,8 +53,8 @@ export async function GET(req: NextRequest) {
       }
 
       // Track URLs added in the period (based on URL createdAt)
-      const urls = (list.urls as any[]) || [];
-      urls.forEach((url: any) => {
+      const urls = (list.urls as unknown as import("@/stores/urlListStore").UrlItem[]) || [];
+      urls.forEach((url) => {
         if (url.createdAt) {
           const urlDate = new Date(url.createdAt);
           urlDate.setHours(0, 0, 0, 0);

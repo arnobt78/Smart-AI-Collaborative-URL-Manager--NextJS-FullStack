@@ -3,7 +3,6 @@
  */
 
 import { parseChromeBookmarks } from "../chrome";
-import type { ImportResult } from "../types";
 import fs from "fs";
 import path from "path";
 
@@ -303,4 +302,3 @@ describe("parseChromeBookmarks", () => {
     expect(result.items[0].tags?.length).toBeGreaterThanOrEqual(3);
   });
 });
-

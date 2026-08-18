@@ -8,6 +8,7 @@ interface RealtimeEvent {
   type: string;
   listId: string;
   action?: string;
+  slug?: string;
   timestamp?: string;
   activity?: {
     id: string;
@@ -33,7 +34,6 @@ export function useRealtimeList(listId: string | null) {
   const [isConnected, setIsConnected] = useState(false);
   const processedEventIdRef = useRef<string>("");
   const lastListDispatchRef = useRef<number>(0);
-  const lastActivityDispatchRef = useRef<number>(0);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const reconnectAttemptsRef = useRef<number>(0);
   const isConnectingRef = useRef<boolean>(false);
@@ -170,7 +170,7 @@ export function useRealtimeList(listId: string | null) {
             // CRITICAL: Skip all real-time events during bulk import to prevent getList spam
             if (
               typeof window !== "undefined" &&
-              (window as any).__bulkImportActive
+              window.__bulkImportActive
             ) {
               if (process.env.NODE_ENV === "development") {
                 // Skipping list_updated - bulk import in progress
@@ -200,7 +200,7 @@ export function useRealtimeList(listId: string | null) {
             if (isCollaboratorAction) {
               // CRITICAL: Get slug from SSE event data first (API now includes it), fallback to store
               // This ensures we have the slug even if currentList store doesn't have it yet
-              const slug = (data as any).slug || currentList.get()?.slug;
+              const slug = data.slug || currentList.get()?.slug;
               
               if (slug) {
                 const unifiedUpdateEvent = {

@@ -142,7 +142,7 @@ export function invalidateAllListsQueries(
  */
 export function invalidateListMetadataQueries(
   queryClient: QueryClient,
-  listId?: string
+  _: string | undefined = undefined
 ): void {
   // Invalidate all URL metadata queries for this list
   // This triggers batch metadata refetch if needed
@@ -251,4 +251,3 @@ export function invalidateUrlQueries(
     invalidateListMetadataQueries(queryClient, listId);
   }
 }
-

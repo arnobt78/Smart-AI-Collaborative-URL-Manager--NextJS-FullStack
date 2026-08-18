@@ -9,6 +9,13 @@ import { fetchUrlMetadata } from "@/utils/urlMetadata";
 import type { UrlItem } from "@/stores/urlListStore";
 import type { UrlMetadata } from "@/utils/urlMetadata";
 
+type ArchiveUrlRequest = {
+  urls?: UrlItem[];
+  archivedUrls?: UrlItem[];
+  action?: "archive" | "restore";
+  urlId?: string;
+};
+
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -20,7 +27,8 @@ export async function POST(
     }
 
     const { id } = await params;
-    const { urls, archivedUrls, action, urlId } = await req.json();
+    const { urls, archivedUrls, action, urlId } =
+      (await req.json()) as ArchiveUrlRequest;
 
     const list = await getListById(id);
     if (!list) {
@@ -38,14 +46,16 @@ export async function POST(
 
     // Get existing values from database
     // Handle case where archivedUrls might not exist in database yet (before migration)
-    const existingUrls = Array.isArray(list.urls) ? list.urls : [];
-    const existingArchivedUrls = Array.isArray((list as any).archivedUrls) 
-      ? (list as any).archivedUrls 
+    const existingUrls = Array.isArray(list.urls)
+      ? (list.urls as unknown as UrlItem[])
+      : [];
+    const existingArchivedUrls = Array.isArray(list.archivedUrls)
+      ? (list.archivedUrls as unknown as UrlItem[])
       : [];
 
     const updatePayload: {
-      urls?: any;
-      archivedUrls?: any;
+      urls?: UrlItem[];
+      archivedUrls?: UrlItem[];
     } = {};
 
     if (urls !== undefined) {
@@ -69,7 +79,7 @@ export async function POST(
 
     // Determine activity action based on operation type
     let activityAction: string | null = null;
-    let activityDetails: any = null;
+    let activityDetails: Record<string, unknown> | null = null;
     let urlMetadata: UrlMetadata | undefined;
 
     if (action === "archive" && urlId) {
@@ -171,7 +181,7 @@ export async function POST(
           redis.del(cacheKeys.listMetadata(id)),
           redis.del(`list-urls:${id}`),
         ]);
-      } catch (error) {
+      } catch {
         // Ignore cache errors
       }
     }

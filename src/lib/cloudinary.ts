@@ -194,7 +194,7 @@ export function getOptimizedMetadataImageUrl(
  */
 export function getPublicImageUrl(
   publicPath: string,
-  options: OptimizedImageOptions = {}
+  _: OptimizedImageOptions = {}
 ): string {
   // Public folder assets should be served directly from the same domain
   // Cloudinary fetch is not needed (and causes 401 errors) for same-domain assets

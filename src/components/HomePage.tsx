@@ -9,6 +9,7 @@ import { useSession } from "@/hooks/useSession";
 import { useWasAuthedHint } from "@/hooks/useWasAuthedHint";
 import Auth from "./Auth";
 import { LinkIcon, ShareIcon, PhotoIcon } from "@heroicons/react/24/outline";
+import { Bubbles, LayoutList, ListPlus } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { CreateNewListButton } from "@/components/ui/CreateNewListButton";
 import { OptimizedImage } from "@/components/ui/OptimizedImage";
@@ -71,12 +72,17 @@ function MarketingHome() {
             resources, bookmarks, and collections with others.
           </p>
           <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 justify-center px-2">
-            <CreateNewListButton size="lg" className="text-base sm:text-lg px-6 sm:px-8" />
+            <CreateNewListButton
+              size="lg"
+              icon={ListPlus}
+              className="text-base sm:text-lg px-6 sm:px-8"
+            />
             <Button
               href="/lists"
               variant="outline"
               className="text-white border-white/30 hover:bg-white/10 text-base sm:text-lg px-6 sm:px-8 py-2 sm:py-3 rounded-xl w-full sm:w-auto"
             >
+              <LayoutList className="h-5 w-5 shrink-0" aria-hidden />
               View My Lists
             </Button>
           </div>
@@ -177,6 +183,7 @@ function MarketingHome() {
           <CreateNewListButton
             size="lg"
             label="Get Started Now With Your Daily URL List"
+            icon={Bubbles}
             className="text-sm sm:text-base lg:text-lg px-6 sm:px-8"
           />
         </div>

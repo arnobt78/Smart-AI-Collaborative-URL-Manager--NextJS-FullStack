@@ -1,5 +1,6 @@
 import { forwardRef } from "react";
 import { cn } from "@/lib/utils";
+import { UI_FORM_CONTROL } from "@/lib/ui/control-styles";
 
 export interface SelectProps
   extends React.SelectHTMLAttributes<HTMLSelectElement> {
@@ -9,12 +10,7 @@ export interface SelectProps
 const Select = forwardRef<HTMLSelectElement, SelectProps>(
   ({ className, error, children, ...props }, ref) => {
     const hasBgClass = className?.includes("bg-");
-    // CRITICAL: Match Input component styling for consistency
-    // Use same border, padding, and focus styles as Input component
-    // CRITICAL: Use min-height instead of fixed height to prevent text cutoff
-    // py-3 ensures adequate vertical padding for text visibility
-    const defaultClasses =
-      "flex min-h-[48px] w-full rounded-md border border-white/20 px-3 py-3 pr-10 text-base text-white placeholder:text-white/60 focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600 disabled:cursor-not-allowed disabled:opacity-50 appearance-none cursor-pointer leading-normal";
+    const defaultClasses = `${UI_FORM_CONTROL} flex appearance-none cursor-pointer pr-10 leading-normal`;
 
     return (
       <div className="w-full relative">
@@ -23,7 +19,7 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(
             defaultClasses,
             !hasBgClass && "bg-transparent",
             error && "border-red-500 focus:border-red-500 focus:ring-red-500",
-            className
+            className,
           )}
           ref={ref}
           {...props}
@@ -53,4 +49,3 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(
 Select.displayName = "Select";
 
 export { Select };
-

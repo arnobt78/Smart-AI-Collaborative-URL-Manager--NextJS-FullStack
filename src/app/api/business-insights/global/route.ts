@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import type { UrlItem } from "@/stores/urlListStore";
 
-export async function GET(req: NextRequest) {
+export async function GET(_: NextRequest) {
   try {
     // Require authentication to view global stats (optional - you can make this public if needed)
     const user = await getCurrentUser();
@@ -21,7 +22,7 @@ export async function GET(req: NextRequest) {
 
     // Calculate total URLs across all lists
     const totalUrls = allLists.reduce((sum, list) => {
-      const urls = (list.urls as any[]) || [];
+      const urls = (list.urls as unknown as UrlItem[]) || [];
       return sum + urls.length;
     }, 0);
 
@@ -37,12 +38,7 @@ export async function GET(req: NextRequest) {
         expiresAt: {
           gte: new Date(), // Session hasn't expired
         },
-        // Type assertion needed until Prisma client is regenerated with lastActivityAt
-        ...({
-          lastActivityAt: {
-            gte: fifteenMinutesAgo, // User made an authenticated request in last 15 minutes
-          },
-        } as any),
+        lastActivityAt: { gte: fifteenMinutesAgo },
       },
       include: {
         user: {
@@ -53,7 +49,7 @@ export async function GET(req: NextRequest) {
         },
       },
       orderBy: {
-        lastActivityAt: "desc" as any, // Type assertion for orderBy
+        lastActivityAt: "desc",
       },
     });
     
@@ -61,7 +57,7 @@ export async function GET(req: NextRequest) {
     // Sessions where lastActivityAt equals createdAt (within 2 minutes) were likely set by migration
     // and haven't been truly used since. Only count sessions that show actual activity.
     const trulyActiveSessions = activeSessions.filter((session) => {
-      const createdAt = new Date((session as any).createdAt).getTime();
+      const createdAt = new Date(session.createdAt).getTime();
       const lastActivityAt = new Date(session.lastActivityAt).getTime();
       const timeDiff = lastActivityAt - createdAt;
       
@@ -103,15 +99,15 @@ export async function GET(req: NextRequest) {
         timeWindow: "15 minutes",
         cutoffTime: fifteenMinutesAgo.toISOString(),
         sessions: trulyActiveSessions.map((s) => {
-          const createdAt = new Date((s as any).createdAt).getTime();
+          const createdAt = new Date(s.createdAt).getTime();
           const lastActivityAt = new Date(s.lastActivityAt).getTime();
           const timeDiff = lastActivityAt - createdAt;
           return {
             userId: s.userId,
             email: s.user?.email,
             lastActivityAt: s.lastActivityAt,
-            createdAt: (s as any).createdAt,
-            expiresAt: (s as any).expiresAt,
+            createdAt: s.createdAt,
+            expiresAt: s.expiresAt,
             minutesAgo: Math.round(
               (now.getTime() - lastActivityAt) / 60000
             ),
@@ -160,10 +156,10 @@ export async function GET(req: NextRequest) {
     }).length;
 
     const newUrlsLast7Days = allLists.reduce((sum, list) => {
-      const urls = (list.urls as any[]) || [];
+      const urls = (list.urls as unknown as UrlItem[]) || [];
       return (
         sum +
-        urls.filter((url: any) => {
+        urls.filter((url) => {
           if (!url.createdAt) return false;
           const urlDate = new Date(url.createdAt);
           urlDate.setHours(0, 0, 0, 0);

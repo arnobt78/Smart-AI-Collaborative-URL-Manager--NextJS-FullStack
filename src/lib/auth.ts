@@ -218,11 +218,18 @@ export async function getCurrentSession(): Promise<Session | null> {
       where: { token },
       data: { lastActivityAt: new Date() },
     })
-    .catch((err: any) => {
+    .catch((err: unknown) => {
       // Silently fail - not critical if update fails
       // P2025 = Record not found (session was deleted, e.g., during logout)
       // This is expected and can be safely ignored
-      if (err.code !== "P2025") {
+      if (
+        !(
+          typeof err === "object" &&
+          err !== null &&
+          "code" in err &&
+          err.code === "P2025"
+        )
+      ) {
         console.error("Failed to update session lastActivityAt:", err);
       }
     });
@@ -397,7 +404,7 @@ export async function globalSessionCleanup(): Promise<{
 
     // Clean up old sessions for each user
     const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-    for (const [userId, sessions] of sessionsByUser.entries()) {
+    for (const [, sessions] of sessionsByUser.entries()) {
       // Sort by lastActivityAt (most recent first)
       sessions.sort(
         (a, b) =>

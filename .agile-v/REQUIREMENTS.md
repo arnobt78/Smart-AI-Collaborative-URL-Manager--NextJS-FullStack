@@ -179,6 +179,107 @@ These describe the current product as verified in code. They are **Accepted as b
 
 ---
 
+### REQ-0010 — Shared UI control contract (revised 2026-08-18)
+
+**Priority:** P2
+**Type:** UI consistency / accessibility
+**Statement:** The existing Daily Urlist UI MUST use one reusable control-size and spacing contract without changing product behavior. Input, select, search, labeled button, filter, and import/export trigger controls in the approved inventory MUST align at the same 48 CSS-pixel height on the same breakpoint. Labeled primary/action CTAs MUST use one meaningful Lucide icon at most (or no icon when the label is sufficient); icon-only controls remain icon-only with an accessible name.
+
+**Acceptance:**
+
+- [ ] Reuse or extend `src/components/ui/{Button,Input,Select}.tsx`, `src/lib/ui-spacing.ts`, and the glass recipes; centralize any new control classes in one existing/new shared UI style module rather than duplicate Tailwind strings in pages.
+- [ ] Audit the approved interactive surfaces and classify controls as labeled CTA, compact action, or icon-only control before changing classes.
+- [ ] Apply the existing spacing tokens or a documented extension only where it restores intentional page/section/form/list rhythm; preserve responsive layout and prevent layout shift.
+- [ ] A labeled CTA has no duplicate/decorative icon; icon-only controls retain an `aria-label` or equivalent accessible name.
+- [ ] Controls sharing a row align vertically at mobile and desktop widths; a narrow viewport may wrap controls but MUST NOT clip labels or overlap the menu/dialog layer.
+- [ ] Home CTAs use `ListPlus` for "Create New List", `LayoutList` for "View My Lists", and `Bubbles` for "Get Started Now With Your Daily URL List"; each icon appears to the left of its label with the shared gap.
+- [ ] Preserve all existing mutation, navigation, dialog, authorization, and cache-invalidation behavior.
+- [ ] Record executed typecheck, lint, build, and viewport/manual accessibility evidence in `VALIDATION_SUMMARY.md`; do not treat historical entries as reruns.
+
+**Initial affected inventory:** `src/components/ui/Button.tsx`, `src/lib/ui-spacing.ts`, `src/components/{Auth,HomePage}.tsx`, `src/components/layout/{Navbar,ProfileDropdown}.tsx`, `src/components/{lists,collections,collaboration,pages}/**/*.tsx`, and any direct CTA styling found during the approved audit.
+**Trace:** TASK-0011, DEC-0012, RISK-0011, GATE-0011
+**Status:** Proposed — revised from the narrower unapproved GATE-0010 scope; awaiting Human Gate 1 approval.
+
+---
+
+### REQ-0011 — Auth form composition and motion (proposed 2026-08-18)
+
+**Priority:** P2
+**Type:** UX / accessibility / performance
+**Statement:** The login panel MUST display logo, heading, explanatory text, guest selector, labels, inputs, and submit action as distinct, aligned rows. On initial guest render and each re-mount, these rows MUST reveal in a short ordered sequence without delaying form interactivity; motion MUST honor `prefers-reduced-motion` and MUST NOT drive authentication state or cause cumulative layout shift.
+
+**Acceptance:**
+
+- [ ] The form retains visible labels, native form semantics, keyboard access, focus indication, and immediate submit/dropdown interaction while motion is running.
+- [ ] Logo and form header are grouped separately from fields; field rows use the shared control contract from REQ-0010.
+- [ ] The reveal uses opacity and transform only, within 12–24px, 350–550ms per row, and 40–100ms stagger; reduced motion renders final state immediately.
+- [ ] No Framer Motion dependency is added unless separately approved; use the established CSS/browser platform capabilities.
+- [ ] At 320px, 768px, and 1440px, no row overlaps, clips, or changes the fixed auth shell's scroll behavior.
+
+**Affected:** `src/components/Auth.tsx`, `src/app/globals.css`, shared UI motion/style utility only if necessary.
+**Trace:** TASK-0012, DEC-0013, RISK-0012, GATE-0011
+**Status:** Proposed — awaiting Human Gate 1 approval.
+
+---
+
+### REQ-0012 — Smart Collections explicit disclosure (proposed 2026-08-18)
+
+**Priority:** P2
+**Type:** UX / accessibility
+**Statement:** Smart Collections MUST use an explicit "View Suggestions" / "View Less" disclosure control in place of the non-descriptive close icon. The collapsed state MUST preserve the title and summary; the expanded state MUST expose suggestions, duplicate checks, and refresh actions without fetching duplicate checks until that action is requested.
+
+**Acceptance:**
+
+- [ ] The disclosure is a labeled button with `aria-expanded` and an `aria-controls` relationship to the revealed content.
+- [ ] Its icon is `ListPlus`; collection creation uses a descriptive action label and `ListPlus`, not generic "Create" alone.
+- [ ] Collapse/expand changes presentation only: it does not clear suggestions, trigger redundant collection requests, mutate data, or change permission checks.
+- [ ] Collection creation retains its existing optimistic suggestion removal and list/all-list invalidation; errors remain recoverable and visible to the user.
+
+**Affected:** `src/components/collections/SmartCollections.tsx`, shared control styles only as needed.
+**Trace:** TASK-0013, DEC-0012, RISK-0013, GATE-0011
+**Status:** Proposed — awaiting Human Gate 1 approval.
+
+---
+
+### REQ-0013 — URL workspace toolbar and add-form refinement (proposed 2026-08-18)
+
+**Priority:** P2
+**Type:** UX / responsive behavior
+**Statement:** The URL workspace MUST provide clear icon/label spacing and meaningful icons for Active URLs, Archived URLs, import/export triggers, filters, and Add URL. The Add URL disclosure MUST use `WandSparkles`, expand into a responsive full-width form, and provide a clear labeled cancel/close action; it MUST preserve all existing URL add, metadata-prefetch, AI-enhancement, permission, optimistic-update, and invalidation behavior.
+
+**Acceptance:**
+
+- [ ] Active URLs uses `Link2`, Archived uses `Archive`, filter uses `Filter`, export uses `Download`, and import uses `Upload`; every labeled control has an 8px icon-to-label gap and preserves its existing menu/tooltip.
+- [ ] Add URL uses `WandSparkles`; its form is full width inside the list content container, constrained only by the page layout, and is usable at 320px, 768px, and 1440px.
+- [ ] When expanded, the form exposes a labeled cancel/close action with a meaningful icon; cancel clears only transient form state and does not submit or mutate URLs.
+- [ ] On successful add, the existing immediate optimistic/cache update, centralized query invalidation, SSE synchronization, and form collapse remain intact. On failure, entered values and an actionable error remain visible.
+- [ ] No change is made to API contracts, database schema, authorization rules, Redis, local storage persistence, or server rendering boundaries.
+
+**Affected:** `src/components/lists/{UrlList,UrlAddForm,UrlFilterBar,UrlBulkImportExport}.tsx`, `src/components/ui/{Button,Input}.tsx`, shared control styles only as needed.
+**Trace:** TASK-0014, DEC-0012, RISK-0011, GATE-0011
+**Status:** Proposed — awaiting Human Gate 1 approval.
+
+---
+
+### REQ-0014 — Repository lint remediation (proposed 2026-08-18)
+
+**Priority:** P3
+**Type:** Type safety / maintainability
+**Statement:** The canonical `npm run lint` command MUST complete with zero errors and zero warnings. Remediation MUST preserve runtime behavior, API contracts, and cache/mutation semantics; `any` values must be replaced with precise, validated types or `unknown` plus narrowing.
+
+**Acceptance:**
+
+- [ ] The current lint warning inventory is triaged by category: unused code, unsafe `any`, and hook dependency correctness.
+- [ ] Each hook-dependency change is behaviorally reviewed; dependencies are not silenced or omitted merely to satisfy lint.
+- [ ] Each unsafe value is narrowed at its boundary; no global eslint disable or blanket `any` substitution is introduced.
+- [ ] `npm run lint`, `npx tsc --noEmit`, relevant Jest tests, and `npm run build` pass after the changes.
+
+**Affected:** Repository-wide; planned as an independent final wave because the current command reports warnings across application, hooks, stores, tests, and import tooling.
+**Trace:** TASK-0015, DEC-0012, RISK-0014, GATE-0011
+**Status:** Proposed — awaiting Human Gate 1 approval.
+
+---
+
 ## Out of scope for default C1
 
 - Schema normalization of `List.urls` JSON → relational tables

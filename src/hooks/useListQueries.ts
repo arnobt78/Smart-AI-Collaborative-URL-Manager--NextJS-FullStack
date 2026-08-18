@@ -567,7 +567,7 @@ export function useDeleteUrl(listId: string, listSlug: string) {
       const previous = currentList.get();
       return { previous };
     },
-    onSuccess: (data, urlId) => {
+    onSuccess: (data) => {
       // Update store with server response
       if (data.list) {
         currentList.set(data.list);
@@ -875,9 +875,9 @@ export function useDeleteList() {
 let listenerRefCount = 0; // Track how many components are using this
 let globalInvalidationTimeout: NodeJS.Timeout | null = null;
 const globalProcessedInvocations = new Set<string>(); // Shared deduplication across all instances
-let globalSetupTime: number | null = null;
 let globalSSEConnectedTime: number | null = null; // Track when SSE actually connects
 let globalHandler: ((event: Event) => void) | null = null;
+let globalSSEConnectedHandler: ((event: Event) => void) | null = null;
 const invalidationDelay = 300; // 300ms debounce window
 const initialLoadGracePeriod = 8000; // Ignore invalidations for 8 seconds after SSE connects (to handle slow SSE connections)
 
@@ -900,7 +900,6 @@ export function setupSSECacheSync() {
 
   // CRITICAL: Only set up listener once globally - singleton pattern
   if (listenerRefCount === 1) {
-    globalSetupTime = Date.now();
 
     const handleUnifiedUpdate = (event: Event) => {
       const customEvent = event as CustomEvent<{
@@ -984,7 +983,7 @@ export function setupSSECacheSync() {
                 }
               }
             }
-          } catch (e) {
+          } catch {
             // Invalid timestamp - treat as recent collaborator action (might be from mutation)
             shouldIgnoreGracePeriod = true;
             devLog(
@@ -1041,7 +1040,7 @@ export function setupSSECacheSync() {
           const eventTime = new Date(eventTimestamp).getTime();
           const roundedTime = Math.floor(eventTime / 1000) * 1000; // Round to nearest second
           invocationKey = `${listSlug}:${action}:${roundedTime}`;
-        } catch (e) {
+        } catch {
           // If timestamp parsing fails, use current time rounded to nearest second
           const roundedTime = Math.floor(Date.now() / 1000) * 1000;
           invocationKey = `${listSlug}:${action}:${roundedTime}`;
@@ -1119,7 +1118,7 @@ export function setupSSECacheSync() {
     window.addEventListener("sse-connected", handleSSEConnected);
 
     // Store handler for cleanup
-    (globalHandler as any).__sseConnectedHandler = handleSSEConnected;
+    globalSSEConnectedHandler = handleSSEConnected;
   }
 
   // Return cleanup function that decrements ref count
@@ -1131,9 +1130,9 @@ export function setupSSECacheSync() {
       if (globalHandler) {
         window.removeEventListener("unified-update", globalHandler);
         // Also remove SSE connected listener if it exists
-        const sseHandler = (globalHandler as any).__sseConnectedHandler;
-        if (sseHandler) {
-          window.removeEventListener("sse-connected", sseHandler);
+        if (globalSSEConnectedHandler) {
+          window.removeEventListener("sse-connected", globalSSEConnectedHandler);
+          globalSSEConnectedHandler = null;
         }
         globalHandler = null;
       }

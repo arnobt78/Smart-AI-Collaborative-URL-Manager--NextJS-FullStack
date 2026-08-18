@@ -44,7 +44,7 @@ export async function GET(
         (a, b) => (a.position ?? 999) - (b.position ?? 999)
       );
       await updateList(list.id, { urls: urlsWithPositions });
-      list.urls = urlsWithPositions as any;
+      list.urls = urlsWithPositions as unknown as typeof list.urls;
       console.log(`✅ [GET] Initialized positions for ${list.id}`);
     }
 

@@ -23,10 +23,10 @@ import type {
 import {
   Sparkles,
   FolderPlus,
+  ListPlus,
   Copy,
   AlertTriangle,
   Loader2,
-  X,
   CheckCircle2,
   Search,
   Trash2,
@@ -415,7 +415,7 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
   const hasSuggestions = suggestions.length > 0;
   const hasDuplicates = duplicates.length > 0;
 
-  if (!isExpanded && !isLoading && !hasSuggestions && !hasDuplicates) {
+  if (!isExpanded) {
     return (
       <Card className="">
         <CardContent className="p-2 sm:p-4">
@@ -433,11 +433,13 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
             </div>
             <Button
               variant="outline"
-              size="sm"
               onClick={() => setIsExpanded(true)}
-              className="border-white/20 text-white hover:bg-white/10 text-xs sm:text-sm px-2 sm:px-3 py-1 flex-shrink-0"
+              className="border-white/20 text-white hover:bg-white/10 text-xs sm:text-sm flex-shrink-0"
+              aria-expanded={false}
+              aria-controls="smart-collections-content"
             >
-              Explore
+              <ListPlus className="h-4 w-4 shrink-0" aria-hidden />
+              View Suggestions
             </Button>
           </div>
         </CardContent>
@@ -461,16 +463,21 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
               </CardDescription>
             </div>
           </div>
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="md"
             onClick={() => setIsExpanded(false)}
-            className="p-1.5 sm:p-2 rounded-lg text-white/60 hover:text-white hover:bg-white/10 transition-colors flex-shrink-0"
+            className="shrink-0 text-xs sm:text-sm"
+            aria-expanded={true}
+            aria-controls="smart-collections-content"
           >
-            <X className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-          </button>
+            <ListPlus className="h-4 w-4 shrink-0" aria-hidden />
+            View Less
+          </Button>
         </div>
 
-        <div className="flex flex-col gap-3 sm:gap-4">
+        <div id="smart-collections-content" className="flex flex-col gap-3 sm:gap-4">
           {/* Loading State — only when cold (no suggestions yet) */}
           {isLoading && !hasSuggestions && (
             <div className="flex flex-col gap-3 sm:gap-4">
@@ -550,8 +557,8 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
                           </>
                         ) : (
                           <>
-                            <FolderPlus className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
-                            Create
+                            <ListPlus className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+                            Create collection
                           </>
                         )}
                       </Button>

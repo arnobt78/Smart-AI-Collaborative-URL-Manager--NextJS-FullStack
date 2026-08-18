@@ -5,12 +5,13 @@
 Live: https://daily-urlist.vercel.app/ · Resume: `.agile-v/STATE.md`
 
 ## Status (C1)
-Done: Auth UX · quiet prod logs · list-switch · Visit URLs · Collaborators/Card pad · no HomePage spinner · Smart Collections single pad · home refresh (wasAuthed cookie SSR, static BG, PostHog island) · central `ui-spacing` stacks · Auth split viewport (welcome+form together; no 8s gate) · stock glass shadow-glow (`src/lib/ui/glass-*`; Auth Sparkles).  
+Done: shared 48px controls · Auth row reveal · accessible Smart Collections disclosure · responsive Add URL cancel · consistent CTA icons · type-safe cache/SSE/abort paths · zero lint.
+Data: unified React Query + optimistic store updates + centralized invalidation + SSE; bulk import reconciles caches without reload.
 Human: HA-0001; match Sentry org/token before upload.  
 Out of scope: densify/JWT SSR, Zod/SHA, Next 16, Prisma 7.
 
 ## Stack
-Next 15.5.23 · React 18 · RQ · Prisma 6.19 · cookie auth · Upstash · Sentry tunnel · PostHog · Jest
+Next 15.5.23 · React 18 · RQ · Prisma 6.19 · cookie auth · Upstash · Sentry tunnel · PostHog · Jest · Node 24.x (Vercel)
 
 ## Deploy / logs
 Sentry upload only if `SENTRY_UPLOAD_SOURCEMAPS=1` · `prisma.config.ts` seed  
@@ -33,4 +34,4 @@ Visit: `openExternalUrl` / `ensureAbsoluteHttpUrl` in `lib/utils.ts` (schemeless
 `src/lib/ui/glass-button-styles.ts` (primary/action/ghost) · `glass-badge-styles.ts` · `glass-card-styles.ts` — ported from stock-inventory; Tailwind content includes `src/lib`.
 
 ## Validate
-`tsc` · `lint` · `prisma generate` · `build` → `.agile-v/VALIDATION_SUMMARY.md`
+`tsc` · `lint` (0) · Jest (20 pass/5 skip) · `prisma generate` · `build` → `.agile-v/VALIDATION_SUMMARY.md`

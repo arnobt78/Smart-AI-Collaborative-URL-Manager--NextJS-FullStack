@@ -33,6 +33,7 @@ import {
   MARKETING_STACK,
 } from "@/lib/ui-spacing";
 import { glassPrimaryButtonClass } from "@/lib/ui/glass-button-styles";
+import { UI_FORM_CONTROL } from "@/lib/ui/control-styles";
 
 /** Left-panel process blurb — mirrors Home marketing features */
 const ABOUT_PROCESS = [
@@ -340,8 +341,7 @@ export default function Auth() {
     }
   };
 
-  const inputClass =
-    "w-full min-h-[48px] rounded-lg sm:rounded-xl border border-white/20 bg-white/10 backdrop-blur-md px-2 sm:px-3 py-2 sm:py-3 text-sm sm:text-base text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00ff99] focus:border-transparent transition-colors box-border";
+  const inputClass = `${UI_FORM_CONTROL} box-border placeholder:text-gray-400 focus:ring-[#00ff99] focus:border-transparent`;
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950 md:overflow-hidden">
@@ -493,7 +493,7 @@ export default function Auth() {
                 FORM_STACK,
               )}
             >
-              <div className="flex flex-col items-center gap-2 text-center">
+              <div className="auth-reveal auth-reveal-delay-0 flex flex-col items-center gap-2 text-center">
                 <OptimizedImage
                   src="/favicon.ico"
                   alt="The Daily Urlist logo"
@@ -512,7 +512,7 @@ export default function Auth() {
 
               <form className={FORM_STACK} onSubmit={handleSignIn}>
                 {/* Guest Select — labeled; menu top-full like ProfileDropdown */}
-                <div className="relative space-y-1.5" ref={guestDropdownRef}>
+                <div className="auth-reveal auth-reveal-delay-1 relative space-y-1.5" ref={guestDropdownRef}>
                   <label
                     htmlFor="auth-guest"
                     className="block text-xs sm:text-sm font-medium text-white/80"
@@ -523,7 +523,7 @@ export default function Auth() {
                     id="auth-guest"
                     type="button"
                     onClick={() => setIsGuestDropdownOpen(!isGuestDropdownOpen)}
-                    className="w-full rounded-lg sm:rounded-xl border border-white/20 bg-white/10 backdrop-blur-md px-2 sm:px-3 py-2 sm:py-3 text-sm sm:text-base text-white focus:outline-none focus:ring-2 focus:ring-[#00ff99] focus:border-transparent transition-colors min-h-[48px] flex items-center justify-between cursor-pointer gap-2"
+                    className={`${UI_FORM_CONTROL} flex items-center justify-between gap-2 text-left focus:ring-[#00ff99] focus:border-transparent`}
                   >
                     <span className="flex min-w-0 flex-1 items-center gap-2">
                       <span className="size-7 shrink-0 flex items-center justify-center">
@@ -615,7 +615,7 @@ export default function Auth() {
                   )}
                 </div>
 
-                <div className="space-y-1.5">
+                <div className="auth-reveal auth-reveal-delay-2 space-y-1.5">
                   <label
                     htmlFor="auth-email"
                     className="block text-xs sm:text-sm font-medium text-white/80"
@@ -637,7 +637,7 @@ export default function Auth() {
                   />
                 </div>
 
-                <div className="space-y-1.5">
+                <div className="auth-reveal auth-reveal-delay-3 space-y-1.5">
                   <label
                     htmlFor="auth-password"
                     className="block text-xs sm:text-sm font-medium text-white/80"
@@ -660,13 +660,13 @@ export default function Auth() {
                 </div>
 
                 {/* Extra space above Sign in + Sign up footer */}
-                <div className="space-y-3 sm:space-y-4 pt-4 sm:pt-6">
+                <div className="auth-reveal auth-reveal-delay-4 space-y-3 sm:space-y-4 pt-4 sm:pt-6">
                   <button
                     type="submit"
                     disabled={loading}
                     className={glassPrimaryButtonClass(
                       "blue",
-                      "w-full min-h-[48px] h-auto py-2.5 sm:py-3 text-sm sm:text-base",
+                      "w-full h-12 text-sm sm:text-base",
                     )}
                   >
                     {loading && authAction === "signin" ? (

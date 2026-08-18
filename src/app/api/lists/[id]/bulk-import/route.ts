@@ -131,7 +131,7 @@ export async function POST(req: NextRequest, context: RouteContext) {
           redis.del(cacheKeys.listMetadata(listId)),
           redis.del(`list-urls:${listId}`),
         ]);
-      } catch (error) {
+      } catch {
         // Ignore cache errors
       }
     }

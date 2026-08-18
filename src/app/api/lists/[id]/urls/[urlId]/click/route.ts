@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getListById } from "@/lib/db";
-import type { UrlItem } from "@/lib/db";
 import type { Prisma } from "@prisma/client";
 import { hasListAccess } from "@/lib/collaboration/permissions";
 import { publishMessage, CHANNELS } from "@/lib/realtime/redis";

@@ -21,7 +21,7 @@ export async function POST(
     // Increment view count (stored in a JSON field or separate field)
     // For now, we'll use a simple approach - update the list metadata
     // In the future, you might want to add a separate views table
-    const currentViews = (list as any).views || 0;
+    const currentViews = (list as typeof list & { views?: number }).views || 0;
     
     // Note: This is a simplified approach. In production, you might want:
     // - A separate views table with timestamps

@@ -9,6 +9,7 @@ import {
   GLASS_GHOST_BUTTON,
   GLASS_PRIMARY_BUTTON,
 } from "@/lib/ui/glass-button-styles";
+import { UI_CONTROL_HEIGHT, UI_CONTROL_ICON_GAP } from "@/lib/ui/control-styles";
 
 export type ButtonVariant =
   | "primary"
@@ -71,13 +72,13 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     };
 
     const sizes = {
-      sm: "h-8 px-3 text-xs sm:text-sm",
-      md: "h-11 px-4 text-sm",
+      sm: "h-9 px-3 text-xs sm:text-sm",
+      md: `${UI_CONTROL_HEIGHT} px-4 text-sm`,
       lg: "h-12 px-6 text-base",
     };
 
     const classes = twMerge(
-      clsx(baseStyles, variants[variant], sizes[size], isLoading && "cursor-wait", className),
+      clsx(baseStyles, UI_CONTROL_ICON_GAP, variants[variant], sizes[size], isLoading && "cursor-wait", className),
     );
 
     if (href) {

@@ -62,7 +62,7 @@ const CustomTooltip = ({ active, payload }: CustomTooltipProps) => {
 
 export function ActivityChart({
   initialData,
-  initialLoading,
+  initialLoading: _,
 }: ActivityChartProps) {
   const [activeTab, setActiveTab] = useState<string>("30");
   const days = parseInt(activeTab);

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useParams } from "next/navigation";
 import { useStore } from "@nanostores/react";
@@ -42,7 +42,7 @@ export function Comments({ listId, urlId, currentUserId }: CommentsProps) {
   const list = useStore(currentList);
 
   // React Query key for comments
-  const queryKey = ["comments", listId, urlId];
+  const queryKey = useMemo(() => ["comments", listId, urlId], [listId, urlId]);
 
   // Fetch comments using React Query
   const { data: commentsData, isLoading } = useQuery<{

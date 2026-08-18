@@ -1,8 +1,6 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useStore } from "@nanostores/react";
-import { currentList } from "@/stores/urlListStore";
 import { useQueryClient } from "@tanstack/react-query";
 import { useParams } from "next/navigation";
 import { listQueryKeys } from "@/hooks/useListQueries";
@@ -16,7 +14,6 @@ import {
   Pin,
   Copy,
   Archive,
-  Link as LinkIcon,
   UserPlus,
   Globe,
   Lock,
@@ -41,18 +38,15 @@ interface ActivityFeedProps {
 
 export function ActivityFeed({ listId, limit = 50 }: ActivityFeedProps) {
   const [activities, setActivities] = useState<ActivityItem[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const list = useStore(currentList);
+  const isLoading = false;
   const queryClient = useQueryClient();
   const params = useParams();
   const slug = typeof params?.slug === "string" ? params.slug : null;
 
   // Track refresh timeout to debounce rapid updates
-  const refreshTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
   // Track last local operation time to skip fetches after local actions
   const lastLocalOperationRef = React.useRef<number>(0);
   // Track last activity-updated event timestamp to deduplicate rapid events
-  const lastActivityUpdateEventRef = React.useRef<number>(0);
 
   // ActivityFeed now relies ONLY on events from unified endpoint
   // No separate API calls - ListPage's useUnifiedListQuery handles all fetching
@@ -177,7 +171,6 @@ export function ActivityFeed({ listId, limit = 50 }: ActivityFeedProps) {
         return;
       }
 
-      const now = Date.now();
       const activityData = customEvent.detail?.activity;
 
       // UNIFIED APPROACH: All activity-updated events come from SSE
@@ -248,9 +241,6 @@ export function ActivityFeed({ listId, limit = 50 }: ActivityFeedProps) {
       window.removeEventListener("activity-updated", handleActivityUpdate);
       window.removeEventListener("activity-added", handleActivityAdded);
       window.removeEventListener("local-operation", handleLocalOperation);
-      if (refreshTimeoutRef.current) {
-        clearTimeout(refreshTimeoutRef.current);
-      }
     };
   }, [listId, limit]);
 

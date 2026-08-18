@@ -32,18 +32,15 @@ import {
   addUrlToList,
   removeUrlFromList,
   updateUrlInList,
-  toggleUrlFavorite,
   setDragInProgress,
   type UrlItem,
 } from "@/stores/urlListStore";
 import {
   updateDragOrderCache,
-  syncDragOrderCacheWithServer,
   getDragOrderStorageKey,
 } from "@/stores/dragOrderCache";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { Textarea } from "@/components/ui/Textarea";
 import { useUrlMetadata } from "@/hooks/useUrlMetadata";
 import { useQueryClient } from "@tanstack/react-query";
 import { listQueryKeys } from "@/hooks/useListQueries";
@@ -52,7 +49,7 @@ import { fetchUrlMetadata, type UrlMetadata } from "@/utils/urlMetadata";
 import { UrlCard } from "./UrlCard";
 import { UrlEditModal } from "./UrlEditModal";
 import { LinkIcon, ArchiveBoxIcon } from "@heroicons/react/24/outline";
-import { CirclePlus } from "lucide-react";
+import { Archive, Link2, WandSparkles } from "lucide-react";
 import type { EnhancementResult } from "@/lib/ai";
 import { useDebounce } from "@/hooks/useDebounce";
 import type { SearchResult } from "@/lib/ai/search";
@@ -176,20 +173,7 @@ export function UrlList() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const permissions = useListPermissions(); // Get permissions for current list and user
-  const listSlug = list?.slug; // Get slug for React Query invalidations
   const [newUrl, setNewUrl] = useState("");
-
-  // Debug logging for list store updates to verify re-renders
-  React.useEffect(() => {
-    if (process.env.NODE_ENV === "development" && list?.urls) {
-      const urls = (list.urls as unknown as UrlItem[]) || [];
-      const urlWithClickCount = urls.find(
-        (u) => u.clickCount !== undefined && u.clickCount > 0,
-      );
-      if (urlWithClickCount) {
-      }
-    }
-  }, [list?.urls, list?.id]);
 
   // Listen for metadata refresh events to invalidate cache
   useEffect(() => {
@@ -344,15 +328,6 @@ export function UrlList() {
   // CRITICAL: Compute isMetadataReady SYNCHRONOUSLY during render (not from state)
   // This prevents race condition where hooks run before useLayoutEffect
   // IMPORTANT: Use sorted unique URLs for hash to make it order-independent (pin/unpin reorder doesn't invalidate cache)
-  const currentListHash =
-    list?.id && list?.urls
-      ? `${list.id}:${Array.from(
-          new Set((list.urls as unknown as UrlItem[]).map((u) => u.url)),
-        )
-          .sort()
-          .join("|")}`
-      : "";
-
   // Compute isMetadataReady directly from refs and cache (synchronous, no state delay)
   // IMPORTANT: Use sorted unique URLs so pin/unpin reordering doesn't reset isMetadataReady
   const isMetadataReady = useMemo(() => {
@@ -380,7 +355,7 @@ export function UrlList() {
     });
 
     return allCached;
-  }, [list?.id, list?.urls, queryClient, currentListHash]);
+  }, [list?.id, list?.urls, queryClient]);
 
   useEffect(() => {
     // CRITICAL: Skip metadata fetch if we just did a bulk import (dev server workaround)
@@ -418,7 +393,6 @@ export function UrlList() {
     // Use sorted unique URLs for hash so order changes (pin/unpin reorder) don't trigger re-fetch
     const uniqueUrls = Array.from(new Set(urls.map((u) => u.url))).sort();
     const urlsHash = uniqueUrls.join("|");
-    const urlCount = uniqueUrls.length;
     const prefetchKey = `${listId}:${urlsHash}`;
 
     // CRITICAL: Check React Query cache FIRST before making any API calls
@@ -460,22 +434,11 @@ export function UrlList() {
         const response = await fetch(`/api/lists/${listId}/metadata`);
 
         if (response.ok) {
-          const { metadata, cached } = await response.json();
-          const metadataCount = Object.keys(metadata).length;
-
-          // Only log significant events (cache misses, errors)
-          if (!cached) {
-            // console.log(
-            //   `🔄 [BATCH] Fetched ${metadataCount} metadata entries from web (${fetchTime.toFixed(
-            //     2
-            //   )}ms)`
-            // );
-          }
+          const { metadata } = await response.json();
 
           // Hydrate React Query cache and localStorage with all metadata instantly
           // CRITICAL: This happens synchronously, so cards will see cache immediately
           // Also prefetch images so they display instantly (no loading state on reorder)
-          let hydratedCount = 0;
           Object.entries(metadata).forEach(([url, metaData]) => {
             const queryKey = listQueryKeys.urlMetadata(url);
             const meta = metaData as UrlMetadata;
@@ -486,7 +449,6 @@ export function UrlList() {
             if (!existingCache) {
               // Set in React Query cache (instant, synchronous)
               queryClient.setQueryData(queryKey, meta);
-              hydratedCount++;
             }
 
             // Prefetch image if available (ensures instant display on reorder)
@@ -529,7 +491,7 @@ export function UrlList() {
                     }
                   };
                 }
-              } catch (error) {
+              } catch {
                 // Ignore prefetch errors (non-critical)
                 // console.warn(
                 //   `  ⚠️ [BATCH] Failed to prefetch image for ${url}:`,
@@ -570,7 +532,7 @@ export function UrlList() {
           // );
           prefetchedMetadataRef.current = null; // Reset on error
         }
-      } catch (error) {
+      } catch {
         // console.error(`❌ [BATCH] Failed to fetch batch metadata:`, error);
         prefetchedMetadataRef.current = null; // Reset on error
 
@@ -684,7 +646,7 @@ export function UrlList() {
         // Ignore sessionStorage errors
       }
     }
-  }, [list?.id, list?.urls]); // Run when list ID OR URLs change (catches Fast Refresh)
+  }, [list]); // Run when the active list changes (catches Fast Refresh)
 
   // Listen for real-time update events (debounced to prevent loops)
   useEffect(() => {
@@ -706,7 +668,6 @@ export function UrlList() {
       // Increased to 30 seconds to survive queued refreshes and Fast Refresh cycles
       // This is especially important because real-time updates can queue refreshes that run later
       if (now - lastDragEndTimeRef.current < 30000) {
-        const dragEndTime = now - lastDragEndTimeRef.current;
         // console.log(
         //   `⏭️ [REALTIME] Skipping refresh - drag operation just completed (${dragEndTime.toFixed(
         //     0
@@ -751,7 +712,7 @@ export function UrlList() {
               }
             }
           }
-        } catch (err) {
+        } catch {
           // console.error("❌ [REALTIME] Error checking localStorage", err);
         }
       }
@@ -852,7 +813,7 @@ export function UrlList() {
         // Skip getList during bulk imports to prevent overwhelming the browser/server
         if (
           typeof window !== "undefined" &&
-          (window as any).__bulkImportActive
+          window.__bulkImportActive
         ) {
           if (process.env.NODE_ENV === "development") {
             console.debug(
@@ -878,7 +839,7 @@ export function UrlList() {
           // Skip if bulk import started during the delay
           if (
             typeof window !== "undefined" &&
-            (window as any).__bulkImportActive
+            window.__bulkImportActive
           ) {
             if (process.env.NODE_ENV === "development") {
               // Skipping queued getList - bulk import in progress
@@ -947,7 +908,7 @@ export function UrlList() {
         if (current.id && typeof window !== "undefined") {
           try {
             localStorage.removeItem(getDragOrderStorageKey(current.id));
-          } catch (err) {
+          } catch {
             // Failed to clear localStorage cache
           }
         }
@@ -969,7 +930,7 @@ export function UrlList() {
         clearTimeout(refreshTimeoutRef.current);
       }
     };
-  }, []);
+  }, [queryClient]);
 
   // Debounce search query for smart search (only trigger after 500ms of no typing)
   const debouncedSearch = useDebounce(search, 500);
@@ -1010,7 +971,7 @@ export function UrlList() {
           setSmartSearchResults([]);
           setLastSearchedQuery(currentSearchQuery);
         }
-      } catch (error) {
+      } catch {
         // console.error("Smart search failed:", error);
         // On error, set empty array (not null) so we know search completed with no results
         setSmartSearchResults([]);
@@ -1124,7 +1085,7 @@ export function UrlList() {
         await response.json().catch(() => ({}));
         // Keep optimistic update even if server call fails - better UX
       }
-    } catch (error) {
+    } catch {
       // Network error or other issue - keep optimistic update
       // Keep optimistic update for better UX even if network fails
     }
@@ -1315,7 +1276,7 @@ export function UrlList() {
           queryKey: listQueryKeys.unified(current.slug),
         });
       }
-    } catch (err) {
+    } catch {
       // console.error("Failed to toggle favorite:", err);
       // Revert on error - use React Query invalidation to trigger unified endpoint refetch
       if (current.slug) {
@@ -1510,8 +1471,7 @@ export function UrlList() {
           queryKey: listQueryKeys.unified(current.slug),
         });
       }
-    } catch (err) {
-      // console.error("Failed to pin URL:", err);
+    } catch {
       // Revert on error - use React Query invalidation to trigger unified endpoint refetch
       if (current.slug) {
         queryClient.invalidateQueries({
@@ -1556,7 +1516,7 @@ export function UrlList() {
         await navigator.clipboard.writeText(url.url);
         setShareTooltip("URL copied to clipboard!");
         setTimeout(() => setShareTooltip(null), 2000);
-      } catch (err) {
+      } catch {
         // Error copying to clipboard
         setShareTooltip("Failed to copy URL");
         setTimeout(() => setShareTooltip(null), 2000);
@@ -1648,7 +1608,7 @@ export function UrlList() {
           const storageKey = getDragOrderStorageKey(current.id);
           const storageValue = JSON.stringify(reorderedUrls);
           localStorage.setItem(storageKey, storageValue);
-        } catch (err) {
+        } catch {
           // Ignore localStorage errors
         }
       }
@@ -1747,7 +1707,7 @@ export function UrlList() {
                 const storageKey = getDragOrderStorageKey(current.id);
                 localStorage.removeItem(storageKey);
                 // Also clear global cache
-                const globalCache = (window as any).__dragOrderCache;
+                const globalCache = window.__dragOrderCache;
                 if (globalCache) {
                   delete globalCache[storageKey];
                 }
@@ -1840,14 +1800,14 @@ export function UrlList() {
       if (current.id && typeof window !== "undefined") {
         try {
           // Update cache with new drag order (centralized function handles both localStorage and global cache)
-          const updated = updateDragOrderCache(
+          updateDragOrderCache(
             current.id,
             reorderedUrls,
             false,
           );
 
           // Cache updated successfully
-        } catch (err) {
+        } catch {
           // Ignore cache errors
         }
       }
@@ -1881,7 +1841,6 @@ export function UrlList() {
 
       // CRITICAL: Log what we're sending to the API
       const urlsToSend = finalDragOrderRef.current;
-      const orderToSend = urlsToSend?.map((u) => u.id).join(",") || "NULL";
       try {
         if (process.env.NODE_ENV === "development") {
           console.log(`🔄 [API] PATCH /api/lists/${current.id}/urls - reorder`);
@@ -1994,7 +1953,7 @@ export function UrlList() {
                 const storageKey = getDragOrderStorageKey(current.id);
                 localStorage.removeItem(storageKey);
                 // Also clear global cache
-                const globalCache = (window as any).__dragOrderCache;
+                const globalCache = window.__dragOrderCache;
                 if (globalCache) {
                   delete globalCache[storageKey];
                 }
@@ -2053,9 +2012,8 @@ export function UrlList() {
         const storageKey = getDragOrderStorageKey(list.id);
 
         // FIRST: Check global cache (survives Fast Refresh)
-        const globalCache = (window as any).__dragOrderCache;
+        const globalCache = window.__dragOrderCache;
         let storedOrder = globalCache?.[storageKey] || null;
-        const source = storedOrder ? "global" : null;
 
         // THEN: Check localStorage if global cache didn't have it
         if (!storedOrder) {
@@ -2120,9 +2078,8 @@ export function UrlList() {
                 // Restore global cache so getList can find it
                 // NOTE: Store update is handled by useLayoutEffect to avoid React warnings
                 if (typeof window !== "undefined") {
-                  (window as any).__dragOrderCache =
-                    (window as any).__dragOrderCache || {};
-                  (window as any).__dragOrderCache[storageKey] = parsed;
+                  window.__dragOrderCache = window.__dragOrderCache || {};
+                  window.__dragOrderCache[storageKey] = parsed;
                 }
                 // Store update will happen in useLayoutEffect to avoid "setState during render" error
               } else {
@@ -2137,7 +2094,7 @@ export function UrlList() {
         } else {
           // console.log("⏭️ [RENDER] No stored order in localStorage");
         }
-      } catch (err) {
+      } catch {
         // console.error(
         //   "❌ [RENDER] Failed to read localStorage during render",
         //   err
@@ -2176,7 +2133,7 @@ export function UrlList() {
       try {
         const storageKey = getDragOrderStorageKey(list.id);
         // Also check global cache first (faster)
-        const globalCache = (window as any).__dragOrderCache;
+        const globalCache = window.__dragOrderCache;
         if (globalCache?.[storageKey]) {
           preservedOrder = globalCache[storageKey];
           if (preservedOrder) {
@@ -2203,7 +2160,7 @@ export function UrlList() {
             }
           }
         }
-      } catch (err) {
+      } catch {
         // console.error("❌ [URLS] Failed to read localStorage in memo", err);
       }
     }
@@ -2288,7 +2245,7 @@ export function UrlList() {
           if (list?.id && typeof window !== "undefined") {
             try {
               const storageKey = getDragOrderStorageKey(list.id);
-              const globalCache = (window as any).__dragOrderCache;
+              const globalCache = window.__dragOrderCache;
               if (globalCache && globalCache[storageKey]) {
                 delete globalCache[storageKey];
               }
@@ -2319,7 +2276,7 @@ export function UrlList() {
         if (list?.id && typeof window !== "undefined") {
           try {
             const storageKey = getDragOrderStorageKey(list.id);
-            const globalCache = (window as any).__dragOrderCache;
+            const globalCache = window.__dragOrderCache;
             if (globalCache && globalCache[storageKey]) {
               delete globalCache[storageKey];
             }
@@ -2582,19 +2539,20 @@ export function UrlList() {
             type="button"
             onClick={() => setShowArchived(false)}
             variant={!showArchived ? "action" : "ghost"}
-            size="sm"
+            size="md"
             className="flex-1 sm:flex-none"
           >
+            <Link2 className="h-4 w-4 shrink-0" aria-hidden />
             Active URLs ({list.urls?.length || 0})
           </Button>
           <Button
             type="button"
             onClick={() => setShowArchived(true)}
             variant={showArchived ? "action" : "ghost"}
-            size="sm"
+            size="md"
             className="flex-1 sm:flex-none"
           >
-            <ArchiveBoxIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
+            <Archive className="h-4 w-4 shrink-0" aria-hidden />
             Archived ({archivedUrls.length})
           </Button>
         </div>
@@ -2616,12 +2574,12 @@ export function UrlList() {
                 setError(undefined);
               }
             }}
-            className={`inline-flex items-center justify-center gap-2 transition-all duration-200 text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2 w-full sm:w-auto ${
+            className={`w-full sm:w-auto ${
               !permissions.canEdit ? "opacity-50 cursor-not-allowed" : ""
             }`}
             variant="glassEmerald"
           >
-            <CirclePlus className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+            <WandSparkles className="h-4 w-4 shrink-0" aria-hidden />
             Add URL
           </Button>
         )}
@@ -2642,6 +2600,14 @@ export function UrlList() {
           onClear={() => {
             setEnhancementResult(null);
           }}
+          onCancel={() => {
+            setNewUrl("");
+            setNewNote("");
+            setNewTags("");
+            setEnhancementResult(null);
+            setError(undefined);
+            setIsAddUrlFormExpanded(false);
+          }}
           isExpanded={isAddUrlFormExpanded}
         />
       )}
@@ -2658,7 +2624,7 @@ export function UrlList() {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search URLs, titles, or descriptions... (AI-powered)"
-                className="w-full text-sm sm:text-base lg:text-lg shadow-md font-delicious min-w-[180px] bg-transparent pr-16 sm:pr-20 py-2 sm:py-2"
+                className="min-w-[180px] bg-transparent pr-16 font-delicious text-sm sm:pr-20 sm:text-base lg:text-lg"
               />
               {search.trim() && (
                 <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
@@ -2761,9 +2727,9 @@ export function UrlList() {
                 localStorage.setItem(storageKey, JSON.stringify(reorderedUrls));
 
                 // Also update global cache
-                const globalCache = (window as any).__dragOrderCache || {};
-                globalCache[storageKey] = reorderedUrls;
-                (window as any).__dragOrderCache = globalCache;
+            const globalCache = window.__dragOrderCache || {};
+            globalCache[storageKey] = reorderedUrls;
+            window.__dragOrderCache = globalCache;
               } catch {
                 // Ignore localStorage errors
               }

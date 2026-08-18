@@ -3,7 +3,6 @@ import {
   screen,
   act,
   waitFor,
-  fireEvent,
 } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ToastProvider } from "@/components/ui/Toaster";
@@ -196,7 +195,7 @@ describe.skip("UrlList Drag-and-Drop Diagnostic Tests", () => {
   });
 
   it("diagnoses drag-and-drop bounce-back issue", async () => {
-    const { container } = render(
+    render(
       <TestWrapper>
         <UrlList />
       </TestWrapper>

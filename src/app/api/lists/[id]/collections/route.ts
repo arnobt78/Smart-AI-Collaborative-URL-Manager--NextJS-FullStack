@@ -4,7 +4,6 @@ import { getListBySlug, getUserLists, type UrlItem } from "@/lib/db";
 import { hasListAccess } from "@/lib/collaboration/permissions";
 import {
   smartCollectionsService,
-  type CollectionSuggestion,
   type DuplicateDetection,
 } from "@/lib/ai/collections";
 
@@ -261,4 +260,3 @@ export async function POST(
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
-

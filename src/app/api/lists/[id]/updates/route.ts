@@ -51,7 +51,7 @@ export async function GET(
     );
 
     // Always update list.urls to the sorted version
-    list.urls = urlsWithPositions as any;
+    list.urls = urlsWithPositions as unknown as typeof list.urls;
 
     // OPTIMIZATION: Run position initialization (if needed), activities, and collaborators queries in PARALLEL
     // Determine if user can access collaborators first (synchronous check, no DB query)
@@ -129,4 +129,3 @@ export async function GET(
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
-

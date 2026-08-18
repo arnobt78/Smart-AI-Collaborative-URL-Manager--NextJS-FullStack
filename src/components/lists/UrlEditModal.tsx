@@ -7,7 +7,7 @@ import React, { useEffect, useRef } from "react";
 import type { UrlItem } from "@/stores/urlListStore";
 import { UrlEnhancer } from "@/components/ai/UrlEnhancer";
 import { queryClient } from "@/lib/react-query";
-import { fetchUrlMetadata, type UrlMetadata } from "@/utils/urlMetadata";
+import type { UrlMetadata } from "@/utils/urlMetadata";
 import { saveQueryDataToLocalStorage } from "@/lib/react-query";
 
 interface UrlEditModalProps {

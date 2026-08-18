@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import type { UrlItem } from "@/stores/urlListStore";
 
-export async function GET(req: NextRequest) {
+export async function GET(_: NextRequest) {
   try {
     const user = await getCurrentUser();
     if (!user) {
@@ -30,8 +31,8 @@ export async function GET(req: NextRequest) {
     const oneDayInMs = 24 * 60 * 60 * 1000;
 
     lists.forEach((list) => {
-      const urls = (list.urls as any[]) || [];
-      urls.forEach((url: any) => {
+      const urls = (list.urls as unknown as UrlItem[]) || [];
+      urls.forEach((url) => {
         const clickCount = url.clickCount || 0;
         const isFavorite = url.isFavorite || false;
         const createdAt = new Date(url.createdAt).getTime();
@@ -95,7 +96,7 @@ export async function GET(req: NextRequest) {
         id: list.id,
         title: list.title,
         slug: list.slug,
-        urlCount: (list.urls as any[])?.length || 0,
+        urlCount: (list.urls as unknown as UrlItem[])?.length || 0,
         isPublic: list.isPublic,
         collaborators: list.collaborators?.length || 0,
         updatedAt: list.updatedAt,

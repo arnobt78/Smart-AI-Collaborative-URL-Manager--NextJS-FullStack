@@ -3,10 +3,10 @@
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { Textarea } from "@/components/ui/Textarea";
-import { CirclePlus } from "lucide-react";
+import { WandSparkles, X } from "lucide-react";
 import { UrlEnhancer } from "@/components/ai/UrlEnhancer";
 import type { EnhancementResult } from "@/lib/ai";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import { queryClient } from "@/lib/react-query";
 import { saveQueryDataToLocalStorage } from "@/lib/react-query";
 import type { UrlMetadata } from "@/utils/urlMetadata";
@@ -23,6 +23,7 @@ interface UrlAddFormProps {
   isLoading: boolean;
   onAdd: (e: React.FormEvent) => void;
   onClear: () => void;
+  onCancel: () => void;
   isExpanded: boolean;
 }
 
@@ -37,12 +38,9 @@ export function UrlAddForm({
   isLoading,
   onAdd,
   onClear,
+  onCancel,
   isExpanded,
 }: UrlAddFormProps) {
-  const [isUrlInputFocused, setIsUrlInputFocused] = useState(false);
-  const [enhancementResult, setEnhancementResult] =
-    useState<EnhancementResult | null>(null);
-
   const prefetchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const previousUrlRef = useRef<string | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -151,16 +149,6 @@ export function UrlAddForm({
 
   const handleUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setNewUrl(e.target.value);
-    setEnhancementResult(null); // Reset enhancement when URL changes
-  };
-
-  const handleFocus = () => {
-    setIsUrlInputFocused(true);
-  };
-
-  const handleBlur = () => {
-    // Reset focus state when blurring - fields are controlled by URL content, not focus
-    setIsUrlInputFocused(false);
   };
 
   const handleClear = () => {
@@ -169,14 +157,11 @@ export function UrlAddForm({
     setNewUrl("");
     setNewNote("");
     setNewTags("");
-    setEnhancementResult(null);
-    setIsUrlInputFocused(false);
     previousUrlRef.current = null;
     onClear();
   };
 
   const handleEnhance = (result: EnhancementResult) => {
-    setEnhancementResult(result);
     devLog("AI Enhancement Result:", result); // Debug log
 
     // Auto-fill tags if enhancement succeeded
@@ -225,23 +210,13 @@ export function UrlAddForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className={`
-        flex flex-col gap-2 sm:gap-4 bg-white/5 backdrop-blur-md rounded-xl shadow-xl border border-white/20 mx-auto
-        transition-all duration-300 ease-in-out overflow-hidden
-        ${
-          isExpanded
-            ? "p-2 sm:p-4 max-h-[1000px] opacity-100"
-            : "p-0 max-h-0 opacity-0"
-        }
-      `}
+      className="flex w-full flex-col gap-3 rounded-xl border border-white/20 bg-white/5 p-3 shadow-xl backdrop-blur-md sm:gap-4 sm:p-4"
     >
       <div className="space-y-2">
         <Input
           type="url"
           value={newUrl}
           onChange={handleUrlChange}
-          onFocus={handleFocus}
-          onBlur={handleBlur}
           placeholder="Enter a URL to add to your list..."
           error={error}
           className="text-sm sm:text-base lg:text-lg shadow-md font-delicious bg-transparent"
@@ -290,14 +265,18 @@ export function UrlAddForm({
         </div>
       )}
 
-      <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-2">
+      <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
         {newUrl && (
           <Button type="button" onClick={handleClear} variant="glassNeutral">
             Clear
           </Button>
         )}
+        <Button type="button" onClick={onCancel} variant="glassNeutral">
+          <X className="h-4 w-4 shrink-0" aria-hidden />
+          Cancel
+        </Button>
         <Button type="submit" isLoading={isLoading} variant="glassEmerald">
-          <CirclePlus className="h-4 w-4 sm:h-5 sm:w-5 shrink-0" aria-hidden />
+          <WandSparkles className="h-4 w-4 sm:h-5 sm:w-5 shrink-0" aria-hidden />
           Add URL
         </Button>
       </div>

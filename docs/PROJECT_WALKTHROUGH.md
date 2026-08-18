@@ -25,10 +25,12 @@ Next 15 URL bookmark manager. Demo: https://daily-urlist.vercel.app/
 - Collaborators empty one-row · Card/SC `p-2 sm:p-4`
 - Local DB: `.env` / `.env.local` → remote `77.42.71.87:25432` (gitignored)
 - Out of scope: densify / Zod / SHA / JWT-null SSR / Next 16 / Prisma 7
+- UI controls: `lib/ui/control-styles.ts` provides shared 48px field/trigger geometry; Auth uses CSS reveal with reduced-motion support
+- Data sync: unified React Query cache + optimistic `currentList` store + centralized invalidation + SSE; bulk import reconciles without a hard reload
 
 ## Versions
 
-Next **15.5.23** · React **18** · Prisma **6.19.3** · Jest · audit **0**
+Next **15.5.23** · React **18** · Prisma **6.19.3** · Jest · Node **24.x** · ESLint audit **0**
 
 ## Env
 

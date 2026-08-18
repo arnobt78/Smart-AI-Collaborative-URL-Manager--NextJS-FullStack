@@ -5,7 +5,6 @@ import {
   updateCollaboratorRole,
   removeCollaborator,
   getCollaboratorsWithRoles,
-  getListById,
   getListBySlugOrId,
 } from "@/lib/db";
 import { sendCollaboratorInviteEmail } from "@/lib/email";

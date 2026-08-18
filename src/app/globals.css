@@ -158,6 +158,26 @@
   animation: slideUp 0.3s ease-out;
 }
 
+/* REQ-0011: entrance-only form reveal; interaction is never gated by motion. */
+.auth-reveal {
+  animation: authReveal 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.auth-reveal-delay-0 { animation-delay: 0ms; }
+.auth-reveal-delay-1 { animation-delay: 80ms; }
+.auth-reveal-delay-2 { animation-delay: 160ms; }
+.auth-reveal-delay-3 { animation-delay: 240ms; }
+.auth-reveal-delay-4 { animation-delay: 320ms; }
+
+@keyframes authReveal {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-reveal { animation: none; }
+}
+
 @keyframes fadeIn {
   0% {
     opacity: 0;

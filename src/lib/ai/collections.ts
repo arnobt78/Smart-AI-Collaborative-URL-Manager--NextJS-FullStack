@@ -192,7 +192,10 @@ class SmartCollectionsService {
             
             // Batch vector searches with concurrency limit (5 at a time)
             const concurrencyLimit = 5;
-            const searchResults: Array<{ url: UrlItem; similar: any[] }> = [];
+            const searchResults: Array<{
+              url: UrlItem;
+              similar: Awaited<ReturnType<typeof findSimilarUrls>>;
+            }> = [];
             
             for (let i = 0; i < sampleUrls.length; i += concurrencyLimit) {
               const batch = sampleUrls.slice(i, i + concurrencyLimit);
@@ -335,7 +338,7 @@ class SmartCollectionsService {
               groupUrls,
               metadata: aiResult,
             };
-          } catch (error) {
+          } catch {
             // If AI fails, use heuristic
             return {
               key,
@@ -459,7 +462,7 @@ class SmartCollectionsService {
             break;
           }
         }
-      } catch (error) {
+      } catch {
         // Vector search failed, skip this list
         continue;
       }
@@ -599,7 +602,7 @@ Respond ONLY with valid JSON, no additional text.`;
             confidence: parsed.confidence || 75,
             reason: parsed.reason || "Grouped by similarity",
           };
-        } catch (error) {
+        } catch {
           console.warn(`${providerConfig.displayName} failed, trying next...`);
           continue;
         }
@@ -671,4 +674,3 @@ Respond ONLY with valid JSON, no additional text.`;
 }
 
 export const smartCollectionsService = new SmartCollectionsService();
-

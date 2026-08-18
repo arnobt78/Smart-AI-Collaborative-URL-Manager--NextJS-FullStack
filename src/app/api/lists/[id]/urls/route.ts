@@ -51,11 +51,6 @@ export async function GET(req: NextRequest, context: RouteContext) {
 
     // Check Redis cache for URLs with metadata (use list.id, not identifier)
     const cacheKey = `list-urls:${listId}`;
-    const cachedData: {
-      urls: UrlItem[];
-      metadata: Record<string, UrlMetadata>;
-    } | null = null;
-
     if (redis) {
       try {
         const cached = await redis.get<{
@@ -87,7 +82,7 @@ export async function GET(req: NextRequest, context: RouteContext) {
             });
           }
         }
-      } catch (error) {
+      } catch {
         // Ignore cache read errors
       }
     }
@@ -132,7 +127,7 @@ export async function GET(req: NextRequest, context: RouteContext) {
                 // Ignore Redis errors
               }
             }
-          } catch (error) {
+          } catch {
             // Set empty metadata on error
             metadataMap[url] = {
               title: new URL(url).hostname.replace(/^www\./, ""),
@@ -160,7 +155,7 @@ export async function GET(req: NextRequest, context: RouteContext) {
           },
           { ex: 3600 }
         ); // 1 hour TTL
-      } catch (error) {
+      } catch {
         // Ignore cache errors
       }
     }
@@ -406,7 +401,7 @@ export async function POST(req: NextRequest, context: RouteContext) {
             }
           });
         }
-      } catch (error) {
+      } catch {
         finalMetadata = {
           title: new URL(url).hostname.replace(/^www\./, ""),
           description: undefined,
@@ -508,14 +503,14 @@ export async function POST(req: NextRequest, context: RouteContext) {
           redis.del(cacheKeys.listMetadata(listId)),
           redis.del(`list-urls:${listId}`),
         ]);
-      } catch (error) {
+      } catch {
         // Ignore cache errors
       }
     }
 
     // Sync vectors in background (non-blocking)
     if (vectorIndex) {
-      upsertUrlVectors([newUrl], listId).catch((error) => {
+      upsertUrlVectors([newUrl], listId).catch(() => {
         // Ignore vector sync errors
       });
     }
@@ -640,7 +635,7 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
 
     const currentUrls = (currentList.urls as unknown as UrlItem[]) || [];
 
-    let updated: any;
+    let updated: Awaited<ReturnType<typeof updateList>>;
     let updatedUrls: UrlItem[];
     let updatedUrl: UrlItem | undefined;
 
@@ -676,6 +671,10 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
 
       updated = await updateList(listId, { urls: updatedUrls });
 
+      if (!updated) {
+        return NextResponse.json({ error: "List not found" }, { status: 404 });
+      }
+
       const savedUrls = (updated.urls as unknown as UrlItem[]) || [];
       const savedOrder = savedUrls.map((u) => u.id).join(",");
       console.log(`✅ [PATCH] Positions updated`, {
@@ -706,6 +705,10 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
         u.id === urlId ? updatedUrlItem : u
       );
       updated = await updateList(listId, { urls: updatedUrls });
+    }
+
+    if (!updated) {
+      return NextResponse.json({ error: "List not found" }, { status: 404 });
     }
 
     // Check if URL changed (need to fetch new metadata) - only for single URL update
@@ -776,7 +779,7 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
             }
           }
         }
-      } catch (error) {
+      } catch {
         // Fallback metadata if fetch fails
         urlMetadata = {
           title: new URL(updatedUrl.url).hostname.replace(/^www\./, ""),
@@ -811,6 +814,9 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
           u.id === urlId ? updatedUrlWithMetadata : u
         );
         updated = await updateList(listId, { urls: updatedUrls });
+        if (!updated) {
+          return NextResponse.json({ error: "List not found" }, { status: 404 });
+        }
         updatedUrl = updatedUrlWithMetadata; // Update reference for activity logging
       }
     }
@@ -904,7 +910,7 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
           redis.del(cacheKeys.listMetadata(listId)),
           redis.del(`list-urls:${listId}`),
         ]);
-      } catch (error) {
+      } catch {
         // Ignore cache errors
       }
     }
@@ -918,7 +924,7 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
         });
       } else if (updatedUrl) {
         // For single URL update, sync only that URL
-        upsertUrlVectors([updatedUrl], listId).catch((error) => {
+        upsertUrlVectors([updatedUrl], listId).catch(() => {
           // Ignore vector sync errors
         });
       }
@@ -1097,14 +1103,14 @@ export async function DELETE(req: NextRequest, context: RouteContext) {
           // Clear collections cache so duplicate detection and suggestions refresh
           redis.del(`collections:suggestions:${listId}`),
         ]);
-      } catch (error) {
+      } catch {
         // Ignore cache errors
       }
     }
 
     // Sync vectors in background (non-blocking)
     if (vectorIndex) {
-      deleteUrlVector(finalUrlId, listId).catch((error) => {
+      deleteUrlVector(finalUrlId, listId).catch(() => {
         // Ignore vector sync errors
       });
     }

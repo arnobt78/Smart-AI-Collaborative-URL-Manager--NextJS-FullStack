@@ -60,7 +60,7 @@ export async function GET(
             cached: true,
           });
         }
-      } catch (error) {
+      } catch {
         // Ignore cache read errors
       }
     }
@@ -74,7 +74,7 @@ export async function GET(
     if (redis) {
       try {
         await redis.set(cacheKey, comments, { ex: 1800 }); // 30 minutes
-      } catch (error) {
+      } catch {
         // Ignore cache write errors
       }
     }
@@ -156,7 +156,7 @@ export async function POST(
         await redis.del(cacheKeys.comments(listId, urlId));
         // Also invalidate cache for all comments in the list
         await redis.del(cacheKeys.comments(listId));
-      } catch (error) {
+      } catch {
         // Ignore cache invalidation errors
       }
     }
@@ -286,7 +286,7 @@ export async function PATCH(
         await redis.del(cacheKeys.comments(listId, urlId));
         // Also invalidate cache for all comments in the list
         await redis.del(cacheKeys.comments(listId));
-      } catch (error) {
+      } catch {
         // Ignore cache invalidation errors
       }
     }
@@ -412,7 +412,7 @@ export async function DELETE(
         await redis.del(cacheKeys.comments(listId, urlId));
         // Also invalidate cache for all comments in the list
         await redis.del(cacheKeys.comments(listId));
-      } catch (error) {
+      } catch {
         // Ignore cache invalidation errors
       }
     }
@@ -468,4 +468,3 @@ export async function DELETE(
     return NextResponse.json({ error: message }, { status });
   }
 }
-

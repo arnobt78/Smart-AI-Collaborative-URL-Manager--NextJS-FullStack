@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getListById, updateList } from "@/lib/db";
 import type { UrlItem } from "@/stores/urlListStore";
-import { uploadExternalImage } from "@/lib/cloudinary-server";
 import { createActivity } from "@/lib/db/activities";
 import { publishMessage, CHANNELS } from "@/lib/realtime/redis";
 import { getCurrentUser } from "@/lib/auth";
@@ -102,7 +101,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Update the list in database
-    const updatedList = await updateList(listId, { urls: updatedUrls });
+    await updateList(listId, { urls: updatedUrls });
 
     const duration = Date.now() - startTime;
     console.log(
@@ -151,7 +150,7 @@ export async function POST(request: NextRequest) {
           },
         });
       }
-    } catch (error) {
+    } catch {
       // Ignore errors if user not available (scheduled job case)
       // Still publish list update even without activity
       try {
@@ -184,4 +183,3 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
-

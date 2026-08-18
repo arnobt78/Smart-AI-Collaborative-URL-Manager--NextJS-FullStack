@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Filter, Clock, ArrowUpDown, Star, Bell } from "lucide-react";
 import { HoverTooltip } from "@/components/ui/HoverTooltip";
+import { UI_CONTROL_HEIGHT } from "@/lib/ui/control-styles";
 
 interface UrlFilterBarProps {
   sortOption: "latest" | "oldest" | "az" | "za" | "favourite" | "reminders";
@@ -42,7 +43,7 @@ export function UrlFilterBar({ sortOption, setSortOption }: UrlFilterBarProps) {
           type="button"
           onClick={() => setIsFilterDropdownOpen(!isFilterDropdownOpen)}
           className={`
-            relative flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-xl
+            ${UI_CONTROL_HEIGHT} relative flex w-12 items-center justify-center rounded-xl
             transition-all duration-200 shadow-md hover:shadow-lg
             ${
               isFilterDropdownOpen || sortOption !== "latest"
@@ -50,6 +51,7 @@ export function UrlFilterBar({ sortOption, setSortOption }: UrlFilterBarProps) {
                 : "bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white/20"
             }
           `}
+          aria-label="Filter and sort URLs"
         >
           <Filter className="h-4 w-4 sm:h-5 sm:w-5" />
           {(sortOption !== "latest" || isFilterDropdownOpen) && (

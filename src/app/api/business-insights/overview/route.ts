@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import type { UrlItem } from "@/stores/urlListStore";
 
-export async function GET(req: NextRequest) {
+export async function GET(_: NextRequest) {
   try {
     const user = await getCurrentUser();
     if (!user) {
@@ -17,7 +18,7 @@ export async function GET(req: NextRequest) {
     // Calculate statistics
     const totalLists = lists.length;
     const totalUrls = lists.reduce((sum, list) => {
-      const urls = (list.urls as any[]) || [];
+      const urls = (list.urls as unknown as UrlItem[]) || [];
       return sum + urls.length;
     }, 0);
 
@@ -38,7 +39,7 @@ export async function GET(req: NextRequest) {
 
     // Get URLs added in last 7 days
     const recentUrls = lists.reduce((sum, list) => {
-      const urls = (list.urls as any[]) || [];
+      const urls = (list.urls as unknown as UrlItem[]) || [];
       return (
         sum +
         urls.filter((url) => {

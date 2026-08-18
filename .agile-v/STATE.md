@@ -24,8 +24,24 @@
 - HA-0001 Firewall
 - Match Sentry org/token before `SENTRY_UPLOAD_SOURCEMAPS=1`
 
+## Remaining (user later)
+
+- More spacing/gaps across pages
+- Button consistency: height · one lucide icon · no double icons / missing icons
+
+## Current checkpoint
+
+- **Stage:** Stage 4 Verification complete for REQ-0010 through REQ-0014
+- **Gate:** **GATE-0011 Human Gate 1 — APPROVED** (`C1-HG1-UI-REMEDIATION-2026-08-18`)
+- **Scope:** shared control geometry, login row composition/motion, Smart Collections disclosure, URL toolbar/add-form refinement, and independent lint remediation.
+- **Reconciliation:** current C1 code and commit history support the recorded completed UI work. The original GATE-0001 remains historically unapproved; it is not treated as approval for further work.
+- **Audit findings resolved:** shared control geometry, Smart Collections disclosure, URL toolbar/add-form semantics, global browser casts, and 235 lint warnings are remediated. Existing mutation/invalidation architecture was retained and bulk import no longer hard-reloads.
+- **Implementation:** REQ-0010 through REQ-0013 are implemented with shared control styles, Auth entrance motion, accessible Smart Collections disclosure, and URL toolbar/Add URL refinements. The URL workspace, bulk-import flow, real-time/query synchronization, drag-order cache, metadata helper, and auth helper received type-safe lint remediation without changing their behavior. Typecheck, Jest, and production build pass.
+- **Completion:** REQ-0014 is complete. `npm run lint` reports zero warnings/errors after type-safe remediation; no lint-rule suppression was used.
+- **Evidence:** planning traces in `REQUIREMENTS.md` (REQ-0010 to REQ-0014), `TASKS.md` (TASK-0011 to TASK-0015), `DECISION_LOG.md` (DEC-0012/0013), `RISKS.md` (RISK-0011 to RISK-0014), and `GATES.md`.
+
 ## Next
 
 ```text
-Load .agile-v/STATE.md. C1 glass glow ported (stock recipe). HA-0001. No densify/Zod/Next16/Prisma7 unless REQ.
+Commit and push completed after user acceptance. HA-0001 remains human-owned. No densify/Zod/Next16/Prisma7 unless separately required.
 ```

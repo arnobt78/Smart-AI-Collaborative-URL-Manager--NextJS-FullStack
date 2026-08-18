@@ -3,9 +3,20 @@
  * This prevents navigation from getting stuck due to pending requests
  */
 
+type NextRouterInternals = {
+  __NEXT_DATA__?: { router?: { prefetchCache?: { clear?: () => void } } };
+  __nextRouter?: {
+    isPending?: boolean;
+    cache?: { clear?: () => void };
+    pending?: AbortController;
+  };
+  __nextFetchCache?: { clear?: () => void };
+  __nextRouterInternals?: { promiseQueue?: { clear?: () => void } };
+};
+
 class AbortRegistry {
   private controllers: Set<AbortController> = new Set();
-  private fetchMap: WeakMap<AbortController, Set<Promise<any>>> = new WeakMap();
+  private fetchMap: WeakMap<AbortController, Set<Promise<unknown>>> = new WeakMap();
   private globalFetchControllers: Map<string, AbortController> = new Map();
   private isIntercepting: boolean = false;
   private originalFetch: typeof fetch | null = null;
@@ -45,7 +56,7 @@ class AbortRegistry {
   /**
    * Register a fetch promise to track
    */
-  registerPromise(controller: AbortController, promise: Promise<any>): void {
+  registerPromise(controller: AbortController, promise: Promise<unknown>): void {
     if (!this.fetchMap.has(controller)) {
       this.fetchMap.set(controller, new Set());
     }
@@ -116,7 +127,7 @@ class AbortRegistry {
       // BYPASS FLAG: Explicit hard disable of interception (additive safeguard)
       if (
         typeof window !== "undefined" &&
-        (window as any).__bulkImportDisableInterception
+        window.__bulkImportDisableInterception
       ) {
         return (this.originalFetch || this.nativeFetchBackup || fetch).call(
           window,
@@ -128,7 +139,7 @@ class AbortRegistry {
       // This prevents interference with normal navigation after import completes
       if (
         typeof window !== "undefined" &&
-        !(window as any).__bulkImportActive
+        !window.__bulkImportActive
       ) {
         // Import completed, use original fetch without interception
         return this.originalFetch!.call(window, input, init);
@@ -316,7 +327,7 @@ class AbortRegistry {
         if (!controller.signal.aborted) {
           controller.abort();
         }
-      } catch (error) {
+      } catch {
         // Ignore errors - controller might already be aborted
       }
     });
@@ -330,7 +341,7 @@ class AbortRegistry {
         if (!controller.signal.aborted) {
           controller.abort();
         }
-      } catch (error) {
+      } catch {
         // Ignore errors - controller might already be aborted
       }
     });
@@ -364,12 +375,13 @@ class AbortRegistry {
     // This is a workaround for requests we might have missed
     try {
       // Force clear all Next.js router caches
-      const nextRouter = (window as any).__NEXT_DATA__?.router;
+      const internals = window as Window & NextRouterInternals;
+      const nextRouter = internals.__NEXT_DATA__?.router;
       if (nextRouter?.prefetchCache) {
-        nextRouter.prefetchCache.clear();
+        nextRouter.prefetchCache.clear?.();
       }
 
-      const routerInstance = (window as any).__nextRouter;
+      const routerInstance = internals.__nextRouter;
       if (routerInstance) {
         if (routerInstance.isPending !== undefined) {
           routerInstance.isPending = false;
@@ -386,13 +398,13 @@ class AbortRegistry {
         }
       }
 
-      const nextFetchCache = (window as any).__nextFetchCache;
+      const nextFetchCache = internals.__nextFetchCache;
       if (nextFetchCache) {
-        nextFetchCache.clear();
+        nextFetchCache.clear?.();
       }
 
       // Try to access Next.js router's promise queue and abort pending requests
-      const routerInternals = (window as any).__nextRouterInternals;
+      const routerInternals = internals.__nextRouterInternals;
       if (routerInternals?.promiseQueue) {
         // Clear promise queue
         if (typeof routerInternals.promiseQueue.clear === "function") {

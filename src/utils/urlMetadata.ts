@@ -66,7 +66,7 @@ export async function fetchUrlMetadata(
         abortSignal.removeEventListener("abort", abortHandler);
       };
       // Store cleanup function to call later
-      (controller.signal as any)._cleanup = cleanup;
+      controller.signal._cleanup = cleanup;
     }
 
     try {
@@ -80,8 +80,8 @@ export async function fetchUrlMetadata(
       clearTimeout(timeoutId);
 
       // Clean up abort listener if it exists
-      if ((controller.signal as any)?._cleanup) {
-        (controller.signal as any)._cleanup();
+      if (controller.signal._cleanup) {
+        controller.signal._cleanup();
       }
 
       // Unregister from abort registry after successful fetch
@@ -132,8 +132,8 @@ export async function fetchUrlMetadata(
       clearTimeout(timeoutId);
 
       // Clean up abort listener if it exists
-      if ((controller.signal as any)?._cleanup) {
-        (controller.signal as any)._cleanup();
+      if (controller.signal._cleanup) {
+        controller.signal._cleanup();
       }
 
       // Unregister from abort registry on error
@@ -157,7 +157,7 @@ export async function fetchUrlMetadata(
       }
       throw fetchError;
     }
-  } catch (error) {
+  } catch {
     // Clean up timeout if it exists
     if (timeoutId !== undefined) {
       clearTimeout(timeoutId);

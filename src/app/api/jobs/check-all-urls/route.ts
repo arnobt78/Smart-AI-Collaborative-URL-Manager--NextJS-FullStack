@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { updateList } from "@/lib/db";
 import type { UrlItem } from "@/stores/urlListStore";
@@ -12,7 +12,7 @@ import {
  * Check health of URLs in all lists
  * Called by QStash daily cron job
  */
-export async function POST(_request: NextRequest) {
+export async function POST() {
   try {
     console.log("🔍 [HEALTH CHECK] Starting health check for all lists...");
 
@@ -101,4 +101,3 @@ export async function POST(_request: NextRequest) {
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
-

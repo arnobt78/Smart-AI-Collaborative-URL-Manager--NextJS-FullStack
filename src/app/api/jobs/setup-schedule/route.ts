@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import {
   scheduleDailyHealthChecks,
   scheduleWeeklyMetadataRefresh,
@@ -35,7 +35,7 @@ function isLocalDevelopment(): boolean {
  * Call this endpoint once to set up the cron jobs
  * Note: QStash requires a publicly accessible URL (not localhost)
  */
-export async function POST(_request: NextRequest) {
+export async function POST() {
   try {
     // Check if we're in local development
     if (isLocalDevelopment()) {
@@ -139,4 +139,3 @@ export async function POST(_request: NextRequest) {
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
-

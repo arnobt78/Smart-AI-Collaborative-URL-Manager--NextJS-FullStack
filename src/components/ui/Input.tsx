@@ -1,5 +1,6 @@
 import { forwardRef } from "react";
 import { cn } from "@/lib/utils";
+import { UI_FORM_CONTROL } from "@/lib/ui/control-styles";
 
 export interface InputProps
   extends React.InputHTMLAttributes<HTMLInputElement> {
@@ -9,8 +10,7 @@ export interface InputProps
 const Input = forwardRef<HTMLInputElement, InputProps>(
   ({ className, error, ...props }, ref) => {
     const hasBgClass = className?.includes("bg-");
-    const defaultClasses =
-      "flex h-10 w-full rounded-md border border-white/20 px-3 py-2 text-base text-white placeholder:text-white/60 focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600 disabled:cursor-not-allowed disabled:opacity-50";
+    const defaultClasses = `flex ${UI_FORM_CONTROL}`;
 
     return (
       <div className="w-full">
@@ -19,7 +19,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
             defaultClasses,
             !hasBgClass && "bg-transparent",
             error && "border-red-500 focus:border-red-500 focus:ring-red-500",
-            className
+            className,
           )}
           ref={ref}
           {...props}

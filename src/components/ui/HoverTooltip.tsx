@@ -111,7 +111,7 @@ export function HoverTooltip({
         window.removeEventListener("resize", updatePosition);
       };
     }
-  }, [isVisible, usePortal, position]);
+  }, [isVisible, message.length, position, usePortal]);
 
   const tooltipContent = usePortal ? (
     <div

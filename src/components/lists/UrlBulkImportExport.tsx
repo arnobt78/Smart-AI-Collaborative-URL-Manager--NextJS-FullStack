@@ -9,15 +9,15 @@ import {
   FileText,
   ChevronDown,
 } from "lucide-react";
-import { Button } from "@/components/ui/Button";
 import { HoverTooltip } from "@/components/ui/HoverTooltip";
+import { UI_CONTROL_TRIGGER } from "@/lib/ui/control-styles";
 import { useToast } from "@/components/ui/Toaster";
 import type { UrlItem } from "@/stores/urlListStore";
 import { addUrlToList, cancelPendingGetList } from "@/stores/urlListStore";
 import { abortRegistry } from "@/utils/abortRegistry";
 import { fetchUrlMetadata, type UrlMetadata } from "@/utils/urlMetadata";
 import { useQueryClient } from "@tanstack/react-query";
-import { listQueryKeys } from "@/hooks/useListQueries";
+import { invalidateUrlQueries } from "@/utils/queryInvalidation";
 import {
   parseChromeBookmarks,
   parsePocketExport,
@@ -33,6 +33,10 @@ interface UrlBulkImportExportProps {
   onBulkOperationEnd?: () => void;
   canEdit?: boolean; // Permission to edit URLs (false for viewers)
 }
+
+type WindowWithRouterInternals = Window & {
+  __NEXT_DATA__?: { router?: { prefetchCache?: { clear?: () => void } } };
+};
 
 export function UrlBulkImportExport({
   urls,
@@ -227,7 +231,7 @@ export function UrlBulkImportExport({
     isMountedRef.current = true;
 
     // Handle page refresh/navigation - cancel ongoing operations IMMEDIATELY
-    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+    const handleBeforeUnload = () => {
       // Cancel ALL pending operations immediately
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
@@ -238,7 +242,7 @@ export function UrlBulkImportExport({
       isImportActiveRef.current = false;
       // Clear global flag
       if (typeof window !== "undefined") {
-        (window as any).__bulkImportActive = false;
+        window.__bulkImportActive = false;
       }
       // Note: We don't prevent default here to allow normal page navigation
       // The abort signal will cancel ongoing fetches
@@ -263,7 +267,7 @@ export function UrlBulkImportExport({
         isImportActiveRef.current = false;
         // Clear global flag
         if (typeof window !== "undefined") {
-          (window as any).__bulkImportActive = false;
+          window.__bulkImportActive = false;
         }
       }
     };
@@ -286,7 +290,7 @@ export function UrlBulkImportExport({
       isImportActiveRef.current = false;
       // Clear global flag
       if (typeof window !== "undefined") {
-        (window as any).__bulkImportActive = false;
+        window.__bulkImportActive = false;
       }
       window.removeEventListener("beforeunload", handleBeforeUnload);
       window.removeEventListener("popstate", handlePopState);
@@ -313,7 +317,7 @@ export function UrlBulkImportExport({
 
     // Set global flag to skip getList calls during bulk import
     if (typeof window !== "undefined") {
-      (window as any).__bulkImportActive = true;
+      window.__bulkImportActive = true;
     }
 
     // Create abort controller for this import operation BEFORE setting state
@@ -759,8 +763,8 @@ export function UrlBulkImportExport({
           // Must clear flags and abort requests before triggering page reload
           if (typeof window !== "undefined") {
             // Clear bulk import flag FIRST
-            (window as any).__bulkImportActive = false;
-            (window as any).__bulkImportJustCompleted = false;
+            window.__bulkImportActive = false;
+            window.__bulkImportJustCompleted = false;
 
             // Force abort ALL requests immediately
             if (abortRegistry) {
@@ -778,11 +782,11 @@ export function UrlBulkImportExport({
 
             // Clear Next.js router caches
             try {
-              const nextRouter = (window as any).__NEXT_DATA__?.router;
+              const nextRouter = (window as WindowWithRouterInternals).__NEXT_DATA__?.router;
               if (nextRouter?.prefetchCache) {
-                nextRouter.prefetchCache.clear();
+                nextRouter.prefetchCache.clear?.();
               }
-              const routerInstance = (window as any).__nextRouter;
+              const routerInstance = window.__nextRouter;
               if (routerInstance) {
                 if (routerInstance.isPending !== undefined) {
                   routerInstance.isPending = false;
@@ -791,11 +795,11 @@ export function UrlBulkImportExport({
                   routerInstance.cache.clear?.();
                 }
               }
-              const nextFetchCache = (window as any).__nextFetchCache;
+              const nextFetchCache = window.__nextFetchCache;
               if (nextFetchCache) {
-                nextFetchCache.clear();
+                nextFetchCache.clear?.();
               }
-            } catch (e) {
+            } catch {
               // Ignore errors
             }
           }
@@ -816,8 +820,8 @@ export function UrlBulkImportExport({
               if (typeof window !== "undefined" && abortRegistry) {
                 abortRegistry.stopGlobalInterception();
                 abortRegistry.forceAbortAllGlobal();
-                (window as any).__bulkImportActive = false;
-                (window as any).__bulkImportDisableInterception = true;
+                window.__bulkImportActive = false;
+                window.__bulkImportDisableInterception = true;
               }
               // Use window.location.href for more forceful navigation
               window.location.href = window.location.href;
@@ -892,7 +896,6 @@ export function UrlBulkImportExport({
           // Try to fetch metadata with 10-second timeout (faster failure, less blocking)
           let metadata: UrlMetadata = {};
           let metadataFetched = false;
-          let metadataWasCancelled = false; // Track if metadata was cancelled (but import still active)
 
           try {
             // Check again before starting metadata fetch (use ref to get current signal)
@@ -923,7 +926,6 @@ export function UrlBulkImportExport({
             const metadataTimeout = setTimeout(() => {
               if (!metadataAbortController.signal.aborted) {
                 metadataAbortController.abort();
-                metadataWasCancelled = true; // Mark as cancelled (timeout, not user cancellation)
               }
             }, 10000);
 
@@ -1759,7 +1761,7 @@ export function UrlBulkImportExport({
       isImportActiveRef.current = false;
       // Clear global flag
       if (typeof window !== "undefined") {
-        (window as any).__bulkImportActive = false;
+        window.__bulkImportActive = false;
       }
 
       // If error is due to abort, that's expected - don't show error
@@ -1791,7 +1793,7 @@ export function UrlBulkImportExport({
         } else if (typeof error === "string") {
           errorMessage = error;
         } else if (error && typeof error === "object" && "message" in error) {
-          errorMessage = String((error as any).message);
+          errorMessage = String((error as { message?: unknown }).message);
         }
 
         toast({
@@ -1814,7 +1816,7 @@ export function UrlBulkImportExport({
       // The fetch wrapper checks this flag - must be false BEFORE we stop interception
       // Otherwise, pending RSC requests will still be intercepted even after "restoration"
       if (typeof window !== "undefined") {
-        (window as any).__bulkImportActive = false;
+        window.__bulkImportActive = false;
         if (process.env.NODE_ENV === "development") {
           devLog(
             `🚫 [IMPORT] [FINALLY] Cleared __bulkImportActive flag FIRST (critical for wrapper bypass)`,
@@ -1870,11 +1872,11 @@ export function UrlBulkImportExport({
           }
 
           // Access Next.js router internals to clear prefetch cache
-          const nextRouter = (window as any).__NEXT_DATA__?.router;
+          const nextRouter = (window as WindowWithRouterInternals).__NEXT_DATA__?.router;
           if (nextRouter) {
             // Clear prefetch cache
             if (nextRouter.prefetchCache) {
-              nextRouter.prefetchCache.clear();
+              nextRouter.prefetchCache.clear?.();
               if (process.env.NODE_ENV === "development") {
                 devLog(`✅ [IMPORT] [FINALLY] Cleared Next.js prefetch cache`);
               }
@@ -1882,7 +1884,7 @@ export function UrlBulkImportExport({
 
             // Try to abort pending RSC requests via router internals
             // This is a workaround since Next.js doesn't expose abort for RSC prefetches
-            const routerInstance = (window as any).__nextRouter;
+            const routerInstance = window.__nextRouter;
             if (routerInstance) {
               // Clear any pending navigation state
               if (routerInstance.isPending !== undefined) {
@@ -1905,9 +1907,9 @@ export function UrlBulkImportExport({
           }
 
           // Force clear Next.js internal fetch cache for RSC requests
-          const nextFetchCache = (window as any).__nextFetchCache;
+          const nextFetchCache = window.__nextFetchCache;
           if (nextFetchCache) {
-            nextFetchCache.clear();
+            nextFetchCache.clear?.();
             if (process.env.NODE_ENV === "development") {
               devLog(`✅ [IMPORT] [FINALLY] Cleared Next.js fetch cache`);
             }
@@ -1916,8 +1918,7 @@ export function UrlBulkImportExport({
           // CRITICAL: Also try to access Next.js router's internal promise queue
           // and abort pending RSC requests
           try {
-            const routerInternals = (window as any).__NEXT_ROUTER_BASEPATH;
-            const routerCache = (window as any).__NEXT_ROUTER_CACHE;
+            const routerCache = window.__NEXT_ROUTER_CACHE;
             if (routerCache && typeof routerCache.clear === "function") {
               routerCache.clear();
               if (process.env.NODE_ENV === "development") {
@@ -1926,7 +1927,7 @@ export function UrlBulkImportExport({
                 );
               }
             }
-          } catch (e) {
+          } catch {
             // Ignore - internal API might not exist
           }
 
@@ -1936,7 +1937,7 @@ export function UrlBulkImportExport({
               `✅ [IMPORT] [FINALLY] Router cleanup completed in ${routerCleanupDuration}ms`,
             );
           }
-        } catch (e) {
+        } catch {
           // Ignore - Next.js internal API might change
           if (process.env.NODE_ENV === "development") {
             const routerCleanupDuration = Date.now() - routerCleanupStartTime;
@@ -1956,11 +1957,11 @@ export function UrlBulkImportExport({
             }
 
             // Force clear router cache again to be safe
-            const nextRouter = (window as any).__NEXT_DATA__?.router;
+            const nextRouter = (window as WindowWithRouterInternals).__NEXT_DATA__?.router;
             if (nextRouter?.prefetchCache) {
-              nextRouter.prefetchCache.clear();
+              nextRouter.prefetchCache.clear?.();
             }
-          } catch (e) {
+          } catch {
             // Ignore errors
           }
         }, 50);
@@ -2003,7 +2004,7 @@ export function UrlBulkImportExport({
         );
         // ADDITIVE: Enforce hard disable + native fetch restoration guard
         try {
-          (window as any).__bulkImportDisableInterception = true;
+          window.__bulkImportDisableInterception = true;
           abortRegistry?.forceRestoreNativeFetch?.();
           devLog(
             "🛠 [IMPORT] Disabled interception & enforced native fetch restoration",
@@ -2048,12 +2049,12 @@ export function UrlBulkImportExport({
           setTimeout(() => {
             try {
               // Force clear all Next.js router caches again during wait
-              const nextRouter = (window as any).__NEXT_DATA__?.router;
+              const nextRouter = (window as WindowWithRouterInternals).__NEXT_DATA__?.router;
               if (nextRouter?.prefetchCache) {
-                nextRouter.prefetchCache.clear();
+                nextRouter.prefetchCache.clear?.();
               }
 
-              const routerInstance = (window as any).__nextRouter;
+              const routerInstance = window.__nextRouter;
               if (routerInstance) {
                 if (routerInstance.isPending !== undefined) {
                   routerInstance.isPending = false;
@@ -2063,9 +2064,9 @@ export function UrlBulkImportExport({
                 }
               }
 
-              const nextFetchCache = (window as any).__nextFetchCache;
+              const nextFetchCache = window.__nextFetchCache;
               if (nextFetchCache) {
-                nextFetchCache.clear();
+                nextFetchCache.clear?.();
               }
 
               // Abort any new requests that might have started
@@ -2076,7 +2077,7 @@ export function UrlBulkImportExport({
               if (process.env.NODE_ENV === "development") {
                 devLog(`🧹 [IMPORT] Cleared router cache again during wait`);
               }
-            } catch (e) {
+            } catch {
               // Ignore errors
             }
           }, 100);
@@ -2130,12 +2131,12 @@ export function UrlBulkImportExport({
           // CRITICAL: Clear router cache ONE MORE TIME before clearing flags
           // This ensures Next.js router is in a clean state
           try {
-            const nextRouter = (window as any).__NEXT_DATA__?.router;
+            const nextRouter = (window as WindowWithRouterInternals).__NEXT_DATA__?.router;
             if (nextRouter?.prefetchCache) {
-              nextRouter.prefetchCache.clear();
+              nextRouter.prefetchCache.clear?.();
             }
 
-            const routerInstance = (window as any).__nextRouter;
+            const routerInstance = window.__nextRouter;
             if (routerInstance) {
               if (routerInstance.isPending !== undefined) {
                 routerInstance.isPending = false;
@@ -2145,23 +2146,23 @@ export function UrlBulkImportExport({
               }
             }
 
-            const nextFetchCache = (window as any).__nextFetchCache;
+            const nextFetchCache = window.__nextFetchCache;
             if (nextFetchCache) {
-              nextFetchCache.clear();
+              nextFetchCache.clear?.();
             }
-          } catch (e) {
+          } catch {
             // Ignore errors
           }
 
           // Set flag indicating import just completed (for navigation checks)
           // Note: __bulkImportActive was already cleared at the START of finally block
-          (window as any).__bulkImportJustCompleted = true;
+          window.__bulkImportJustCompleted = true;
 
           if (process.env.NODE_ENV === "development") {
             devLog(
               `✅ [IMPORT] Import completion flag set - page should be responsive now`,
               {
-                __bulkImportActive: (window as any).__bulkImportActive,
+                __bulkImportActive: window.__bulkImportActive,
                 __bulkImportJustCompleted: true,
                 abortRegistryCount: abortRegistry?.getCount() || 0,
               },
@@ -2171,7 +2172,7 @@ export function UrlBulkImportExport({
           // Clear the "just completed" flag after a delay to allow safe navigation
           // This gives Next.js router time to clear its internal state
           setTimeout(() => {
-            (window as any).__bulkImportJustCompleted = false;
+            window.__bulkImportJustCompleted = false;
             if (process.env.NODE_ENV === "development") {
               devLog(
                 `✅ [IMPORT] Import fully completed - navigation should work normally now`,
@@ -2192,9 +2193,9 @@ export function UrlBulkImportExport({
           const recoveryInterval = window.setInterval(() => {
             recoveryAttempts++;
             const elapsed = Date.now() - startRecoveryTs;
-            const activeFlag = (window as any).__bulkImportActive === true;
+            const activeFlag = window.__bulkImportActive === true;
             const justCompletedFlag =
-              (window as any).__bulkImportJustCompleted === true;
+              window.__bulkImportJustCompleted === true;
             const pendingCount = abortRegistry?.getCount() || 0;
 
             // CRITICAL FIX: Every iteration, aggressively re-stop interception
@@ -2203,7 +2204,7 @@ export function UrlBulkImportExport({
 
             // If import somehow reactivated or interception restarted, stop it again.
             if (activeFlag) {
-              (window as any).__bulkImportActive = false;
+              window.__bulkImportActive = false;
               abortRegistry?.stopGlobalInterception?.();
             }
 
@@ -2220,22 +2221,19 @@ export function UrlBulkImportExport({
               } catch {}
             }
 
-            // If after 5 seconds there are still pending requests or navigation feels stuck,
-            // perform a last safety: force abort all + hard reload.
+            // If requests remain after recovery, restore the fetch layer and let the
+            // centralized query invalidation below reconcile data without a page reload.
             if (elapsed > 5000) {
               if (pendingCount > 0 || justCompletedFlag) {
                 abortRegistry?.forceAbortAllGlobal?.();
                 abortRegistry?.stopGlobalInterception?.();
-                // Only reload if user is still on same page and flags haven't cleared.
-                if ((window as any).__bulkImportJustCompleted) {
+                if (window.__bulkImportJustCompleted) {
                   if (process.env.NODE_ENV === "development") {
                     console.warn(
-                      "⚠️ [IMPORT] Navigation appears unresponsive after recovery window – performing hard reload",
+                      "⚠️ [IMPORT] Navigation recovery window elapsed; retaining the current page and reconciling query data",
                     );
                   }
-                  (window as any).__bulkImportJustCompleted = false;
-                  // Hard reload (no cache) to fully reset runtime state.
-                  window.location.reload();
+                  window.__bulkImportJustCompleted = false;
                 }
               }
               window.clearInterval(recoveryInterval);
@@ -2269,7 +2267,8 @@ export function UrlBulkImportExport({
         import("@/stores/urlListStore").then(({ currentList }) => {
           const current = currentList.get();
           const slug = current?.slug;
-          if (slug && typeof slug === "string") {
+          const listId = current?.id;
+          if (slug && typeof slug === "string" && listId) {
             setTimeout(() => {
               // Only refresh if we're still on the same list and not unmounted
               if (isMountedRef.current && !isImportActiveRef.current) {
@@ -2278,10 +2277,7 @@ export function UrlBulkImportExport({
                     "🔄 [IMPORT] Triggering final list refresh after import completion",
                   );
                 }
-                // Use React Query invalidation instead of getList() - triggers unified endpoint refetch
-                queryClient.invalidateQueries({
-                  queryKey: listQueryKeys.unified(slug),
-                });
+                invalidateUrlQueries(queryClient, slug, listId, true);
               }
             }, 800); // Reduced delay since we're aborting all requests
           }
@@ -2309,9 +2305,7 @@ export function UrlBulkImportExport({
             onClick={() => setShowExportMenu(!showExportMenu)}
             disabled={isExporting !== null || urls.length === 0}
             className={`
-              relative flex items-center justify-center  px-2 sm:px-3 py-2 rounded-xl
-              transition-all duration-200 shadow-md hover:shadow-lg
-              text-xs sm:text-sm font-medium whitespace-nowrap
+              ${UI_CONTROL_TRIGGER} relative shadow-md hover:shadow-lg
               ${
                 isExporting !== null || urls.length === 0
                   ? "bg-white/5 text-white/40 cursor-not-allowed"
@@ -2326,9 +2320,9 @@ export function UrlBulkImportExport({
               </>
             ) : (
               <>
-                <Download className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                <Download className="h-4 w-4 shrink-0" aria-hidden />
                 <span>Export URLs</span>
-                <ChevronDown className="h-3 w-3" />
+                <ChevronDown className="h-3 w-3 shrink-0" aria-hidden />
               </>
             )}
           </button>
@@ -2397,9 +2391,7 @@ export function UrlBulkImportExport({
             onClick={() => setShowImportMenu(!showImportMenu)}
             disabled={isImporting || !canEdit}
             className={`
-              relative flex items-center justify-center  px-2 sm:px-3 py-2 rounded-xl
-              transition-all duration-200 shadow-md hover:shadow-lg
-              text-xs sm:text-sm font-medium whitespace-nowrap
+              ${UI_CONTROL_TRIGGER} relative shadow-md hover:shadow-lg
               ${
                 isImporting || !canEdit
                   ? "bg-white/5 text-white/40 cursor-not-allowed"
@@ -2414,9 +2406,9 @@ export function UrlBulkImportExport({
               </>
             ) : (
               <>
-                <Upload className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                <Upload className="h-4 w-4 shrink-0" aria-hidden />
                 <span>Import URLs</span>
-                <ChevronDown className="h-3 w-3" />
+                <ChevronDown className="h-3 w-3 shrink-0" aria-hidden />
               </>
             )}
           </button>

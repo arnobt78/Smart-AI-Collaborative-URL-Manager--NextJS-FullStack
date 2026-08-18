@@ -85,7 +85,7 @@ export function clearDragOrderCache(listId: string): void {
     localStorage.removeItem(storageKey);
 
     // Clear global cache
-    const globalCache = (window as any).__dragOrderCache;
+    const globalCache = window.__dragOrderCache;
     if (globalCache && globalCache[storageKey]) {
       delete globalCache[storageKey];
     }
@@ -94,7 +94,7 @@ export function clearDragOrderCache(listId: string): void {
     //   listId,
     //   storageKey,
     // });
-  } catch (error) {
+  } catch {
     // Ignore errors - not critical
     // console.debug("Failed to clear drag order cache", error);
   }
@@ -113,7 +113,7 @@ export function updateDragOrderCache(
 
   // Skip if drag is in progress (unless forced)
   if (skipIfDragInProgress) {
-    const globalCache = (window as any).__dragOrderCache;
+    const globalCache = window.__dragOrderCache;
     const storageKey = getDragOrderStorageKey(listId);
     if (globalCache && globalCache[storageKey]) {
       // Drag in progress - don't update
@@ -129,12 +129,12 @@ export function updateDragOrderCache(
     localStorage.setItem(storageKey, storageValue);
 
     // Update global cache
-    const globalCache = (window as any).__dragOrderCache || {};
+    const globalCache = window.__dragOrderCache || {};
     globalCache[storageKey] = urls;
-    (window as any).__dragOrderCache = globalCache;
+    window.__dragOrderCache = globalCache;
 
     return true;
-  } catch (error) {
+  } catch {
     // console.debug("Failed to update drag order cache", error);
     return false;
   }
@@ -195,7 +195,7 @@ export function syncDragOrderCacheWithServer(
 
     // Cache is valid and up-to-date
     return { cleared: false, updated: false };
-  } catch (error) {
+  } catch {
     // console.error("Failed to sync drag order cache", error);
     return { cleared: false, updated: false };
   }
@@ -214,7 +214,7 @@ export function getCachedDragOrder(
     const storageKey = getDragOrderStorageKey(listId);
 
     // First check global cache (faster, survives Fast Refresh)
-    const globalCache = (window as any).__dragOrderCache;
+    const globalCache = window.__dragOrderCache;
     if (globalCache && globalCache[storageKey]) {
       const cached = globalCache[storageKey] as UrlItem[];
       const validation = validateDragOrderCache(cached, serverUrls);
@@ -232,19 +232,17 @@ export function getCachedDragOrder(
 
     if (validation.isValid) {
       // Also restore to global cache
-      if (!globalCache) {
-        (window as any).__dragOrderCache = {};
-      }
-      (window as any).__dragOrderCache[storageKey] = cached;
+      const cache = globalCache ?? {};
+      cache[storageKey] = cached;
+      window.__dragOrderCache = cache;
       return cached;
     }
 
     // Cache is invalid - clear it
     clearDragOrderCache(listId);
     return null;
-  } catch (error) {
+  } catch {
     // console.debug("Failed to get cached drag order", error);
     return null;
   }
 }
-

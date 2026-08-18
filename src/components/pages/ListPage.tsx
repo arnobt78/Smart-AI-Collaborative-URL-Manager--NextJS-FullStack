@@ -17,13 +17,10 @@ import {
   Check,
   Globe,
   Lock,
-  UserPlus,
-  Mail,
   Activity,
   RefreshCw,
 } from "lucide-react";
 import { useToast } from "@/components/ui/Toaster";
-import { InputDialog } from "@/components/ui/InputDialog";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { ActivityFeed } from "@/components/collaboration/ActivityFeed";
 import { PermissionManager } from "@/components/collaboration/PermissionManager";
@@ -65,7 +62,6 @@ export default function ListPageClient() {
     data: unifiedData,
     isLoading: isLoadingQuery,
     isPlaceholderData,
-    refetch,
   } = useUnifiedListQuery(listSlug, !!listSlug && !sessionLoading);
 
   // Prefer RQ cache for the active slug — store alone lags on cache-hit navigations
@@ -87,7 +83,6 @@ export default function ListPageClient() {
   const [isSettingUpSchedule, setIsSettingUpSchedule] = useState(false);
   const hasSyncedVectors = useRef<string | null>(null); // Track which list ID we've synced (in-memory)
   const syncInProgress = useRef<string | null>(null); // Track if sync is currently in progress for a list
-  const hasFetchedRef = useRef<string | null>(null);
   const hasRedirectedRef = useRef<boolean>(false); // Track if we've already redirected to prevent duplicate redirects
 
   // Clear stale store when navigating to a different slug (cache-hit skips queryFn)
@@ -452,12 +447,15 @@ export default function ListPageClient() {
     };
   }, [
     list?.id,
+    list?.slug,
     list?.title,
+    queryClient,
     sessionUser?.email,
     router,
     toast,
     isLoading,
     permissions.role,
+    unifiedData?.list,
   ]);
 
   // Auto-sync vectors for existing URLs when list loads (background, non-blocking)

@@ -143,11 +143,6 @@ interface ActiveList {
   collaborators: number;
 }
 
-interface PopularData {
-  popularUrls: PopularUrl[];
-  activeLists: ActiveList[];
-}
-
 interface PerformanceData {
   totalUrls: number;
   totalLists: number;

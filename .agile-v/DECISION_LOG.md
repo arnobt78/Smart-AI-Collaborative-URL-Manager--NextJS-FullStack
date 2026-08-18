@@ -128,3 +128,55 @@ Append-only. Newest entries at bottom.
 | Decision | `useUnifiedListQuery` placeholder only when same slug; ListPage syncs/clears `currentList` from RQ; My Lists title nav; Smart Collections create no auto-nav. Densify still deferred. |
 | Rationale | Cache-hit skips queryFn so store stayed on prior list; cross-slug placeholder painted wrong data; create `router.push` remounted ListPage skeleton |
 | Status | Implemented |
+
+---
+
+## DEC-0011 — Scope UI polish through existing shared primitives
+
+| Field | Value |
+|-------|-------|
+| Timestamp | 2026-08-18 |
+| Agent | Agile V Orchestrator |
+| Decision | Propose REQ-0010 as an inventory-led UI consistency pass using `Button`, glass button recipes, and `ui-spacing`; do not redesign or alter behavior. |
+| Rationale | The current source already centralizes the intended primitives, while direct controls remain across multiple feature surfaces. A classified, narrow pass limits visual and accessibility regression risk. |
+| Linked REQs | REQ-0010 |
+| Status | Proposed — awaiting GATE-0010 Human Gate 1 approval |
+
+---
+
+## DEC-0012 — Expand UI remediation into four independently verifiable requirements
+
+| Field | Value |
+|-------|-------|
+| Timestamp | 2026-08-18 |
+| Agent | Agile V Requirement Architect / UX Spec Author |
+| Decision | Replace the narrower unapproved GATE-0010 scope with REQ-0010 through REQ-0014, separated into control consistency, auth motion, Smart Collections disclosure, URL workspace refinement, and lint remediation. |
+| Rationale | Screenshots and source identify distinct UI defects while the lint inventory is repository-wide. Splitting them preserves traceability and keeps cache/auth changes out of presentation work. |
+| Linked REQs | REQ-0010, REQ-0011, REQ-0012, REQ-0013, REQ-0014 |
+| Status | Proposed — awaiting GATE-0011 Human Gate 1 approval |
+
+---
+
+## DEC-0013 — Use platform motion rather than add a runtime animation dependency
+
+| Field | Value |
+|-------|-------|
+| Timestamp | 2026-08-18 |
+| Agent | Agile V UX Spec Author |
+| Decision | Implement the requested login reveal with existing CSS/browser capabilities, `prefers-reduced-motion`, and no Framer Motion dependency. |
+| Rationale | The repository does not currently depend on Framer Motion and already has CSS reveal animations. The requested effect is limited to a static form entrance, so a dependency would add bundle and hydration cost without necessary capability. |
+| Linked REQs | REQ-0011 |
+| Status | Proposed — awaiting GATE-0011 Human Gate 1 approval |
+
+---
+
+## DEC-0014 — Gatekeeper validation of the UI remediation requirements
+
+| Field | Value |
+|-------|-------|
+| Timestamp | 2026-08-18 |
+| Agent | Agile V Logic Gatekeeper |
+| Decision | Requirements REQ-0010 through REQ-0014 are measurable and traceable to a planned implementation and verification path. |
+| Rationale | Control geometry, icons, motion timing, responsive widths, disclosure semantics, cache-preservation rules, and the lint success criterion are explicitly testable. The fixed desktop Auth shell makes scroll-linked form parallax unsuitable; the approved candidate is an entrance stagger only. |
+| Linked REQs | REQ-0010, REQ-0011, REQ-0012, REQ-0013, REQ-0014 |
+| Status | Validated for GATE-0011; synthesis remains blocked pending human approval |

@@ -12,3 +12,7 @@
 | RISK-0008 | Dual Jest + Vitest configs cause false confidence / wrong runner | Low | Medium | REQ-0008 | REQ-0008 |
 | RISK-0009 | Integration guide Redis env names differ from code → copy-paste misconfig | Medium | Medium | REQ-0005 | REQ-0005 |
 | RISK-0010 | `UserDataPrefetcher` disabled for duplicate API calls — possible cold-nav latency | Low | Known | Investigate only if product priority | — |
+| RISK-0011 | Broad CSS/CTA normalization can alter compact toolbar density, obscure an icon-only action, or introduce responsive wrapping | Medium | Medium | Classify controls before edits; retain accessible names; validate target widths and keyboard operation | REQ-0010 |
+| RISK-0012 | Login animation can delay interaction, induce motion discomfort, or shift the fixed viewport layout | Medium | Medium | CSS-only opacity/transform; small measured timing; `prefers-reduced-motion`; no animation-controlled auth state | REQ-0011 |
+| RISK-0013 | A Smart Collections disclosure change can accidentally refetch, clear cached suggestions, or hide permission/error feedback | Medium | Medium | Presentation-only state transition; preserve existing React Query keys, enable conditions, and mutation handlers; test all states | REQ-0012 |
+| RISK-0014 | Repository-wide lint remediation can change hook lifecycles or serialization behavior outside the UI scope | High | Medium | Independent final wave; replace types at boundaries; test changed paths; prohibit blanket disables | REQ-0014 |

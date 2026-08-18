@@ -5,10 +5,7 @@ import { redis, CHANNELS } from "@/lib/realtime/redis";
  * OPTIONS /api/realtime/list/[listId]/events
  * CORS preflight handler for Firefox and other browsers
  */
-export async function OPTIONS(
-  request: NextRequest,
-  { params }: { params: Promise<{ listId: string }> }
-) {
+export async function OPTIONS() {
   // Firefox sometimes sends OPTIONS requests for EventSource connections
   return new NextResponse(null, {
     status: 204,
@@ -32,8 +29,6 @@ export async function GET(
   { params }: { params: Promise<{ listId: string }> }
 ) {
   const { listId } = await params;
-  const { searchParams } = new URL(request.url);
-  const lastEventId = searchParams.get("lastEventId") || "0";
 
   // Set up SSE headers with CORS support for Firefox and other browsers
   const headers = new Headers({
@@ -57,9 +52,7 @@ export async function GET(
         encoder.encode(`data: ${JSON.stringify({ type: "connected", listId })}\n\n`)
       );
 
-      let lastCheck = parseInt(lastEventId, 10) || 0;
       const processedMessageIds = new Set<string>(); // Track processed message IDs
-      const connectionStartTime = Date.now(); // Track when connection started
 
       // Poll for new messages every 1 second to catch all events (no throttle)
       // CRITICAL: Fast polling ensures we don't miss rapid events (favorite, pin, etc.)
@@ -100,7 +93,8 @@ export async function GET(
                 let uniqueKey: string;
                 if (parsed.type === "activity_created") {
                   // Activity ID ensures uniqueness - this is the most reliable way
-                  const activityId = (parsed.activity as any)?.id;
+                  const activity = parsed.activity as { id?: string } | undefined;
+                  const activityId = activity?.id;
                   if (activityId) {
                     uniqueKey = activityId;
                   } else {
@@ -162,7 +156,6 @@ export async function GET(
                     `id: ${eventId}\ndata: ${JSON.stringify(message.data)}\n\n`
                   )
                 );
-                lastCheck = Date.now();
               } catch (enqueueError) {
                 // Controller might be closed, clean up and exit
                 if (enqueueError instanceof Error && enqueueError.message.includes("closed")) {
@@ -220,4 +213,3 @@ export async function GET(
 
   return new Response(stream, { headers });
 }
-

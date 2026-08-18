@@ -1,5 +1,4 @@
 import { prisma } from "@/lib/prisma";
-import { getCurrentUser } from "@/lib/auth";
 
 /**
  * Get all comments for a URL in a list
@@ -152,4 +151,3 @@ export async function deleteComment(commentId: string, userId: string) {
     where: { id: commentId },
   });
 }
-

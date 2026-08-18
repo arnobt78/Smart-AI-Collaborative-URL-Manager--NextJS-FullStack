@@ -1,14 +1,11 @@
 import { atom, map } from "nanostores";
 import { queryClient } from "@/lib/react-query";
 import type { UrlMetadata } from "@/utils/urlMetadata";
-import { listQueryKeys } from "@/hooks/useListQueries";
 import { invalidateUrlQueries } from "@/utils/queryInvalidation";
 import {
   syncDragOrderCacheWithServer,
   getCachedDragOrder,
-  updateDragOrderCache,
   clearDragOrderCache,
-  getDragOrderStorageKey,
 } from "./dragOrderCache";
 
 export interface UrlItem {
@@ -63,7 +60,7 @@ function dispatchActivityEvents(
   activity: {
     id: string;
     action: string;
-    details: any;
+    details: Record<string, unknown> | null;
     createdAt: string;
     user: { id: string; email: string };
   }
@@ -79,6 +76,18 @@ function dispatchActivityEvents(
 
   // Note: activity-updated is ONLY dispatched by SSE (useRealtimeList hook)
   // This ensures single source of truth - ONE API call per action, works on all screens
+}
+
+type RequestError = Error & {
+  status?: number;
+  code?: string;
+};
+
+function createRequestError(
+  message: string,
+  details: Pick<RequestError, "status" | "code"> = {},
+): RequestError {
+  return Object.assign(new Error(message), details);
 }
 
 // Global flag to prevent getList from overwriting optimistic updates during drag
@@ -98,7 +107,7 @@ export async function getList(
   abortSignal?: AbortSignal
 ) {
   // CRITICAL: Skip ALL getList calls during bulk import to prevent spam
-  if (typeof window !== "undefined" && (window as any).__bulkImportActive) {
+  if (typeof window !== "undefined" && window.__bulkImportActive) {
     if (process.env.NODE_ENV === "development") {
       console.debug(
         `⏭️ [STORE] Skipping getList('${slug}') - bulk import in progress`
@@ -141,7 +150,7 @@ export async function getList(
     const cleanup = () => {
       abortSignal.removeEventListener("abort", abortHandler);
     };
-    (controller.signal as any)._cleanup = cleanup;
+    controller.signal._cleanup = cleanup;
   }
 
   isLoading.set(true);
@@ -188,8 +197,8 @@ export async function getList(
     }
 
     // Clean up abort listener
-    if ((controller.signal as any)?._cleanup) {
-      (controller.signal as any)._cleanup();
+    if (controller.signal._cleanup) {
+      controller.signal._cleanup();
     }
 
     // Handle 401 Unauthorized - user needs to login first
@@ -205,17 +214,18 @@ export async function getList(
         window.location.replace("/");
         
         // Also throw error so component can handle it if redirect somehow fails
-        const error = new Error("Unauthorized - Please login to access this list");
-        (error as any).status = 401;
-        (error as any).code = "UNAUTHORIZED";
-        throw error;
+        throw createRequestError("Unauthorized - Please login to access this list", {
+          status: 401,
+          code: "UNAUTHORIZED",
+        });
       }
     }
 
     if (!response.ok) {
-      const error = new Error(`Failed to fetch list: ${response.status} ${response.statusText}`);
-      (error as any).status = response.status;
-      throw error;
+      throw createRequestError(
+        `Failed to fetch list: ${response.status} ${response.statusText}`,
+        { status: response.status },
+      );
     }
 
     const { list } = await response.json();
@@ -341,7 +351,7 @@ export async function getList(
             //   count: preservedOrder.length,
             // });
           }
-        } catch (err) {
+        } catch {
           // console.error(
           //   "❌ [STORE] Failed to sync drag order cache in getList",
           //   err
@@ -501,7 +511,8 @@ export async function getList(
     // Check if this is a 401 Unauthorized error - redirect already handled
     const isUnauthorized =
       err instanceof Error &&
-      ((err as any).status === 401 || (err as any).code === "UNAUTHORIZED");
+      ((err as RequestError).status === 401 ||
+        (err as RequestError).code === "UNAUTHORIZED");
     
     // Check if this is an abort error or timeout
     const isAborted =
@@ -531,8 +542,8 @@ export async function getList(
       activeGetListController = null;
     }
     // Clean up abort signal listener
-    if ((controller.signal as any)?._cleanup) {
-      (controller.signal as any)._cleanup();
+    if (controller.signal._cleanup) {
+      controller.signal._cleanup();
     }
     isLoading.set(false);
   }
@@ -950,8 +961,6 @@ export async function removeUrlFromList(urlId: string) {
 
     // Optimistic update - remove immediately (no need to re-fetch metadata on delete)
     // We keep the existing URLs with their metadata, just remove the deleted one
-    const deletedUrl = currentUrls.find((url) => url.id === urlId);
-
     // Update store immediately (optimistic)
     currentList.set({ ...current, urls: updatedUrls });
 
@@ -1092,7 +1101,7 @@ export async function toggleUrlFavorite(id: string) {
 
   try {
     await updateUrlInList(id, { isFavorite: !url.isFavorite });
-  } catch (err) {
+  } catch {
     // Ignore errors
   }
 }
