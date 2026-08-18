@@ -6,45 +6,18 @@ import { queryClient } from "@/lib/react-query";
 import { useToast } from "@/components/ui/Toaster";
 import {
   invalidateCollaboratorQueries,
-  invalidateUrlQueries,
   invalidateAllListsQueries,
-  invalidateListQueries,
   invalidateBrowseQueries,
+  invalidateListMutationQueries,
 } from "@/utils/queryInvalidation";
 import { devLog, devWarn } from "@/lib/dev-log";
+import { listQueryKeys } from "@/lib/query-keys";
+
+export { listQueryKeys } from "@/lib/query-keys";
 
 // ============================================
 // QUERY KEYS - Centralized for consistency
 // ============================================
-export const listQueryKeys = {
-  // List queries
-  all: ["lists"] as const,
-  lists: () => [...listQueryKeys.all, "list"] as const,
-  list: (id: string) => [...listQueryKeys.lists(), id] as const,
-  listBySlug: (slug: string) =>
-    [...listQueryKeys.lists(), "slug", slug] as const,
-
-  // Unified list data
-  unified: (slug: string) => ["unified-list", slug] as const,
-
-  // Activities
-  activities: (listId: string, limit?: number) =>
-    ["activities", listId, limit || 30] as const,
-
-  // Collaborators
-  collaborators: (listId: string) => ["collaborators", listId] as const,
-
-  // Collections
-  collections: (listId: string) => ["collections-suggestions", listId] as const,
-  duplicates: (listId: string) => ["collections-duplicates", listId] as const,
-
-  // URL metadata
-  urlMetadata: (url: string) => ["url-metadata", url] as const,
-
-  // User's all lists
-  allLists: () => [...listQueryKeys.all, "all"] as const,
-};
-
 // ============================================
 // UNIFIED LIST QUERY (Initial Page Load)
 // ============================================
@@ -432,318 +405,6 @@ export function useRemoveCollaborator(listId: string, listSlug?: string) {
 }
 
 // ============================================
-// URL MUTATIONS
-// ============================================
-export function useAddUrl(listId: string, listSlug: string) {
-  const queryClient = useQueryClient();
-  const { toast } = useToast();
-
-  return useMutation({
-    mutationFn: async (urlData: {
-      url: string;
-      title?: string;
-      tags?: string[];
-      notes?: string;
-      reminder?: string;
-      category?: string;
-    }) => {
-      const response = await fetch(`/api/lists/${listSlug}/urls`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(urlData),
-      });
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Failed to add URL");
-      }
-      return response.json();
-    },
-    onMutate: async (urlData) => {
-      // Optimistic update - add to store immediately
-      const current = currentList.get();
-      if (current?.id === listId && current.urls) {
-        const urls = current.urls as unknown as UrlItem[];
-        const newUrl: UrlItem = {
-          id: crypto.randomUUID(),
-          url: urlData.url,
-          title: urlData.title,
-          tags: urlData.tags || [],
-          notes: urlData.notes || "",
-          reminder: urlData.reminder,
-          category: urlData.category,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          isFavorite: false,
-          clickCount: 0,
-          position: urls.length,
-        };
-
-        currentList.set({
-          ...current,
-          urls: [...urls, newUrl],
-        });
-      }
-
-      // Cancel queries to prevent overwriting
-      await queryClient.cancelQueries({
-        queryKey: listQueryKeys.unified(listSlug),
-      });
-    },
-    onSuccess: (data) => {
-      // Update store with server response
-      if (data.list) {
-        currentList.set(data.list);
-      }
-
-      // CRITICAL: Dispatch activity-added event for immediate activity feed update
-      // This provides instant feedback before unified query refetch completes
-      if (typeof window !== "undefined" && data.activity && data.list?.id) {
-        try {
-          window.dispatchEvent(
-            new CustomEvent("activity-added", {
-              detail: {
-                listId: data.list.id,
-                activity: {
-                  id: data.activity.id,
-                  action: data.activity.action,
-                  details: data.activity.details,
-                  createdAt: data.activity.createdAt,
-                  user: data.activity.user || { id: "", email: "" },
-                },
-              },
-            })
-          );
-        } catch {
-          // Ignore errors - unified query refetch will handle it
-        }
-      }
-
-      // CRITICAL: Use centralized invalidation for consistency
-      // Invalidates unified query, all lists, collections, and duplicates
-      // Unified query refetch will provide the complete activity list
-      invalidateUrlQueries(queryClient, listSlug, listId, false);
-
-      toast({
-        title: "URL Added! ✅",
-        description: "The URL has been added to your list.",
-        variant: "success",
-      });
-    },
-    onError: (error) => {
-      // Rollback - refetch to get correct state using centralized invalidation
-      invalidateListQueries(queryClient, listSlug, listId);
-
-      toast({
-        title: "Error",
-        description:
-          error instanceof Error ? error.message : "Failed to add URL",
-        variant: "error",
-      });
-    },
-  });
-}
-
-export function useDeleteUrl(listId: string, listSlug: string) {
-  const queryClient = useQueryClient();
-  const { toast } = useToast();
-
-  return useMutation({
-    mutationFn: async (urlId: string) => {
-      const response = await fetch(
-        `/api/lists/${listSlug}/urls?urlId=${urlId}`,
-        {
-          method: "DELETE",
-        }
-      );
-      if (!response.ok) {
-        throw new Error("Failed to delete URL");
-      }
-      return response.json();
-    },
-    onMutate: async (urlId) => {
-      // Optimistic update
-      const current = currentList.get();
-      if (current?.id === listId && current.urls) {
-        const urls = current.urls as unknown as UrlItem[];
-        const filtered = urls.filter((u) => u.id !== urlId);
-
-        currentList.set({
-          ...current,
-          urls: filtered,
-        });
-      }
-
-      await queryClient.cancelQueries({
-        queryKey: listQueryKeys.unified(listSlug),
-      });
-
-      const previous = currentList.get();
-      return { previous };
-    },
-    onSuccess: (data) => {
-      // Update store with server response
-      if (data.list) {
-        currentList.set(data.list);
-      }
-
-      // CRITICAL: Dispatch activity-added event for immediate activity feed update
-      // This provides instant feedback before unified query refetch completes
-      if (typeof window !== "undefined" && data.activity && data.list?.id) {
-        try {
-          window.dispatchEvent(
-            new CustomEvent("activity-added", {
-              detail: {
-                listId: data.list.id,
-                activity: {
-                  id: data.activity.id,
-                  action: data.activity.action,
-                  details: data.activity.details,
-                  createdAt: data.activity.createdAt,
-                  user: data.activity.user || { id: "", email: "" },
-                },
-              },
-            })
-          );
-        } catch {
-          // Ignore errors - unified query refetch will handle it
-        }
-      }
-
-      // CRITICAL: Use centralized invalidation for consistency
-      // Invalidates unified query, all lists, collections, and duplicates
-      // Unified query refetch will provide the complete activity list
-      invalidateUrlQueries(queryClient, listSlug, listId, false);
-
-      const deletedUrl = data.deletedUrl;
-      toast({
-        title: "URL Removed",
-        description: `"${
-          deletedUrl?.title || deletedUrl?.url || "URL"
-        }" has been removed.`,
-        variant: "success",
-      });
-    },
-    onError: (error, urlId, context) => {
-      // Rollback
-      if (context?.previous) {
-        currentList.set(context.previous);
-      }
-
-      // Rollback - refetch to get correct state using centralized invalidation
-      invalidateListQueries(queryClient, listSlug, listId);
-
-      toast({
-        title: "Error",
-        description:
-          error instanceof Error ? error.message : "Failed to delete URL",
-        variant: "error",
-      });
-    },
-  });
-}
-
-export function useUpdateUrl(listId: string, listSlug: string) {
-  const queryClient = useQueryClient();
-  const { toast } = useToast();
-
-  return useMutation({
-    mutationFn: async ({
-      urlId,
-      updates,
-    }: {
-      urlId: string;
-      updates: Partial<UrlItem>;
-    }) => {
-      const response = await fetch(`/api/lists/${listSlug}/urls`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ urlId, ...updates }),
-      });
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Failed to update URL");
-      }
-      return response.json();
-    },
-    onMutate: async ({ urlId, updates }) => {
-      // Optimistic update
-      const current = currentList.get();
-      if (current?.id === listId && current.urls) {
-        const urls = current.urls as unknown as UrlItem[];
-        const updated = urls.map((u) =>
-          u.id === urlId
-            ? { ...u, ...updates, updatedAt: new Date().toISOString() }
-            : u
-        );
-
-        currentList.set({
-          ...current,
-          urls: updated,
-        });
-      }
-
-      await queryClient.cancelQueries({
-        queryKey: listQueryKeys.unified(listSlug),
-      });
-    },
-    onSuccess: (data) => {
-      if (data.list) {
-        currentList.set(data.list);
-      }
-
-      // CRITICAL: Dispatch activity-added event for immediate activity feed update
-      // This provides instant feedback before unified query refetch completes
-      if (typeof window !== "undefined" && data.activity && data.list?.id) {
-        try {
-          // Dispatch activity-added event for optimistic activity feed update
-          window.dispatchEvent(
-            new CustomEvent("activity-added", {
-              detail: {
-                listId: data.list.id,
-                activity: {
-                  id: data.activity.id,
-                  action: data.activity.action,
-                  details: data.activity.details,
-                  createdAt: data.activity.createdAt,
-                  user: data.activity.user || {
-                    id: "",
-                    email: "",
-                  },
-                },
-              },
-            })
-          );
-        } catch {
-          // Ignore errors - unified query refetch will handle it
-        }
-      }
-
-      // CRITICAL: Use centralized invalidation for consistency
-      // Invalidates unified query, all lists, collections, and duplicates
-      // Unified query refetch will provide the complete activity list
-      invalidateUrlQueries(queryClient, listSlug, listId, false);
-
-      toast({
-        title: "URL Updated! ✅",
-        description: "The URL has been updated successfully.",
-        variant: "success",
-      });
-    },
-    onError: (error) => {
-      // Rollback - refetch to get correct state using centralized invalidation
-      invalidateListQueries(queryClient, listSlug, listId);
-
-      toast({
-        title: "Error",
-        description:
-          error instanceof Error ? error.message : "Failed to update URL",
-        variant: "error",
-      });
-    },
-  });
-}
-
-// ============================================
 // ALL LISTS QUERY (ListsPage)
 // ============================================
 export interface UserList {
@@ -758,6 +419,150 @@ export interface UserList {
   updatedAt?: string | Date;
   isPublic?: boolean;
   collaborators?: string[];
+}
+
+export interface EditableList {
+  id: string;
+  slug: string;
+  title?: string | null;
+  description?: string | null;
+  isPublic?: boolean;
+}
+
+export interface CreateListInput {
+  title: string;
+  slug: string;
+  description: string | null;
+  urls: Array<{ id: string; url: string }>;
+  isPublic: boolean;
+}
+
+export interface UpdateListInput {
+  id: string;
+  slug: string;
+  title: string;
+  description: string | null;
+  isPublic: boolean;
+}
+
+type ListMutationResponse = { list: UrlList & UserList };
+
+function patchAllListsCache(queryClient: ReturnType<typeof useQueryClient>, list: UserList, temporaryId?: string): void {
+  queryClient.setQueryData<{ lists: UserList[] }>(listQueryKeys.allLists(), (current) => {
+    if (!current) return current;
+    const exists = current.lists.some((item) => item.id === list.id || item.id === temporaryId);
+    const lists = exists
+      ? current.lists.map((item) => (item.id === list.id || item.id === temporaryId ? { ...item, ...list } : item))
+      : [list, ...current.lists];
+    return { ...current, lists };
+  });
+}
+
+function patchUnifiedListCache(
+  queryClient: ReturnType<typeof useQueryClient>,
+  list: UrlList & UserList,
+): void {
+  queryClient.setQueryData<UnifiedListData>(listQueryKeys.unified(list.slug), (current) =>
+    current?.list ? { ...current, list: { ...current.list, ...list } } : current,
+  );
+
+  const currentListValue = currentList.get();
+  if (currentListValue.id === list.id) {
+    currentList.set({ ...currentListValue, ...list });
+  }
+}
+
+/** REQ-0021: Cache-aware list creation keeps the lists surface stable through success or rollback. */
+export function useCreateList() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (input: CreateListInput): Promise<ListMutationResponse> => {
+      const response = await fetch("/api/lists", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(input),
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to create list");
+      }
+      return response.json();
+    },
+    onMutate: async (input) => {
+      await queryClient.cancelQueries({ queryKey: listQueryKeys.allLists() });
+      const previous = queryClient.getQueryData<{ lists: UserList[] }>(listQueryKeys.allLists());
+      const temporaryId = `temporary-list-${input.slug}`;
+      patchAllListsCache(queryClient, {
+        id: temporaryId,
+        slug: input.slug,
+        title: input.title,
+        description: input.description,
+        isPublic: input.isPublic,
+        urls: input.urls,
+      });
+      return { previous, temporaryId };
+    },
+    onSuccess: (data, _input, context) => {
+      patchAllListsCache(queryClient, data.list, context?.temporaryId);
+      patchUnifiedListCache(queryClient, data.list);
+      invalidateListMutationQueries(queryClient, data.list.slug, data.list.id);
+    },
+    onError: (_error, _input, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(listQueryKeys.allLists(), context.previous);
+      }
+    },
+  });
+}
+
+/** REQ-0021: Cache-aware list updates patch both list and detail surfaces before reconciliation. */
+export function useUpdateList() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, slug: _slug, ...updates }: UpdateListInput): Promise<ListMutationResponse> => {
+      const response = await fetch(`/api/lists/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updates),
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to update list");
+      }
+      return response.json();
+    },
+    onMutate: async (input) => {
+      await Promise.all([
+        queryClient.cancelQueries({ queryKey: listQueryKeys.allLists() }),
+        queryClient.cancelQueries({ queryKey: listQueryKeys.unified(input.slug) }),
+      ]);
+      const previousLists = queryClient.getQueryData<{ lists: UserList[] }>(listQueryKeys.allLists());
+      const previousUnified = queryClient.getQueryData<UnifiedListData>(listQueryKeys.unified(input.slug));
+      const previousCurrent = currentList.get();
+      const optimisticList = { ...input } as UrlList & UserList;
+      patchAllListsCache(queryClient, optimisticList);
+      patchUnifiedListCache(queryClient, optimisticList);
+      return { previousLists, previousUnified, previousCurrent };
+    },
+    onSuccess: (data) => {
+      patchAllListsCache(queryClient, data.list);
+      patchUnifiedListCache(queryClient, data.list);
+      invalidateListMutationQueries(queryClient, data.list.slug, data.list.id);
+    },
+    onError: (_error, input, context) => {
+      if (context?.previousLists) {
+        queryClient.setQueryData(listQueryKeys.allLists(), context.previousLists);
+      }
+      if (context?.previousUnified) {
+        queryClient.setQueryData(listQueryKeys.unified(input.slug), context.previousUnified);
+      }
+      if (context?.previousCurrent?.id === input.id) {
+        currentList.set(context.previousCurrent);
+      }
+    },
+  });
 }
 
 export function useAllListsQuery() {

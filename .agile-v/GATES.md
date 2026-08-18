@@ -67,6 +67,34 @@ Implementation is authorized. Gate 2 remains required before any release decisio
 
 ---
 
+## GATE-0013 — Human Gate 1 (stable list-form dialogs)
+
+| Field | Value |
+|-------|-------|
+| Type | Human-Decision |
+| Status | **APPROVED 2026-08-18** |
+| Checkpoint | `C1-HG1-REQ-0021-2026-08-18` |
+| Evidence | REQ-0021; TASK-0022; DEC-0022 |
+| Required human action | Completed — user approved the Stable List Form Dialogs plan. |
+| Scope | Shared scrollable dialog header, list-form consolidation, cache-first create/edit mutations, Cancel/Clear icons, and no-flicker regression coverage. |
+
+---
+
+## GATE-0014 — Human Gate 1 (security and cache-stability remediation)
+
+| Field | Value |
+|-------|-------|
+| Type | Human-Decision |
+| Status | **APPROVED 2026-08-19** |
+| Checkpoint | `C1-HG1-SECURITY-CACHE-2026-08-19` in `CHECKPOINTS.md` |
+| Evidence | REQ-0022/REQ-0023; TASK-0023/TASK-0024; DEC-0023; RISK-0017/RISK-0018 |
+| Required human action | Completed — user explicitly approved the scoped server authorization boundary, mutation-gateway consolidation, and static-shell/data-slot work. |
+| Scope | Existing cookie-session/collaboration authorization, list metadata/vector side-effect guards, one URL mutation commit/rollback path, and removal of identified broad loading remounts. No Prisma migration, auth replacement, JWT, Zod/SHA adoption, schema migration, or unrelated UI redesign. |
+
+Implementation is authorized. Gate 2 remains required before any release decision.
+
+---
+
 ## GATE-0002 — Human Gate 2 (release / acceptance)
 
 | Field | Value |

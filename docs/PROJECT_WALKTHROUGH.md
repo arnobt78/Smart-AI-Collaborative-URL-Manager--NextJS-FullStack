@@ -29,11 +29,13 @@ Next 15 URL bookmark manager. Demo: https://daily-urlist.vercel.app/
 - UI controls: `lib/ui/control-styles.ts` provides shared 48px field/trigger geometry; Auth uses CSS reveal with reduced-motion support
 - Home motion: `ui/ScrollReveal.tsx` provides replayable CSS/observer reveal plus subtle parallax; shared controls use `h-10 min-h-10` and text-sm placeholders
 - Home wave: hero copy lines and CTAs are individual reveal units, staggered in order rather than animated as a grouped row
-- Data sync: unified React Query cache + optimistic `currentList` store + centralized invalidation + SSE; bulk import reconciles without a hard reload
-- Dialogs: `ui/Dialog.tsx` owns accessible capped overlays; list/URL CRUD, confirmations, comments, similarity, and collaborator actions share it. Legacy `/new` and `/list/[slug]/edit` preserve deep links through dialog-state redirects.
+- Data sync: unified React Query cache + snapshot-first optimistic `currentList` store + centralized invalidation + SSE; `lib/query-keys.ts` is hook-independent; bulk import reconciles without a hard reload
+- Dialogs: `ui/Dialog.tsx` owns accessible capped overlays; list/URL CRUD, confirmations, comments, similarity, and collaborator actions share it. List forms use its scroll-header mode for exactly one heading/X and cache-seeded editor values; legacy `/new` and `/list/[slug]/edit` preserve deep links through dialog-state redirects.
 - Stable data UI: Browse keeps cached cards visible on background refetch; `ui/PageHeader.tsx` provides the shared glass icon/title/subtitle row.
-- Stable data safety: Browse/Insights/API Status keep static chrome with delayed local cold placeholders; unified list batches comment counts; bulk import reconciles without reload; metadata documents/images/favicons accept public HTTP(S) destinations only after DNS/IP and redirect checks.
+- Stable data safety: Browse/Lists/Insights/API Status/detail keep static chrome with delayed local cold placeholders; unified list batches comment counts; bulk import reconciles without reload; metadata documents/images/favicons accept public HTTP(S) destinations only after DNS/IP and redirect checks.
+- List access: `lib/list-route-access.ts` canonicalizes list slug/ID before role checks; PATCH content is owner/editor, visibility and deletion owner-only, private metadata view requires access, and vector sync/metadata refresh requires edit permission.
 - Comment badges: create increments, delete decrements, edit is count-neutral, and failed mutations restore only their own optimistic delta.
+- Manual browser acceptance: REQ-0017 control/Home-motion and REQ-0018 metadata/action-badge flows await user testing; code-level validation is complete.
 - Audit: lint/typecheck/Jest/build and mutation/secret scans pass; user accepted the documented Prisma CLI advisory, while Gate 2 still needs EvalGate and human acceptance
 
 ## Versions

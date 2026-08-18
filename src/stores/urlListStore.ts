@@ -91,6 +91,37 @@ function createRequestError(
   return Object.assign(new Error(message), details);
 }
 
+type UnifiedListCache = {
+  list: UrlList | null;
+  activities: unknown[];
+  collaborators?: unknown[];
+  commentCounts?: Record<string, number>;
+};
+
+/**
+ * Commit one URL mutation to both active data sources before one background
+ * invalidation. Keeping the query value current prevents a stale-cache flash
+ * while SSE and inactive views reconcile.
+ */
+function commitUrlMutation(
+  previous: Partial<UrlList>,
+  serverList: UrlList,
+  urls: UrlItem[],
+): UrlList {
+  const next = { ...previous, ...serverList, urls } as UrlList;
+  currentList.set(next);
+
+  if (next.slug) {
+    queryClient.setQueryData<UnifiedListCache>(
+      ["unified-list", next.slug],
+      (cached) => (cached?.list ? { ...cached, list: { ...cached.list, ...next } } : cached),
+    );
+    invalidateUrlQueries(queryClient, next.slug, next.id, false);
+  }
+
+  return next;
+}
+
 // Global flag to prevent getList from overwriting optimistic updates during drag
 // This is set by the component during drag operations
 let isDragInProgress = false;
@@ -571,6 +602,7 @@ export async function addUrlToList(
 ) {
   const current = currentList.get();
   if (!current.id || !current.urls) return;
+  const snapshot = current;
 
   // Check if already aborted before starting
   if (abortSignal?.aborted) {
@@ -725,33 +757,8 @@ export async function addUrlToList(
             createdAt: activityData.createdAt,
             user: activityData.user,
           });
-        } else {
-          // Fallback: fetch session if user data not in response (backward compatibility)
-          const sessionResponse = await fetch("/api/auth/session");
-          if (sessionResponse.ok) {
-            const { user } = await sessionResponse.json();
-            if (user?.email) {
-              // Dispatch activity with user email for optimistic update
-              dispatchActivityEvents(current.id, {
-                id: activityData.id,
-                action: activityData.action,
-                details: activityData.details,
-                createdAt: activityData.createdAt,
-                user: {
-                  id: user.id,
-                  email: user.email,
-                },
-              });
-            }
-          }
         }
 
-        // CRITICAL: Invalidate unified query to ensure activity feed updates immediately
-        // This triggers the unified endpoint (updates?activityLimit=30) to refetch
-        // The optimistic activity-added event provides instant feedback, invalidation ensures persistence
-        if (current.slug) {
-          invalidateUrlQueries(queryClient, current.slug, current.id, false);
-        }
       } catch {
         // Ignore errors - real-time event will handle it
       }
@@ -760,12 +767,9 @@ export async function addUrlToList(
     // Note: Activity feed will also update via real-time SSE event
     // But optimistic update provides instant feedback and activity-updated ensures refresh
 
-    currentList.set({ ...list, urls: finalUrls });
-    return { ...list, urls: finalUrls };
+    return commitUrlMutation(snapshot, list, finalUrls);
   } catch (err) {
-    // Revert on error
-    // Note: Components that call this function handle errors and use React Query invalidations
-    // We don't call getList() here to avoid duplicate API calls
+    currentList.set(snapshot);
     error.set(err instanceof Error ? err.message : "Failed to update list");
     throw err;
   } finally {
@@ -781,6 +785,7 @@ export async function updateUrlInList(
 ) {
   const current = currentList.get();
   if (!current.id || !current.urls) return;
+  const snapshot = current;
 
   isLoading.set(true);
   error.set(null);
@@ -894,31 +899,6 @@ export async function updateUrlInList(
             createdAt: activityData.createdAt,
             user: activityData.user,
           });
-        } else {
-          // Fallback: fetch session if user data not in response (backward compatibility)
-          const sessionResponse = await fetch("/api/auth/session");
-          if (sessionResponse.ok) {
-            const { user } = await sessionResponse.json();
-            if (user?.email) {
-              dispatchActivityEvents(current.id, {
-                id: activityData.id,
-                action: activityData.action,
-                details: activityData.details,
-                createdAt: activityData.createdAt,
-                user: {
-                  id: user.id,
-                  email: user.email,
-                },
-              });
-            }
-          }
-        }
-
-        // CRITICAL: Invalidate unified query to ensure activity feed updates immediately
-        // This triggers the unified endpoint (updates?activityLimit=30) to refetch
-        // The optimistic activity-added event provides instant feedback, invalidation ensures persistence
-        if (current.slug) {
-          invalidateUrlQueries(queryClient, current.slug, current.id, false);
         }
       } catch {
         // Ignore errors - real-time event will handle it
@@ -928,12 +908,9 @@ export async function updateUrlInList(
     // Note: Activity feed will also update via real-time SSE event
     // But optimistic update provides instant feedback
 
-    currentList.set({ ...list, urls: finalUrls });
-    return { ...list, urls: finalUrls };
+    return commitUrlMutation(snapshot, list, finalUrls);
   } catch (err) {
-    // Revert on error - fetch fresh data
-    // Note: Components that call this function handle errors and use React Query invalidations
-    // We don't call getList() here to avoid duplicate API calls
+    currentList.set(snapshot);
     error.set(err instanceof Error ? err.message : "Failed to update list");
     throw err;
   } finally {
@@ -944,6 +921,7 @@ export async function updateUrlInList(
 export async function removeUrlFromList(urlId: string) {
   const current = currentList.get();
   if (!current.id || !current.urls) return;
+  const snapshot = current;
 
   isLoading.set(true);
   error.set(null);
@@ -1039,43 +1017,16 @@ export async function removeUrlFromList(urlId: string) {
             createdAt: activity.createdAt,
             user: activity.user,
           });
-        } else {
-          // Fallback: fetch session if user data not in response (backward compatibility)
-          const sessionResponse = await fetch("/api/auth/session");
-          if (sessionResponse.ok) {
-            const { user } = await sessionResponse.json();
-            if (user?.email) {
-              dispatchActivityEvents(current.id, {
-                id: activity.id,
-                action: activity.action,
-                details: activity.details,
-                createdAt: activity.createdAt,
-                user: {
-                  id: user.id,
-                  email: user.email,
-                },
-              });
-            }
-          }
-        }
-
-        // CRITICAL: Invalidate unified query to ensure activity feed updates immediately
-        // This triggers the unified endpoint (updates?activityLimit=30) to refetch
-        // The optimistic activity-added event provides instant feedback, invalidation ensures persistence
-        if (current.slug) {
-          invalidateUrlQueries(queryClient, current.slug, current.id, false);
         }
       } catch {
         // Ignore errors - real-time event will handle it
       }
     }
 
-    // Note: Activity feed will also update via real-time SSE event
-    // But optimistic update provides instant feedback and activity-updated ensures refresh
+    const finalUrls = currentList.get().urls as UrlItem[];
+    return commitUrlMutation(snapshot, list, finalUrls);
   } catch (err) {
-    // Revert on error
-    // Note: Components that call this function handle errors and use React Query invalidations
-    // We don't call getList() here to avoid duplicate API calls
+    currentList.set(snapshot);
     error.set(err instanceof Error ? err.message : "Failed to update list");
     throw err;
   } finally {

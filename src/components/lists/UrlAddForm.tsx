@@ -2,8 +2,9 @@
 
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
+import { CancelButton, ClearButton } from "@/components/ui/ActionButtons";
 import { Textarea } from "@/components/ui/Textarea";
-import { WandSparkles, X } from "lucide-react";
+import { WandSparkles } from "lucide-react";
 import { Dialog } from "@/components/ui/Dialog";
 import { UrlEnhancer } from "@/components/ai/UrlEnhancer";
 import type { EnhancementResult } from "@/lib/ai";
@@ -271,14 +272,9 @@ export function UrlAddForm({
 
         <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
           {newUrl && (
-            <Button type="button" onClick={handleClear} variant="glassNeutral">
-              Clear
-            </Button>
+            <ClearButton onClick={handleClear}>Clear</ClearButton>
           )}
-          <Button type="button" onClick={onCancel} variant="glassNeutral">
-            <X className="h-4 w-4 shrink-0" aria-hidden />
-            Cancel
-          </Button>
+          <CancelButton onClick={onCancel}>Cancel</CancelButton>
           <Button type="submit" isLoading={isLoading} variant="glassEmerald">
             <WandSparkles className="h-4 w-4  shrink-0" aria-hidden />
             Add URL

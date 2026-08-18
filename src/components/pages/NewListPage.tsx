@@ -1,373 +1,188 @@
+// REQ-0021: Cache-aware create-list form is rendered directly inside the shared dialog.
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useSession } from "@/hooks/useSession";
-import Auth from "@/components/Auth";
-import { Textarea } from "@/components/ui/Textarea";
-import { UrlEnhancer } from "@/components/ai/UrlEnhancer";
-import { useToast } from "@/components/ui/Toaster";
-import { useQueryClient } from "@tanstack/react-query";
-import {
-  invalidateAllListsQueries,
-  invalidateListQueries,
-} from "@/utils/queryInvalidation";
 import { ListPlus } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { FORM_STACK, PAGE_HEADER, PAGE_STACK } from "@/lib/ui-spacing";
+import { Textarea } from "@/components/ui/Textarea";
 import { Button } from "@/components/ui/Button";
+import { CancelButton } from "@/components/ui/ActionButtons";
+import { UrlEnhancer } from "@/components/ai/UrlEnhancer";
+import { ListFormCard, ListVisibilityField } from "@/components/lists/ListFormPrimitives";
+import { useToast } from "@/components/ui/Toaster";
+import { useCreateList } from "@/hooks/useListQueries";
+import { FORM_STACK } from "@/lib/ui-spacing";
+import { UI_FORM_CONTROL } from "@/lib/ui/control-styles";
 
-export default function NewListPageClient() {
+interface NewListPageClientProps {
+  onClose?: () => void;
+  onPendingChange?: (pending: boolean) => void;
+}
+
+export default function NewListPageClient({ onClose, onPendingChange }: NewListPageClientProps) {
   const router = useRouter();
-  const { user: session, isLoading: sessionLoading } = useSession();
   const { toast } = useToast();
-  const queryClient = useQueryClient();
-  const loading = sessionLoading;
+  const createListMutation = useCreateList();
   const [error, setError] = useState("");
   const [formData, setFormData] = useState({
     title: "",
     slug: "",
     url: "",
     description: "",
-    is_public: false,
+    isPublic: false,
   });
 
-  // Session is now provided by useSession hook
+  useEffect(() => {
+    onPendingChange?.(createListMutation.isPending);
+    return () => onPendingChange?.(false);
+  }, [createListMutation.isPending, onPendingChange]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const close = () => {
+    if (createListMutation.isPending) return;
+    if (onClose) {
+      onClose();
+      return;
+    }
+    router.replace("/lists", { scroll: false });
+  };
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
     setError("");
 
-    if (!formData.title) {
+    if (!formData.title.trim()) {
       setError("Title is required");
       return;
     }
 
+    const slug =
+      formData.slug.trim() ||
+      formData.title
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/(^-|-$)/g, "");
+
     try {
-      // Generate a slug if not provided
-      const slug =
-        formData.slug ||
-        formData.title
-          .toLowerCase()
-          .replace(/[^a-z0-9]+/g, "-")
-          .replace(/(^-|-$)/g, "");
-
-      const urls = formData.url
-        ? [{ id: crypto.randomUUID(), url: formData.url }]
-        : [];
-
-      const response = await fetch("/api/lists", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: formData.title,
-          slug,
-          description: formData.description || null,
-          urls,
-          isPublic: formData.is_public,
-        }),
+      const { list } = await createListMutation.mutateAsync({
+        title: formData.title.trim(),
+        slug,
+        description: formData.description.trim() || null,
+        urls: formData.url.trim()
+          ? [{ id: crypto.randomUUID(), url: formData.url.trim() }]
+          : [],
+        isPublic: formData.isPublic,
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to create list");
-      }
-
-      const { list } = await response.json();
-
-      // Invalidate React Query cache using centralized invalidation
-      // This ensures all related queries update together
-      invalidateAllListsQueries(queryClient);
-      invalidateListQueries(queryClient, list.slug, list.id);
-
-      // Show success toast notification
       toast({
         title: "List Created! 🎉",
         description: "Your new list has been successfully created.",
         variant: "success",
       });
-
-      // Navigate after a brief delay to show toast
-      setTimeout(() => {
-        router.push(`/list/${list.slug}`);
-      }, 500);
-    } catch (err) {
-      const errorMessage =
-        err instanceof Error ? err.message : "Failed to create list";
-      setError(errorMessage);
-
-      // Show error toast notification
-      toast({
-        title: "Creation Failed",
-        description: errorMessage,
-        variant: "error",
-      });
+      router.replace(`/list/${list.slug}`, { scroll: false });
+    } catch (caughtError) {
+      const message = caughtError instanceof Error ? caughtError.message : "Failed to create list";
+      setError(message);
+      toast({ title: "Creation Failed", description: message, variant: "error" });
     }
   };
 
-  if (loading) {
-    return (
-      <div className={cn("min-h-screen w-full", PAGE_STACK)}>
-        {/* Header Skeleton */}
-        <div className={PAGE_HEADER}>
-          <div className="h-8 sm:h-9 bg-white/10 rounded w-56 animate-pulse" />
-          <div className="h-5 bg-white/10 rounded w-96 max-w-full animate-pulse" />
-        </div>
-
-        {/* Form Card Skeleton */}
-        <div className="relative overflow-hidden bg-gradient-to-br from-white/10 via-white/5 to-white/3 backdrop-blur-md border border-white/20 rounded-2xl shadow-2xl p-2 sm:p-4">
-          <div className="relative z-10">
-            <div className="space-y-6 sm:space-y-8 animate-pulse">
-              {/* Title Field Skeleton */}
-              <div className="space-y-2">
-                <label className="flex text-base sm:text-lg font-medium  items-center gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full bg-white/10" />
-                  <div className="h-5 bg-white/10 rounded w-16" />
-                  <div className="h-5 w-2 bg-white/10 rounded" />
-                </label>
-                <div className="w-full border border-white/20 bg-white/10 backdrop-blur-md rounded-xl px-2 sm:px-3 py-2 sm:py-3 h-12" />
-                <div className="h-4 bg-white/10 rounded w-40" />
-              </div>
-
-              {/* Custom Slug Field Skeleton */}
-              <div className="space-y-2">
-                <label className="flex text-base sm:text-lg font-medium  items-center gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full bg-white/10" />
-                  <div className="h-5 bg-white/10 rounded w-28" />
-                  <div className="h-4 bg-white/10 rounded w-16" />
-                </label>
-                <div className="relative">
-                  <div className="absolute left-4 top-1/2 -translate-y-1/2 h-4 bg-white/10 rounded w-12" />
-                  <div className="w-full border border-white/20 bg-white/10 backdrop-blur-md rounded-xl px-2 sm:px-3 pl-20 py-2 sm:py-3 h-12" />
-                </div>
-                <div className="h-4 bg-white/10 rounded w-64" />
-              </div>
-
-              {/* First URL Field Skeleton */}
-              <div className="space-y-2">
-                <label className="flex text-base sm:text-lg font-medium  items-center gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full bg-white/10" />
-                  <div className="h-5 bg-white/10 rounded w-20" />
-                  <div className="h-4 bg-white/10 rounded w-16" />
-                </label>
-                <div className="space-y-2">
-                  <div className="w-full border border-white/20 bg-white/10 backdrop-blur-md rounded-xl px-2 sm:px-3 py-2 sm:py-3 h-12" />
-                </div>
-                <div className="h-4 bg-white/10 rounded w-64" />
-              </div>
-
-              {/* Description Field Skeleton */}
-              <div className="space-y-2">
-                <label className="flex text-base sm:text-lg font-medium  items-center gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full bg-white/10" />
-                  <div className="h-5 bg-white/10 rounded w-24" />
-                  <div className="h-4 bg-white/10 rounded w-16" />
-                </label>
-                <div className="w-full border border-white/20 bg-white/10 backdrop-blur-md rounded-xl px-2 sm:px-3 py-2 sm:py-3 h-24" />
-                <div className="h-4 bg-white/10 rounded w-56" />
-              </div>
-
-              {/* Visibility Toggle Skeleton */}
-              <div className="bg-white/5 border border-white/10 rounded-xl p-4 sm:p-5">
-                <div className="flex items-start gap-2">
-                  <div className="h-5 w-5 mt-0.5 border border-white/30 rounded bg-white/10" />
-                  <div className="flex-1">
-                    <div className="h-5 bg-white/10 rounded w-40 mb-1" />
-                    <div className="h-4 bg-white/10 rounded w-full" />
-                  </div>
-                </div>
-              </div>
-
-              {/* Submit Button Skeleton */}
-              <div className="h-12 bg-white/10 rounded w-fit" />
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (!session) {
-    return <Auth />;
-  }
-
   return (
-    <div className={cn("min-h-screen w-full", PAGE_STACK)}>
-      {/* Header — PAGE_HEADER = title+sub tight (no mt between lines) */}
-      <div className={PAGE_HEADER}>
-        <h1 className="text-lg sm:text-xl  font-medium bg-gradient-to-r from-blue-300 via-purple-300 to-indigo-300 bg-clip-text text-transparent leading-tight">
-          Create a New List
-        </h1>
-        <p className="text-white/70 text-sm sm:text-base leading-snug">
-          Organize your favorite URLs into beautiful, shareable collections
-        </p>
-      </div>
-
-      {/* Form Card */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-white/10 via-white/5 to-white/3 backdrop-blur-md border border-white/20 rounded-xl sm:rounded-2xl shadow-2xl p-2 sm:p-4">
-        {/* Animated background effect */}
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-500/0 via-purple-500/5 to-indigo-500/0 animate-pulse pointer-events-none" />
-
-        <div className="relative z-10">
-          <form
-            onSubmit={handleSubmit}
-            className={cn(FORM_STACK, "lg:space-y-8")}
-          >
-            <div className="space-y-2">
-              <label className="flex text-sm sm:text-base font-medium text-white  items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-blue-400"></span>
-                Title <span className="text-red-400">*</span>
-              </label>
-              <input
-                type="text"
-                value={formData.title}
-                onChange={(e) =>
-                  setFormData({ ...formData, title: e.target.value })
-                }
-                className="w-full border border-white/20 bg-white/10 backdrop-blur-md rounded-lg sm:rounded-xl px-2 sm:px-3 py-2 sm:py-3 text-sm sm:text-base text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-400/50 transition-all duration-200 shadow-inner"
-                placeholder="e.g., My Favorite Resources"
-                required
-              />
-              <p className="text-xs sm:text-sm text-white/50">
-                Give your list a memorable name
-              </p>
-            </div>
-            <div className="space-y-2">
-              <label className="flex text-sm sm:text-base font-medium text-white  items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-purple-400"></span>
-                Custom Slug{" "}
-                <span className="text-xs font-normal text-white/50">
-                  (optional)
-                </span>
-              </label>
-              <div className="relative">
-                <span className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 text-white/50 text-xs sm:text-sm">
-                  /list/
-                </span>
-                <input
-                  type="text"
-                  value={formData.slug}
-                  onChange={(e) =>
-                    setFormData({ ...formData, slug: e.target.value })
-                  }
-                  className="w-full border border-white/20 bg-white/10 backdrop-blur-md rounded-lg sm:rounded-xl px-2 sm:px-3 pl-16 sm:pl-20 py-2 sm:py-3 text-sm sm:text-base text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-400/50 transition-all duration-200 shadow-inner"
-                  placeholder="custom-slug"
-                />
-              </div>
-              <p className="text-xs sm:text-sm text-white/50">
-                Custom URL slug (auto-generated from title if left empty)
-              </p>
-            </div>
-            <div className="space-y-2">
-              <label className="flex text-sm sm:text-base font-medium text-white  items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-indigo-400"></span>
-                First URL{" "}
-                <span className="text-xs font-normal text-white/50">
-                  (optional)
-                </span>
-              </label>
-              <div className="space-y-2">
-                <input
-                  type="url"
-                  value={formData.url}
-                  onChange={(e) =>
-                    setFormData({ ...formData, url: e.target.value })
-                  }
-                  className="w-full border border-white/20 bg-white/10 backdrop-blur-md rounded-lg sm:rounded-xl px-2 sm:px-3 py-2 sm:py-3 text-sm sm:text-base text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400/50 transition-all duration-200 shadow-inner"
-                  placeholder="https://example.com"
-                />
-                {formData.url && (
-                  <div className="bg-blue-500/10 border border-blue-400/20 rounded-xl p-3">
-                    <UrlEnhancer
-                      url={formData.url}
-                      onEnhance={(result) => {
-                        // Auto-fill description with AI summary if available
-                        if (
-                          result.success &&
-                          result.summary &&
-                          !formData.description
-                        ) {
-                          setFormData({
-                            ...formData,
-                            description: result.summary,
-                          });
-                        }
-                      }}
-                      compact={true}
-                    />
-                  </div>
-                )}
-              </div>
-              <p className="text-xs sm:text-sm text-white/50">
-                Add the first URL to get started (you can add more later)
-              </p>
-            </div>
-            <div className="space-y-2">
-              <label className="flex text-sm sm:text-base font-medium text-white  items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-pink-400"></span>
-                Description{" "}
-                <span className="text-xs font-normal text-white/50">
-                  (optional)
-                </span>
-              </label>
-              <Textarea
-                value={formData.description}
-                onChange={(e) =>
-                  setFormData({ ...formData, description: e.target.value })
-                }
-                className="text-sm sm:text-base shadow-inner font-delicious rounded-lg sm:rounded-xl border border-white/20 bg-white/10 backdrop-blur-md focus:ring-2 focus:ring-pink-500 focus:border-pink-400/50 transition-all duration-200 px-2 sm:px-3 py-2 sm:py-3"
-                placeholder="Describe what this list is about..."
-                rows={4}
-              />
-              <p className="text-xs sm:text-sm text-white/50">
-                Help others understand what this list contains
-              </p>
-            </div>
-            <div className="bg-white/5 border border-white/10 rounded-lg sm:rounded-xl p-3 sm:p-4 lg:p-5">
-              <div className="flex items-start gap-2 sm:gap-2">
-                <input
-                  type="checkbox"
-                  checked={formData.is_public}
-                  onChange={(e) =>
-                    setFormData({ ...formData, is_public: e.target.checked })
-                  }
-                  className="h-4 w-4  mt-0.5 text-blue-600 border-white/30 rounded bg-white/10 focus:ring-2 focus:ring-blue-500 focus:ring-offset-0 focus:ring-offset-transparent cursor-pointer flex-shrink-0"
-                  id="is_public"
-                />
-                <div className="flex-1">
-                  <label
-                    htmlFor="is_public"
-                    className="text-white font-medium text-sm sm:text-base cursor-pointer mb-1 block"
-                  >
-                    Make this list public
-                  </label>
-                  <p className="text-xs sm:text-sm text-white/60">
-                    Public lists can be viewed by anyone with the link. Private
-                    lists are only visible to you and collaborators.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {error && (
-              <div className="bg-red-500/10 border border-red-400/30 rounded-lg sm:rounded-xl p-3 sm:p-4 text-red-300 text-xs sm:text-sm lg:text-base flex items-start gap-2">
-                <span className="text-red-400 font-medium">⚠</span>
-                <span>{error}</span>
-              </div>
-            )}
-
-            <Button
-              type="submit"
-              variant="glassPurple"
-              size="lg"
-              className="w-full sm:w-auto"
-            >
-              <ListPlus className="h-4 w-4  shrink-0" aria-hidden />
-              Create List
-            </Button>
-          </form>
+    <ListFormCard>
+      <form onSubmit={handleSubmit} className={FORM_STACK}>
+        <div className="space-y-2">
+          <label className="flex items-center gap-2 text-sm font-medium text-white sm:text-base">
+            <span className="h-1.5 w-1.5 rounded-full bg-blue-400" />
+            Title <span className="text-red-400">*</span>
+          </label>
+          <input
+            type="text"
+            value={formData.title}
+            onChange={(event) => setFormData((current) => ({ ...current, title: event.target.value }))}
+            className={UI_FORM_CONTROL}
+            placeholder="e.g., My Favorite Resources"
+            required
+          />
+          <p className="text-xs text-white/50 sm:text-sm">Give your list a memorable name</p>
         </div>
-      </div>
-    </div>
+
+        <div className="space-y-2">
+          <label className="flex items-center gap-2 text-sm font-medium text-white sm:text-base">
+            <span className="h-1.5 w-1.5 rounded-full bg-purple-400" />
+            Custom Slug <span className="text-xs font-normal text-white/50">(optional)</span>
+          </label>
+          <div className="relative">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-white/50 sm:text-sm">/list/</span>
+            <input
+              type="text"
+              value={formData.slug}
+              onChange={(event) => setFormData((current) => ({ ...current, slug: event.target.value }))}
+              className={`${UI_FORM_CONTROL} pl-16`}
+              placeholder="custom-slug"
+            />
+          </div>
+          <p className="text-xs text-white/50 sm:text-sm">Custom URL slug (auto-generated from title if left empty)</p>
+        </div>
+
+        <div className="space-y-2">
+          <label className="flex items-center gap-2 text-sm font-medium text-white sm:text-base">
+            <span className="h-1.5 w-1.5 rounded-full bg-indigo-400" />
+            First URL <span className="text-xs font-normal text-white/50">(optional)</span>
+          </label>
+          <input
+            type="url"
+            value={formData.url}
+            onChange={(event) => setFormData((current) => ({ ...current, url: event.target.value }))}
+            className={UI_FORM_CONTROL}
+            placeholder="https://example.com"
+          />
+          {formData.url ? (
+            <div className="rounded-xl border border-blue-400/20 bg-blue-500/10 p-3">
+              <UrlEnhancer
+                url={formData.url}
+                compact
+                onEnhance={(result) => {
+                  if (result.success && result.summary) {
+                    setFormData((current) => current.description ? current : { ...current, description: result.summary ?? "" });
+                  }
+                }}
+              />
+            </div>
+          ) : null}
+          <p className="text-xs text-white/50 sm:text-sm">Add the first URL to get started (you can add more later)</p>
+        </div>
+
+        <div className="space-y-2">
+          <label className="flex items-center gap-2 text-sm font-medium text-white sm:text-base">
+            <span className="h-1.5 w-1.5 rounded-full bg-pink-400" />
+            Description <span className="text-xs font-normal text-white/50">(optional)</span>
+          </label>
+          <Textarea
+            value={formData.description}
+            onChange={(event) => setFormData((current) => ({ ...current, description: event.target.value }))}
+            className="min-h-28 rounded-xl border-white/20 bg-white/10 px-3 py-2 text-sm shadow-inner placeholder:text-sm focus:border-pink-400/50 focus:ring-2 focus:ring-pink-500 sm:text-sm"
+            placeholder="Describe what this list is about..."
+            rows={4}
+          />
+          <p className="text-xs text-white/50 sm:text-sm">Help others understand what this list contains</p>
+        </div>
+
+        <ListVisibilityField
+          id="create-list-is-public"
+          checked={formData.isPublic}
+          onChange={(event) => setFormData((current) => ({ ...current, isPublic: event.target.checked }))}
+        />
+
+        {error ? <p role="alert" className="rounded-xl border border-red-400/30 bg-red-500/10 p-3 text-xs text-red-300 sm:text-sm">{error}</p> : null}
+
+        <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+          <CancelButton onClick={close} disabled={createListMutation.isPending}>Cancel</CancelButton>
+          <Button type="submit" variant="glassPurple" isLoading={createListMutation.isPending}>
+            <ListPlus className="h-4 w-4 shrink-0" aria-hidden />
+            {createListMutation.isPending ? "Creating..." : "Create List"}
+          </Button>
+        </div>
+      </form>
+    </ListFormCard>
   );
 }

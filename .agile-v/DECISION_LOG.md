@@ -295,3 +295,55 @@ Append-only. Newest entries at bottom.
 | Rationale | Local and remote `main` are clean and match at `a69f0a7`; prior state named only earlier requirements and misstated the historical Gate 0001 status. |
 | Linked REQs | REQ-0010 to REQ-0020 |
 | Status | Reconciled; no application-code change. |
+
+---
+
+## DEC-0022 — Use cache-seeded list forms inside scrollable dialog chrome
+
+| Field | Value |
+|-------|-------|
+| Timestamp | 2026-08-18 |
+| Agent | Agile V synthesis |
+| Decision | Add an opt-in scrollable header mode to the shared dialog and move create/edit list forms to centralized mutations seeded from existing React Query list data. |
+| Rationale | The fixed dialog header duplicates the form heading. Page-local session/list loading, editor navigation toast, and delayed router navigation cause visible skeleton transitions despite warm caches. |
+| Linked REQs | REQ-0021 |
+| Status | Implemented and validated. |
+
+---
+
+## DEC-0023 — Reuse existing permission model and establish one mutation commit boundary
+
+| Field | Value |
+|-------|-------|
+| Timestamp | 2026-08-19 |
+| Agent | Agile V Requirement Architect / Threat Modeler |
+| Decision | Close list-route authorization with the existing cookie session and collaboration role helpers; introduce a narrow canonical resource resolver and a single client mutation commit/rollback adapter instead of adding JWT, Zod, SHA, a schema migration, or a new cache library. |
+| Rationale | The verified defects are missing server-side authorization and diverging client mutation paths, not absent identity technology. Reusing `hasListAccess`/`requirePermission` keeps behavior compatible while ensuring access is checked before Redis/vector/database side effects. A snapshot-first adapter prevents failed optimistic deletes from losing data and avoids redundant refetches. |
+| Linked REQs | REQ-0022, REQ-0023 |
+| Status | Implemented and locally validated 2026-08-19. |
+
+---
+
+## DEC-0024 — Separate query keys from hook modules
+
+| Field | Value |
+|-------|-------|
+| Timestamp | 2026-08-19 |
+| Agent | Agile V implementation |
+| Decision | Move the shared list query-key contract into `lib/query-keys.ts`; keep the hook export as a compatibility re-export. |
+| Rationale | Mutation stores and invalidation utilities must not import a client hook only to access key constants. The shared module removes that import cycle without changing any key or cache contract. |
+| Linked REQs | REQ-0023 |
+| Status | Implemented and locally validated. |
+
+---
+
+## DEC-0025 — Defer interactive acceptance to user browser testing
+
+| Field | Value |
+|-------|-------|
+| Timestamp | 2026-08-19 |
+| Agent | Agile V audit reconciliation |
+| Decision | Keep REQ-0017 control/Home-motion and REQ-0018 metadata/action-badge browser acceptance pending user testing while recording completed automated verification. |
+| Rationale | Type, lint, unit, build, and diff checks verify the code path but cannot prove the final interactive visual and action behavior in a real browser. |
+| Linked REQs | REQ-0017, REQ-0018 |
+| Status | Pending user feedback; no code change. |

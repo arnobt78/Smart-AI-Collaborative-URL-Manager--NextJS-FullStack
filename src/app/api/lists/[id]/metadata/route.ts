@@ -1,27 +1,34 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getListById } from "@/lib/db";
 import { redis } from "@/lib/redis";
 import type { UrlItem } from "@/stores/urlListStore";
 import type { UrlMetadata } from "@/utils/urlMetadata";
 import { fetchUrlMetadata } from "@/utils/urlMetadata";
+import { resolveAuthorizedList } from "@/lib/list-route-access";
 
 type RouteContext = { params: Promise<{ id: string }> };
+type AuthorizedListAccess = Extract<
+  Awaited<ReturnType<typeof resolveAuthorizedList>>,
+  { ok: true }
+>;
 
 /**
  * GET /api/lists/[id]/metadata
  * Unified endpoint that returns all metadata for all URLs in a list at once
  * Acts as a middleware/proxy layer with Redis caching
  */
-export async function GET(req: NextRequest, context: RouteContext) {
+export async function GET(
+  _req: NextRequest,
+  context: RouteContext,
+  authorizedAccess?: AuthorizedListAccess,
+) {
   try {
     const params = await context.params;
-    const listId = params.id;
-
-    // Get list from database
-    const list = await getListById(listId);
-    if (!list) {
-      return NextResponse.json({ error: "List not found" }, { status: 404 });
+    const access = authorizedAccess ?? await resolveAuthorizedList(params.id, "view");
+    if (!access.ok) {
+      return NextResponse.json({ error: access.error }, { status: access.status });
     }
+    const list = access.list;
+    const listId = list.id;
 
     const urls = (list.urls as unknown as UrlItem[]) || [];
     if (urls.length === 0) {
@@ -220,7 +227,11 @@ export async function GET(req: NextRequest, context: RouteContext) {
 export async function POST(req: NextRequest, context: RouteContext) {
   try {
     const params = await context.params;
-    const listId = params.id;
+    const access = await resolveAuthorizedList(params.id, "edit");
+    if (!access.ok) {
+      return NextResponse.json({ error: access.error }, { status: access.status });
+    }
+    const listId = access.list.id;
 
     // Invalidate cache
     const cacheKey = `list-metadata:${listId}`;
@@ -235,8 +246,8 @@ export async function POST(req: NextRequest, context: RouteContext) {
     // Optionally refresh metadata immediately
     const body = await req.json().catch(() => ({}));
     if (body.refresh) {
-      // Trigger refresh by calling GET endpoint logic
-      const response = await GET(req, context);
+      // Reuse the verified edit access rather than resolving the same list twice.
+      const response = await GET(req, context, access);
       return response;
     }
 

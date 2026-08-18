@@ -7,10 +7,11 @@ import { useStore } from "@nanostores/react";
 import { currentList } from "@/stores/urlListStore";
 import { listQueryKeys } from "@/hooks/useListQueries";
 import { Button } from "@/components/ui/Button";
+import { CancelButton } from "@/components/ui/ActionButtons";
 import { Textarea } from "@/components/ui/Textarea";
 import { useToast } from "@/components/ui/Toaster";
 import { AlertDialog } from "@/components/ui/AlertDialog";
-import { Trash2, Edit2, X, Check } from "lucide-react";
+import { Trash2, Edit2, Check } from "lucide-react";
 
 interface Comment {
   id: string;
@@ -493,15 +494,12 @@ export function Comments({ listId, urlId, currentUserId }: CommentsProps) {
                       className="min-h-[70px] sm:min-h-[80px] resize-none bg-white/5 border-white/10 text-white placeholder:text-white/50 text-sm"
                     />
                     <div className="flex justify-end ">
-                      <Button
-                        type="button"
+                      <CancelButton
                         onClick={handleCancelEdit}
-                        variant="secondary"
-                        className="px-2 sm:px-3 py-1 text-xs"
+                        className="px-2 sm:px-3 text-xs"
                       >
-                        <X className="w-3 h-3 mr-1" />
                         Cancel
-                      </Button>
+                      </CancelButton>
                       <Button
                         type="button"
                         onClick={handleSaveEdit}

@@ -132,3 +132,46 @@ Gate 2: BLOCKED — RISK-0016 is accepted; `EVAL_RESULTS.md` PASS/WAIVED evidenc
 | Diff hygiene | `git diff --check` | PASS |
 
 | Comment badge correction | `npx tsc --noEmit`; `npm run lint`; `npm test -- --runInBand`; `npm run build` | PASS — edit is count-neutral; create/delete rollback behavior preserved. |
+
+## 2026-08-18 — REQ-0021 stable list-form dialogs
+
+| Scope | Command | Result | Notes |
+|---|---|---|---|
+| Type safety | `npx tsc --noEmit` | PASS | Shared dialog header mode, cache-aware list hooks, and list forms compile. |
+| Static analysis | `npm run lint` | PASS | Zero warnings/errors. |
+| Focused regression | `npm test -- --runInBand` | PASS | 5 suites pass; 24 tests pass; 1 suite and 5 tests skip. |
+| Production build | `npm run build` | PASS | Prisma generation and optimized Next.js build complete. |
+| Diff hygiene | `git diff --check -- src .agile-v docs CLAUDE.md` | PASS | No whitespace errors. |
+
+## 2026-08-19 — REQ-0022/REQ-0023 planning audit
+
+| Scope | Evidence | Result | Notes |
+|---|---|---|---|
+| Authorization boundary | Route inspection of list PATCH/DELETE, metadata, and vector-sync handlers against existing collaboration guards | FAIL / implementation required | PATCH/DELETE lack role checks; metadata and vector sync lack private-list access controls. Tracked by REQ-0022. |
+| Mutation consistency | `useListQueries` and `urlListStore` mutation-path audit | FAIL / implementation required | Legacy hooks overlap the active store flow; delete snapshots after mutation and add/update have no exact rollback. Tracked by REQ-0023. |
+| Data-surface stability | Browse, Lists, Insights, API Status, and detail loading-condition audit | FAIL / implementation required | Browse has a duplicate Suspense fallback; Lists and detail retain broad skeleton paths; Insights can render zero-value data before delayed loading. Tracked by REQ-0023. |
+| Gate status | `GATES.md`, `CHECKPOINTS.md`, `APPROVALS.md`, and `STATE.md` reconciliation | PENDING | GATE-0014 approval is required before implementation. Existing Gate 2 remains blocked; accepted RISK-0016 is unchanged. |
+
+## 2026-08-19 — REQ-0022/REQ-0023 implementation evidence
+
+| Scope | Command / evidence | Result | Notes |
+|---|---|---|---|
+| Authorization boundary | Canonical `resolveAuthorizedList` role tests | PASS | Owner, editor, viewer, anonymous public/private, and unrelated-user outcomes are covered before protected route side effects. |
+| Mutation rollback | `urlListStore.mutations.test.ts` | PASS | Failed URL delete restores the exact pre-mutation `currentList` snapshot. |
+| Type safety | `npx tsc --noEmit` | PASS | Route guards, cache transaction flow, and shared query-key module compile. |
+| Static analysis | `npm run lint` | PASS | Zero warnings/errors. |
+| Regression suite | `npm test -- --runInBand` | PASS | 7 suites passed, 1 skipped; 29 tests passed, 5 skipped. |
+| Production build | `npm run build` | PASS | Prisma generation, optimized compilation, type checking, static generation, and trace collection completed. |
+| Diff hygiene | `git diff --check -- src .agile-v docs CLAUDE.md` | PASS | No whitespace errors. |
+| Dependency security | Existing accepted RISK-0016 | UNCHANGED | Prisma CLI's three transitive high findings remain accepted; no Prisma change was made. |
+
+## 2026-08-19 — Final local reconciliation
+
+| Scope | Command / evidence | Result | Notes |
+|---|---|---|---|
+| Type safety | `npx tsc --noEmit` | PASS | Strict TypeScript passes. |
+| Static analysis | `npm run lint` | PASS | Zero warnings/errors. |
+| Regression suite | `npm test -- --runInBand` | PASS | 7 suites passed, 1 skipped; 29 tests passed, 5 skipped. |
+| Production build | `npm run build` | PASS | Fresh `.next/BUILD_ID` confirms the optimized build completed. |
+| Diff hygiene | `git diff --check -- src .agile-v docs CLAUDE.md` | PASS | No whitespace errors. |
+| Browser acceptance | REQ-0017 control/Home motion; REQ-0018 metadata/action badges | PENDING USER TEST | Automated checks cannot substitute for interactive browser validation. |

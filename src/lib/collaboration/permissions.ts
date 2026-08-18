@@ -11,6 +11,51 @@ export interface PermissionCheck {
   role: UserRole;
 }
 
+type AccessibleList = {
+  userId: string;
+  isPublic: boolean;
+  collaboratorRoles?: unknown;
+  collaborators?: string[];
+};
+
+type SessionUser = { id: string; email: string } | null;
+
+/**
+ * Resolve a role from an already-loaded list so route handlers do not repeat a
+ * database lookup merely to authorize an operation on that same list.
+ */
+export function getRoleForListUser(
+  list: AccessibleList,
+  user: SessionUser,
+): UserRole {
+  if (!user) return list.isPublic ? "viewer" : "none";
+
+  if (list.userId === user.id) return "owner";
+
+  if (list.collaboratorRoles && typeof list.collaboratorRoles === "object") {
+    const roles = list.collaboratorRoles as Record<string, string>;
+    const userEmailLower = user.email.toLowerCase();
+    const matchingKey = Object.keys(roles).find(
+      (key) => key.toLowerCase() === userEmailLower,
+    );
+
+    if (matchingKey) {
+      const role = roles[matchingKey];
+      if (role === "editor" || role === "viewer") return role;
+    }
+  }
+
+  if (
+    list.collaborators?.some(
+      (email) => email.toLowerCase() === user.email.toLowerCase(),
+    )
+  ) {
+    return "editor";
+  }
+
+  return list.isPublic ? "viewer" : "none";
+}
+
 /**
  * Get user role for a list
  * Priority: Owner > Collaborator (from collaboratorRoles) > Viewer (if public)
@@ -24,47 +69,9 @@ export async function getUserRole(
   const list = await getListById(listId);
   if (!list) return "none";
 
-  // Owner
-  if (list.userId === userId) return "owner";
-
-  // Check if user is a collaborator with role
   const user = await getCurrentUser();
   if (!user || user.id !== userId) return "none";
-
-  // Check collaboratorRoles first (new role-based system)
-  // CRITICAL: Email matching must be case-insensitive to handle email casing differences
-  // (e.g., user.email might be "User@Example.com" but stored as "user@example.com")
-  if (list.collaboratorRoles && typeof list.collaboratorRoles === "object") {
-    const roles = list.collaboratorRoles as Record<string, string>;
-    const userEmailLower = user.email.toLowerCase();
-    
-    // Check all keys case-insensitively
-    const matchingKey = Object.keys(roles).find(
-      (key) => key.toLowerCase() === userEmailLower
-    );
-    
-    if (matchingKey) {
-      const role = roles[matchingKey];
-      if (role === "editor" || role === "viewer") {
-        return role;
-      }
-    }
-  }
-
-  // Fallback: Check legacy collaborators array (for backward compatibility)
-  // Convert legacy collaborators to "editor" role if found
-  // Also use case-insensitive matching for legacy array
-  if (list.collaborators && Array.isArray(list.collaborators)) {
-    const userEmailLower = user.email.toLowerCase();
-    if (list.collaborators.some((email) => email.toLowerCase() === userEmailLower)) {
-      return "editor";
-    }
-  }
-
-  // Public list - viewer access
-  if (list.isPublic) return "viewer";
-
-  return "none";
+  return getRoleForListUser(list, user);
 }
 
 /**
@@ -115,51 +122,8 @@ export async function requirePermission(
  * Returns true if user can access the list, false otherwise
  */
 export async function hasListAccess(
-  list: { userId: string; isPublic: boolean; collaboratorRoles?: unknown; collaborators?: string[] },
-  user: { id: string; email: string } | null
+  list: AccessibleList,
+  user: SessionUser,
 ): Promise<boolean> {
-  // Public lists are accessible to everyone
-  if (list.isPublic) {
-    return true;
-  }
-
-  // No user = no access (unless public)
-  if (!user) {
-    return false;
-  }
-
-  // Owner always has access
-  if (list.userId === user.id) {
-    return true;
-  }
-
-  // Check if user is a collaborator using new role-based system
-  // CRITICAL: Email matching must be case-insensitive to handle email casing differences
-  // (e.g., user.email might be "User@Example.com" but stored as "user@example.com")
-  if (list.collaboratorRoles && typeof list.collaboratorRoles === "object") {
-    const roles = list.collaboratorRoles as Record<string, string>;
-    const userEmailLower = user.email.toLowerCase();
-    
-    // Check all keys case-insensitively
-    const matchingKey = Object.keys(roles).find(
-      (key) => key.toLowerCase() === userEmailLower
-    );
-    
-    if (matchingKey && (roles[matchingKey] === "editor" || roles[matchingKey] === "viewer")) {
-      return true;
-    }
-  }
-
-  // Fallback: Check legacy collaborators array (backward compatibility)
-  // Also use case-insensitive matching for legacy array
-  if (list.collaborators && Array.isArray(list.collaborators)) {
-    const userEmailLower = user.email.toLowerCase();
-    if (list.collaborators.some((email) => email.toLowerCase() === userEmailLower)) {
-      return true;
-    }
-  }
-
-  // No access
-  return false;
+  return getRoleForListUser(list, user) !== "none";
 }
-

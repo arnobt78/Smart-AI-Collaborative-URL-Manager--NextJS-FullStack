@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/Button";
 import { CreateNewListButton } from "@/components/ui/CreateNewListButton";
 import { Badge } from "@/components/ui/Badge";
 import { AlertDialog } from "@/components/ui/AlertDialog";
-import { useToast } from "@/components/ui/Toaster";
 import { LinkIcon, PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
 import { Globe, Lock, Calendar, Clock, Users } from "lucide-react";
 import {
@@ -24,6 +23,7 @@ import {
 } from "@/lib/ui-spacing";
 import { Dialog } from "@/components/ui/Dialog";
 import NewListPageClient from "@/components/pages/NewListPage";
+import EditListPageClient from "@/components/pages/EditListPage";
 
 // Keep type alias for backward compatibility
 type List = UserList;
@@ -31,10 +31,12 @@ type List = UserList;
 export default function ListsPageClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { toast } = useToast();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [listToDelete, setListToDelete] = useState<List | null>(null);
+  const [createDialogPending, setCreateDialogPending] = useState(false);
+  const [editDialogPending, setEditDialogPending] = useState(false);
   const createDialogOpen = searchParams.get("dialog") === "create";
+  const editDialogSlug = searchParams.get("dialog") === "edit" ? searchParams.get("list") : null;
 
   // Setup SSE cache sync for React Query
   useEffect(() => {
@@ -44,12 +46,10 @@ export default function ListsPageClient() {
   // Use React Query for fetching lists with automatic refetching
   const { data: listsData, isLoading } = useAllListsQuery();
   const lists = listsData?.lists || [];
+  const isColdLoading = !listsData && isLoading;
 
   // Use React Query mutation for deleting lists
   const deleteListMutation = useDeleteList();
-
-  // Hardcoded skeleton count - always show 3 skeletons while loading
-  const skeletonCount = 3;
 
   const handleDeleteClick = (list: List) => {
     setListToDelete(list);
@@ -79,15 +79,10 @@ export default function ListsPageClient() {
   };
 
   const handleEditClick = (list: List) => {
-    router.push(`/list/${list.slug}?dialog=edit`);
-
-    // Show info toast notification
-    toast({
-      title: "Opening Editor ✏️",
-      description: `Editing "${list.title || list.slug}"...`,
-      variant: "info",
-    });
+    router.push(`/lists?dialog=edit&list=${encodeURIComponent(list.slug)}`, { scroll: false });
   };
+
+  const editList = editDialogSlug ? lists.find((list) => list.slug === editDialogSlug) : undefined;
 
   // Helper function to format date safely
   const formatDate = (date: string | Date | null | undefined): string => {
@@ -155,81 +150,18 @@ export default function ListsPageClient() {
             Manage and organize your URL collections
           </p>
         </div>
-        {!isLoading && <CreateNewListButton />}
+        <CreateNewListButton />
       </div>
 
       <div className={LIST_STACK}>
-        {isLoading && lists.length === 0 ? (
-          // Skeleton only when no cached lists (warm cache → no flash)
-          <>
-            {Array.from({ length: skeletonCount }).map((_, i) => (
-              <div
-                key={i}
-                className="group relative overflow-hidden rounded-xl border border-white/20 bg-gradient-to-br from-white/5 to-white/3 backdrop-blur-md p-2 sm:p-4 shadow-md animate-pulse"
-              >
-                {/* Subtle glow effect skeleton */}
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/0 via-purple-500/0 to-indigo-500/0 rounded-xl pointer-events-none" />
-
-                <div className="relative z-10">
-                  {/* Header Row */}
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 ">
-                    <div className="flex-1 min-w-0">
-                      {/* Title with badges skeleton */}
-                      <div className="flex items-start gap-2 sm:gap-2 flex-wrap ">
-                        {/* Title skeleton */}
-                        <div className="h-6 sm:h-7 md:h-8 bg-white/10 rounded w-48 sm:w-64" />
-                        {/* Visibility Badge skeleton */}
-                        <div className="h-5 bg-white/10 rounded-full w-16 sm:w-20" />
-                      </div>
-
-                      {/* Description Preview skeleton */}
-                      <div className="h-4 bg-white/10 rounded w-full mb-1" />
-                      <div className="h-4 bg-white/10 rounded w-3/4 " />
-
-                      {/* Stats Row skeleton */}
-                      <div className="flex flex-wrap items-center gap-2 sm:gap-4">
-                        {/* URL Count badge skeleton */}
-                        <div className="flex items-center gap-1 bg-white/5 px-2 py-1 rounded-lg border border-white/10">
-                          <div className="h-3.5 w-3.5 sm:h-4 sm:w-4 bg-white/10 rounded" />
-                          <div className="h-4 bg-white/10 rounded w-6" />
-                          <div className="h-4 bg-white/10 rounded w-12 hidden sm:block" />
-                        </div>
-
-                        {/* Collaborators badge skeleton */}
-                        <div className="flex items-center gap-1 bg-white/5 px-2 py-1 rounded-lg border border-white/10">
-                          <div className="h-3.5 w-3.5 sm:h-4 sm:w-4 bg-white/10 rounded" />
-                          <div className="h-4 bg-white/10 rounded w-4" />
-                          <div className="h-4 bg-white/10 rounded w-16 hidden sm:block" />
-                        </div>
-
-                        {/* Created Date skeleton */}
-                        <div className="flex items-center gap-1">
-                          <div className="h-3.5 w-3.5 sm:h-4 sm:w-4 bg-white/10 rounded" />
-                          <div className="h-4 bg-white/10 rounded w-12 hidden sm:block" />
-                          <div className="h-4 bg-white/10 rounded w-20" />
-                        </div>
-
-                        {/* Updated Date skeleton */}
-                        <div className="flex items-center gap-1">
-                          <div className="h-3.5 w-3.5 sm:h-4 sm:w-4 bg-white/10 rounded" />
-                          <div className="h-4 bg-white/10 rounded w-12 hidden sm:block" />
-                          <div className="h-4 bg-white/10 rounded w-16" />
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Action Buttons skeleton */}
-                    <div className="flex flex-row gap-2 w-full sm:w-auto shrink-0">
-                      {/* Edit Button skeleton */}
-                      <div className="h-10 w-10 bg-white/10 rounded-lg border border-transparent" />
-                      {/* Delete Button skeleton */}
-                      <div className="h-10 w-10 bg-white/10 rounded-lg border border-transparent" />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </>
+        {isColdLoading ? (
+          <div
+            aria-busy="true"
+            aria-live="polite"
+            className="rounded-xl border border-white/20 bg-white/5 p-2 text-sm text-white/60 animate-pulse sm:p-4"
+          >
+            Loading your lists…
+          </div>
         ) : lists.length > 0 ? (
           lists.map((list) => {
             const createdDate = getDate(list, "created");
@@ -413,13 +345,36 @@ export default function ListsPageClient() {
       />
       <Dialog
         open={createDialogOpen}
-        onOpenChange={(open) => !open && router.replace("/lists")}
+        onOpenChange={(open) => !open && router.replace("/lists", { scroll: false })}
         title="Create a New List"
-        description="Organize URLs into a shareable collection."
+        description="Organize your favorite URLs into beautiful, shareable collections."
         size="wide"
+        headerMode="scroll"
+        pending={createDialogPending}
       >
-        <NewListPageClient />
+        <NewListPageClient
+          onClose={() => router.replace("/lists", { scroll: false })}
+          onPendingChange={setCreateDialogPending}
+        />
       </Dialog>
+      {editList ? (
+        <Dialog
+          open
+          onOpenChange={(open) => !open && router.replace("/lists", { scroll: false })}
+          title="Edit List"
+          description="Update your list details and settings."
+          size="wide"
+          headerMode="scroll"
+          pending={editDialogPending}
+        >
+          <EditListPageClient
+            key={editList.id}
+            list={editList}
+            onClose={() => router.replace("/lists", { scroll: false })}
+            onPendingChange={setEditDialogPending}
+          />
+        </Dialog>
+      ) : null}
     </div>
   );
 }

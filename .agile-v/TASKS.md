@@ -6,6 +6,9 @@ AI · guardrails · SafeImage · observability · deps · SEO · Portable Auth U
 ## Open (human)
 HA-0001 Firewall · Sentry org/token
 
+## Pending browser acceptance
+REQ-0017 control/Home-motion and REQ-0018 metadata/action-badge flows await user testing; implementation and automated verification are complete.
+
 ## Superseded — GATE-0010
 
 ### TASK-0010 — Spacing and button/icon consistency
@@ -91,6 +94,27 @@ HA-0001 Firewall · Sentry org/token
 2. Add grouped comment counts to the unified list response and update visible card badges optimistically.
 3. Harden metadata URL/redirect/image validation; remove import hard-reload recovery; normalize dialog content chrome and scrollbar track.
 4. Validate TypeScript, lint, Jest, production build, and diff hygiene.
+
+### TASK-0022 — Stable list-form dialogs — DONE
+
+1. Add a scrollable-header mode to the shared dialog and use it for create/edit list forms so each has one accessible heading row and close control.
+2. Consolidate list-form chrome, visibility alignment, and Cancel/Clear icon conventions without changing form API payloads.
+3. Move create/update list transitions to cache-aware mutation hooks; seed the editor from known list data and retain cached surfaces on dialog close.
+4. Remove opening toast, page-local form skeletons, and timer-delayed navigation; preserve deep links and list-detail behavior.
+5. Add focused regression coverage and record actual validation evidence.
+
+### TASK-0023 — Authorize all list metadata and mutation boundaries — DONE
+
+1. Inventory route identifier semantics and add one canonical resolver/guard around existing cookie-session and collaboration permission helpers.
+2. Apply view, edit, delete, and owner-only visibility checks before Redis reads/writes, metadata retrieval, vector sync, database mutation, activity creation, and SSE publication.
+3. Add focused route tests for unauthenticated, owner, editor, viewer, and unrelated-user requests, including no cache/vector/event side effects on denial.
+
+### TASK-0024 — Consolidate URL mutation commits and remove data-surface flashes — DONE
+
+1. Inventory each URL mutation caller and the legacy hook/store overlap; select one adapter gateway and retire only code proven unreferenced.
+2. Implement transaction-style cache/store snapshot, optimistic patch, server-response commit, rollback, and one affected-query invalidation per mutation.
+3. Remove the Browse duplicate Suspense shell and replace broad cold page/list/detail skeleton remounts with static shells plus delayed local data slots only when no cache exists.
+4. Add regression tests for warm cache, background refetch, rollback, SSE reconciliation, and direct/back navigation; run the required security, type, lint, test, build, and diff validation.
 
 ## Deferred
 RSC shells · densify/Zod/SHA/Next16

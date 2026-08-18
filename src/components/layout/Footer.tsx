@@ -7,7 +7,7 @@ import { UI_CHROME_ROW } from "@/lib/ui/control-styles";
 export default function Footer() {
   return (
     <footer className="mt-auto min-h-14 bg-transparent">
-      <div className="mx-auto max-w-7xl px-2 sm:px-0">
+      <div className="mx-auto max-w-7xl px-2 sm:px-4">
         <div
           className={`${UI_CHROME_ROW} min-h-14 flex-col gap-2 py-2 sm:h-14 sm:flex-row sm:gap-0 sm:py-0`}
         >

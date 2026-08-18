@@ -13,7 +13,7 @@
  */
 
 import { QueryClient } from "@tanstack/react-query";
-import { listQueryKeys } from "@/hooks/useListQueries";
+import { listQueryKeys } from "@/lib/query-keys";
 
 /**
  * Invalidate browse/public lists queries
@@ -123,6 +123,19 @@ export function invalidateAllListsQueries(
       );
     },
   });
+}
+
+/**
+ * REQ-0021: List create/update mutations fan out once through this entrypoint.
+ * Cached values stay rendered while the invalidated queries reconcile in background.
+ */
+export function invalidateListMutationQueries(
+  queryClient: QueryClient,
+  listSlug: string,
+  listId?: string,
+): void {
+  invalidateListQueries(queryClient, listSlug, listId);
+  invalidateBrowseQueries(queryClient);
 }
 
 /**

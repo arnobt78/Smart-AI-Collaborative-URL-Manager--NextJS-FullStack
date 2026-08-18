@@ -8,15 +8,16 @@ Live: https://daily-urlist.vercel.app/ · Resume: `.agile-v/STATE.md`
 Done: shared compact controls · Auth row reveal · accessible Smart Collections disclosure · responsive Add URL cancel · consistent CTA icons · responsive 56px chrome · type-safe cache/SSE/abort paths · zero lint.
 Controls: shared Button/glass/input contract is `h-10 min-h-10`; placeholders use `text-sm`. Home uses CSS/observer reveal/parallax, no motion dependency.
 Home wave: Hero text lines and CTAs are separate timed `ScrollReveal` units; never group sibling CTAs in one reveal wrapper.
-Dialogs: `ui/Dialog.tsx` is the shared accessible 92vw/85dvh overlay; all CRUD, confirmation, comments, similarity, and collaborator flows use it. `/new` and `/list/[slug]/edit` redirect to dialog-state hosts.
+Dialogs: `ui/Dialog.tsx` is the shared accessible 92vw/85dvh overlay; all CRUD, confirmation, comments, similarity, and collaborator flows use it. List forms use its scroll-header mode for one heading/X and cache-seeded fields; `/new` and `/list/[slug]/edit` preserve dialog-state deep links. `ActionButtons` provides note-with-X Cancel and Eraser Clear conventions.
 Stable UI: Browse retains cached cards during refetch; `ui/PageHeader.tsx` standardizes icon/title/subtitle identity rows.
-Stable data: delayed cold placeholders only; Browse/Insights/API Status keep their static shell. Unified list batches comment counts for card badges; bulk import never reloads. Metadata route is Node-only, public HTTP(S)-only, DNS/IP checked for documents/images/favicons, redirect-checked, and timeout-bounded.
+Stable data: delayed cold placeholders only; Browse/Lists/Insights/API Status/detail keep their static shell. Unified list batches comment counts for card badges; bulk import never reloads. Metadata route is Node-only, public HTTP(S)-only, DNS/IP checked for documents/images/favicons, redirect-checked, timeout-bounded, and list-access guarded.
 Comment badge rule: create +1, delete -1, edit 0; failed mutations restore only their own optimistic delta.
 Auth menu: open guest credentials panel is opaque and stacked above reveal rows; trigger uses expanded/menu ARIA.
-Data: unified React Query + optimistic store updates + centralized invalidation + SSE; bulk import reconciles caches without reload.
+Data: unified React Query + snapshot-first optimistic store updates + centralized invalidation + SSE; list route/metadata/vector access resolves canonically through cookie-session roles. `lib/query-keys.ts` owns query keys so store invalidation does not import client hooks. Legacy URL mutation hooks are removed.
 Human: HA-0001; match Sentry org/token before upload.  
 Audit: Prisma CLI transitively pins `deepmerge-ts@7.1.5` (3 high findings); user accepted RISK-0016. Retain Prisma 6; do not force-downgrade or upgrade.
-Audit rerun: lint · strict TS · Jest · production build pass; Gate 2 remains blocked by RISK-0016 and missing human acceptance.
+Audit rerun: lint · strict TS · Jest (29 pass/5 skip) · production build pass; Gate 2 remains pending for `EVAL_RESULTS.md` and human acceptance.
+Manual browser acceptance: REQ-0017 control/Home-motion and REQ-0018 metadata/action-badge flows await user testing; code-level verification is complete.
 Out of scope: densify/JWT SSR, Zod/SHA, Next 16, Prisma 7.
 
 ## Stack
@@ -43,4 +44,4 @@ Visit: `openExternalUrl` / `ensureAbsoluteHttpUrl` in `lib/utils.ts` (schemeless
 `src/lib/ui/glass-button-styles.ts` (primary/action/ghost) · `glass-badge-styles.ts` · `glass-card-styles.ts` — ported from stock-inventory; Tailwind content includes `src/lib`.
 
 ## Validate
-`tsc` · `lint` (0) · Jest (20 pass/5 skip) · `prisma generate` · `build` → `.agile-v/VALIDATION_SUMMARY.md`
+`tsc` · `lint` (0) · Jest (29 pass/5 skip) · `prisma generate` · `build` → `.agile-v/VALIDATION_SUMMARY.md`

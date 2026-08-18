@@ -25,6 +25,7 @@
 - Unified dialog foundation: responsive accessible local `Dialog`; URL add/edit and confirmations use it; `/new` and list edit deep links redirect to dialog-state hosts; Browse keeps cached cards through background refetch; shared page header adopted by Browse/Insights/API pages
 - Zero-gap heading contract: `HEADING_STACK` is used by PageHeader, Dialog, CardHeader, Auth, Smart Collections, feature cards, and legacy empty states; surrounding form, action, menu, and card-content spacing is retained.
 - Stable data surfaces: requested pages keep their static chrome, cold placeholders are delayed and local, comment badges use one grouped unified payload, import recovery has no hard reload, and metadata rejects private network targets for documents, images, favicons, and redirects.
+- Stable list-form dialogs: scroll-header Dialog mode yields one accessible heading/X; cache-seeded My Lists editing, shared compact form primitives, optimistic list hooks, and note-with-X/Eraser action conventions eliminate editor toasts, timers, and form-open/close skeletons.
 
 ## Human
 
@@ -38,10 +39,10 @@
 
 ## Current checkpoint
 
-- **Stage:** Stage 4 Verification complete for REQ-0010 through REQ-0020.
-- **Gate:** **GATE-0002 Human Gate 2 — PENDING**; `EVAL_RESULTS.md` has not been created, so release acceptance cannot be claimed.
-- **Scope:** completed UI consistency, dialog, data-stability, comment-badge, and metadata-safety requirements; no new concrete implementation requirement is active.
-- **Reconciliation (2026-08-18):** clean local `main` and `origin/main` match at `a69f0a7`. The original GATE-0001 remains historically unapproved/superseded; GATE-0011/0012 supplied the applicable implementation authority. The user provided standing implementation authorization, but a future product change still needs a stable REQ and scoped plan before synthesis.
+- **Stage:** Stage 4 local verification complete for REQ-0022/REQ-0023 following approved Human Gate 1.
+- **Gate:** **GATE-0014 — APPROVED 2026-08-19** (`C1-HG1-SECURITY-CACHE-2026-08-19`). GATE-0002 remains pending and cannot be accepted while this critical authorization remediation is open; `EVAL_RESULTS.md` does not exist.
+- **Scope:** REQ-0022 closes missing list-route access checks; REQ-0023 consolidates URL mutation rollback/cache commits and removes identified cold-loading remounts. Existing cookie sessions, Prisma 6, Redis, SSE, API contracts, and public UI remain the baseline.
+- **Reconciliation (2026-08-18):** the user-reconciled local baseline is `65d5806`; prior state incorrectly referenced `a69f0a7`. The original GATE-0001 remains historically unapproved/superseded; GATE-0011/0012/0013 supplied the applicable implementation authority.
 - **Audit findings resolved:** shared control geometry, Smart Collections disclosure, URL toolbar/add-form semantics, global browser casts, and 235 lint warnings are remediated. Existing mutation/invalidation architecture was retained and bulk import no longer hard-reloads.
 - **Implementation:** REQ-0010 through REQ-0013 are implemented with shared control styles, Auth entrance motion, accessible Smart Collections disclosure, and URL toolbar/Add URL refinements. The URL workspace, bulk-import flow, real-time/query synchronization, drag-order cache, metadata helper, and auth helper received type-safe lint remediation without changing their behavior. Typecheck, Jest, and production build pass.
 - **Completion:** REQ-0014 is complete. `npm run lint` reports zero warnings/errors after type-safe remediation; no lint-rule suppression was used.
@@ -53,11 +54,15 @@
 - **Completion:** REQ-0018 / TASK-0019 complete. All approved form, confirmation, comment, similarity, and collaborator overlays use the shared dialog primitive; legacy form routes preserve deep links through dialog state.
 - **Completion:** REQ-0019 / TASK-0020 complete. Shared title/description stacks have no added gap; responsive line-height and non-heading spacing are unchanged.
 - **Completion:** REQ-0020 / TASK-0021 complete. Broad loading remounts were removed from the requested data pages; dialog comments no longer duplicate their title; comment counts are batched; metadata fetches are public HTTP(S)-only and redirect-checked.
+- **Completion:** REQ-0021 / TASK-0022 complete. Create/edit forms use one scrollable dialog header, cache-first editor fields, centralized optimistic list mutations, no opening toast/timer/router refresh, and delayed cold loading only when list cache data is unavailable.
 - **Correction:** Comment action badges now increment only for creates, decrement only for deletes, and restore their optimistic delta on mutation failure; edits leave the count unchanged (`43b663a`).
 - **Evidence:** planning traces in `REQUIREMENTS.md` (REQ-0010 to REQ-0014), `TASKS.md` (TASK-0011 to TASK-0015), `DECISION_LOG.md` (DEC-0012/0013), `RISKS.md` (RISK-0011 to RISK-0014), and `GATES.md`.
+- **Audit (2026-08-19):** verified critical missing authorization on `PATCH`/`DELETE /api/lists/[id]`; high-risk missing access checks on list metadata and vector-sync routes; duplicate URL mutation paths with incomplete delete rollback; Browse Suspense fallback and Lists/Insights/detail cold-state behavior can remount broad placeholders. These are tracked in REQ-0022/REQ-0023 and RISK-0017/RISK-0018.
+- **Completion (2026-08-19):** REQ-0022/REQ-0023 are implemented and locally verified. Canonical route access protects list mutations, metadata, and vector sync; URL mutations use one snapshot/commit/rollback path; query keys are hook-independent; requested data surfaces retain their static shells and cached data.
+- **Manual acceptance:** REQ-0017 control/Home-motion and REQ-0018 metadata/action-badge flows await user browser testing; implementation and automated validation are complete.
 
 ## Next
 
 ```text
-For a new request: create a stable REQ and scoped plan, then implement under the user's standing approval. For release acceptance: obtain browser-level metadata/action evidence, create `EVAL_RESULTS.md`, and satisfy GATE-0002. HA-0001 remains human-owned; no densify/Zod changes are implied.
+For release acceptance: obtain browser-level metadata/action evidence, create `EVAL_RESULTS.md`, and satisfy GATE-0002. HA-0001 remains human-owned; no densify/Zod changes are implied.
 ```

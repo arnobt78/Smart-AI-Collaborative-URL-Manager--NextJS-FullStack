@@ -2,6 +2,7 @@
 
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
+import { CancelButton } from "@/components/ui/ActionButtons";
 import { Dialog } from "@/components/ui/Dialog";
 import React, { useEffect, useRef } from "react";
 import type { UrlItem } from "@/stores/urlListStore";
@@ -278,14 +279,12 @@ export function UrlEditModal({
           />
         </div>
         <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-2 mt-6 sm:mt-8">
-          <Button
-            type="button"
-            variant="outline"
+          <CancelButton
             onClick={() => setEditingUrl(null)}
-            className="text-white border-white/30 hover:bg-white/10 text-sm sm:text-base px-4 sm:px-6 py-2 sm:py-2 rounded-lg sm:rounded-xl w-full sm:w-auto"
+            className="w-full sm:w-auto"
           >
             Cancel
-          </Button>
+          </CancelButton>
           <Button
             type="submit"
             disabled={isEditing}

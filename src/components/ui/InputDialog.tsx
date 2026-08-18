@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { X } from "lucide-react";
 import { Input } from "./Input";
 import { Button } from "./Button";
+import { CancelButton } from "./ActionButtons";
 
 interface InputDialogProps {
   open: boolean;
@@ -145,14 +146,7 @@ export function InputDialog({
           </div>
 
           <div className="flex justify-end gap-2 sm:gap-3 pt-2">
-            <Button
-              type="button"
-              onClick={handleCancel}
-              disabled={isLoading}
-              variant="ghost"
-            >
-              {cancelText}
-            </Button>
+            <CancelButton onClick={handleCancel} disabled={isLoading}>{cancelText}</CancelButton>
             <Button
               type="button"
               onClick={handleConfirm}

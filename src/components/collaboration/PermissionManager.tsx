@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/Button";
+import { CancelButton } from "@/components/ui/ActionButtons";
 import { Input } from "@/components/ui/Input";
 import { Badge } from "@/components/ui/Badge";
 import { AlertDialog } from "@/components/ui/AlertDialog";
@@ -477,8 +478,7 @@ export function PermissionManager({
             </div>
           </div>
           <div className="flex justify-end gap-2 pt-2">
-            <Button
-              type="button"
+            <CancelButton
               onClick={() => {
                 if (!addCollaboratorMutation.isPending) {
                   setInviteDialogOpen(false);
@@ -486,10 +486,9 @@ export function PermissionManager({
                 }
               }}
               disabled={addCollaboratorMutation.isPending}
-              variant="ghost"
             >
               Cancel
-            </Button>
+            </CancelButton>
             <Button
               type="button"
               onClick={handleAddCollaborator}
@@ -559,7 +558,7 @@ export function PermissionManager({
             </button>
           </div>
           <div className="flex justify-end gap-2 sm:gap-3">
-            <button
+            <CancelButton
               onClick={() =>
                 setRoleChangeDialog({
                   open: false,
@@ -568,10 +567,10 @@ export function PermissionManager({
                 })
               }
               disabled={updateRoleMutation.isPending}
-              className="px-4 py-2 text-white/80 hover:text-white border border-white/10 bg-white/5 hover:bg-white/10 rounded-xl backdrop-blur-sm transition-colors font-medium disabled:opacity-50"
+              className="px-4"
             >
               Cancel
-            </button>
+            </CancelButton>
             <button
               onClick={() => handleUpdateRole(roleChangeDialog.currentRole)}
               disabled={updateRoleMutation.isPending}

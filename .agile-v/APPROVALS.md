@@ -10,3 +10,6 @@ Append-only record of Human Gate decisions.
 | 2026-08-18 | GATE-0011 | APPROVED | User | `C1-HG1-UI-REMEDIATION-2026-08-18` | User approved every scoped point: REQ-0010 through REQ-0014. |
 | 2026-08-18 | GATE-0012 | APPROVED | User | `C1-HG1-RESPONSIVE-CHROME-2026-08-18` | User authorized responsive Navbar/Footer alignment, browser type consolidation, and inclusion of their remaining local changes. |
 | 2026-08-18 | RISK-0016 | ACCEPTED | User | `C1-RISK-PRISMA-2026-08-18` | User accepted the Prisma CLI transitive advisory; no forced downgrade or breaking Prisma upgrade. |
+| 2026-08-18 | GATE-0013 | APPROVED | User | `C1-HG1-REQ-0021-2026-08-18` | User approved REQ-0021 Stable List Form Dialogs exactly as scoped. |
+| 2026-08-19 | GATE-0014 | PENDING | — | `C1-HG1-SECURITY-CACHE-2026-08-19` | Scope: REQ-0022/REQ-0023 only; requires explicit approval before implementation. |
+| 2026-08-19 | GATE-0014 | APPROVED | User | `C1-HG1-SECURITY-CACHE-2026-08-19` | User explicitly approved implementation of REQ-0022/REQ-0023: list-route authorization, URL mutation cache rollback, and stable data surfaces. |

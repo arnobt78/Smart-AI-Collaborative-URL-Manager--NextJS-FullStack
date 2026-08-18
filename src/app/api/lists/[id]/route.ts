@@ -1,155 +1,125 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getCurrentUser } from "@/lib/auth";
-import { getListBySlug, updateList, deleteList, type UrlItem } from "@/lib/db";
+import { updateList, deleteList, type UrlItem } from "@/lib/db";
 import { createActivity } from "@/lib/db/activities";
 import { publishMessage, CHANNELS } from "@/lib/realtime/redis";
-import { hasListAccess } from "@/lib/collaboration/permissions";
+import { resolveAuthorizedList } from "@/lib/list-route-access";
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+type RouteContext = { params: Promise<{ id: string }> };
+type ListPatch = {
+  title?: string;
+  description?: string | null;
+  isPublic?: boolean;
+};
+
+function routeError(error: { status: number; error: string }) {
+  return NextResponse.json({ error: error.error }, { status: error.status });
+}
+
+function parseListPatch(value: unknown): ListPatch | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const body = value as Record<string, unknown>;
+  const allowedFields = new Set(["title", "description", "isPublic"]);
+  if (Object.keys(body).some((field) => !allowedFields.has(field))) return null;
+  const updates: ListPatch = {};
+
+  if ("title" in body) {
+    if (typeof body.title !== "string") return null;
+    updates.title = body.title;
+  }
+  if ("description" in body) {
+    if (body.description !== null && typeof body.description !== "string") return null;
+    updates.description = body.description;
+  }
+  if ("isPublic" in body) {
+    if (typeof body.isPublic !== "boolean") return null;
+    updates.isPublic = body.isPublic;
+  }
+
+  return Object.keys(updates).length > 0 ? updates : null;
+}
+
+export async function GET(_req: NextRequest, context: RouteContext) {
   try {
-    const { id } = await params;
-    const list = await getListBySlug(id);
+    const { id } = await context.params;
+    const access = await resolveAuthorizedList(id, "view");
+    if (!access.ok) return routeError(access);
 
-    if (!list) {
-      return NextResponse.json({ error: "List not found" }, { status: 404 });
-    }
-
-    // Check if user has access to this list (validates role-based system and removes old collaborators)
-    const user = await getCurrentUser();
-    const hasAccess = await hasListAccess(list, user);
-
-    if (!hasAccess) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    // Initialize positions for URLs that don't have them (backward compatibility)
+    const { list } = access;
     const urls = (list.urls as unknown as UrlItem[]) || [];
     let needsPositionInit = false;
-
-    const urlsWithPositions: UrlItem[] = urls.map((url, idx) => {
+    const urlsWithPositions = urls.map((url, index) => {
       if (url.position === undefined) {
         needsPositionInit = true;
-        return { ...url, position: idx };
+        return { ...url, position: index };
       }
       return url;
     });
 
-    // If positions were initialized, save them back to database
     if (needsPositionInit && urlsWithPositions.length > 0) {
-      // Sort by position and update
-      urlsWithPositions.sort(
-        (a, b) => (a.position ?? 999) - (b.position ?? 999)
-      );
-      await updateList(list.id, { urls: urlsWithPositions });
+      urlsWithPositions.sort((a, b) => (a.position ?? 999) - (b.position ?? 999));
+      // A view request must never mutate a list. Return stable legacy positions
+      // in this response; the next authorized URL mutation persists ordering.
       list.urls = urlsWithPositions as unknown as typeof list.urls;
-      console.log(`✅ [GET] Initialized positions for ${list.id}`);
-    }
-
-    const urlOrder = urlsWithPositions.map((u) => u.id).join(",");
-    // Log click counts for debugging
-    if (process.env.NODE_ENV === "development") {
-      const clickCounts = urlsWithPositions.map((u) => ({
-        urlId: u.id,
-        clickCount: u.clickCount || 0,
-      }));
-      console.log(`📋 [GET /api/lists/${id}] Returning list from database`, {
-        listId: list.id,
-        slug: list.slug,
-        urlCount: urlsWithPositions.length,
-        urlOrder: urlOrder,
-        clickCounts: clickCounts,
-      });
     }
 
     return NextResponse.json({ list });
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Failed to fetch list";
+    const message = error instanceof Error ? error.message : "Failed to fetch list";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
-export async function DELETE(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function DELETE(_req: NextRequest, context: RouteContext) {
   try {
-    const user = await getCurrentUser();
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const { id } = await context.params;
+    const access = await resolveAuthorizedList(id, "delete");
+    if (!access.ok) return routeError(access);
 
-    const { id } = await params;
-    await deleteList(id);
-
+    await deleteList(access.list.id);
     return NextResponse.json({ success: true });
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Failed to delete list";
+    const message = error instanceof Error ? error.message : "Failed to delete list";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
-export async function PATCH(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PATCH(req: NextRequest, context: RouteContext) {
   try {
-    const user = await getCurrentUser();
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const updates = parseListPatch(await req.json());
+    if (!updates) {
+      return NextResponse.json({ error: "Invalid list update" }, { status: 400 });
     }
 
-    const { id } = await params;
-    const updates = await req.json();
+    const { id } = await context.params;
+    const permission = updates.isPublic === undefined ? "edit" : "visibility";
+    const access = await resolveAuthorizedList(id, permission);
+    if (!access.ok) return routeError(access);
+    if (!access.user) return routeError({ status: 401, error: "Unauthorized" });
 
-    const list = await updateList(id, updates);
-
-    // Create activity log for list metadata changes (only if there are meaningful changes)
+    const list = await updateList(access.list.id, updates);
     const activityDetails: Record<string, unknown> = {};
-    let activityAction: string | null = null;
+    let activityAction: "list_made_public" | "list_made_private" | "list_updated" | null = null;
 
     if (updates.isPublic !== undefined) {
-      // Visibility change - use specific action
       activityDetails.isPublic = updates.isPublic;
-      activityAction = updates.isPublic
-        ? "list_made_public"
-        : "list_made_private";
-    } else if (
-      updates.title !== undefined ||
-      updates.description !== undefined
-    ) {
-      // Title or description change - generic update
+      activityAction = updates.isPublic ? "list_made_public" : "list_made_private";
+    } else if (updates.title !== undefined || updates.description !== undefined) {
       if (updates.title !== undefined) activityDetails.title = updates.title;
-      if (updates.description !== undefined)
-        activityDetails.description = updates.description;
+      if (updates.description !== undefined) activityDetails.description = updates.description;
       activityAction = "list_updated";
     }
 
-    // Only create activity if there's a meaningful change
     if (activityAction) {
-      const activity = await createActivity(
-        id,
-        user.id,
-        activityAction,
-        activityDetails
-      );
-
-      // Publish real-time update
-      await publishMessage(CHANNELS.listUpdate(id), {
+      const activity = await createActivity(access.list.id, access.user.id, activityAction, activityDetails);
+      await publishMessage(CHANNELS.listUpdate(access.list.id), {
         type: "list_updated",
-        listId: id,
+        listId: access.list.id,
         action: activityAction,
         timestamp: new Date().toISOString(),
       });
-
-      // Publish activity update
-      await publishMessage(CHANNELS.listActivity(id), {
+      await publishMessage(CHANNELS.listActivity(access.list.id), {
         type: "activity_created",
-        listId: id,
+        listId: access.list.id,
         action: activityAction,
         timestamp: new Date().toISOString(),
         activity: {
@@ -157,31 +127,14 @@ export async function PATCH(
           action: activity.action,
           details: activity.details,
           createdAt: activity.createdAt.toISOString(),
-          user: activity.user
-            ? {
-                id: activity.user.id,
-                email: activity.user.email,
-              }
-            : {
-                id: user.id,
-                email: user.email,
-              },
+          user: activity.user ?? { id: access.user.id, email: access.user.email },
         },
-      });
-    } else {
-      // Still publish list update even if no activity (for other metadata changes)
-      await publishMessage(CHANNELS.listUpdate(id), {
-        type: "list_updated",
-        listId: id,
-        action: "list_updated",
-        timestamp: new Date().toISOString(),
       });
     }
 
     return NextResponse.json({ list });
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Failed to update list";
+    const message = error instanceof Error ? error.message : "Failed to update list";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

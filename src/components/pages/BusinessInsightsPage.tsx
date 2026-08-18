@@ -20,7 +20,6 @@ import {
 import { cn } from "@/lib/utils";
 import { PAGE_STACK } from "@/lib/ui-spacing";
 import { PageHeader } from "@/components/ui/PageHeader";
-import { useDelayedPending } from "@/hooks/useDelayedPending";
 
 // Type definitions for all data structures
 interface _OverviewData {
@@ -95,20 +94,6 @@ interface _GlobalStatsData {
 // Props interface for future extensibility
 type BusinessInsightsPageProps = Record<string, never>;
 
-const emptyOverview: _OverviewData = {
-  totalLists: 0, totalUrls: 0, publicLists: 0, privateLists: 0,
-  totalCollaborators: 0, recentLists: 0, recentUrls: 0,
-};
-const emptyPerformance: _PerformanceData = {
-  totalUrls: 0, totalLists: 0, avgUrlsPerList: 0, publicCount: 0,
-  privateCount: 0, listsWithCollaborators: 0, topLists: [],
-};
-const emptyGlobal: _GlobalStatsData = {
-  totalUsers: 0, totalLists: 0, totalUrls: 0, liveUsersNow: 0,
-  publicLists: 0, privateLists: 0, listsWithCollaborators: 0,
-  avgUrlsPerList: 0, newUsersLast7Days: 0, newListsLast7Days: 0,
-  newUrlsLast7Days: 0, userGrowthData: [],
-};
 
 // Type reference to ensure Card components are available if needed
 type CardComponentTypes =
@@ -125,16 +110,11 @@ export default function BusinessInsightsPage(
   const [activeTab, setActiveTab] = useState("overview");
 
   // CRITICAL: Use React Query with Infinity cache - only refetches when invalidated
-  const { data: overviewResult, isLoading: isLoadingOverview } =
-    useBusinessOverviewQuery();
-  const { data: activityResult, isLoading: isLoadingActivity } =
-    useBusinessActivityQuery(30);
-  const { data: popularResult, isLoading: isLoadingPopular } =
-    useBusinessPopularQuery();
-  const { data: performanceResult, isLoading: isLoadingPerformance } =
-    useBusinessPerformanceQuery();
-  const { data: globalResult, isLoading: isLoadingGlobal } =
-    useBusinessGlobalQuery();
+  const { data: overviewResult } = useBusinessOverviewQuery();
+  const { data: activityResult } = useBusinessActivityQuery(30);
+  const { data: popularResult } = useBusinessPopularQuery();
+  const { data: performanceResult } = useBusinessPerformanceQuery();
+  const { data: globalResult } = useBusinessGlobalQuery();
 
   // Extract data from query results
   const overviewData = overviewResult?.overview || null;
@@ -149,11 +129,11 @@ export default function BusinessInsightsPage(
   const performanceData = performanceResult?.performance || null;
   const globalData = globalResult?.global || null;
 
-  const isOverviewPending = useDelayedPending(isLoadingOverview, Boolean(overviewData));
-  const isActivityPending = useDelayedPending(isLoadingActivity, Boolean(activityData));
-  const isPopularPending = useDelayedPending(isLoadingPopular, Boolean(popularData));
-  const isPerformancePending = useDelayedPending(isLoadingPerformance, Boolean(performanceData));
-  const isGlobalPending = useDelayedPending(isLoadingGlobal, Boolean(globalData));
+  const dataSlot = (label: string) => (
+    <p aria-busy="true" aria-live="polite" className="rounded-xl border border-white/10 bg-white/5 p-2 text-sm text-white/60 animate-pulse sm:p-4">
+      Loading {label}…
+    </p>
+  );
 
   // Ensure props and Card imports are considered used (for future extensibility)
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -216,31 +196,28 @@ export default function BusinessInsightsPage(
 
         {/* Overview Tab */}
         <TabsContent value="overview" className="space-y-6">
-          <OverviewCards data={overviewData || emptyOverview} isLoading={isOverviewPending} />
-          <ActivityChart initialData={activityData} initialLoading={isActivityPending} />
+          {overviewData ? <OverviewCards data={overviewData} /> : dataSlot("overview")}
+          {activityData ? <ActivityChart initialData={activityData} /> : dataSlot("activity")}
         </TabsContent>
 
         {/* Activity Tab */}
         <TabsContent value="activity" className="space-y-6">
-          <ActivityChart
-            initialData={activityData}
-            initialLoading={isActivityPending}
-          />
+          {activityData ? <ActivityChart initialData={activityData} /> : dataSlot("activity")}
         </TabsContent>
 
         {/* Popular Tab */}
         <TabsContent value="popular" className="space-y-6">
-          <PopularContent popularUrls={popularData?.popularUrls || []} activeLists={popularData?.activeLists || []} isLoading={isPopularPending} />
+          {popularData ? <PopularContent popularUrls={popularData.popularUrls} activeLists={popularData.activeLists} /> : dataSlot("popular URLs")}
         </TabsContent>
 
         {/* Performance Tab */}
         <TabsContent value="performance" className="space-y-6">
-          <PerformanceMetrics data={performanceData || emptyPerformance} isLoading={isPerformancePending} />
+          {performanceData ? <PerformanceMetrics data={performanceData} /> : dataSlot("performance metrics")}
         </TabsContent>
 
         {/* Global Tab */}
         <TabsContent value="global" className="space-y-6">
-          <GlobalStats data={globalData || emptyGlobal} isLoading={isGlobalPending} />
+          {globalData ? <GlobalStats data={globalData} /> : dataSlot("global insights")}
         </TabsContent>
       </Tabs>
     </div>

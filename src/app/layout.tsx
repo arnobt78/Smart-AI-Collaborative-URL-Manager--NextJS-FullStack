@@ -229,7 +229,7 @@ export default async function RootLayout({
             <FloatingBackground />
             <div className="flex flex-col min-h-screen bg-transparent">
               <Navbar initialWasAuthed={initialWasAuthed} />
-              <main className="flex-grow mx-auto max-w-7xl w-full px-2 sm:px-0 py-6 sm:py-10">
+              <main className="flex-grow mx-auto max-w-7xl w-full px-2 sm:px-4 py-6 sm:py-10">
                 {children}
               </main>
               <Footer />

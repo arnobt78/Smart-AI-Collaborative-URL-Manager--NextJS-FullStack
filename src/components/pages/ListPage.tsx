@@ -12,7 +12,6 @@ import { Switch } from "@/components/ui/Switch";
 import { glassActionButtonClass } from "@/lib/ui/glass-button-styles";
 import { Copy, Check, Globe, Lock, Activity, RefreshCw } from "lucide-react";
 import { useToast } from "@/components/ui/Toaster";
-import { Skeleton } from "@/components/ui/Skeleton";
 import { ActivityFeed } from "@/components/collaboration/ActivityFeed";
 import { PermissionManager } from "@/components/collaboration/PermissionManager";
 import { SmartCollections } from "@/components/collections/SmartCollections";
@@ -77,6 +76,7 @@ export default function ListPageClient() {
   const [isCheckingHealth, setIsCheckingHealth] = useState(false);
   const [isRefreshingMetadata, setIsRefreshingMetadata] = useState(false);
   const [isSettingUpSchedule, setIsSettingUpSchedule] = useState(false);
+  const [editDialogPending, setEditDialogPending] = useState(false);
   const hasSyncedVectors = useRef<string | null>(null); // Track which list ID we've synced (in-memory)
   const syncInProgress = useRef<string | null>(null); // Track if sync is currently in progress for a list
   const hasRedirectedRef = useRef<boolean>(false); // Track if we've already redirected to prevent duplicate redirects
@@ -646,145 +646,12 @@ export default function ListPageClient() {
   if (shouldShowLoading) {
     return (
       <div className="min-h-screen w-full">
-        {/* Header Card Skeleton */}
-        <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-2 sm:p-4  shadow-xl">
-          {/* First Row: Title/Info on Left, Buttons on Right */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4  sm:mb-4">
-            {/* Left Side: Title, URL Count, Visibility Badge, Toggle */}
-            <div className="flex flex-col gap-2 sm:gap-2">
-              {/* Title Skeleton */}
-              <Skeleton className="h-6 sm:h-7 md:h-8 w-48 sm:w-64" />
-
-              {/* Badges and Toggle Row Skeleton */}
-              <div className="flex items-center gap-2 sm:gap-2 flex-wrap">
-                {/* URL Count Badge Skeleton */}
-                <Skeleton className="h-5 w-16 rounded-full" />
-
-                {/* Visibility Badge Skeleton */}
-                <Skeleton className="h-5 w-20 sm:w-32 rounded-full" />
-
-                {/* Private/Public Toggle Skeleton */}
-                <div className="flex items-center gap-1">
-                  <Skeleton className="h-6 w-12 rounded-full" />
-                  <Skeleton className="h-3 w-12 hidden sm:block" />
-                </div>
-              </div>
-            </div>
-
-            {/* Right Side: Setup Schedule and Health Check Buttons Skeleton */}
-            <div className="flex items-center gap-2 flex-wrap">
-              <Skeleton className="h-7 w-28 rounded-lg" />
-              <Skeleton className="h-7 w-32 rounded-lg" />
-              <Skeleton className="h-7 w-24 rounded-lg" />
-            </div>
-          </div>
-
-          {/* Second Row: Shareable Link Skeleton */}
-          <div className="flex items-center gap-2 flex-wrap pt-2 sm:pt-0 border-t border-white/10 sm:border-t-0">
-            <Skeleton className="h-4 w-24" />
-            <div className="flex items-center gap-1 flex-1 min-w-0">
-              <Skeleton className="h-4 w-32 sm:w-48 flex-1" />
-              <Skeleton className="h-8 w-8 rounded-lg" />
-            </div>
-          </div>
-
-          {/* Collaborators Section Skeleton */}
-          <div className="mt-4">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
-              <div className="flex items-center gap-2">
-                <Skeleton className="h-9 w-9 rounded-xl" />
-                <Skeleton className="h-6 w-32" />
-              </div>
-              <Skeleton className="h-11 w-44 rounded-xl" />
-            </div>
-
-            {/* Collaborator Cards Skeleton */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {[1, 2].map((i) => (
-                <div
-                  key={i}
-                  className="bg-gradient-to-br from-white/5 to-white/3 backdrop-blur-md border border-white/10 rounded-2xl px-5 py-4"
-                >
-                  <div className="flex items-center gap-4">
-                    <Skeleton className="h-12 w-12 rounded-full" />
-                    <div className="flex-1 space-y-2">
-                      <Skeleton className="h-4 w-32" />
-                      <Skeleton className="h-3 w-24" />
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Activity Feed Section Skeleton */}
-          <div className="mt-6 bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-2 sm:p-4 shadow-xl">
-            <Skeleton className="h-6 w-32 mb-4" />
-            <div className="space-y-2">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="flex items-center gap-2">
-                  <Skeleton className="h-10 w-10 rounded-full" />
-                  <div className="flex-1 space-y-2">
-                    <Skeleton className="h-4 w-full" />
-                    <Skeleton className="h-3 w-2/3" />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* URL List Skeleton */}
-        <div className="space-y-6 mb-4">
-          {/* Search and Sort Skeleton */}
-          <div className="flex flex-col gap-2 mb-4 w-full sm:flex-row sm:items-center sm:gap-4">
-            <Skeleton className="h-12 w-full sm:max-w-2xl" />
-            <div className="flex flex-row flex-wrap gap-2 sm:flex-nowrap">
-              <Skeleton className="h-12 w-32" />
-              <Skeleton className="h-12 w-24" />
-              <Skeleton className="h-12 w-20" />
-              <Skeleton className="h-12 w-20" />
-              <Skeleton className="h-12 w-28" />
-            </div>
-          </div>
-
-          {/* Add URL Form Skeleton */}
-          <div className="bg-white/5 backdrop-blur-md p-2 sm:p-4 rounded-xl border border-white/20">
-            <Skeleton className="h-12 w-full " />
-            <Skeleton className="h-24 w-full mb-4" />
-            <div className="flex justify-end gap-2">
-              <Skeleton className="h-10 w-20" />
-              <Skeleton className="h-10 w-32" />
-            </div>
-          </div>
-
-          {/* URL Cards Skeleton */}
-          <div className="space-y-8">
-            {[1, 2, 3].map((i) => (
-              <div
-                key={i}
-                className="bg-white/5 backdrop-blur-md rounded-xl border border-white/20 p-2 sm:p-4"
-              >
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex-1 space-y-2">
-                    <Skeleton className="h-6 w-3/4" />
-                    <Skeleton className="h-4 w-full" />
-                    <Skeleton className="h-4 w-2/3" />
-                  </div>
-                  <div className="flex gap-2">
-                    <Skeleton className="h-8 w-8 rounded-lg" />
-                    <Skeleton className="h-8 w-8 rounded-lg" />
-                    <Skeleton className="h-8 w-8 rounded-lg" />
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 flex-wrap">
-                  <Skeleton className="h-6 w-20 rounded-md" />
-                  <Skeleton className="h-6 w-24 rounded-md" />
-                  <Skeleton className="h-6 w-28 rounded-md" />
-                </div>
-              </div>
-            ))}
-          </div>
+        <div
+          aria-busy="true"
+          aria-live="polite"
+          className="rounded-xl border border-white/10 bg-white/5 p-2 text-sm text-white/60 animate-pulse sm:p-4"
+        >
+          Loading list…
         </div>
       </div>
     );
@@ -1276,15 +1143,30 @@ export default function ListPageClient() {
       <div className="mt-6 sm:mt-8">
         <UrlList />
       </div>
-      <Dialog
-        open={editDialogOpen}
-        onOpenChange={(open) => !open && router.replace(`/list/${listSlug}`)}
-        title="Edit List"
-        description="Update this collection's name, visibility, and description."
-        size="wide"
-      >
-        <EditListPageClient />
-      </Dialog>
+      {list.id ? (
+        <Dialog
+          open={editDialogOpen}
+          onOpenChange={(open) => !open && router.replace(`/list/${listSlug}`, { scroll: false })}
+          title="Edit List"
+          description="Update your list details and settings."
+          size="wide"
+          headerMode="scroll"
+          pending={editDialogPending}
+        >
+          <EditListPageClient
+            key={list.id}
+            list={{
+              id: list.id,
+              slug: listSlug,
+              title: list.title,
+              description: list.description,
+              isPublic: list.isPublic,
+            }}
+            onClose={() => router.replace(`/list/${listSlug}`, { scroll: false })}
+            onPendingChange={setEditDialogPending}
+          />
+        </Dialog>
+      ) : null}
     </div>
   );
 }

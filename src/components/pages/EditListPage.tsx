@@ -1,291 +1,116 @@
+// REQ-0021: Cache-seeded editor avoids loading/remount chrome when a dialog opens.
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
-import { Input } from "@/components/ui/Input";
-import { Button } from "@/components/ui/Button";
-import { Textarea } from "@/components/ui/Textarea";
-import { useToast } from "@/components/ui/Toaster";
-import { useUnifiedListQuery } from "@/hooks/useListQueries";
-import { useQueryClient } from "@tanstack/react-query";
-import { invalidateListQueries } from "@/utils/queryInvalidation";
-import { cn } from "@/lib/utils";
-import { PAGE_HEADER, PAGE_STACK } from "@/lib/ui-spacing";
 import { Save } from "lucide-react";
+import { Input } from "@/components/ui/Input";
+import { Textarea } from "@/components/ui/Textarea";
+import { Button } from "@/components/ui/Button";
+import { CancelButton } from "@/components/ui/ActionButtons";
+import { ListFormCard, ListVisibilityField } from "@/components/lists/ListFormPrimitives";
+import { useToast } from "@/components/ui/Toaster";
+import { type EditableList, useUpdateList } from "@/hooks/useListQueries";
+import { FORM_STACK } from "@/lib/ui-spacing";
 
-export default function EditListPageClient() {
-  const { slug } = useParams();
-  const router = useRouter();
+interface EditListPageClientProps {
+  list: EditableList;
+  onClose: () => void;
+  onPendingChange?: (pending: boolean) => void;
+}
+
+export default function EditListPageClient({ list, onClose, onPendingChange }: EditListPageClientProps) {
   const { toast } = useToast();
-  const queryClient = useQueryClient();
-  const listSlug = typeof slug === "string" ? slug : "";
+  const updateListMutation = useUpdateList();
+  const [title, setTitle] = useState(list.title ?? "");
+  const [description, setDescription] = useState(list.description ?? "");
+  const [isPublic, setIsPublic] = useState(list.isPublic ?? false);
+  const [error, setError] = useState("");
 
-  // Use React Query to fetch list data (checks cache first)
-  const { data: unifiedData, isLoading: isLoadingQuery } = useUnifiedListQuery(
-    listSlug,
-    !!listSlug,
-  );
-
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [isPublic, setIsPublic] = useState(false);
-  const [listId, setListId] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
-  const [error, setError] = useState<string>();
-
-  // Update form fields when React Query data is available
   useEffect(() => {
-    if (unifiedData?.list) {
-      setTitle(unifiedData.list.title || "");
-      setDescription(unifiedData.list.description || "");
-      setIsPublic(unifiedData.list.isPublic ?? false);
-      setListId(unifiedData.list.id);
-      setIsLoading(false);
-    } else if (!isLoadingQuery && listSlug) {
-      // If query finished but no data, show error
-      setError("Failed to load list");
-      setIsLoading(false);
-    }
-  }, [unifiedData, isLoadingQuery, listSlug]);
+    onPendingChange?.(updateListMutation.isPending);
+    return () => onPendingChange?.(false);
+  }, [onPendingChange, updateListMutation.isPending]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (typeof slug !== "string") return;
-
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
     setError("");
-    setIsSaving(true);
+
+    if (!title.trim()) {
+      setError("Title is required");
+      return;
+    }
+
     try {
-      const response = await fetch(`/api/lists/${listId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title,
-          description: description || null,
-          isPublic,
-        }),
+      await updateListMutation.mutateAsync({
+        id: list.id,
+        slug: list.slug,
+        title: title.trim(),
+        description: description.trim() || null,
+        isPublic,
       });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to update list");
-      }
-
-      // Invalidate React Query cache using centralized invalidation
-      // This ensures all related queries (unified, all lists, collections, etc.) update together
-      invalidateListQueries(queryClient, listSlug, listId);
-
-      // Show success toast notification
       toast({
         title: "List Updated! ✅",
         description: "Your list has been successfully updated.",
         variant: "success",
       });
-
-      // Navigate after a brief delay to show toast
-      setTimeout(() => {
-        router.push(`/list/${slug}`);
-      }, 500);
-    } catch (err) {
-      const errorMessage =
-        err instanceof Error ? err.message : "Failed to update list";
-      setError(errorMessage);
-
-      // Show error toast notification
-      toast({
-        title: "Update Failed",
-        description: errorMessage,
-        variant: "error",
-      });
-    } finally {
-      setIsSaving(false);
+      onClose();
+    } catch (caughtError) {
+      const message = caughtError instanceof Error ? caughtError.message : "Failed to update list";
+      setError(message);
+      toast({ title: "Update Failed", description: message, variant: "error" });
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className={cn("min-h-screen w-full", PAGE_STACK)}>
-        {/* Header Skeleton */}
-        <div className={PAGE_HEADER}>
-          <div className="h-8 sm:h-9 bg-white/10 rounded w-48 animate-pulse" />
-          <div className="h-5 bg-white/10 rounded w-96 max-w-full animate-pulse" />
-        </div>
-
-        {/* Form Card Skeleton */}
-        <div className="relative overflow-hidden bg-gradient-to-br from-white/10 via-white/5 to-white/3 backdrop-blur-md border border-white/20 rounded-2xl shadow-2xl p-2 sm:p-4">
-          <div className="relative z-10">
-            <div className="space-y-6 sm:space-y-8 animate-pulse">
-              {/* Title Field Skeleton */}
-              <div className="space-y-2">
-                <label className="flex text-base sm:text-lg font-medium  items-center gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full bg-white/10" />
-                  <div className="h-5 bg-white/10 rounded w-16" />
-                  <div className="h-5 w-2 bg-white/10 rounded" />
-                </label>
-                <div className="w-full border border-white/20 bg-white/10 backdrop-blur-md rounded-xl px-2 sm:px-3 py-2 sm:py-3 h-12" />
-                <div className="h-4 bg-white/10 rounded w-40" />
-              </div>
-
-              {/* Description Field Skeleton */}
-              <div className="space-y-2">
-                <label className="flex text-base sm:text-lg font-medium  items-center gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full bg-white/10" />
-                  <div className="h-5 bg-white/10 rounded w-24" />
-                  <div className="h-4 bg-white/10 rounded w-16" />
-                </label>
-                <div className="w-full border border-white/20 bg-white/10 backdrop-blur-md rounded-xl px-2 sm:px-3 py-2 sm:py-3 h-24" />
-                <div className="h-4 bg-white/10 rounded w-56" />
-              </div>
-
-              {/* Visibility Toggle Skeleton */}
-              <div className="bg-white/5 border border-white/10 rounded-xl p-4 sm:p-5">
-                <div className="flex items-start gap-2">
-                  <div className="h-5 w-5 mt-0.5 border border-white/30 rounded bg-white/10" />
-                  <div className="flex-1">
-                    <div className="h-5 bg-white/10 rounded w-40 mb-1" />
-                    <div className="h-4 bg-white/10 rounded w-full" />
-                  </div>
-                </div>
-              </div>
-
-              {/* Action Buttons Skeleton */}
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-2 sm:gap-4 pt-4">
-                <div className="h-12 bg-white/10 rounded border border-white/30 w-full sm:w-auto order-2 sm:order-1" />
-                <div className="h-12 bg-white/10 rounded w-full sm:w-auto order-1 sm:order-2" />
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className={cn("min-h-screen w-full", PAGE_STACK)}>
-      {/* Header — title+sub tight (no mt between lines) */}
-      <div className={PAGE_HEADER}>
-        <h1 className="text-lg sm:text-xl  font-medium bg-gradient-to-r from-blue-300 via-purple-300 to-indigo-300 bg-clip-text text-transparent leading-tight">
-          Edit List
-        </h1>
-        <p className="text-white/70 text-sm sm:text-base leading-snug">
-          Update your list details and settings
-        </p>
-      </div>
-
-      {/* Form Card */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-white/10 via-white/5 to-white/3 backdrop-blur-md border border-white/20 rounded-xl sm:rounded-2xl shadow-2xl p-2 sm:p-4">
-        {/* Animated background effect */}
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-500/0 via-purple-500/5 to-indigo-500/0 animate-pulse pointer-events-none" />
-
-        <div className="relative z-10">
-          <form
-            onSubmit={handleSubmit}
-            className="space-y-2 sm:space-y-4 lg:space-y-8"
-          >
-            {/* Title Field */}
-            <div className="space-y-2">
-              <label
-                htmlFor="title"
-                className="flex text-sm sm:text-base font-medium text-white  items-center gap-2"
-              >
-                <span className="w-1.5 h-1.5 rounded-full bg-blue-400"></span>
-                Title <span className="text-red-400">*</span>
-              </label>
-              <Input
-                id="title"
-                type="text"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="e.g., My Favorite Resources"
-                required
-                className="w-full border border-white/20 bg-white/10 backdrop-blur-md rounded-lg sm:rounded-xl px-2 sm:px-3 py-2 sm:py-3 text-sm sm:text-base text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-400/50 transition-all duration-200 shadow-inner"
-              />
-              <p className="text-xs sm:text-sm text-white/50">
-                Give your list a memorable name
-              </p>
-            </div>
-
-            {/* Description Field */}
-            <div className="space-y-2">
-              <label
-                htmlFor="description"
-                className="flex text-sm sm:text-base font-medium text-white  items-center gap-2"
-              >
-                <span className="w-1.5 h-1.5 rounded-full bg-pink-400"></span>
-                Description{" "}
-                <span className="text-xs font-normal text-white/50">
-                  (optional)
-                </span>
-              </label>
-              <Textarea
-                id="description"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                className="text-sm sm:text-base shadow-inner font-delicious rounded-lg sm:rounded-xl border border-white/20 bg-white/10 backdrop-blur-md focus:ring-2 focus:ring-pink-500 focus:border-pink-400/50 transition-all duration-200 px-2 sm:px-3 py-2 sm:py-3"
-                placeholder="Describe what this list is about..."
-                rows={4}
-              />
-              <p className="text-xs sm:text-sm text-white/50">
-                Help others understand what this list contains
-              </p>
-            </div>
-
-            {/* Visibility Toggle */}
-            <div className="bg-white/5 border border-white/10 rounded-lg sm:rounded-xl p-3 sm:p-4 lg:p-5">
-              <div className="flex items-start gap-2 sm:gap-2">
-                <input
-                  type="checkbox"
-                  checked={isPublic}
-                  onChange={(e) => setIsPublic(e.target.checked)}
-                  className="h-4 w-4  mt-0.5 text-blue-600 border-white/30 rounded bg-white/10 focus:ring-2 focus:ring-blue-500 focus:ring-offset-0 focus:ring-offset-transparent cursor-pointer flex-shrink-0"
-                  id="is_public"
-                />
-                <div className="flex-1">
-                  <label
-                    htmlFor="is_public"
-                    className="text-white font-medium text-sm sm:text-base cursor-pointer mb-1 block"
-                  >
-                    Make this list public
-                  </label>
-                  <p className="text-xs sm:text-sm text-white/60">
-                    Public lists can be viewed by anyone with the link. Private
-                    lists are only visible to you and collaborators.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Error Display */}
-            {error && (
-              <div className="bg-red-500/10 border border-red-400/30 rounded-lg sm:rounded-xl p-3 sm:p-4 text-red-300 text-xs sm:text-sm lg:text-base flex items-start gap-2">
-                <span className="text-red-400 font-medium">⚠</span>
-                <span>{error}</span>
-              </div>
-            )}
-
-            {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-2 sm:gap-4 pt-4">
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={() => router.back()}
-                className="order-2 sm:order-1 w-full sm:w-auto"
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                isLoading={isSaving}
-                variant="primary"
-                className="order-1 sm:order-2 w-full sm:w-auto"
-              >
-                <Save className="h-4 w-4 shrink-0" aria-hidden />
-                {isSaving ? "Saving..." : "Save Changes"}
-              </Button>
-            </div>
-          </form>
+    <ListFormCard>
+      <form onSubmit={handleSubmit} className={FORM_STACK}>
+        <div className="space-y-2">
+          <label htmlFor="edit-list-title" className="flex items-center gap-2 text-sm font-medium text-white sm:text-base">
+            <span className="h-1.5 w-1.5 rounded-full bg-blue-400" />
+            Title <span className="text-red-400">*</span>
+          </label>
+          <Input
+            id="edit-list-title"
+            value={title}
+            onChange={(event) => setTitle(event.target.value)}
+            placeholder="e.g., My Favorite Resources"
+            required
+          />
+          <p className="text-xs text-white/50 sm:text-sm">Give your list a memorable name</p>
         </div>
-      </div>
-    </div>
+
+        <div className="space-y-2">
+          <label htmlFor="edit-list-description" className="flex items-center gap-2 text-sm font-medium text-white sm:text-base">
+            <span className="h-1.5 w-1.5 rounded-full bg-pink-400" />
+            Description <span className="text-xs font-normal text-white/50">(optional)</span>
+          </label>
+          <Textarea
+            id="edit-list-description"
+            value={description}
+            onChange={(event) => setDescription(event.target.value)}
+            className="min-h-28 rounded-xl border-white/20 bg-white/10 px-3 py-2 text-sm shadow-inner placeholder:text-sm focus:border-pink-400/50 focus:ring-2 focus:ring-pink-500 sm:text-sm"
+            placeholder="Describe what this list is about..."
+            rows={4}
+          />
+          <p className="text-xs text-white/50 sm:text-sm">Help others understand what this list contains</p>
+        </div>
+
+        <ListVisibilityField
+          id="edit-list-is-public"
+          checked={isPublic}
+          onChange={(event) => setIsPublic(event.target.checked)}
+        />
+
+        {error ? <p role="alert" className="rounded-xl border border-red-400/30 bg-red-500/10 p-3 text-xs text-red-300 sm:text-sm">{error}</p> : null}
+
+        <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+          <CancelButton onClick={onClose} disabled={updateListMutation.isPending}>Cancel</CancelButton>
+          <Button type="submit" variant="primary" isLoading={updateListMutation.isPending}>
+            <Save className="h-4 w-4 shrink-0" aria-hidden />
+            {updateListMutation.isPending ? "Saving..." : "Save Changes"}
+          </Button>
+        </div>
+      </form>
+    </ListFormCard>
   );
 }

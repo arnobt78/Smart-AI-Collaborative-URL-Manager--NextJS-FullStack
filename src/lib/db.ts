@@ -141,7 +141,7 @@ export async function updateList(
   listId: string,
   updates: {
     title?: string;
-    description?: string;
+    description?: string | null;
     urls?: UrlItem[];
     archivedUrls?: UrlItem[];
     isPublic?: boolean;

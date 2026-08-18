@@ -122,7 +122,7 @@ export default function Navbar({ initialWasAuthed = false }: NavbarProps) {
         isMobileMenuOpen ? "min-h-14" : "h-14"
       }`}
     >
-      <div className="mx-auto flex max-w-7xl flex-col overflow-visible px-2 sm:px-0">
+      <div className="mx-auto flex max-w-7xl flex-col overflow-visible px-2 sm:px-4">
         <div className={`${UI_CHROME_ROW} h-14 overflow-visible`}>
           <Link
             href="/"
@@ -133,7 +133,7 @@ export default function Navbar({ initialWasAuthed = false }: NavbarProps) {
               <LinkIcon className="h-7 w-7 sm:h-8 sm:w-8 text-blue-600 stroke-[2.5px] drop-shadow-[0_0_10px_rgba(59,130,246,0.5)]" />
             </div>
             {/* Fixed line box — font swap must not change nav / avatar vertical align */}
-            <span className="gradient-color drop-shadow-[0_0_15px_rgba(59,130,246,0.3)] text-lg sm:text-xl lg:text-2xl font-extrabold tracking-tight leading-none inline-flex h-8 items-center">
+            <span className="gradient-color drop-shadow-[0_0_15px_rgba(59,130,246,0.3)] text-sm lg:text-base font-medium tracking-tight leading-none inline-flex h-8 items-center">
               Daily Urlist
             </span>
           </Link>

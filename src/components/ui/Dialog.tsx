@@ -1,3 +1,4 @@
+// REQ-0021: Shared dialog supports fixed or scrollable header chrome without duplicate form headings.
 "use client";
 
 import { useEffect, useId, useRef } from "react";
@@ -7,6 +8,7 @@ import { HEADING_STACK } from "@/lib/ui-spacing";
 import { cn } from "@/lib/utils";
 
 type DialogSize = "form" | "wide" | "full";
+type DialogHeaderMode = "fixed" | "scroll";
 
 interface DialogProps {
   open: boolean;
@@ -17,6 +19,7 @@ interface DialogProps {
   size?: DialogSize;
   pending?: boolean;
   className?: string;
+  headerMode?: DialogHeaderMode;
 }
 
 const sizeClasses: Record<DialogSize, string> = {
@@ -38,6 +41,7 @@ export function Dialog({
   size = "form",
   pending = false,
   className,
+  headerMode = "fixed",
 }: DialogProps) {
   const titleId = useId();
   const descriptionId = useId();
@@ -85,26 +89,73 @@ export function Dialog({
           className,
         )}
       >
-        <header className="flex shrink-0 items-start justify-between gap-4 border-b border-white/10 p-4 sm:p-6">
-          <div className={cn(HEADING_STACK, "min-w-0")}>
-            <h2 id={titleId} className="text-xl font-medium leading-tight text-white sm:text-2xl">
-              {title}
-            </h2>
-            {description ? <p id={descriptionId} className="text-sm text-white/60 sm:text-base">{description}</p> : null}
-          </div>
-          <button
-            type="button"
-            onClick={requestClose}
-            disabled={pending}
-            aria-label="Close dialog"
-            className="shrink-0 rounded-md p-2 text-white/60 transition-colors hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            <X className="h-5 w-5" aria-hidden />
-          </button>
-        </header>
-        <div className="dialog-scrollbar min-h-0 overflow-y-auto p-4 sm:p-6">{children}</div>
+        {headerMode === "fixed" ? (
+          <DialogHeader
+            title={title}
+            description={description}
+            titleId={titleId}
+            descriptionId={descriptionId}
+            pending={pending}
+            onClose={requestClose}
+            className="shrink-0 border-b border-white/10 p-4 sm:p-6"
+          />
+        ) : null}
+        <div className="dialog-scrollbar min-h-0 overflow-y-auto p-4 sm:p-6">
+          {headerMode === "scroll" ? (
+            <DialogHeader
+              title={title}
+              description={description}
+              titleId={titleId}
+              descriptionId={descriptionId}
+              pending={pending}
+              onClose={requestClose}
+              className="mb-4 border-b border-white/10 pb-4 sm:mb-6 sm:pb-6"
+            />
+          ) : null}
+          {children}
+        </div>
       </div>
     </div>,
     document.body,
+  );
+}
+
+interface DialogHeaderProps {
+  title: string;
+  description?: string;
+  titleId: string;
+  descriptionId: string;
+  pending: boolean;
+  onClose: () => void;
+  className: string;
+}
+
+function DialogHeader({
+  title,
+  description,
+  titleId,
+  descriptionId,
+  pending,
+  onClose,
+  className,
+}: DialogHeaderProps) {
+  return (
+    <header className={cn("flex items-center justify-between gap-4", className)}>
+      <div className={cn(HEADING_STACK, "min-w-0")}>
+        <h2 id={titleId} className="text-lg font-medium leading-tight text-white sm:text-xl">
+          {title}
+        </h2>
+        {description ? <p id={descriptionId} className="text-xs leading-snug text-white/60 sm:text-sm">{description}</p> : null}
+      </div>
+      <button
+        type="button"
+        onClick={onClose}
+        disabled={pending}
+        aria-label="Close dialog"
+        className="shrink-0 rounded-md p-2 text-white/60 transition-colors hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 disabled:cursor-not-allowed disabled:opacity-40"
+      >
+        <X className="h-5 w-5" aria-hidden />
+      </button>
+    </header>
   );
 }

@@ -11,7 +11,6 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { usePublicListsQuery } from "@/hooks/useBrowseQueries";
 import { cn } from "@/lib/utils";
 import { CARD_PAD, PAGE_STACK } from "@/lib/ui-spacing";
-import { useDelayedPending } from "@/hooks/useDelayedPending";
 
 interface UrlItem {
   id: string;
@@ -55,8 +54,9 @@ export default function BrowsePage() {
   const lists = data?.lists || [];
   const totalPages = data?.pagination?.totalPages || 1;
 
-  // Preserve cached cards during background refetches; skeletons are initial-data only.
-  const shouldShowSkeleton = useDelayedPending(isLoading, Boolean(data));
+  // Cached cards stay mounted during invalidation; only an unpopulated cold view
+  // reserves a small local data slot instead of replacing the page surface.
+  const isColdLoading = isLoading && !data;
 
   // Update URL query params when search or page changes (but only if different from current URL)
   useEffect(() => {
@@ -112,31 +112,13 @@ export default function BrowsePage() {
       </form>
 
       {/* Lists Grid */}
-      {shouldShowSkeleton ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[...Array(6)].map((_, i) => (
-            <div
-              key={i}
-              className={cn(
-                "group bg-white/5 border border-white/10 rounded-xl flex flex-col gap-2",
-                CARD_PAD,
-              )}
-            >
-              <div className="flex items-start justify-between">
-                <div className="h-5 sm:h-6 bg-white/10 rounded flex-1" />
-                <div className="h-4 sm:h-5 w-12 sm:w-16 bg-white/10 rounded-full ml-2" />
-              </div>
-              <div className="h-3 sm:h-4 bg-white/10 rounded w-2/3" />
-              <div className="h-3 sm:h-4 bg-white/10 rounded w-1/2" />
-              <div className="flex items-center gap-2 sm:gap-4">
-                <div className="h-3 w-16 sm:w-20 bg-white/10 rounded" />
-                <div className="h-3 w-12 sm:w-16 bg-white/10 rounded" />
-              </div>
-              <div className="pt-2 border-t border-white/10">
-                <div className="h-3 w-20 sm:w-24 bg-white/10 rounded" />
-              </div>
-            </div>
-          ))}
+      {isColdLoading ? (
+        <div
+          aria-busy="true"
+          aria-live="polite"
+          className={cn("rounded-xl border border-white/10 bg-white/5 text-sm text-white/60 animate-pulse", CARD_PAD)}
+        >
+          Loading public lists…
         </div>
       ) : lists.length === 0 ? (
         <div

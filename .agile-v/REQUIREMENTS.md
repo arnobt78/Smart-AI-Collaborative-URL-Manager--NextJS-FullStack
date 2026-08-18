@@ -337,6 +337,7 @@ These describe the current product as verified in code. They are **Accepted as b
 
 **Affected:** `src/lib/ui/{control-styles,glass-button-styles}.ts`, `src/components/{ui/Button,ui/ScrollReveal,HomePage}.tsx`, `src/app/globals.css`, and traceability records.
 **Trace:** TASK-0018, DEC-0018
+**Status:** Implementation and automated validation complete; final browser acceptance awaits user testing.
 
 ---
 
@@ -356,7 +357,7 @@ These describe the current product as verified in code. They are **Accepted as b
 - [ ] Validate metadata preview fallback and action-count badges with browser integration coverage.
 
 **Trace:** TASK-0019, DEC-0020, RISK-0017
-**Status:** Completed — all approved dialog surfaces use the shared primitive; validation passes.
+**Status:** Implementation and automated validation complete; metadata-preview and action-badge browser acceptance awaits user testing.
 **Status:** Approved — user authorized implementation in the 2026-08-18 control and Home-motion request.
 
 ---
@@ -393,9 +394,70 @@ These describe the current product as verified in code. They are **Accepted as b
 
 ---
 
+### REQ-0021 — Stable list-form dialogs (approved 2026-08-18)
+
+**Priority:** P1
+**Type:** UX stability / accessibility / cache consistency
+**Statement:** List create and edit dialogs MUST render one scrollable, accessible heading row, preserve cached list content while dialogs open or close, and use centralized cache-aware mutations without route-delay or full-page skeleton transitions.
+
+**Acceptance:**
+
+- [x] Create and edit display one title/subtitle/X row, with contained scrolling and no artificial blank form height.
+- [x] Public visibility controls are vertically aligned; rendered Cancel and Clear actions use the requested note-with-X convention and `Eraser` respectively.
+- [x] Edit opens from cached list data without the "Opening Editor" toast or a page/form skeleton; cancelling a dialog does not remount the list surface.
+- [x] Create and update mutations optimistically reconcile relevant React Query caches, roll back failures, invalidate once after success, and do not use timer-delayed navigation or router refresh.
+- [x] Direct create/edit links remain compatible; existing API, cookie-auth, Prisma, Redis, and SSE contracts remain unchanged.
+- [x] Focused Jest coverage plus TypeScript, zero-warning lint, production build, and diff checks pass.
+
+**Trace:** TASK-0022, DEC-0022, GATE-0013
+**Status:** Completed and validated 2026-08-18.
+
+---
+
 ## Out of scope for default C1
 
 - Schema normalization of `List.urls` JSON → relational tables
 - Full rewrite to NextAuth / Auth.js
 - Unrelated UI redesign
 - Claiming realtime cross-device sync beyond existing SSE/Redis paths
+
+---
+
+### REQ-0022 — List resource authorization boundary (proposed 2026-08-19)
+
+**Priority:** P0 / Critical
+**Type:** Security / authorization
+**Statement:** Every list-scoped route MUST resolve the addressed list before performing reads or side effects and MUST enforce the existing cookie-session role model on the resolved canonical list ID. Private list metadata must never be readable or refreshable by an unauthorized caller, and vector synchronization must never be triggerable without edit permission.
+
+**Acceptance:**
+
+- [x] `PATCH /api/lists/[id]` requires authenticated owner/editor edit permission for title/description updates and requires owner permission for visibility changes; rejected callers receive a non-disclosing authorization response and no activity or SSE event is emitted.
+- [x] `DELETE /api/lists/[id]` requires owner delete permission before deletion; collaborator/viewer/unknown identifiers cannot delete another user's list.
+- [x] `GET /api/lists/[id]/metadata` checks existing list access before reading Redis or returning URL metadata; `POST` refresh/invalidation and `POST /sync-vectors` require edit permission before side effects.
+- [x] Identifier resolution preserves existing slug/ID compatibility but authorization, database writes, activities, SSE messages, Redis keys, and vector operations use the resolved canonical UUID.
+- [x] Focused authorization tests cover unauthenticated, owner, editor, viewer, and unrelated-user outcomes before protected route side effects.
+
+**Affected:** `src/app/api/lists/[id]/{route,metadata/route,sync-vectors/route}.ts`, existing collaboration permission/db helpers, and focused route tests.
+**Trace:** TASK-0023, DEC-0023, RISK-0017, GATE-0014
+**Status:** Completed and locally validated 2026-08-19.
+
+---
+
+### REQ-0023 — Single list mutation gateway and stable data surfaces (proposed 2026-08-19)
+
+**Priority:** P1
+**Type:** Cache consistency / rendering stability
+**Statement:** List and URL CRUD MUST use one cache-commit and rollback contract across the existing React Query and `currentList` store surfaces. Page shells and cached data MUST remain mounted during background work, dialog transitions, navigation, and SSE synchronization; a delayed local placeholder may appear only when the requested data has never been cached.
+
+**Acceptance:**
+
+- [x] The unused legacy URL mutation hooks are removed after verified-zero consumers; no second optimistic implementation remains in parallel with the store flow.
+- [x] Add, update, and delete snapshot the matching `currentList` value before any optimistic patch; failures restore that exact snapshot and successes commit the server list before one centralized affected-query invalidation.
+- [x] Existing list/detail, all-lists, public browse, metadata, collaborator/activity, and relevant insight cache surfaces are patched or invalidated once according to the mutation impact; no `router.refresh`, cache clearing, timer reload, or duplicate mutation fetch is introduced.
+- [x] Browse removes its duplicate Suspense page fallback; Browse, Lists, Business Insights, API Status, and list detail keep their static shell mounted and never render an empty/zero-value state before the real data or delayed local cold state.
+- [x] Broad list/detail/page skeleton remounts are replaced by dimension-matched local data slots only where a first uncached request needs feedback; background refetch, SSE, dialog close/open, and warm back-navigation retain the last confirmed data.
+- [x] Focused tests cover authorization outcomes and failed delete rollback; full regression, type, lint, build, and diff checks pass.
+
+**Affected:** `src/hooks/useListQueries.ts`, `src/stores/urlListStore.ts`, `src/utils/queryInvalidation.ts`, URL/list page and query components, and focused tests only.
+**Trace:** TASK-0024, DEC-0023, RISK-0018, GATE-0014
+**Status:** Completed and locally validated 2026-08-19.

@@ -12,5 +12,8 @@
 | ART-0017.1 | REQ-0017 | `src/lib/ui/{control-styles,glass-button-styles}.ts`; `src/components/{ui/Button,ui/ScrollReveal,HomePage}.tsx`; `src/app/globals.css` | Shared compact geometry and dependency-free marketing reveal/parallax. |
 | ART-0019.1 | REQ-0019 | `src/lib/ui-spacing.ts`; shared UI headers; targeted heading pairs | Central zero-gap title/subtitle contract with no data, auth, or control changes. |
 | ART-0020.1 | REQ-0020 | requested data pages, unified list/comments, metadata route, Dialog, bulk import | Stable cached data surfaces, batched comment counts, no hard reload, and public-network metadata bounds. |
+| ART-0022.1 | REQ-0022 | `src/lib/list-route-access.ts`; list, metadata, and vector route handlers; focused route tests | Canonical list resolution with cookie-session and collaborator-role authorization before list mutations or private side effects. |
+| ART-0023.1 | REQ-0023 | URL mutation store/hooks, query invalidation utilities, Browse/Lists/Insights/detail data surfaces, focused tests | One optimistic URL mutation transaction with complete rollback and stable cached/static page surfaces. |
+| ART-0023.2 | REQ-0023 | `src/lib/query-keys.ts`; `src/hooks/useListQueries.ts`; `src/utils/queryInvalidation.ts` | Hook-independent query-key contract prevents store/invalidation import cycles while preserving existing key values. |
 
 Risk level: R2 (production UI and repository-wide behavior-sensitive lint remediation). No API, database, authorization, or session contract changes are authorized.
