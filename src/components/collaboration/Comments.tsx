@@ -191,7 +191,6 @@ export function Comments({ listId, urlId, currentUserId }: CommentsProps) {
         queryClient.setQueryData(queryKey, context.previousData);
       }
       if (context?.commentCountDelta) updateVisibleCommentCount(-context.commentCountDelta);
-
       toast({
         title: "Failed to add comment",
         description:
@@ -260,9 +259,8 @@ export function Comments({ listId, urlId, currentUserId }: CommentsProps) {
           ),
         };
       });
-      updateVisibleCommentCount(-1);
-
-      return { previousData, commentCountDelta: -1 };
+      // Editing changes content only; it must not affect the action badge.
+      return { previousData };
     },
     onSuccess: (data) => {
       // Update cache with server response
@@ -309,7 +307,6 @@ export function Comments({ listId, urlId, currentUserId }: CommentsProps) {
       if (context?.previousData) {
         queryClient.setQueryData(queryKey, context.previousData);
       }
-      if (context?.commentCountDelta) updateVisibleCommentCount(-context.commentCountDelta);
 
       toast({
         title: "Failed to update comment",
@@ -360,8 +357,9 @@ export function Comments({ listId, urlId, currentUserId }: CommentsProps) {
           comments: old.comments.filter((c) => c.id !== commentId),
         };
       });
+      updateVisibleCommentCount(-1);
 
-      return { previousData };
+      return { previousData, commentCountDelta: -1 };
     },
     onSuccess: (data) => {
       toast({
@@ -401,6 +399,7 @@ export function Comments({ listId, urlId, currentUserId }: CommentsProps) {
       if (context?.previousData) {
         queryClient.setQueryData(queryKey, context.previousData);
       }
+      if (context?.commentCountDelta) updateVisibleCommentCount(-context.commentCountDelta);
 
       toast({
         title: "Failed to delete comment",
