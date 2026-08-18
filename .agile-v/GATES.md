@@ -6,7 +6,7 @@
 Stage 1 Requirements → Stage 2 Validation → [Human Gate 1] → Stage 3 Synthesis → Stage 4 Verification → [Human Gate 2] → Stage 5 Acceptance
 ```
 
-Current: **Stage 4 verification complete** for GATE-0011 and GATE-0012; Gate 2 remains required before release acceptance.
+Current: **Stage 4 verification complete** through REQ-0020; Gate 2 remains required before release acceptance.
 
 Reconciliation note (2026-08-18): commits and prior validation records document C1 implementation activity, but `APPROVALS.md` has no matching approved record for the original GATE-0001 token. This is retained as historical evidence, not retroactively approved. It does not authorize further implementation.
 
@@ -17,11 +17,11 @@ Reconciliation note (2026-08-18): commits and prior validation records document 
 | Field | Value |
 |-------|-------|
 | Type | Human-Decision |
-| Status | APPROVED 2026-08-18 |
+| Status | SUPERSEDED / historically unapproved |
 | Checkpoint | See `CHECKPOINTS.md` |
 | Evidence | Analysis in `STATE.md`; REQs in `REQUIREMENTS.md`; tasks in `TASKS.md` |
-| Required human action | Approve a track (D recommended) or custom REQ subset; answer unresolved questions if possible |
-| Resume condition | Matching approval recorded in `APPROVALS.md` + `STATE.md` |
+| Required human action | None; GATE-0011 superseded its scoped implementation approval. |
+| Resume condition | Not applicable. |
 
 **Must NOT proceed to implementation until approved.**
 
@@ -71,8 +71,8 @@ Implementation is authorized. Gate 2 remains required before any release decisio
 
 | Field | Value |
 |-------|-------|
-| Status | Not started |
-| Prereqs | Implementation + validation evidence in `VALIDATION_SUMMARY.md`; eval gate if applicable |
+| Status | PENDING |
+| Prereqs | Implementation + validation evidence in `VALIDATION_SUMMARY.md`; `EVAL_RESULTS.md` with `eval_gate_status: PASS` or an approved waiver; Human Gate 2 acceptance. |
 
 ---
 

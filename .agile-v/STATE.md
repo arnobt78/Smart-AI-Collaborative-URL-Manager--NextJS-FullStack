@@ -38,10 +38,10 @@
 
 ## Current checkpoint
 
-- **Stage:** Stage 4 Verification complete for REQ-0010 through REQ-0015
-- **Gate:** **GATE-0011 Human Gate 1 — APPROVED** (`C1-HG1-UI-REMEDIATION-2026-08-18`)
-- **Scope:** shared control geometry, login row composition/motion, Smart Collections disclosure, URL toolbar/add-form refinement, and independent lint remediation.
-- **Reconciliation:** current C1 code and commit history support the recorded completed UI work. The original GATE-0001 remains historically unapproved; it is not treated as approval for further work.
+- **Stage:** Stage 4 Verification complete for REQ-0010 through REQ-0020.
+- **Gate:** **GATE-0002 Human Gate 2 — PENDING**; `EVAL_RESULTS.md` has not been created, so release acceptance cannot be claimed.
+- **Scope:** completed UI consistency, dialog, data-stability, comment-badge, and metadata-safety requirements; no new concrete implementation requirement is active.
+- **Reconciliation (2026-08-18):** clean local `main` and `origin/main` match at `a69f0a7`. The original GATE-0001 remains historically unapproved/superseded; GATE-0011/0012 supplied the applicable implementation authority. The user provided standing implementation authorization, but a future product change still needs a stable REQ and scoped plan before synthesis.
 - **Audit findings resolved:** shared control geometry, Smart Collections disclosure, URL toolbar/add-form semantics, global browser casts, and 235 lint warnings are remediated. Existing mutation/invalidation architecture was retained and bulk import no longer hard-reloads.
 - **Implementation:** REQ-0010 through REQ-0013 are implemented with shared control styles, Auth entrance motion, accessible Smart Collections disclosure, and URL toolbar/Add URL refinements. The URL workspace, bulk-import flow, real-time/query synchronization, drag-order cache, metadata helper, and auth helper received type-safe lint remediation without changing their behavior. Typecheck, Jest, and production build pass.
 - **Completion:** REQ-0014 is complete. `npm run lint` reports zero warnings/errors after type-safe remediation; no lint-rule suppression was used.
@@ -59,5 +59,5 @@
 ## Next
 
 ```text
-Run browser-level metadata/action validation and create updated EvalGate evidence before release acceptance. HA-0001 remains human-owned; no densify/Zod changes are implied.
+For a new request: create a stable REQ and scoped plan, then implement under the user's standing approval. For release acceptance: obtain browser-level metadata/action evidence, create `EVAL_RESULTS.md`, and satisfy GATE-0002. HA-0001 remains human-owned; no densify/Zod changes are implied.
 ```

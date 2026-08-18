@@ -282,3 +282,16 @@ Append-only. Newest entries at bottom.
 | Rationale | Full-page skeleton remounts caused visual flashes; a hard reload bypassed cache reconciliation; unvalidated metadata subrequests exposed internal-network access risk. |
 | Linked REQs | REQ-0020 |
 | Status | Implemented and validated. |
+
+---
+
+## DEC-0021 — Reconcile C1 checkpoint after stable-data delivery
+
+| Field | Value |
+|-------|-------|
+| Timestamp | 2026-08-18 |
+| Agent | Agile V orchestration |
+| Decision | Advance the recorded verification checkpoint through REQ-0020; retain Gate 2 as pending because no EvalGate evidence exists. |
+| Rationale | Local and remote `main` are clean and match at `a69f0a7`; prior state named only earlier requirements and misstated the historical Gate 0001 status. |
+| Linked REQs | REQ-0010 to REQ-0020 |
+| Status | Reconciled; no application-code change. |
