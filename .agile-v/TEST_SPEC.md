@@ -13,3 +13,4 @@ Overview: REQ-0010 through REQ-0014. Tests are derived from approved requirement
 | TC-0016 | REQ-0014 | Run static quality commands | Lint has zero warnings/errors; typecheck, relevant Jest tests, and build pass | system |
 | TC-0017 | REQ-0015 | Inspect header/footer at 320px, 768px, and 1440px | Desktop chrome is 56px centered; mobile content grows without clipping or overlap | manual responsive |
 | TC-0018 | REQ-0015 | Run static quality commands | Lint, typecheck, Jest, and build preserve layout component contracts | system |
+| TC-0019 | REQ-0016 | Open guest-account menu over later Auth rows | Accounts remain visible and clickable; trigger exposes expanded state and menu relationship | manual integration |

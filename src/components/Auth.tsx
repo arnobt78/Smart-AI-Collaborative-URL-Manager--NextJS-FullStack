@@ -21,17 +21,14 @@ import {
   ImageIcon,
   UsersRound,
   Sparkles,
+  Eraser,
 } from "lucide-react";
 import { TEST_ACCOUNTS } from "@/constants/auth";
 import { displayNameFromEmail, robohashUrl } from "@/lib/robohash";
 import { queueAuthToast } from "@/lib/auth-toast";
 import { setWasAuthedHintClient } from "@/lib/was-authed";
 import { cn } from "@/lib/utils";
-import {
-  CARD_PAD,
-  FORM_STACK,
-  MARKETING_STACK,
-} from "@/lib/ui-spacing";
+import { CARD_PAD, FORM_STACK, MARKETING_STACK } from "@/lib/ui-spacing";
 import { glassPrimaryButtonClass } from "@/lib/ui/glass-button-styles";
 import { UI_FORM_CONTROL } from "@/lib/ui/control-styles";
 
@@ -512,7 +509,14 @@ export default function Auth() {
 
               <form className={FORM_STACK} onSubmit={handleSignIn}>
                 {/* Guest Select — labeled; menu top-full like ProfileDropdown */}
-                <div className="auth-reveal auth-reveal-delay-1 relative space-y-1.5" ref={guestDropdownRef}>
+                <div
+                  className={cn(
+                    "auth-reveal auth-reveal-delay-1 relative space-y-1.5",
+                    // auth-reveal transforms create sibling stacking contexts; lift the whole field while its menu is open.
+                    isGuestDropdownOpen && "z-30",
+                  )}
+                  ref={guestDropdownRef}
+                >
                   <label
                     htmlFor="auth-guest"
                     className="block text-xs sm:text-sm font-medium text-white/80"
@@ -523,6 +527,8 @@ export default function Auth() {
                     id="auth-guest"
                     type="button"
                     onClick={() => setIsGuestDropdownOpen(!isGuestDropdownOpen)}
+                    aria-expanded={isGuestDropdownOpen}
+                    aria-controls="auth-guest-menu"
                     className={`${UI_FORM_CONTROL} flex items-center justify-between gap-2 text-left focus:ring-[#00ff99] focus:border-transparent`}
                   >
                     <span className="flex min-w-0 flex-1 items-center gap-2">
@@ -564,7 +570,10 @@ export default function Auth() {
                   </button>
 
                   {isGuestDropdownOpen && (
-                    <div className="absolute left-0 right-0 top-full z-50 mt-1.5 bg-gradient-to-br from-zinc-900/95 to-zinc-800/95 backdrop-blur-md border border-white/20 rounded-xl shadow-2xl animate-in fade-in-0 duration-150">
+                    <div
+                      id="auth-guest-menu"
+                      className="absolute left-0 right-0 top-full z-50 mt-1.5 overflow-hidden rounded-xl border border-white/25 bg-zinc-950 shadow-2xl ring-1 ring-black/40 animate-in fade-in-0 duration-150"
+                    >
                       {TEST_ACCOUNTS.map((account) => (
                         <button
                           key={account.id}
@@ -609,6 +618,7 @@ export default function Auth() {
                             : "text-white/30 cursor-not-allowed"
                         }`}
                       >
+                        <Eraser className="h-4 w-4 text-white/70" aria-hidden />
                         <span>Clear Selection</span>
                       </button>
                     </div>

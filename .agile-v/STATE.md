@@ -19,6 +19,7 @@
 - Auth UI polish: max-w-7xl shell; no center divider/left logo; reserved typewriter heights; feature gaps; Sign up row; CTA spacer
 - Stock glass shadow-glow port: `src/lib/ui/glass-{button,badge,card}-styles.ts`; Button variants; Auth Sign In Sparkles + primary blue glow; PermissionManager/CTAs aligned; dead `ui-button.ts` removed
 - Responsive chrome: shared `UI_CHROME_ROW`; Navbar remains centered at 56px; Footer centers at desktop and grows safely when stacked on mobile; dead footer icon code removed
+- Auth guest menu: opaque panel and parent stacking-layer correction prevent animated field rows from obscuring or intercepting account actions
 
 ## Human
 
@@ -40,6 +41,7 @@
 - **Implementation:** REQ-0010 through REQ-0013 are implemented with shared control styles, Auth entrance motion, accessible Smart Collections disclosure, and URL toolbar/Add URL refinements. The URL workspace, bulk-import flow, real-time/query synchronization, drag-order cache, metadata helper, and auth helper received type-safe lint remediation without changing their behavior. Typecheck, Jest, and production build pass.
 - **Completion:** REQ-0014 is complete. `npm run lint` reports zero warnings/errors after type-safe remediation; no lint-rule suppression was used.
 - **Completion:** REQ-0015 is complete. Navbar/Footer use the shared responsive chrome row; their routes, session behavior, and import guard are unchanged. Lint, typecheck, Jest, and production build pass.
+- **Completion:** REQ-0016 is complete. The guest-account menu is opaque, above Auth reveal siblings, and exposes its expanded/menu relationship without changing session behavior.
 - **Dependency audit:** RISK-0016 (three Prisma CLI transitive findings) is accepted by user. Retain Prisma 6.19.3; do not force a downgrade or breaking upgrade.
 - **Final audit:** lint, strict TypeScript, Jest, production build, mutation/invalidation scan, reload scan, and tracked-secret scan pass against committed `main`. Gate 2 still requires EvalGate/human acceptance evidence.
 - **Evidence:** planning traces in `REQUIREMENTS.md` (REQ-0010 to REQ-0014), `TASKS.md` (TASK-0011 to TASK-0015), `DECISION_LOG.md` (DEC-0012/0013), `RISKS.md` (RISK-0011 to RISK-0014), and `GATES.md`.
@@ -47,5 +49,5 @@
 ## Next
 
 ```text
-Implementation is committed through `557f43d`; this audit handoff records the accepted RISK-0016 exception. Create EvalGate evidence and obtain Gate 2 human acceptance before a release claim. HA-0001 remains human-owned; no densify/Zod changes are implied.
+Commit the validated REQ-0016 Auth menu regression fix, then create EvalGate evidence and obtain Gate 2 human acceptance before a release claim. HA-0001 remains human-owned; no densify/Zod changes are implied.
 ```

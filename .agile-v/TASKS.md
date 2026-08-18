@@ -60,5 +60,11 @@ HA-0001 Firewall · Sentry org/token
 
 **Dependencies:** GATE-0012 approved; no data/API/cache or authorization changes.
 
+### TASK-0017 — Guest-account menu stacking fix — DONE
+
+1. Raise the open Auth dropdown parent above transformed reveal-row siblings.
+2. Replace the translucent menu surface with an opaque accessible panel and preserve menu handlers.
+3. Validate lint, typecheck, Jest, and production build.
+
 ## Deferred
 RSC shells · densify/Zod/SHA/Next16

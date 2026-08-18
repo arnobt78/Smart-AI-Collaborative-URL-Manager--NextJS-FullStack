@@ -206,3 +206,16 @@ Append-only. Newest entries at bottom.
 | Rationale | Available automated remediation downgrades Prisma and a supported Prisma 7 migration exceeds the approved scope and risks application stability. |
 | Linked REQs | dependency baseline |
 | Status | Accepted by user; re-evaluate only under a dedicated migration requirement. |
+
+---
+
+## DEC-0017 — Fix Auth menu at its stacking-context boundary
+
+| Field | Value |
+|-------|-------|
+| Timestamp | 2026-08-18 |
+| Agent | Agile V Build |
+| Decision | Raise the open reveal-row parent and use an opaque menu panel rather than changing Auth form structure or handlers. |
+| Rationale | CSS transforms on staggered siblings create independent stacking contexts; fixing the parent prevents click interception with no data, session, or mutation impact. |
+| Linked REQs | REQ-0016 |
+| Status | Implemented and validated. |

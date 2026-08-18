@@ -301,6 +301,25 @@ These describe the current product as verified in code. They are **Accepted as b
 
 ---
 
+### REQ-0016 — Opaque, reachable guest-account menu (completed 2026-08-18)
+
+**Priority:** P1
+**Type:** Auth UX / accessibility
+**Statement:** The test-credential menu MUST render above neighboring animated form rows with an opaque surface, preserving pointer and keyboard access to every account action.
+
+**Acceptance:**
+
+- [x] Opening the menu raises its parent stacking context above sibling reveal rows.
+- [x] The menu uses an opaque dark surface with visible border and focusable account actions.
+- [x] The trigger exposes `aria-expanded` and `aria-controls`; account selection, clear, and sign-in behavior are unchanged.
+- [x] Lint, strict TypeScript, Jest, and production build pass.
+
+**Affected:** `src/components/Auth.tsx` and traceability records only.
+**Trace:** TASK-0017, DEC-0017
+**Status:** Completed 2026-08-18 — user-reported regression fixed and validated.
+
+---
+
 ## Out of scope for default C1
 
 - Schema normalization of `List.urls` JSON → relational tables

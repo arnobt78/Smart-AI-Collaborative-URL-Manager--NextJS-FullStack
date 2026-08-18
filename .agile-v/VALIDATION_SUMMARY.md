@@ -86,3 +86,9 @@ Out of scope: densify/JWT SSR, Zod/SHA, Next 16, Prisma 7.
 | Dependency security | `npm audit --omit=dev --audit-level=high` | ACCEPTED | RISK-0016: 3 high Prisma CLI transitive findings accepted by user; no safe compatible remediation was available. |
 
 Gate 2: BLOCKED — RISK-0016 is accepted; `EVAL_RESULTS.md` PASS/WAIVED evidence and Gate 2 human acceptance remain required for a release claim.
+
+## 2026-08-18 — guest-account menu regression fix
+
+| Scope | Command | Result |
+|-------|---------|--------|
+| REQ-0016 | `npm run lint`; `npx tsc --noEmit`; `npm test -- --runInBand`; `npm run build` | PASS — zero lint warnings; 20 tests pass; production build completes. |
