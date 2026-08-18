@@ -72,26 +72,32 @@ function MarketingHome() {
           </ScrollReveal>
           <ScrollReveal delay={320} direction="right">
             <p className="text-sm sm:text-lg md:text-xl text-white/70 leading-relaxed px-2">
-              Create and share lists of URLs easily. Perfect for sharing
-              resources, bookmarks, and collections with others.
+              Create and share lists of URLs easily.
             </p>
           </ScrollReveal>
-          <ScrollReveal delay={480} direction="bottom">
-          <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 justify-center px-2">
-            <CreateNewListButton
-              icon={ListPlus}
-              className="text-sm px-6 sm:px-8"
-            />
-            <Button
-              href="/lists"
-              variant="outline"
-              className="text-white border-white/30 hover:bg-white/10 text-sm px-6 sm:px-8 rounded-xl w-full sm:w-auto"
-            >
-              <LayoutList className="h-5 w-5 shrink-0" aria-hidden />
-              View My Lists
-            </Button>
-          </div>
+          <ScrollReveal delay={480} direction="left">
+            <p className="text-sm sm:text-lg md:text-xl text-white/70 leading-relaxed px-2">
+              Perfect for sharing resources, bookmarks, and collections with others.
+            </p>
           </ScrollReveal>
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 justify-center px-2">
+            <ScrollReveal delay={640} direction="bottom" className="w-full sm:w-auto">
+              <CreateNewListButton
+                icon={ListPlus}
+                className="text-sm px-6 sm:px-8"
+              />
+            </ScrollReveal>
+            <ScrollReveal delay={800} direction="bottom" className="w-full sm:w-auto">
+              <Button
+                href="/lists"
+                variant="outline"
+                className="text-white border-white/30 hover:bg-white/10 text-sm px-6 sm:px-8 rounded-xl w-full sm:w-auto"
+              >
+                <LayoutList className="h-5 w-5 shrink-0" aria-hidden />
+                View My Lists
+              </Button>
+            </ScrollReveal>
+          </div>
         </div>
       </section>
 
