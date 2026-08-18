@@ -223,7 +223,7 @@ export function UrlAddForm({
             onChange={handleUrlChange}
             placeholder="Enter a URL to add to your list..."
             error={error}
-            className="text-sm sm:text-base lg:text-lg shadow-md font-delicious bg-transparent"
+            className="text-sm sm:text-base shadow-md font-delicious bg-transparent"
           />
 
           {/* AI Enhancement - Compact mode for inline use */}
@@ -255,14 +255,14 @@ export function UrlAddForm({
                 value={newTags}
                 onChange={(e) => setNewTags(e.target.value)}
                 placeholder="Tags (comma separated) - AI will suggest some!"
-                className="text-sm sm:text-base lg:text-lg shadow-md font-delicious bg-transparent"
+                className="text-sm sm:text-base shadow-md font-delicious bg-transparent"
               />
 
               <Textarea
                 value={newNote}
                 onChange={(e) => setNewNote(e.target.value)}
                 placeholder="Note (optional) - AI will suggest a summary!"
-                className="text-sm sm:text-base lg:text-lg shadow-md font-delicious rounded-xl min-h-[40px]"
+                className="text-sm sm:text-base shadow-md font-delicious rounded-xl min-h-[40px]"
                 rows={2}
               />
             </div>

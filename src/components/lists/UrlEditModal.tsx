@@ -167,134 +167,134 @@ export function UrlEditModal({
       size="form"
       pending={isEditing}
     >
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            // Cancel prefetch timeout immediately when form is submitted
-            cancelPrefetch();
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          // Cancel prefetch timeout immediately when form is submitted
+          cancelPrefetch();
 
-            const tagsArray = editingTags
-              .split(",")
-              .map((tag) => tag.trim())
-              .filter((tag) => tag.length > 0);
-            handleEditUrl(
-              editingUrl.id,
-              editingUrl.title || "",
-              editingUrl.url,
-              tagsArray.length > 0 ? tagsArray : undefined,
-              editingNotes || undefined,
-              editingReminder || undefined,
-            );
-          }}
-          className="mt-4 sm:mt-6 lg:mt-8 space-y-2 sm:space-y-4"
-        >
-          <div>
-            <label className="block text-sm sm:text-base font-medium text-white">
-              Title
-            </label>
-            <Input
-              type="text"
-              value={editingUrl.title}
-              onChange={(e) =>
-                setEditingUrl({ ...editingUrl, title: e.target.value })
-              }
-              placeholder="URL Title"
-              className="mt-2 text-sm sm:text-base lg:text-lg shadow-sm"
-            />
-          </div>
-          <div>
-            <label className="block text-sm sm:text-base font-medium text-white">
-              URL
-            </label>
-            <Input
-              type="url"
-              value={editingUrl.url}
-              onChange={(e) =>
-                setEditingUrl({ ...editingUrl, url: e.target.value })
-              }
-              placeholder="https://example.com"
-              className="mt-2 text-sm sm:text-base lg:text-lg shadow-sm"
-            />
-          </div>
-          <div>
-            <label className="block text-sm sm:text-base font-medium text-white">
-              Tags (comma separated)
-            </label>
-            <Input
-              type="text"
-              value={editingTags}
-              onChange={(e) => setEditingTags(e.target.value)}
-              placeholder="e.g. work, reading, ai"
-              className="mt-2 text-sm sm:text-base lg:text-lg shadow-sm"
-            />
-            {editingUrl?.url && (
-              <div className="mt-2">
-                <UrlEnhancer
-                  url={editingUrl.url}
-                  title={editingUrl.title}
-                  description={editingUrl.description}
-                  onEnhance={(result) => {
-                    // Apply AI suggestions
-                    if (result.tags && result.tags.length > 0) {
-                      const existingTags = editingTags
-                        .split(",")
-                        .map((t) => t.trim())
-                        .filter((t) => t.length > 0);
-                      const newTags = [...existingTags, ...result.tags].filter(
-                        (tag, index, self) => self.indexOf(tag) === index,
-                      );
-                      setEditingTags(newTags.join(", "));
-                    }
-                    if (result.summary) {
-                      setEditingNotes(result.summary);
-                    }
-                  }}
-                  compact={true}
-                />
-              </div>
-            )}
-          </div>
-          <div>
-            <label className="block text-sm sm:text-base font-medium text-white">
-              Notes (optional)
-            </label>
-            <Input
-              type="text"
-              value={editingNotes}
-              onChange={(e) => setEditingNotes(e.target.value)}
-              placeholder="Add a note..."
-              className="mt-2 text-sm sm:text-base lg:text-lg shadow-sm"
-            />
-          </div>
-          <div>
-            <label className="block text-sm sm:text-base font-medium text-white">
-              Reminder (optional)
-            </label>
-            <Input
-              type="date"
-              value={editingReminder}
-              onChange={(e) => setEditingReminder(e.target.value)}
-              className="mt-2 text-sm sm:text-base lg:text-lg shadow-sm"
-            />
-          </div>
-          <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-2 mt-6 sm:mt-8">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setEditingUrl(null)}
-              className="text-white border-white/30 hover:bg-white/10 text-sm sm:text-base lg:text-lg px-4 sm:px-6 py-2 sm:py-2 rounded-lg sm:rounded-xl w-full sm:w-auto"
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              disabled={isEditing}
-              className="bg-blue-600 hover:bg-blue-700 text-white text-sm sm:text-base lg:text-lg font-medium px-4 sm:px-6 py-2 sm:py-2 rounded-lg sm:rounded-xl shadow-md hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto"
-            >
-              {isEditing ? "Saving..." : "Save Changes"}
-            </Button>
-          </div>
-        </form>
+          const tagsArray = editingTags
+            .split(",")
+            .map((tag) => tag.trim())
+            .filter((tag) => tag.length > 0);
+          handleEditUrl(
+            editingUrl.id,
+            editingUrl.title || "",
+            editingUrl.url,
+            tagsArray.length > 0 ? tagsArray : undefined,
+            editingNotes || undefined,
+            editingReminder || undefined,
+          );
+        }}
+        className="mt-4 sm:mt-6 lg:mt-8 space-y-2 sm:space-y-4"
+      >
+        <div>
+          <label className="block text-sm sm:text-base font-medium text-white">
+            Title
+          </label>
+          <Input
+            type="text"
+            value={editingUrl.title}
+            onChange={(e) =>
+              setEditingUrl({ ...editingUrl, title: e.target.value })
+            }
+            placeholder="URL Title"
+            className="mt-2 text-sm sm:text-base shadow-sm"
+          />
+        </div>
+        <div>
+          <label className="block text-sm sm:text-base font-medium text-white">
+            URL
+          </label>
+          <Input
+            type="url"
+            value={editingUrl.url}
+            onChange={(e) =>
+              setEditingUrl({ ...editingUrl, url: e.target.value })
+            }
+            placeholder="https://example.com"
+            className="mt-2 text-sm sm:text-base shadow-sm"
+          />
+        </div>
+        <div>
+          <label className="block text-sm sm:text-base font-medium text-white">
+            Tags (comma separated)
+          </label>
+          <Input
+            type="text"
+            value={editingTags}
+            onChange={(e) => setEditingTags(e.target.value)}
+            placeholder="e.g. work, reading, ai"
+            className="mt-2 text-sm sm:text-base shadow-sm"
+          />
+          {editingUrl?.url && (
+            <div className="mt-2">
+              <UrlEnhancer
+                url={editingUrl.url}
+                title={editingUrl.title}
+                description={editingUrl.description}
+                onEnhance={(result) => {
+                  // Apply AI suggestions
+                  if (result.tags && result.tags.length > 0) {
+                    const existingTags = editingTags
+                      .split(",")
+                      .map((t) => t.trim())
+                      .filter((t) => t.length > 0);
+                    const newTags = [...existingTags, ...result.tags].filter(
+                      (tag, index, self) => self.indexOf(tag) === index,
+                    );
+                    setEditingTags(newTags.join(", "));
+                  }
+                  if (result.summary) {
+                    setEditingNotes(result.summary);
+                  }
+                }}
+                compact={true}
+              />
+            </div>
+          )}
+        </div>
+        <div>
+          <label className="block text-sm sm:text-base font-medium text-white">
+            Notes (optional)
+          </label>
+          <Input
+            type="text"
+            value={editingNotes}
+            onChange={(e) => setEditingNotes(e.target.value)}
+            placeholder="Add a note..."
+            className="mt-2 text-sm sm:text-base shadow-sm"
+          />
+        </div>
+        <div>
+          <label className="block text-sm sm:text-base font-medium text-white">
+            Reminder (optional)
+          </label>
+          <Input
+            type="date"
+            value={editingReminder}
+            onChange={(e) => setEditingReminder(e.target.value)}
+            className="mt-2 text-sm sm:text-base shadow-sm"
+          />
+        </div>
+        <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-2 mt-6 sm:mt-8">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setEditingUrl(null)}
+            className="text-white border-white/30 hover:bg-white/10 text-sm sm:text-base px-4 sm:px-6 py-2 sm:py-2 rounded-lg sm:rounded-xl w-full sm:w-auto"
+          >
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            disabled={isEditing}
+            className="bg-blue-600 hover:bg-blue-700 text-white text-sm sm:text-base font-medium px-4 sm:px-6 py-2 sm:py-2 rounded-lg sm:rounded-xl shadow-md hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto"
+          >
+            {isEditing ? "Saving..." : "Save Changes"}
+          </Button>
+        </div>
+      </form>
     </Dialog>
   );
 }

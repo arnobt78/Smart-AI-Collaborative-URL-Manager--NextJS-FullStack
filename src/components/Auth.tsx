@@ -28,7 +28,12 @@ import { displayNameFromEmail, robohashUrl } from "@/lib/robohash";
 import { queueAuthToast } from "@/lib/auth-toast";
 import { setWasAuthedHintClient } from "@/lib/was-authed";
 import { cn } from "@/lib/utils";
-import { CARD_PAD, FORM_STACK, HEADING_STACK, MARKETING_STACK } from "@/lib/ui-spacing";
+import {
+  CARD_PAD,
+  FORM_STACK,
+  HEADING_STACK,
+  MARKETING_STACK,
+} from "@/lib/ui-spacing";
 import { glassPrimaryButtonClass } from "@/lib/ui/glass-button-styles";
 import { UI_FORM_CONTROL } from "@/lib/ui/control-styles";
 
@@ -371,7 +376,7 @@ export default function Auth() {
 
               {/* Reserved heights — no border box; no layout shift as text types */}
               <div className="flex w-full flex-col gap-2 sm:gap-3">
-                <pre className="min-h-[2.5rem] sm:min-h-[2.75rem] font-mono text-sm sm:text-base lg:text-lg text-[#00ff99] drop-shadow-[0_0_10px_rgba(0,255,153,0.5)] whitespace-pre-wrap leading-tight">
+                <pre className="min-h-[2.5rem] sm:min-h-[2.75rem] font-mono text-sm sm:text-base text-[#00ff99] drop-shadow-[0_0_10px_rgba(0,255,153,0.5)] whitespace-pre-wrap leading-tight">
                   {typewriterText}
                   {isMainComplete && (
                     <span className="inline-block text-[#00ff99] font-medium animate-cursor-blink">

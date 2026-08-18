@@ -710,88 +710,102 @@ export const UrlCard: React.FC<UrlCardProps> = ({
         />
       )}
 
-      <Dialog open={similarUrlsOpen} onOpenChange={setSimilarUrlsOpen} title={`Similar URLs to “${url.title || url.url}”`} description="AI-powered similarity search" size="wide">
-              <div className="space-y-3 custom-scrollbar">
-                {loadingSimilarUrls ? (
-                  <div className="flex items-center justify-center py-12">
-                    <div className="flex flex-col items-center gap-2">
-                      <div className="w-8 h-8 border-4 border-blue-400 border-t-transparent rounded-full animate-spin" />
-                      <p className="text-white/60">Finding similar URLs...</p>
-                    </div>
-                  </div>
-                ) : similarUrls.length === 0 ? (
-                  <div className="text-center py-12">
-                    <MagnifyingGlassIcon className="h-16 w-16 text-white/40 mx-auto mb-4" />
-                    <p className="text-white/60 text-sm sm:text-base lg:text-lg font-medium">
-                      No similar URLs found
-                    </p>
-                    <p className="text-sm text-white/40 mt-2 max-w-md mx-auto">
-                      Try adding more URLs to find similar ones. The AI needs
-                      enough content to match against.
-                    </p>
-                  </div>
-                ) : (
-                  <div className="space-y-3 pb-2">
-                    {similarUrls.map((result) => (
-                      <div
-                        key={result.url.id}
-                        className="bg-white/5 backdrop-blur-md rounded-xl border border-white/10 p-4 hover:border-blue-400/30 transition-colors"
-                      >
-                        <div className="flex items-start justify-between gap-4">
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2  flex-wrap">
-                              <span className="px-2 py-0.5 bg-blue-500/20 border border-blue-400/30 text-blue-300 rounded text-xs font-medium whitespace-nowrap">
-                                {Math.round(result.relevanceScore * 100)}% match
-                              </span>
-                              {result.url.category && (
-                                <span className="px-2 py-0.5 bg-purple-500/20 border border-purple-400/30 text-purple-300 rounded text-xs font-medium whitespace-nowrap">
-                                  {result.url.category}
-                                </span>
-                              )}
-                            </div>
-                            <h4 className="font-medium text-white mb-1 break-words">
-                              {result.url.title || result.url.url}
-                            </h4>
-                            {result.url.description && (
-                              <p className="text-sm text-white/70  line-clamp-2">
-                                {result.url.description}
-                              </p>
-                            )}
-                            <p className="text-xs text-white/50  break-all">
-                              {result.url.url}
-                            </p>
-                            {result.matchReason && (
-                              <p className="text-xs text-white/60 italic mt-2">
-                                {result.matchReason}
-                              </p>
-                            )}
-                          </div>
-                          <Button
-                            type="button"
-                            onClick={() => {
-                              openExternalUrl(result.url.url);
-                            }}
-                            className="flex-shrink-0 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg whitespace-nowrap"
-                          >
-                            Visit
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
+      <Dialog
+        open={similarUrlsOpen}
+        onOpenChange={setSimilarUrlsOpen}
+        title={`Similar URLs to “${url.title || url.url}”`}
+        description="AI-powered similarity search"
+        size="wide"
+      >
+        <div className="space-y-3 custom-scrollbar">
+          {loadingSimilarUrls ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="flex flex-col items-center gap-2">
+                <div className="w-8 h-8 border-4 border-blue-400 border-t-transparent rounded-full animate-spin" />
+                <p className="text-white/60">Finding similar URLs...</p>
               </div>
+            </div>
+          ) : similarUrls.length === 0 ? (
+            <div className="text-center py-12">
+              <MagnifyingGlassIcon className="h-16 w-16 text-white/40 mx-auto mb-4" />
+              <p className="text-white/60 text-sm sm:text-base font-medium">
+                No similar URLs found
+              </p>
+              <p className="text-sm text-white/40 mt-2 max-w-md mx-auto">
+                Try adding more URLs to find similar ones. The AI needs enough
+                content to match against.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3 pb-2">
+              {similarUrls.map((result) => (
+                <div
+                  key={result.url.id}
+                  className="bg-white/5 backdrop-blur-md rounded-xl border border-white/10 p-4 hover:border-blue-400/30 transition-colors"
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2  flex-wrap">
+                        <span className="px-2 py-0.5 bg-blue-500/20 border border-blue-400/30 text-blue-300 rounded text-xs font-medium whitespace-nowrap">
+                          {Math.round(result.relevanceScore * 100)}% match
+                        </span>
+                        {result.url.category && (
+                          <span className="px-2 py-0.5 bg-purple-500/20 border border-purple-400/30 text-purple-300 rounded text-xs font-medium whitespace-nowrap">
+                            {result.url.category}
+                          </span>
+                        )}
+                      </div>
+                      <h4 className="font-medium text-white mb-1 break-words">
+                        {result.url.title || result.url.url}
+                      </h4>
+                      {result.url.description && (
+                        <p className="text-sm text-white/70  line-clamp-2">
+                          {result.url.description}
+                        </p>
+                      )}
+                      <p className="text-xs text-white/50  break-all">
+                        {result.url.url}
+                      </p>
+                      {result.matchReason && (
+                        <p className="text-xs text-white/60 italic mt-2">
+                          {result.matchReason}
+                        </p>
+                      )}
+                    </div>
+                    <Button
+                      type="button"
+                      onClick={() => {
+                        openExternalUrl(result.url.url);
+                      }}
+                      className="flex-shrink-0 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg whitespace-nowrap"
+                    >
+                      Visit
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </Dialog>
 
-      {currentList.get()?.id ? <Dialog open={commentsOpen} onOpenChange={setCommentsOpen} title="Comments" description={url.title || url.url} size="wide">
-              <div className="custom-scrollbar">
-                <Comments
-                  listId={currentList.get()!.id!}
-                  urlId={url.id}
-                  currentUserId={currentUserId}
-                />
-              </div>
-      </Dialog> : null}
+      {currentList.get()?.id ? (
+        <Dialog
+          open={commentsOpen}
+          onOpenChange={setCommentsOpen}
+          title="Comments"
+          description={url.title || url.url}
+          size="wide"
+        >
+          <div className="custom-scrollbar">
+            <Comments
+              listId={currentList.get()!.id!}
+              urlId={url.id}
+              currentUserId={currentUserId}
+            />
+          </div>
+        </Dialog>
+      ) : null}
     </div>
   );
 };

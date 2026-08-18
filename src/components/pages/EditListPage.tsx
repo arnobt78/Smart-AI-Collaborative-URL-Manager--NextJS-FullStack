@@ -186,7 +186,7 @@ export default function EditListPageClient() {
             <div className="space-y-2">
               <label
                 htmlFor="title"
-                className="flex text-sm sm:text-base lg:text-lg font-medium text-white  items-center gap-2"
+                className="flex text-sm sm:text-base font-medium text-white  items-center gap-2"
               >
                 <span className="w-1.5 h-1.5 rounded-full bg-blue-400"></span>
                 Title <span className="text-red-400">*</span>
@@ -198,7 +198,7 @@ export default function EditListPageClient() {
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="e.g., My Favorite Resources"
                 required
-                className="w-full border border-white/20 bg-white/10 backdrop-blur-md rounded-lg sm:rounded-xl px-2 sm:px-3 py-2 sm:py-3 text-sm sm:text-base lg:text-lg text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-400/50 transition-all duration-200 shadow-inner"
+                className="w-full border border-white/20 bg-white/10 backdrop-blur-md rounded-lg sm:rounded-xl px-2 sm:px-3 py-2 sm:py-3 text-sm sm:text-base text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-400/50 transition-all duration-200 shadow-inner"
               />
               <p className="text-xs sm:text-sm text-white/50">
                 Give your list a memorable name
@@ -209,7 +209,7 @@ export default function EditListPageClient() {
             <div className="space-y-2">
               <label
                 htmlFor="description"
-                className="flex text-sm sm:text-base lg:text-lg font-medium text-white  items-center gap-2"
+                className="flex text-sm sm:text-base font-medium text-white  items-center gap-2"
               >
                 <span className="w-1.5 h-1.5 rounded-full bg-pink-400"></span>
                 Description{" "}
@@ -221,7 +221,7 @@ export default function EditListPageClient() {
                 id="description"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                className="text-sm sm:text-base lg:text-lg shadow-inner font-delicious rounded-lg sm:rounded-xl border border-white/20 bg-white/10 backdrop-blur-md focus:ring-2 focus:ring-pink-500 focus:border-pink-400/50 transition-all duration-200 px-2 sm:px-3 py-2 sm:py-3"
+                className="text-sm sm:text-base shadow-inner font-delicious rounded-lg sm:rounded-xl border border-white/20 bg-white/10 backdrop-blur-md focus:ring-2 focus:ring-pink-500 focus:border-pink-400/50 transition-all duration-200 px-2 sm:px-3 py-2 sm:py-3"
                 placeholder="Describe what this list is about..."
                 rows={4}
               />
@@ -243,7 +243,7 @@ export default function EditListPageClient() {
                 <div className="flex-1">
                   <label
                     htmlFor="is_public"
-                    className="text-white font-medium text-sm sm:text-base lg:text-lg cursor-pointer mb-1 block"
+                    className="text-white font-medium text-sm sm:text-base cursor-pointer mb-1 block"
                   >
                     Make this list public
                   </label>

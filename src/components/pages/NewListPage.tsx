@@ -214,7 +214,7 @@ export default function NewListPageClient() {
             className={cn(FORM_STACK, "lg:space-y-8")}
           >
             <div className="space-y-2">
-              <label className="flex text-sm sm:text-base lg:text-lg font-medium text-white  items-center gap-2">
+              <label className="flex text-sm sm:text-base font-medium text-white  items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-blue-400"></span>
                 Title <span className="text-red-400">*</span>
               </label>
@@ -224,7 +224,7 @@ export default function NewListPageClient() {
                 onChange={(e) =>
                   setFormData({ ...formData, title: e.target.value })
                 }
-                className="w-full border border-white/20 bg-white/10 backdrop-blur-md rounded-lg sm:rounded-xl px-2 sm:px-3 py-2 sm:py-3 text-sm sm:text-base lg:text-lg text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-400/50 transition-all duration-200 shadow-inner"
+                className="w-full border border-white/20 bg-white/10 backdrop-blur-md rounded-lg sm:rounded-xl px-2 sm:px-3 py-2 sm:py-3 text-sm sm:text-base text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-400/50 transition-all duration-200 shadow-inner"
                 placeholder="e.g., My Favorite Resources"
                 required
               />
@@ -233,7 +233,7 @@ export default function NewListPageClient() {
               </p>
             </div>
             <div className="space-y-2">
-              <label className="flex text-sm sm:text-base lg:text-lg font-medium text-white  items-center gap-2">
+              <label className="flex text-sm sm:text-base font-medium text-white  items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-purple-400"></span>
                 Custom Slug{" "}
                 <span className="text-xs font-normal text-white/50">
@@ -250,7 +250,7 @@ export default function NewListPageClient() {
                   onChange={(e) =>
                     setFormData({ ...formData, slug: e.target.value })
                   }
-                  className="w-full border border-white/20 bg-white/10 backdrop-blur-md rounded-lg sm:rounded-xl px-2 sm:px-3 pl-16 sm:pl-20 py-2 sm:py-3 text-sm sm:text-base lg:text-lg text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-400/50 transition-all duration-200 shadow-inner"
+                  className="w-full border border-white/20 bg-white/10 backdrop-blur-md rounded-lg sm:rounded-xl px-2 sm:px-3 pl-16 sm:pl-20 py-2 sm:py-3 text-sm sm:text-base text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-400/50 transition-all duration-200 shadow-inner"
                   placeholder="custom-slug"
                 />
               </div>
@@ -259,7 +259,7 @@ export default function NewListPageClient() {
               </p>
             </div>
             <div className="space-y-2">
-              <label className="flex text-sm sm:text-base lg:text-lg font-medium text-white  items-center gap-2">
+              <label className="flex text-sm sm:text-base font-medium text-white  items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-indigo-400"></span>
                 First URL{" "}
                 <span className="text-xs font-normal text-white/50">
@@ -273,7 +273,7 @@ export default function NewListPageClient() {
                   onChange={(e) =>
                     setFormData({ ...formData, url: e.target.value })
                   }
-                  className="w-full border border-white/20 bg-white/10 backdrop-blur-md rounded-lg sm:rounded-xl px-2 sm:px-3 py-2 sm:py-3 text-sm sm:text-base lg:text-lg text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400/50 transition-all duration-200 shadow-inner"
+                  className="w-full border border-white/20 bg-white/10 backdrop-blur-md rounded-lg sm:rounded-xl px-2 sm:px-3 py-2 sm:py-3 text-sm sm:text-base text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400/50 transition-all duration-200 shadow-inner"
                   placeholder="https://example.com"
                 />
                 {formData.url && (
@@ -303,7 +303,7 @@ export default function NewListPageClient() {
               </p>
             </div>
             <div className="space-y-2">
-              <label className="flex text-sm sm:text-base lg:text-lg font-medium text-white  items-center gap-2">
+              <label className="flex text-sm sm:text-base font-medium text-white  items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-pink-400"></span>
                 Description{" "}
                 <span className="text-xs font-normal text-white/50">
@@ -315,7 +315,7 @@ export default function NewListPageClient() {
                 onChange={(e) =>
                   setFormData({ ...formData, description: e.target.value })
                 }
-                className="text-sm sm:text-base lg:text-lg shadow-inner font-delicious rounded-lg sm:rounded-xl border border-white/20 bg-white/10 backdrop-blur-md focus:ring-2 focus:ring-pink-500 focus:border-pink-400/50 transition-all duration-200 px-2 sm:px-3 py-2 sm:py-3"
+                className="text-sm sm:text-base shadow-inner font-delicious rounded-lg sm:rounded-xl border border-white/20 bg-white/10 backdrop-blur-md focus:ring-2 focus:ring-pink-500 focus:border-pink-400/50 transition-all duration-200 px-2 sm:px-3 py-2 sm:py-3"
                 placeholder="Describe what this list is about..."
                 rows={4}
               />
@@ -337,7 +337,7 @@ export default function NewListPageClient() {
                 <div className="flex-1">
                   <label
                     htmlFor="is_public"
-                    className="text-white font-medium text-sm sm:text-base lg:text-lg cursor-pointer mb-1 block"
+                    className="text-white font-medium text-sm sm:text-base cursor-pointer mb-1 block"
                   >
                     Make this list public
                   </label>
