@@ -62,3 +62,13 @@ Out of scope: densify/JWT SSR, Zod/SHA, Next 16, Prisma 7.
 | Regression suite | `npm test -- --runInBand` | PASS | 3 suites passed; 20 tests passed; 1 suite and 5 tests skipped. |
 | Production build | `npm run build` | PASS | Prisma generation and optimized Next.js build completed. |
 | Runtime configuration | `package.json` | PASS | Vercel runtime pinned to Node.js `24.x`; unrelated projects were not modified. |
+
+## 2026-08-18 — responsive chrome completion
+
+| Scope | Command | Result | Notes |
+|-------|---------|--------|-------|
+| REQ-0015 static analysis | `npm run lint` | PASS | Zero ESLint warnings/errors. |
+| REQ-0015 type safety | `npx tsc --noEmit` | PASS | Navbar and shared browser declarations compile without local Window casts. |
+| REQ-0015 regression suite | `npm test -- --runInBand` | PASS | 3 suites passed; 20 tests passed; 1 suite and 5 tests skipped. |
+| REQ-0015 production build | `npm run build` | PASS | Prisma generation and optimized Next.js build completed. |
+| Dependency audit | `npm audit --omit=dev --audit-level=high` | FLAG | 3 high findings from Prisma CLI's `deepmerge-ts@7.1.5`; no compatible Prisma 6 patch is available and npm's forced remediation downgrades Prisma. Recorded as RISK-0016. |

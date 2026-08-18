@@ -52,5 +52,13 @@ HA-0001 Firewall · Sentry org/token
 
 **Dependencies:** GATE-0011 approval. Wave 1 is a prerequisite for Waves 2–4; Waves 2 and 3 can proceed independently after Wave 1. TASK-0015 must not be mixed into UI behavior commits.
 
+### TASK-0016 — Responsive chrome centering — DONE
+
+1. Consolidate Navbar's browser coordination shape into the existing global declaration without changing navigation behavior.
+2. Apply one responsive 56px row contract to Navbar and Footer; allow the compact footer to grow below `sm`.
+3. Remove dead commented Footer code and validate static, type, test, and production-build behavior.
+
+**Dependencies:** GATE-0012 approved; no data/API/cache or authorization changes.
+
 ## Deferred
 RSC shells · densify/Zod/SHA/Next16

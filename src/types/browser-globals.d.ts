@@ -4,6 +4,11 @@ interface ClearableCache {
   clear?: () => void;
 }
 
+interface NextAppRouterCache {
+  isPending?: boolean;
+  cache?: ClearableCache;
+}
+
 /**
  * Client-only coordination state shared by imports, drag ordering, and real-time updates.
  * Keeping it here prevents unsafe window casts at every caller.
@@ -18,10 +23,7 @@ declare global {
     __bulkImportJustCompleted?: boolean;
     __bulkImportDisableInterception?: boolean;
     __dragOrderCache?: Record<string, UrlItem[]>;
-    __nextRouter?: {
-      isPending?: boolean;
-      cache?: ClearableCache;
-    };
+    __nextRouter?: NextAppRouterCache;
     __nextFetchCache?: ClearableCache;
     __NEXT_ROUTER_CACHE?: ClearableCache;
   }

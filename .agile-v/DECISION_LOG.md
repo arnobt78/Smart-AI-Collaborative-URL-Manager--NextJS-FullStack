@@ -180,3 +180,16 @@ Append-only. Newest entries at bottom.
 | Rationale | Control geometry, icons, motion timing, responsive widths, disclosure semantics, cache-preservation rules, and the lint success criterion are explicitly testable. The fixed desktop Auth shell makes scroll-linked form parallax unsuitable; the approved candidate is an entrance stagger only. |
 | Linked REQs | REQ-0010, REQ-0011, REQ-0012, REQ-0013, REQ-0014 |
 | Status | Validated for GATE-0011; synthesis remains blocked pending human approval |
+
+---
+
+## DEC-0015 — Reuse the existing chrome and browser-global contracts
+
+| Field | Value |
+|-------|-------|
+| Timestamp | 2026-08-18 |
+| Agent | Agile V Requirement Architect / Logic Gatekeeper |
+| Decision | Use `h-14`/`min-h-14` responsive layout classes in existing Navbar and Footer components; move Navbar's duplicated browser shape into `browser-globals.d.ts`. |
+| Rationale | This preserves the SSR layout shell, routes, session UI, and import guard while making the single visual alignment rule explicit and type-safe. |
+| Linked REQs | REQ-0015 |
+| Status | Implemented and validated; global declarations retain only supported custom cache shapes because Next.js owns the immutable `__NEXT_DATA__` type. |

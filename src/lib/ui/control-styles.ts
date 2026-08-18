@@ -13,3 +13,6 @@ export const UI_FORM_CONTROL =
 /** Shared trigger layout for filters and import/export controls. */
 export const UI_CONTROL_TRIGGER =
   `${UI_CONTROL_HEIGHT} ${UI_CONTROL_ICON_GAP} inline-flex items-center justify-center rounded-xl px-3 text-xs font-medium sm:text-sm whitespace-nowrap transition-all duration-200`;
+
+/** Shared content alignment for responsive application chrome rows. */
+export const UI_CHROME_ROW = "flex w-full items-center justify-between";

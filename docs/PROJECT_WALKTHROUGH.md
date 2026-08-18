@@ -13,7 +13,7 @@ Next 15 URL bookmark manager. Demo: https://daily-urlist.vercel.app/
 - Flash: SSR `WAS_AUTHED_COOKIE` / `session_token` → `useWasAuthedHint` · guests Auth · returning Marketing (no spinner)
 - Auth UI: split viewport inside `max-w-7xl` — left Welcome typewriter + about-process (no center divider / left logo); right labeled Sign In + Sign up row; no 8s overlay
 - CTAs: `src/lib/ui/glass-*` shadow-glow (stock recipe); Auth Sign In Sparkles
-- Navbar: `h-14 overflow-visible` · profile shell visible · menu `z-[100]` · static brand
+- Chrome: shared `UI_CHROME_ROW`; Navbar stays centered in `h-14`; Footer centers at desktop and uses `min-h-14` when compact content stacks
 - BG: static `FloatingBackground` (no `animate-float`) · PostHog `PostHogPageview` Suspense island only
 - Spacing: `lib/ui-spacing.ts` PAGE/SECTION/MARKETING/FORM/LIST/PAGE_HEADER/CARD_PAD
 - Layout main: `py-6 sm:py-10` · `html { scrollbar-gutter: stable }`
@@ -27,6 +27,7 @@ Next 15 URL bookmark manager. Demo: https://daily-urlist.vercel.app/
 - Out of scope: densify / Zod / SHA / JWT-null SSR / Next 16 / Prisma 7
 - UI controls: `lib/ui/control-styles.ts` provides shared 48px field/trigger geometry; Auth uses CSS reveal with reduced-motion support
 - Data sync: unified React Query cache + optimistic `currentList` store + centralized invalidation + SSE; bulk import reconciles without a hard reload
+- Audit: lint/typecheck/Jest/build pass; `npm audit` has a documented Prisma CLI transitive advisory with no compatible Prisma 6 remediation
 
 ## Versions
 

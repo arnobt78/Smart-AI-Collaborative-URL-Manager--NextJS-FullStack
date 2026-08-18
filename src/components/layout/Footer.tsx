@@ -1,19 +1,19 @@
 "use client";
 
 import Link from "next/link";
-// import { LinkIcon } from "@heroicons/react/24/outline";
+import { UI_CHROME_ROW } from "@/lib/ui/control-styles";
 
+/** REQ-0015: compact chrome grows safely when its content stacks on narrow viewports. */
 export default function Footer() {
   return (
-    <footer className="bg-transparent backdrop-blur-md mt-auto">
-      <div className="mx-auto max-w-7xl px-2 sm:px-0 py-6 sm:py-8">
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-2 sm:gap-0">
+    <footer className="mt-auto min-h-14 bg-transparent">
+      <div className="mx-auto max-w-7xl px-2 sm:px-0">
+        <div
+          className={`${UI_CHROME_ROW} min-h-14 flex-col gap-2 py-2 sm:h-14 sm:flex-row sm:gap-0 sm:py-0`}
+        >
           <div className="flex items-center gap-2">
-            {/* <div className="bg-gradient-to-r from-blue-100 to-purple-100 rounded-lg p-2">
-              <LinkIcon className="h-5 w-5 text-blue-600" />
-            </div> */}
             <span className="text-sm sm:text-base text-white/80 font-mono">
-              {new Date().getFullYear()} The Daily Urlist
+              &copy; {new Date().getFullYear()}. All rights reserved.
             </span>
           </div>
           <div className="flex items-center gap-4 sm:gap-6">

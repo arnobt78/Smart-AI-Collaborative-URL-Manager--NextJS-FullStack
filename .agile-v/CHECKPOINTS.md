@@ -29,3 +29,5 @@
 | 2026-08-18 | GATE-0010 | Human-Decision | SUPERSEDED | `C1-HG1-REQ-0010-2026-08-18` | Superseded before approval by the broader, atomic GATE-0011 scope. |
 | 2026-08-18 | GATE-0011 | Human-Decision | PENDING | `C1-HG1-UI-REMEDIATION-2026-08-18` | REQ-0010 through REQ-0014. Resume synthesis only after matching APPROVALS.md entry and STATE.md update. |
 | 2026-08-18 | GATE-0011 | Human-Decision | APPROVED | `C1-HG1-UI-REMEDIATION-2026-08-18` | User approved REQ-0010 through REQ-0014; Stage 3 synthesis authorized. |
+| 2026-08-18 | GATE-0012 | Human-Decision | APPROVED | `C1-HG1-RESPONSIVE-CHROME-2026-08-18` | User approved REQ-0015 responsive chrome alignment and inclusion of remaining local changes. |
+| 2026-08-18 | GATE-0012 complete: responsive header/footer chrome alignment; zero lint, typecheck, Jest, and production build pass. Prisma CLI audit remains RISK-0016. |

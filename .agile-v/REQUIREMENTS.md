@@ -198,7 +198,7 @@ These describe the current product as verified in code. They are **Accepted as b
 
 **Initial affected inventory:** `src/components/ui/Button.tsx`, `src/lib/ui-spacing.ts`, `src/components/{Auth,HomePage}.tsx`, `src/components/layout/{Navbar,ProfileDropdown}.tsx`, `src/components/{lists,collections,collaboration,pages}/**/*.tsx`, and any direct CTA styling found during the approved audit.
 **Trace:** TASK-0011, DEC-0012, RISK-0011, GATE-0011
-**Status:** Proposed — revised from the narrower unapproved GATE-0010 scope; awaiting Human Gate 1 approval.
+**Status:** Completed 2026-08-18 — implemented and validated under GATE-0011.
 
 ---
 
@@ -218,7 +218,7 @@ These describe the current product as verified in code. They are **Accepted as b
 
 **Affected:** `src/components/Auth.tsx`, `src/app/globals.css`, shared UI motion/style utility only if necessary.
 **Trace:** TASK-0012, DEC-0013, RISK-0012, GATE-0011
-**Status:** Proposed — awaiting Human Gate 1 approval.
+**Status:** Completed 2026-08-18 — implemented and validated under GATE-0011.
 
 ---
 
@@ -237,7 +237,7 @@ These describe the current product as verified in code. They are **Accepted as b
 
 **Affected:** `src/components/collections/SmartCollections.tsx`, shared control styles only as needed.
 **Trace:** TASK-0013, DEC-0012, RISK-0013, GATE-0011
-**Status:** Proposed — awaiting Human Gate 1 approval.
+**Status:** Completed 2026-08-18 — implemented and validated under GATE-0011.
 
 ---
 
@@ -257,7 +257,7 @@ These describe the current product as verified in code. They are **Accepted as b
 
 **Affected:** `src/components/lists/{UrlList,UrlAddForm,UrlFilterBar,UrlBulkImportExport}.tsx`, `src/components/ui/{Button,Input}.tsx`, shared control styles only as needed.
 **Trace:** TASK-0014, DEC-0012, RISK-0011, GATE-0011
-**Status:** Proposed — awaiting Human Gate 1 approval.
+**Status:** Completed 2026-08-18 — implemented and validated under GATE-0011.
 
 ---
 
@@ -276,7 +276,28 @@ These describe the current product as verified in code. They are **Accepted as b
 
 **Affected:** Repository-wide; planned as an independent final wave because the current command reports warnings across application, hooks, stores, tests, and import tooling.
 **Trace:** TASK-0015, DEC-0012, RISK-0014, GATE-0011
-**Status:** Proposed — awaiting Human Gate 1 approval.
+**Status:** Completed 2026-08-18 — zero-warning lint, typecheck, Jest, and production build pass under GATE-0011.
+
+---
+
+### REQ-0015 — Responsive application chrome alignment (approved 2026-08-18)
+
+**Priority:** P2
+**Type:** UI consistency / responsive layout
+**Statement:** Navbar and footer content MUST be horizontally and vertically centered within the shared 56px desktop chrome rhythm. At narrow widths, the expanded navigation and stacked footer MUST grow without clipping, overlap, or fixed-height overflow.
+
+**Acceptance:**
+
+- [ ] The navbar's brand, desktop navigation, profile control, and mobile controls remain vertically centered in its 56px row.
+- [ ] The footer's copyright and navigation row remain vertically centered at `sm` and above; below `sm`, the footer has enough intrinsic height for its stacked content.
+- [ ] Header/footer controls preserve current routes, session behavior, import-navigation guard, keyboard focus, and responsive menu semantics.
+- [ ] Browser-internal import/navigation cache typing is defined once in the existing global browser declarations; no local `Window` cast or unsafe `any` is introduced.
+- [ ] Remove only dead commented footer code associated with the revised chrome; retain user-facing content and existing visual style.
+- [ ] `npm run lint`, `npx tsc --noEmit`, Jest, and `npm run build` pass; manually inspect 320px, 768px, and 1440px layouts.
+
+**Affected:** `src/components/layout/{Navbar,Footer}.tsx`, `src/types/browser-globals.d.ts`, and validation/traceability records only.
+**Trace:** TASK-0016, DEC-0015, RISK-0015, GATE-0012
+**Status:** Completed 2026-08-18 — shared chrome alignment and browser typing validated under GATE-0012.
 
 ---
 

@@ -18,6 +18,7 @@
 - Auth split viewport: `md:grid-cols-2` welcome+about | labeled Sign In; removed 8s blocking overlay
 - Auth UI polish: max-w-7xl shell; no center divider/left logo; reserved typewriter heights; feature gaps; Sign up row; CTA spacer
 - Stock glass shadow-glow port: `src/lib/ui/glass-{button,badge,card}-styles.ts`; Button variants; Auth Sign In Sparkles + primary blue glow; PermissionManager/CTAs aligned; dead `ui-button.ts` removed
+- Responsive chrome: shared `UI_CHROME_ROW`; Navbar remains centered at 56px; Footer centers at desktop and grows safely when stacked on mobile; dead footer icon code removed
 
 ## Human
 
@@ -31,17 +32,19 @@
 
 ## Current checkpoint
 
-- **Stage:** Stage 4 Verification complete for REQ-0010 through REQ-0014
+- **Stage:** Stage 4 Verification complete for REQ-0010 through REQ-0015
 - **Gate:** **GATE-0011 Human Gate 1 — APPROVED** (`C1-HG1-UI-REMEDIATION-2026-08-18`)
 - **Scope:** shared control geometry, login row composition/motion, Smart Collections disclosure, URL toolbar/add-form refinement, and independent lint remediation.
 - **Reconciliation:** current C1 code and commit history support the recorded completed UI work. The original GATE-0001 remains historically unapproved; it is not treated as approval for further work.
 - **Audit findings resolved:** shared control geometry, Smart Collections disclosure, URL toolbar/add-form semantics, global browser casts, and 235 lint warnings are remediated. Existing mutation/invalidation architecture was retained and bulk import no longer hard-reloads.
 - **Implementation:** REQ-0010 through REQ-0013 are implemented with shared control styles, Auth entrance motion, accessible Smart Collections disclosure, and URL toolbar/Add URL refinements. The URL workspace, bulk-import flow, real-time/query synchronization, drag-order cache, metadata helper, and auth helper received type-safe lint remediation without changing their behavior. Typecheck, Jest, and production build pass.
 - **Completion:** REQ-0014 is complete. `npm run lint` reports zero warnings/errors after type-safe remediation; no lint-rule suppression was used.
+- **Completion:** REQ-0015 is complete. Navbar/Footer use the shared responsive chrome row; their routes, session behavior, and import guard are unchanged. Lint, typecheck, Jest, and production build pass.
+- **Dependency audit:** `npm audit --omit=dev --audit-level=high` flags three known high Prisma CLI transitive findings. No compatible Prisma 6 patch is available; npm's forced remediation downgrades Prisma. Track RISK-0016 rather than apply an unsafe dependency change.
 - **Evidence:** planning traces in `REQUIREMENTS.md` (REQ-0010 to REQ-0014), `TASKS.md` (TASK-0011 to TASK-0015), `DECISION_LOG.md` (DEC-0012/0013), `RISKS.md` (RISK-0011 to RISK-0014), and `GATES.md`.
 
 ## Next
 
 ```text
-Commit and push completed after user acceptance. HA-0001 remains human-owned. No densify/Zod/Next16/Prisma7 unless separately required.
+Commit and push the user-authorized remaining Navbar, Footer, and parallax document changes. HA-0001 remains human-owned. Prisma 7 requires a separate migration plan; no densify/Zod changes are implied.
 ```

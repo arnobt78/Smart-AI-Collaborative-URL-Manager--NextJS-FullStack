@@ -7,5 +7,6 @@
 | ART-0012.1 | REQ-0012 | `src/components/collections/SmartCollections.tsx` | Accessible suggestions disclosure; preserve React Query behavior. |
 | ART-0013.1 | REQ-0013 | `src/components/lists/{UrlList,UrlAddForm,UrlFilterBar,UrlBulkImportExport}.tsx`; `src/components/HomePage.tsx` | Toolbar, CTA, and responsive add-form refinement. |
 | ART-0014.1 | REQ-0014 | Targeted source, hook, store, test, and utility files identified by lint | Type-safe lint remediation with no blanket suppressions. |
+| ART-0015.1 | REQ-0015 | `src/components/layout/{Navbar,Footer}.tsx`; `src/types/browser-globals.d.ts` | Responsive 56px chrome alignment and one typed browser coordination contract. |
 
 Risk level: R2 (production UI and repository-wide behavior-sensitive lint remediation). No API, database, authorization, or session contract changes are authorized.

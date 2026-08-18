@@ -11,3 +11,5 @@ Overview: REQ-0010 through REQ-0014. Tests are derived from approved requirement
 | TC-0014 | REQ-0013 | Expand and cancel Add URL | Form is responsive, cancel clears transient state, and no URL mutation is sent | integration |
 | TC-0015 | REQ-0013 | Submit Add URL success and failure | Existing optimistic/invalidation behavior remains; failure retains inputs and shows error | integration |
 | TC-0016 | REQ-0014 | Run static quality commands | Lint has zero warnings/errors; typecheck, relevant Jest tests, and build pass | system |
+| TC-0017 | REQ-0015 | Inspect header/footer at 320px, 768px, and 1440px | Desktop chrome is 56px centered; mobile content grows without clipping or overlap | manual responsive |
+| TC-0018 | REQ-0015 | Run static quality commands | Lint, typecheck, Jest, and build preserve layout component contracts | system |

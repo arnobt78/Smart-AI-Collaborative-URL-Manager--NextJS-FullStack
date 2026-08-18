@@ -6,7 +6,7 @@
 Stage 1 Requirements → Stage 2 Validation → [Human Gate 1] → Stage 3 Synthesis → Stage 4 Verification → [Human Gate 2] → Stage 5 Acceptance
 ```
 
-Current: **Stage 3 synthesis authorized** by Human Gate 1 (GATE-0011).
+Current: **Stage 4 verification complete** for GATE-0011 and GATE-0012; Gate 2 remains required before release acceptance.
 
 Reconciliation note (2026-08-18): commits and prior validation records document C1 implementation activity, but `APPROVALS.md` has no matching approved record for the original GATE-0001 token. This is retained as historical evidence, not retroactively approved. It does not authorize further implementation.
 
@@ -45,13 +45,25 @@ Reconciliation note (2026-08-18): commits and prior validation records document 
 | Field | Value |
 |-------|-------|
 | Type | Human-Decision |
-| Status | **PENDING** |
+| Status | **APPROVED 2026-08-18** |
 | Checkpoint | `C1-HG1-UI-REMEDIATION-2026-08-18` in `CHECKPOINTS.md` |
 | Evidence | REQ-0010 to REQ-0014; TASK-0011 to TASK-0015; DEC-0012/0013; RISK-0011 to RISK-0014 |
 | Required human action | Completed — user approved all scoped requirements. |
 | Resume condition | Satisfied by matching `APPROVALS.md` entry. |
 
 Implementation is authorized. Gate 2 remains required before any release decision.
+
+---
+
+## GATE-0012 — Human Gate 1 (responsive chrome alignment)
+
+| Field | Value |
+|-------|-------|
+| Type | Human-Decision |
+| Status | **APPROVED 2026-08-18** |
+| Evidence | REQ-0015; TASK-0016; DEC-0015; RISK-0015; TC-0017/0018 |
+| Required human action | Completed — user authorized implementation and inclusion of the remaining local files. |
+| Scope | Responsive Navbar/Footer centering, browser type consolidation, and dead commented Footer-code removal only. |
 
 ---
 

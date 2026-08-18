@@ -5,6 +5,7 @@
  * Authenticated: ProfileDropdown holds API Docs / API Status / Logout (PORTABLE_AUTH_UI_GUIDE §2.2).
  * Top-level links stay: Public URL, Analytics, My Lists.
  * initialWasAuthed from SSR cookie → profile skeleton on first paint (no empty→jump).
+ * REQ-0015: the shared chrome row keeps interactive header content centered in 56px.
  */
 import Link from "next/link";
 import { LinkIcon, Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
@@ -13,18 +14,7 @@ import { abortRegistry } from "@/utils/abortRegistry";
 import { useSession } from "@/hooks/useSession";
 import { useWasAuthedHint } from "@/hooks/useWasAuthedHint";
 import { ProfileDropdown } from "@/components/layout/ProfileDropdown";
-
-/** Bulk-import navigation guards (set by import UI on window). */
-type UrlistWindow = Window & {
-  __bulkImportActive?: boolean;
-  __bulkImportJustCompleted?: boolean;
-  __NEXT_DATA__?: { router?: { prefetchCache?: { clear?: () => void } } };
-  __nextRouter?: {
-    isPending?: boolean;
-    cache?: { clear?: () => void };
-  };
-  __nextFetchCache?: { clear?: () => void };
-};
+import { UI_CHROME_ROW } from "@/lib/ui/control-styles";
 
 export type NavbarProps = {
   /** From cookies() urlist_was_authed — skeleton on first paint for returning users */
@@ -47,7 +37,7 @@ export default function Navbar({ initialWasAuthed = false }: NavbarProps) {
     href: string,
   ) => {
     if (typeof window !== "undefined") {
-      const win = window as UrlistWindow;
+      const win = window;
       const isImportActive = win.__bulkImportActive === true;
       const importJustCompleted = win.__bulkImportJustCompleted === true;
 
@@ -73,11 +63,6 @@ export default function Navbar({ initialWasAuthed = false }: NavbarProps) {
                 `🧹 [NAVBAR] Force cleaned up abort registry before navigation`,
               );
             }
-          }
-
-          const nextRouter = win.__NEXT_DATA__?.router;
-          if (nextRouter?.prefetchCache) {
-            nextRouter.prefetchCache.clear?.();
           }
 
           const routerInstance = win.__nextRouter;
@@ -138,7 +123,7 @@ export default function Navbar({ initialWasAuthed = false }: NavbarProps) {
       }`}
     >
       <div className="mx-auto flex max-w-7xl flex-col overflow-visible px-2 sm:px-0">
-        <div className="flex h-14 w-full items-center justify-between overflow-visible">
+        <div className={`${UI_CHROME_ROW} h-14 overflow-visible`}>
           <Link
             href="/"
             onClick={(e) => handleNavigation(e, "/")}
@@ -154,7 +139,7 @@ export default function Navbar({ initialWasAuthed = false }: NavbarProps) {
           </Link>
 
           {/* Desktop Navigation — nowrap so avatar never wraps/squeezes */}
-          <div className="hidden sm:flex h-10 items-center gap-2 lg:gap-4 flex-nowrap">
+          <div className="hidden sm:flex h-10 items-center gap-4 lg:gap-6 flex-nowrap">
             <Link
               href="/browse"
               onClick={(e) => handleNavigation(e, "/browse")}
