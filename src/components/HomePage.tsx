@@ -65,18 +65,18 @@ function MarketingHome() {
               />
             </div>
           </ScrollReveal>
-          <ScrollReveal delay={80} direction="left">
+          <ScrollReveal delay={160} direction="left">
             <h1 className="text-2xl sm:text-4xl md:text-5xl font-medium text-white bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-indigo-400 px-2">
               The Daily Urlist
             </h1>
           </ScrollReveal>
-          <ScrollReveal delay={160} direction="right">
+          <ScrollReveal delay={320} direction="right">
             <p className="text-sm sm:text-lg md:text-xl text-white/70 leading-relaxed px-2">
               Create and share lists of URLs easily. Perfect for sharing
               resources, bookmarks, and collections with others.
             </p>
           </ScrollReveal>
-          <ScrollReveal delay={240} direction="bottom">
+          <ScrollReveal delay={480} direction="bottom">
           <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 justify-center px-2">
             <CreateNewListButton
               icon={ListPlus}
@@ -101,7 +101,7 @@ function MarketingHome() {
           {features.map((feature, index) => (
             <ScrollReveal
               key={index}
-              delay={index * 90}
+              delay={index * 140}
               parallax
               className={cn(
                 "group rounded-xl sm:rounded-2xl border border-white/20 bg-white/5 backdrop-blur-md shadow-lg hover:shadow-xl transition-all duration-300 hover:border-blue-400/30 flex flex-col gap-2 sm:gap-3",
@@ -146,7 +146,7 @@ function MarketingHome() {
               Start by creating a new list and give it a memorable name.
             </p>
           </ScrollReveal>
-          <ScrollReveal delay={90} direction="bottom" parallax className={cn("text-center flex flex-col items-center gap-2 sm:gap-3", CARD_PAD)}>
+          <ScrollReveal delay={140} direction="bottom" parallax className={cn("text-center flex flex-col items-center gap-2 sm:gap-3", CARD_PAD)}>
             <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-purple-500/20 backdrop-blur-md border border-purple-400/30 text-purple-400 flex items-center justify-center text-base sm:text-lg lg:text-xl font-medium">
               2
             </div>
@@ -158,7 +158,7 @@ function MarketingHome() {
             </p>
           </ScrollReveal>
           <ScrollReveal
-            delay={180}
+            delay={280}
             direction="right"
             parallax
             className={cn(
@@ -192,12 +192,12 @@ function MarketingHome() {
               Ready to Create Your First List?
             </h2>
           </ScrollReveal>
-          <ScrollReveal delay={80} direction="right">
+          <ScrollReveal delay={160} direction="right">
             <p className="text-sm sm:text-base lg:text-xl text-white/60 px-2">
               Start organizing and sharing your favorite URLs today.
             </p>
           </ScrollReveal>
-          <ScrollReveal delay={160} direction="bottom">
+          <ScrollReveal delay={320} direction="bottom">
             <CreateNewListButton
               label="Get Started Now With Your Daily URL List"
               icon={Bubbles}
