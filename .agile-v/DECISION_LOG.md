@@ -193,3 +193,16 @@ Append-only. Newest entries at bottom.
 | Rationale | This preserves the SSR layout shell, routes, session UI, and import guard while making the single visual alignment rule explicit and type-safe. |
 | Linked REQs | REQ-0015 |
 | Status | Implemented and validated; global declarations retain only supported custom cache shapes because Next.js owns the immutable `__NEXT_DATA__` type. |
+
+---
+
+## DEC-0016 — Accept Prisma CLI transitive advisory without forced migration
+
+| Field | Value |
+|-------|-------|
+| Timestamp | 2026-08-18 |
+| Agent | User decision recorded by Agile V Compliance |
+| Decision | Retain Prisma 6.19.3 and accept RISK-0016; do not run npm's forced remediation or a Prisma major upgrade. |
+| Rationale | Available automated remediation downgrades Prisma and a supported Prisma 7 migration exceeds the approved scope and risks application stability. |
+| Linked REQs | dependency baseline |
+| Status | Accepted by user; re-evaluate only under a dedicated migration requirement. |

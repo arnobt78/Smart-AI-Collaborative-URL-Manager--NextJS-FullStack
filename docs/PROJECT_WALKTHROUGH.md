@@ -27,7 +27,7 @@ Next 15 URL bookmark manager. Demo: https://daily-urlist.vercel.app/
 - Out of scope: densify / Zod / SHA / JWT-null SSR / Next 16 / Prisma 7
 - UI controls: `lib/ui/control-styles.ts` provides shared 48px field/trigger geometry; Auth uses CSS reveal with reduced-motion support
 - Data sync: unified React Query cache + optimistic `currentList` store + centralized invalidation + SSE; bulk import reconciles without a hard reload
-- Audit: lint/typecheck/Jest/build pass; `npm audit` has a documented Prisma CLI transitive advisory with no compatible Prisma 6 remediation
+- Audit: lint/typecheck/Jest/build and mutation/secret scans pass; user accepted the documented Prisma CLI advisory, while Gate 2 still needs EvalGate and human acceptance
 
 ## Versions
 

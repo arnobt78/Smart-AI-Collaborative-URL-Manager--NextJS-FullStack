@@ -8,7 +8,8 @@ Live: https://daily-urlist.vercel.app/ · Resume: `.agile-v/STATE.md`
 Done: shared 48px controls · Auth row reveal · accessible Smart Collections disclosure · responsive Add URL cancel · consistent CTA icons · responsive 56px chrome · type-safe cache/SSE/abort paths · zero lint.
 Data: unified React Query + optimistic store updates + centralized invalidation + SSE; bulk import reconciles caches without reload.
 Human: HA-0001; match Sentry org/token before upload.  
-Audit: Prisma CLI transitively pins `deepmerge-ts@7.1.5` (3 high audit findings); no compatible Prisma 6 patch. Do not force-downgrade; plan Prisma 7 separately.
+Audit: Prisma CLI transitively pins `deepmerge-ts@7.1.5` (3 high findings); user accepted RISK-0016. Retain Prisma 6; do not force-downgrade or upgrade.
+Audit rerun: lint · strict TS · Jest · production build pass; Gate 2 remains blocked by RISK-0016 and missing human acceptance.
 Out of scope: densify/JWT SSR, Zod/SHA, Next 16, Prisma 7.
 
 ## Stack

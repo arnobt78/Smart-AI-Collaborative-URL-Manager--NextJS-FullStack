@@ -72,3 +72,17 @@ Out of scope: densify/JWT SSR, Zod/SHA, Next 16, Prisma 7.
 | REQ-0015 regression suite | `npm test -- --runInBand` | PASS | 3 suites passed; 20 tests passed; 1 suite and 5 tests skipped. |
 | REQ-0015 production build | `npm run build` | PASS | Prisma generation and optimized Next.js build completed. |
 | Dependency audit | `npm audit --omit=dev --audit-level=high` | FLAG | 3 high findings from Prisma CLI's `deepmerge-ts@7.1.5`; no compatible Prisma 6 patch is available and npm's forced remediation downgrades Prisma. Recorded as RISK-0016. |
+
+## 2026-08-18 — final committed-tree audit
+
+| Scope | Command / evidence | Result | Notes |
+|-------|--------------------|--------|-------|
+| Static analysis | `npm run lint` | PASS | Zero ESLint warnings/errors. |
+| Type safety | `npx tsc --noEmit` | PASS | Strict TypeScript check completed. |
+| Regression suite | `npm test -- --runInBand` | PASS | 3 suites passed; 20 tests passed; 1 suite and 5 tests skipped. |
+| Production build | `npm run build` | PASS | Prisma generation, compilation, type checking, static generation, and build traces completed. |
+| Data/UI architecture scan | Mutation/invalidation and reload search | PASS | React Query optimistic updates, centralized invalidation, and SSE paths are present; no active hard-reload call was found. |
+| Tracked secrets scan | `git ls-files '.env*' ':!*.example'` | PASS | No environment secret files are tracked. |
+| Dependency security | `npm audit --omit=dev --audit-level=high` | ACCEPTED | RISK-0016: 3 high Prisma CLI transitive findings accepted by user; no safe compatible remediation was available. |
+
+Gate 2: BLOCKED — RISK-0016 is accepted; `EVAL_RESULTS.md` PASS/WAIVED evidence and Gate 2 human acceptance remain required for a release claim.
