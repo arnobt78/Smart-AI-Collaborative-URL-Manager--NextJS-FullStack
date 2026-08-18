@@ -21,6 +21,7 @@
 - Responsive chrome: shared `UI_CHROME_ROW`; Navbar remains centered at 56px; Footer centers at desktop and grows safely when stacked on mobile; dead footer icon code removed
 - Auth guest menu: opaque panel and parent stacking-layer correction prevent animated field rows from obscuring or intercepting account actions
 - Compact controls and Home motion: shared Button/glass sizes use `h-10 min-h-10`; Home CTAs avoid local vertical padding and marketing sections use reduced-motion-safe scroll reveal/parallax
+- Home wave refinement: Hero copy lines and CTAs reveal as independent timed units rather than grouped rows
 
 ## Human
 
@@ -51,5 +52,5 @@
 ## Next
 
 ```text
-Commit the validated REQ-0017 compact-control and Home-motion work, then create EvalGate evidence and obtain Gate 2 human acceptance before a release claim. HA-0001 remains human-owned; no densify/Zod changes are implied.
+Home control and wave work is committed through `cca1da0`; create EvalGate evidence and obtain Gate 2 human acceptance before a release claim. HA-0001 remains human-owned; no densify/Zod changes are implied.
 ```

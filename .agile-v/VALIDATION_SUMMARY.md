@@ -98,3 +98,5 @@ Gate 2: BLOCKED — RISK-0016 is accepted; `EVAL_RESULTS.md` PASS/WAIVED evidenc
 | Scope | Command | Result |
 |-------|---------|--------|
 | REQ-0017 | `npm run lint`; `npx tsc --noEmit`; `npm test -- --runInBand`; `npm run build` | PASS — shared `h-10 min-h-10` Button geometry, text-sm placeholders, and CSS/observer Home reveal compile and pass all checks. |
+
+| REQ-0017 wave refinement | `npm run lint`; `npx tsc --noEmit` | PASS — individual Hero text and CTA reveal units compile with zero lint warnings. |

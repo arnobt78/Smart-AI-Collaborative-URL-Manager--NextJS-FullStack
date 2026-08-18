@@ -232,3 +232,16 @@ Append-only. Newest entries at bottom.
 | Rationale | The audit found local Home CTA padding and `lg`/glass heights bypassing the shared token. Browser primitives avoid a new dependency, preserve the server shell, and honor reduced-motion. |
 | Linked REQs | REQ-0017 |
 | Status | Implemented and validated. |
+
+---
+
+## DEC-0019 — Reveal Home hierarchy as individual wave beats
+
+| Field | Value |
+|-------|-------|
+| Timestamp | 2026-08-18 |
+| Agent | Agile V UI refinement |
+| Decision | Split hero copy lines and each CTA into separate `ScrollReveal` instances with ascending delays. |
+| Rationale | A grouped CTA wrapper made sibling buttons arrive simultaneously; individual semantic units produce the requested harmonic sequence without changing routes or data. |
+| Linked REQs | REQ-0017 |
+| Status | Implemented; lint and strict TypeScript pass. |
