@@ -53,6 +53,7 @@
 - **Completion:** REQ-0018 / TASK-0019 complete. All approved form, confirmation, comment, similarity, and collaborator overlays use the shared dialog primitive; legacy form routes preserve deep links through dialog state.
 - **Completion:** REQ-0019 / TASK-0020 complete. Shared title/description stacks have no added gap; responsive line-height and non-heading spacing are unchanged.
 - **Completion:** REQ-0020 / TASK-0021 complete. Broad loading remounts were removed from the requested data pages; dialog comments no longer duplicate their title; comment counts are batched; metadata fetches are public HTTP(S)-only and redirect-checked.
+- **Correction:** Comment action badges now increment only for creates, decrement only for deletes, and restore their optimistic delta on mutation failure; edits leave the count unchanged (`43b663a`).
 - **Evidence:** planning traces in `REQUIREMENTS.md` (REQ-0010 to REQ-0014), `TASKS.md` (TASK-0011 to TASK-0015), `DECISION_LOG.md` (DEC-0012/0013), `RISKS.md` (RISK-0011 to RISK-0014), and `GATES.md`.
 
 ## Next

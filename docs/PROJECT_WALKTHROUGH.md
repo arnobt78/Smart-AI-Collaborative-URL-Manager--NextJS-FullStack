@@ -33,6 +33,7 @@ Next 15 URL bookmark manager. Demo: https://daily-urlist.vercel.app/
 - Dialogs: `ui/Dialog.tsx` owns accessible capped overlays; list/URL CRUD, confirmations, comments, similarity, and collaborator actions share it. Legacy `/new` and `/list/[slug]/edit` preserve deep links through dialog-state redirects.
 - Stable data UI: Browse keeps cached cards visible on background refetch; `ui/PageHeader.tsx` provides the shared glass icon/title/subtitle row.
 - Stable data safety: Browse/Insights/API Status keep static chrome with delayed local cold placeholders; unified list batches comment counts; bulk import reconciles without reload; metadata documents/images/favicons accept public HTTP(S) destinations only after DNS/IP and redirect checks.
+- Comment badges: create increments, delete decrements, edit is count-neutral, and failed mutations restore only their own optimistic delta.
 - Audit: lint/typecheck/Jest/build and mutation/secret scans pass; user accepted the documented Prisma CLI advisory, while Gate 2 still needs EvalGate and human acceptance
 
 ## Versions

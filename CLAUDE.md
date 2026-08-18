@@ -11,6 +11,7 @@ Home wave: Hero text lines and CTAs are separate timed `ScrollReveal` units; nev
 Dialogs: `ui/Dialog.tsx` is the shared accessible 92vw/85dvh overlay; all CRUD, confirmation, comments, similarity, and collaborator flows use it. `/new` and `/list/[slug]/edit` redirect to dialog-state hosts.
 Stable UI: Browse retains cached cards during refetch; `ui/PageHeader.tsx` standardizes icon/title/subtitle identity rows.
 Stable data: delayed cold placeholders only; Browse/Insights/API Status keep their static shell. Unified list batches comment counts for card badges; bulk import never reloads. Metadata route is Node-only, public HTTP(S)-only, DNS/IP checked for documents/images/favicons, redirect-checked, and timeout-bounded.
+Comment badge rule: create +1, delete -1, edit 0; failed mutations restore only their own optimistic delta.
 Auth menu: open guest credentials panel is opaque and stacked above reveal rows; trigger uses expanded/menu ARIA.
 Data: unified React Query + optimistic store updates + centralized invalidation + SSE; bulk import reconciles caches without reload.
 Human: HA-0001; match Sentry org/token before upload.  

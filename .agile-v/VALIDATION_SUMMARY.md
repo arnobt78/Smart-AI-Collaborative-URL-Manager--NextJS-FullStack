@@ -130,3 +130,5 @@ Gate 2: BLOCKED — RISK-0016 is accepted; `EVAL_RESULTS.md` PASS/WAIVED evidenc
 | Regression suite | `npm test -- --runInBand` | PASS — 3 suites / 20 tests pass; 1 suite / 5 tests skipped. |
 | Production build | `npm run build` | PASS — Prisma generation and optimized Next.js build complete. |
 | Diff hygiene | `git diff --check` | PASS |
+
+| Comment badge correction | `npx tsc --noEmit`; `npm run lint`; `npm test -- --runInBand`; `npm run build` | PASS — edit is count-neutral; create/delete rollback behavior preserved. |
