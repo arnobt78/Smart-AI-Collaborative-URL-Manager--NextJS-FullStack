@@ -20,7 +20,7 @@ export function CreateNewListButton({
 }: CreateNewListButtonProps) {
   return (
     <Button
-      href="/new"
+      href="/lists?dialog=create"
       variant="glassPurple"
       size={size}
       className={cn("w-full sm:w-auto", className)}

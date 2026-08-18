@@ -2,7 +2,7 @@ export default function TermsPage() {
   return (
     <div className="min-h-screen w-full">
       <div className="max-w-7xl mx-auto px-4 sm:px-0">
-        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-medium text-white ">
+        <h1 className="text-2xl sm:text-3xl  font-medium text-white ">
           Terms of Service
         </h1>
 

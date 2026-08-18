@@ -30,6 +30,8 @@ Next 15 URL bookmark manager. Demo: https://daily-urlist.vercel.app/
 - Home motion: `ui/ScrollReveal.tsx` provides replayable CSS/observer reveal plus subtle parallax; shared controls use `h-10 min-h-10` and text-sm placeholders
 - Home wave: hero copy lines and CTAs are individual reveal units, staggered in order rather than animated as a grouped row
 - Data sync: unified React Query cache + optimistic `currentList` store + centralized invalidation + SSE; bulk import reconciles without a hard reload
+- Dialogs: `ui/Dialog.tsx` owns accessible capped overlays; list/URL CRUD, confirmations, comments, similarity, and collaborator actions share it. Legacy `/new` and `/list/[slug]/edit` preserve deep links through dialog-state redirects.
+- Stable data UI: Browse keeps cached cards visible on background refetch; `ui/PageHeader.tsx` provides the shared glass icon/title/subtitle row.
 - Audit: lint/typecheck/Jest/build and mutation/secret scans pass; user accepted the documented Prisma CLI advisory, while Gate 2 still needs EvalGate and human acceptance
 
 ## Versions

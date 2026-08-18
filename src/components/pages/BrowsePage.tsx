@@ -7,13 +7,10 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Badge } from "@/components/ui/Badge";
 import { Search, Globe, Eye, Users } from "lucide-react";
+import { PageHeader } from "@/components/ui/PageHeader";
 import { usePublicListsQuery } from "@/hooks/useBrowseQueries";
 import { cn } from "@/lib/utils";
-import {
-  CARD_PAD,
-  PAGE_HEADER,
-  PAGE_STACK,
-} from "@/lib/ui-spacing";
+import { CARD_PAD, PAGE_STACK } from "@/lib/ui-spacing";
 
 interface UrlItem {
   id: string;
@@ -50,17 +47,15 @@ export default function BrowsePage() {
   );
 
   // CRITICAL: Use React Query with Infinity cache - only refetches when invalidated
-  const { data, isLoading, isFetching } = usePublicListsQuery(
+  const { data, isLoading } = usePublicListsQuery(
     page,
     search || undefined,
   );
   const lists = data?.lists || [];
   const totalPages = data?.pagination?.totalPages || 1;
 
-  // CRITICAL: Show skeleton during refetch (when isFetching is true and we have data)
-  // This prevents showing stale cached data during invalidated refetch
-  // Only show skeleton if we're fetching AND have data (means refetch, not initial load)
-  const shouldShowSkeleton = isLoading || (isFetching && data);
+  // Preserve cached cards during background refetches; skeletons are initial-data only.
+  const shouldShowSkeleton = isLoading && !data;
 
   // Update URL query params when search or page changes (but only if different from current URL)
   useEffect(() => {
@@ -93,14 +88,7 @@ export default function BrowsePage() {
   return (
     <div className={cn("min-h-screen w-full", PAGE_STACK)}>
       {/* Header */}
-      <div className={PAGE_HEADER}>
-        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-medium text-white leading-tight">
-          🌐 Discover Public Lists
-        </h1>
-        <p className="text-white/60 text-xs sm:text-sm lg:text-base leading-snug">
-          Browse and explore curated URL collections from the community
-        </p>
-      </div>
+      <PageHeader icon={Globe} title="Discover Public Lists" description="Browse and explore curated URL collections from the community" />
 
       {/* Search Bar */}
       <form onSubmit={handleSearch}>

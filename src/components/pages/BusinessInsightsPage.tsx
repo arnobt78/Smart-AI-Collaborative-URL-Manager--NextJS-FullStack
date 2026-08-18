@@ -19,6 +19,7 @@ import {
 } from "@/hooks/useBrowseQueries";
 import { cn } from "@/lib/utils";
 import { PAGE_HEADER, PAGE_STACK } from "@/lib/ui-spacing";
+import { PageHeader } from "@/components/ui/PageHeader";
 
 // Type definitions for all data structures
 interface _OverviewData {
@@ -210,15 +211,7 @@ export default function BusinessInsightsPage(
   return (
     <div className={cn("min-h-screen w-full", PAGE_STACK)}>
       {/* Header */}
-      <div className={PAGE_HEADER}>
-        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-medium text-white flex items-center gap-2 sm:gap-2 flex-wrap leading-tight">
-          <BarChart3 className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-blue-400 flex-shrink-0" />
-          <span>Business Insights</span>
-        </h1>
-        <p className="text-white/60 text-xs sm:text-sm lg:text-base leading-snug">
-          Track your URLs, lists, and engagement metrics
-        </p>
-      </div>
+      <PageHeader icon={BarChart3} title="Business Insights" description="Track your URLs, lists, and engagement metrics" />
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">

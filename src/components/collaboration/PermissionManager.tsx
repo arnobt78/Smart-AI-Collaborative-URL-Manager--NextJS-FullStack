@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import ReactDOM from "react-dom";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Badge } from "@/components/ui/Badge";
@@ -26,6 +25,7 @@ import {
   listQueryKeys,
 } from "@/hooks/useListQueries";
 import { glassPrimaryButtonClass } from "@/lib/ui/glass-button-styles";
+import { Dialog } from "@/components/ui/Dialog";
 
 export interface Collaborator {
   email: string;
@@ -402,42 +402,7 @@ export function PermissionManager({
       )}
 
       {/* Add Collaborator Dialog - Custom Implementation with Role Selection */}
-      {inviteDialogOpen && typeof window !== "undefined" && document.body
-        ? ReactDOM.createPortal(
-            <div
-              className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-md"
-              onClick={() => {
-                if (!addCollaboratorMutation.isPending) {
-                  setInviteDialogOpen(false);
-                  setNewEmail("");
-                }
-              }}
-            >
-              <div
-                className="relative w-full max-w-md mx-4 bg-gradient-to-br from-zinc-900 to-zinc-800 rounded-2xl shadow-2xl border border-white/20 p-6"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <button
-                  onClick={() => {
-                    if (!addCollaboratorMutation.isPending) {
-                      setInviteDialogOpen(false);
-                      setNewEmail("");
-                    }
-                  }}
-                  disabled={addCollaboratorMutation.isPending}
-                  className="absolute top-4 right-4 text-white/60 hover:text-white transition-colors disabled:opacity-50"
-                >
-                  <X className="h-5 w-5" />
-                </button>
-                <div className="pr-8 ">
-                  <h3 className="text-xl font-medium text-white ">
-                    Add Collaborator
-                  </h3>
-                  <p className="text-white/70">
-                    Invite someone to collaborate on this list. They&apos;ll
-                    receive an email invitation.
-                  </p>
-                </div>
+      <Dialog open={inviteDialogOpen} onOpenChange={(open) => { if (!open) { setInviteDialogOpen(false); setNewEmail(""); } }} title="Add Collaborator" description="Invite someone to collaborate on this list. They’ll receive an email invitation." pending={addCollaboratorMutation.isPending}>
                 <div className="space-y-3">
                   <div>
                     <label className="block text-sm font-medium text-white ">
@@ -529,38 +494,10 @@ export function PermissionManager({
                     </Button>
                   </div>
                 </div>
-              </div>
-            </div>,
-            document.body,
-          )
-        : null}
+      </Dialog>
 
-      {/* Role Change Dialog */}
-      {roleChangeDialog.open && typeof window !== "undefined" && document.body
-        ? ReactDOM.createPortal(
-            <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-md">
-              <div className="relative w-full max-w-md mx-4 flex flex-col gap-4 sm:gap-6 bg-gradient-to-br from-zinc-900 to-zinc-800 rounded-2xl shadow-2xl border border-white/20 p-6">
-                <button
-                  onClick={() =>
-                    setRoleChangeDialog({
-                      open: false,
-                      email: "",
-                      currentRole: "editor",
-                    })
-                  }
-                  className="absolute top-4 right-4 text-white/60 hover:text-white transition-colors"
-                  disabled={updateRoleMutation.isPending}
-                >
-                  <X className="h-5 w-5" />
-                </button>
-                <div className="pr-8 flex flex-col gap-1">
-                  <h3 className="text-xl font-medium text-white leading-tight">
-                    Change Collaborator Role
-                  </h3>
-                  <p className="text-white/70 text-sm leading-snug">
-                    Choose a role for {roleChangeDialog.email}:
-                  </p>
-                </div>
+      <Dialog open={roleChangeDialog.open} onOpenChange={(open) => !open && setRoleChangeDialog({ open: false, email: "", currentRole: "editor" })} title="Change Collaborator Role" description={`Choose a role for ${roleChangeDialog.email}.`} pending={updateRoleMutation.isPending}>
+                <div className="space-y-4 sm:space-y-6">
                 <div className="flex gap-3 sm:gap-4">
                   <button
                     type="button"
@@ -651,11 +588,8 @@ export function PermissionManager({
                     Update Role
                   </button>
                 </div>
-              </div>
-            </div>,
-            document.body,
-          )
-        : null}
+                </div>
+      </Dialog>
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog

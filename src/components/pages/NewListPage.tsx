@@ -195,7 +195,7 @@ export default function NewListPageClient() {
     <div className={cn("min-h-screen w-full", PAGE_STACK)}>
       {/* Header — PAGE_HEADER = title+sub tight (no mt between lines) */}
       <div className={PAGE_HEADER}>
-        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-medium bg-gradient-to-r from-blue-300 via-purple-300 to-indigo-300 bg-clip-text text-transparent leading-tight">
+        <h1 className="text-2xl sm:text-3xl  font-medium bg-gradient-to-r from-blue-300 via-purple-300 to-indigo-300 bg-clip-text text-transparent leading-tight">
           Create a New List
         </h1>
         <p className="text-white/70 text-sm sm:text-base leading-snug">

@@ -2,7 +2,7 @@
 
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
-import { PencilIcon } from "@heroicons/react/24/outline";
+import { Dialog } from "@/components/ui/Dialog";
 import React, { useEffect, useRef } from "react";
 import type { UrlItem } from "@/stores/urlListStore";
 import { UrlEnhancer } from "@/components/ai/UrlEnhancer";
@@ -159,12 +159,14 @@ export function UrlEditModal({
 
   if (!editingUrl) return null;
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-3 sm:p-4 backdrop-blur-md overflow-y-auto">
-      <div className="w-full max-w-xl max-h-[90vh] my-4 sm:my-8 rounded-xl sm:rounded-2xl bg-gradient-to-br from-zinc-900 to-zinc-800 p-2 sm:p-4 shadow-2xl border border-white/20 overflow-y-auto">
-        <h2 className="text-xl sm:text-2xl font-medium text-white flex items-center gap-2">
-          <PencilIcon className="h-5 w-5 sm:h-6 sm:w-6 text-blue-400" />
-          Edit URL
-        </h2>
+    <Dialog
+      open={Boolean(editingUrl)}
+      onOpenChange={(open) => !open && setEditingUrl(null)}
+      title="Edit URL"
+      description="Update this saved URL and its organization details."
+      size="form"
+      pending={isEditing}
+    >
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -293,7 +295,6 @@ export function UrlEditModal({
             </Button>
           </div>
         </form>
-      </div>
-    </div>
+    </Dialog>
   );
 }

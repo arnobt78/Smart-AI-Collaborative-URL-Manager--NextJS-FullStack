@@ -5,7 +5,8 @@ import { Badge } from "@/components/ui/Badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/Tabs";
 import { BookOpen, Code, Lock, Globe, Link2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { PAGE_HEADER, PAGE_STACK } from "@/lib/ui-spacing";
+import { PAGE_STACK } from "@/lib/ui-spacing";
+import { PageHeader } from "@/components/ui/PageHeader";
 
 interface ApiEndpoint {
   method: "GET" | "POST" | "PATCH" | "DELETE";
@@ -358,15 +359,7 @@ export default function ApiDocsPage() {
   return (
     <div className={cn("min-h-screen w-full", PAGE_STACK)}>
       {/* Header */}
-      <div className={PAGE_HEADER}>
-        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-medium text-white flex items-center gap-2 sm:gap-2 flex-wrap">
-          <BookOpen className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-blue-400 flex-shrink-0" />
-          <span>API Documentation</span>
-        </h1>
-        <p className="text-white/60 text-xs sm:text-sm lg:text-base">
-          Complete API reference for The Daily Urlist
-        </p>
-      </div>
+      <PageHeader icon={BookOpen} title="API Documentation" description="Complete API reference for The Daily Urlist" />
 
       {/* Authentication Info */}
       <Card className="border-blue-400/30">

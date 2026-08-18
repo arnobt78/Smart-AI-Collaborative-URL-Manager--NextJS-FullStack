@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { Textarea } from "@/components/ui/Textarea";
 import { WandSparkles, X } from "lucide-react";
+import { Dialog } from "@/components/ui/Dialog";
 import { UrlEnhancer } from "@/components/ai/UrlEnhancer";
 import type { EnhancementResult } from "@/lib/ai";
 import React, { useEffect, useRef } from "react";
@@ -197,10 +198,6 @@ export function UrlAddForm({
     }
   };
 
-  if (!isExpanded) {
-    return null;
-  }
-
   const handleSubmit = (e: React.FormEvent) => {
     // Cancel prefetch when form is submitted
     cancelPrefetch();
@@ -208,9 +205,16 @@ export function UrlAddForm({
   };
 
   return (
+    <Dialog
+      open={isExpanded}
+      onOpenChange={(open) => !open && onCancel()}
+      title="Add URL"
+      description="Save a URL, tags, and an optional note to this collection."
+      pending={isLoading}
+    >
     <form
       onSubmit={handleSubmit}
-      className="flex w-full flex-col gap-3 rounded-xl border border-white/20 bg-white/5 p-3 shadow-xl backdrop-blur-md sm:gap-4 sm:p-4"
+      className="flex w-full flex-col gap-3 sm:gap-4"
     >
       <div className="space-y-2">
         <Input
@@ -281,5 +285,6 @@ export function UrlAddForm({
         </Button>
       </div>
     </form>
+    </Dialog>
   );
 }

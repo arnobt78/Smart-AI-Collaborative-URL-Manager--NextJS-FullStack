@@ -100,3 +100,12 @@ Gate 2: BLOCKED — RISK-0016 is accepted; `EVAL_RESULTS.md` PASS/WAIVED evidenc
 | REQ-0017 | `npm run lint`; `npx tsc --noEmit`; `npm test -- --runInBand`; `npm run build` | PASS — shared `h-10 min-h-10` Button geometry, text-sm placeholders, and CSS/observer Home reveal compile and pass all checks. |
 
 | REQ-0017 wave refinement | `npm run lint`; `npx tsc --noEmit` | PASS — individual Hero text and CTA reveal units compile with zero lint warnings. |
+
+## 2026-08-18 — REQ-0018 foundation
+
+| Scope | Command | Result |
+|---|---|---|
+| Shared dialog, route redirects, stable Browse render | `npx tsc --noEmit`; `npm run lint` | PASS — strict TypeScript and zero-warning lint. |
+| Shared dialog, route redirects, stable Browse render | `npm test -- --runInBand` | PASS — 3 suites / 20 tests pass; 1 suite / 5 tests skipped. |
+| Shared dialog, route redirects, Browse stability, Similar URLs and Comments migration | `npm run build` | PASS — Prisma generate and Next production build complete. |
+| Diff hygiene | `git diff --check` | PASS — no whitespace errors. |

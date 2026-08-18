@@ -337,6 +337,26 @@ These describe the current product as verified in code. They are **Accepted as b
 
 **Affected:** `src/lib/ui/{control-styles,glass-button-styles}.ts`, `src/components/{ui/Button,ui/ScrollReveal,HomePage}.tsx`, `src/app/globals.css`, and traceability records.
 **Trace:** TASK-0018, DEC-0018
+
+---
+
+### REQ-0018 — Unified dialog and stable data surfaces (approved 2026-08-18)
+
+**Priority:** P2
+**Type:** UX / accessibility / rendering stability
+**Statement:** CRUD and collaboration overlays MUST share one accessible dialog primitive; legacy list form links MUST preserve deep-link behavior through dialog-state redirects. Cached query results MUST remain rendered during background refreshes.
+
+**Acceptance:**
+
+- [x] Shared dialog uses responsive capped geometry, focus, Escape/backdrop close, contained scrolling, and pending-state close protection.
+- [x] URL add/edit and confirmation flows use the shared dialog; list create/edit legacy routes redirect to dialog-state hosts while reusing existing mutation handlers.
+- [x] Browse preserves cached cards during background refetch instead of replacing them with a full skeleton.
+- [x] Browse, Insights, API Docs, and API Status use the shared icon/title/subtitle page-header component.
+- [x] PermissionManager invite and role-change dialogs use the shared primitive without changing their data contracts.
+- [ ] Validate metadata preview fallback and action-count badges with browser integration coverage.
+
+**Trace:** TASK-0019, DEC-0020, RISK-0017
+**Status:** Completed — all approved dialog surfaces use the shared primitive; validation passes.
 **Status:** Approved — user authorized implementation in the 2026-08-18 control and Home-motion request.
 
 ---

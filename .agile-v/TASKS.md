@@ -72,5 +72,12 @@ HA-0001 Firewall · Sentry org/token
 2. Add one CSS/IntersectionObserver motion primitive with reduced-motion fallback and use it for marketing hierarchy.
 3. Validate controls, routes, motion safety, lint, typecheck, Jest, and build.
 
+### TASK-0019 — Unified dialogs and stable surfaces — DONE
+
+1. Replace duplicated URL/list form and confirmation overlay foundations with `Dialog`; retain current API, permission, optimistic-update, and invalidation handlers.
+2. Redirect legacy create/edit form routes into URL-driven dialog hosts; preserve direct links.
+3. Keep cached data visible during background fetches and centralize page identity rows.
+4. Migrated Comments, Similar URLs, and PermissionManager portal surfaces; retained existing query and mutation contracts.
+
 ## Deferred
 RSC shells · densify/Zod/SHA/Next16

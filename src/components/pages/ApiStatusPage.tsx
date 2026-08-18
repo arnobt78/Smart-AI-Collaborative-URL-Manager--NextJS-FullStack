@@ -6,6 +6,7 @@ import { CheckCircle2, AlertCircle, Clock, Activity } from "lucide-react";
 import { useApiStatusQuery } from "@/hooks/useBrowseQueries";
 import { cn } from "@/lib/utils";
 import { PAGE_HEADER, PAGE_STACK } from "@/lib/ui-spacing";
+import { PageHeader } from "@/components/ui/PageHeader";
 
 export default function ApiStatusPage() {
   // CRITICAL: Use React Query with refetchInterval for real-time status monitoring
@@ -115,15 +116,7 @@ export default function ApiStatusPage() {
   return (
     <div className={cn("min-h-screen w-full", PAGE_STACK)}>
       {/* Header */}
-      <div className={PAGE_HEADER}>
-        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-medium text-white flex items-center gap-2 sm:gap-2 flex-wrap">
-          <Activity className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-blue-400 flex-shrink-0" />
-          <span>API Status</span>
-        </h1>
-        <p className="text-white/60 text-xs sm:text-sm lg:text-base">
-          Real-time monitoring of all API endpoints
-        </p>
-      </div>
+      <PageHeader icon={Activity} title="API Status" description="Real-time monitoring of all API endpoints" />
 
       {/* Overall Status */}
       <Card>

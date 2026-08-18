@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { CreateNewListButton } from "@/components/ui/CreateNewListButton";
 import { Badge } from "@/components/ui/Badge";
@@ -17,15 +17,19 @@ import {
 } from "@/hooks/useListQueries";
 import { cn } from "@/lib/utils";
 import { LIST_STACK, PAGE_HEADER, PAGE_STACK } from "@/lib/ui-spacing";
+import { Dialog } from "@/components/ui/Dialog";
+import NewListPageClient from "@/components/pages/NewListPage";
 
 // Keep type alias for backward compatibility
 type List = UserList;
 
 export default function ListsPageClient() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { toast } = useToast();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [listToDelete, setListToDelete] = useState<List | null>(null);
+  const createDialogOpen = searchParams.get("dialog") === "create";
 
   // Setup SSE cache sync for React Query
   useEffect(() => {
@@ -70,7 +74,7 @@ export default function ListsPageClient() {
   };
 
   const handleEditClick = (list: List) => {
-    router.push(`/list/${list.slug}/edit`);
+    router.push(`/list/${list.slug}?dialog=edit`);
 
     // Show info toast notification
     toast({
@@ -139,7 +143,7 @@ export default function ListsPageClient() {
     <div className={cn("min-h-screen w-full", PAGE_STACK)}>
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className={PAGE_HEADER}>
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-medium bg-gradient-to-r from-blue-300 to-purple-300 bg-clip-text text-transparent leading-tight">
+          <h1 className="text-2xl sm:text-3xl  font-medium bg-gradient-to-r from-blue-300 to-purple-300 bg-clip-text text-transparent leading-tight">
             My Lists
           </h1>
           <p className="text-sm sm:text-base text-white/70 leading-snug">
@@ -400,6 +404,15 @@ export default function ListsPageClient() {
         onConfirm={handleDeleteConfirm}
         variant="destructive"
       />
+      <Dialog
+        open={createDialogOpen}
+        onOpenChange={(open) => !open && router.replace("/lists")}
+        title="Create a New List"
+        description="Organize URLs into a shareable collection."
+        size="wide"
+      >
+        <NewListPageClient />
+      </Dialog>
     </div>
   );
 }

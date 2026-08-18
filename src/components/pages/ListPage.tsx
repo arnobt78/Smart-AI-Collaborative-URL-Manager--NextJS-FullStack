@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import { flushSync } from "react-dom";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useStore } from "@nanostores/react";
 import { currentList } from "@/stores/urlListStore";
 import { UrlList } from "@/components/lists/UrlList";
@@ -37,10 +37,13 @@ import {
   invalidateBrowseQueries,
   invalidateListQueries,
 } from "@/utils/queryInvalidation";
+import { Dialog } from "@/components/ui/Dialog";
+import EditListPageClient from "@/components/pages/EditListPage";
 
 export default function ListPageClient() {
   const { toast } = useToast();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { slug } = useParams();
   const {
     user: sessionUser,
@@ -50,6 +53,7 @@ export default function ListPageClient() {
   const storeList = useStore(currentList);
   const permissions = useListPermissions(); // Get permissions for current list and user
   const listSlug = typeof slug === "string" ? slug : "";
+  const editDialogOpen = searchParams.get("dialog") === "edit";
   const queryClient = useQueryClient();
 
   // Setup SSE cache sync for React Query
@@ -1278,6 +1282,15 @@ export default function ListPageClient() {
       <div className="mt-6 sm:mt-8">
         <UrlList />
       </div>
+      <Dialog
+        open={editDialogOpen}
+        onOpenChange={(open) => !open && router.replace(`/list/${listSlug}`)}
+        title="Edit List"
+        description="Update this collection's name, visibility, and description."
+        size="wide"
+      >
+        <EditListPageClient />
+      </Dialog>
     </div>
   );
 }

@@ -4,6 +4,17 @@ Append-only. Newest entries at bottom.
 
 ---
 
+## DEC-0020 — Reuse local dialog and existing mutation flows
+
+| Field | Value |
+|-------|-------|
+| Timestamp | 2026-08-18 |
+| Agent | Agile V Build (REQ-0018) |
+| Decision | Add a local accessible `Dialog` primitive instead of adding a shadcn/Radix dependency; host legacy form URLs through query-state redirects and reuse current page form mutation logic. |
+| Rationale | The application already uses custom portal overlays and verified React Query mutations. A local primitive centralizes accessibility and responsive geometry without changing APIs, auth, or cache ownership. |
+| Linked REQs | REQ-0018 |
+| Status | Implemented foundation; remaining custom overlay callers are tracked in TASK-0019. |
+
 ## DEC-0001 — Bootstrap Agile V Cycle C1 without prior workspace
 
 | Field | Value |

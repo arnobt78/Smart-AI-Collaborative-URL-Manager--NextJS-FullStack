@@ -1,5 +1,5 @@
-import NewListPageClient from "@/components/pages/NewListPage";
+import { redirect } from "next/navigation";
 
 export default function NewListPage() {
-  return <NewListPageClient />;
+  redirect("/lists?dialog=create");
 }

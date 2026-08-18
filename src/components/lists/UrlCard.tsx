@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import ReactDOM from "react-dom";
 import { useSession } from "@/hooks/useSession";
 import { SafeImage } from "@/components/ui/safe-image";
 import {
@@ -19,7 +18,6 @@ import {
   ChartBarIcon,
   BellIcon,
   MagnifyingGlassIcon,
-  XMarkIcon,
 } from "@heroicons/react/24/outline";
 import { AlertDialog } from "@/components/ui/AlertDialog";
 import { useToast } from "@/components/ui/Toaster";
@@ -29,6 +27,7 @@ import type { UrlItem } from "@/stores/urlListStore";
 import type { UrlMetadata } from "@/utils/urlMetadata";
 import type { SearchResult } from "@/lib/ai/search";
 import { Button } from "@/components/ui/Button";
+import { Dialog } from "@/components/ui/Dialog";
 import { currentList } from "@/stores/urlListStore";
 import { UrlHealthIndicator } from "@/components/urls/UrlHealthIndicator";
 import { Comments } from "@/components/collaboration/Comments";
@@ -709,58 +708,8 @@ export const UrlCard: React.FC<UrlCardProps> = ({
         />
       )}
 
-      {/* Similar URLs Modal - Portal to body */}
-      {similarUrlsOpen &&
-        typeof window !== "undefined" &&
-        document.body &&
-        ReactDOM.createPortal(
-          <div
-            className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-md p-4"
-            onClick={() => setSimilarUrlsOpen(false)}
-            style={{ position: "fixed" }}
-          >
-            <div
-              className="relative w-full max-w-2xl bg-gradient-to-br from-zinc-900 to-zinc-800 rounded-xl sm:rounded-2xl shadow-2xl border border-white/20 flex flex-col"
-              style={{
-                maxHeight: "85vh",
-                display: "flex",
-                flexDirection: "column",
-                overflow: "hidden",
-                position: "relative",
-              }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              {/* Header - Fixed */}
-              <div className="flex items-start justify-between p-2 sm:p-4 border-b border-white/10 flex-shrink-0 bg-gradient-to-br from-zinc-900 to-zinc-800">
-                <div className="flex-1 min-w-0 pr-4">
-                  <h3 className="text-xl font-medium text-white line-clamp-2 break-words">
-                    Similar URLs to &quot;{url.title || url.url}&quot;
-                  </h3>
-                  <p className="text-sm text-white/60 mt-1">
-                    AI-powered similarity search
-                  </p>
-                </div>
-                <button
-                  onClick={() => setSimilarUrlsOpen(false)}
-                  className="text-white/60 hover:text-white transition-colors p-2 hover:bg-white/10 rounded-lg flex-shrink-0"
-                  aria-label="Close"
-                >
-                  <XMarkIcon className="h-5 w-5" />
-                </button>
-              </div>
-
-              {/* Content - Scrollable */}
-              <div
-                className="overflow-y-scroll overflow-x-hidden p-2 sm:p-4 custom-scrollbar"
-                style={{
-                  flex: "1 1 auto",
-                  minHeight: 0,
-                  maxHeight: "calc(85vh - 120px)",
-                  WebkitOverflowScrolling: "touch",
-                  scrollbarWidth: "thin",
-                  scrollbarColor: "rgba(255, 255, 255, 0.4) rgba(0, 0, 0, 0.1)",
-                }}
-              >
+      <Dialog open={similarUrlsOpen} onOpenChange={setSimilarUrlsOpen} title={`Similar URLs to “${url.title || url.url}”`} description="AI-powered similarity search" size="wide">
+              <div className="space-y-3 custom-scrollbar">
                 {loadingSimilarUrls ? (
                   <div className="flex items-center justify-center py-12">
                     <div className="flex flex-col items-center gap-2">
@@ -830,74 +779,17 @@ export const UrlCard: React.FC<UrlCardProps> = ({
                   </div>
                 )}
               </div>
-            </div>
-          </div>,
-          document.body,
-        )}
+      </Dialog>
 
-      {/* Comments Modal - Portal to body */}
-      {commentsOpen &&
-        typeof window !== "undefined" &&
-        document.body &&
-        currentList.get()?.id &&
-        ReactDOM.createPortal(
-          <div
-            className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-md p-4"
-            onClick={() => setCommentsOpen(false)}
-            style={{ position: "fixed" }}
-          >
-            <div
-              className="relative w-full max-w-2xl bg-gradient-to-br from-zinc-900 to-zinc-800 rounded-xl sm:rounded-2xl shadow-2xl border border-white/20 flex flex-col"
-              style={{
-                maxHeight: "85vh",
-                display: "flex",
-                flexDirection: "column",
-                overflow: "hidden",
-                position: "relative",
-              }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              {/* Header - Fixed */}
-              <div className="flex items-start justify-between p-2 sm:p-4 border-b border-white/10 flex-shrink-0 bg-gradient-to-br from-zinc-900 to-zinc-800">
-                <div className="flex-1 min-w-0 pr-4">
-                  <h3 className="text-base sm:text-lg lg:text-xl font-medium text-white line-clamp-2 break-words">
-                    Comments
-                  </h3>
-                  <p className="text-sm text-white/60 mt-1">
-                    {url.title || url.url}
-                  </p>
-                </div>
-                <button
-                  onClick={() => setCommentsOpen(false)}
-                  className="text-white/60 hover:text-white transition-colors p-2 hover:bg-white/10 rounded-lg flex-shrink-0"
-                  aria-label="Close"
-                >
-                  <XMarkIcon className="h-5 w-5" />
-                </button>
-              </div>
-
-              {/* Content - Scrollable */}
-              <div
-                className="overflow-y-scroll overflow-x-hidden p-2 sm:p-4 custom-scrollbar"
-                style={{
-                  flex: "1 1 auto",
-                  minHeight: 0,
-                  maxHeight: "calc(85vh - 120px)",
-                  WebkitOverflowScrolling: "touch",
-                  scrollbarWidth: "thin",
-                  scrollbarColor: "rgba(255, 255, 255, 0.4) rgba(0, 0, 0, 0.1)",
-                }}
-              >
+      {currentList.get()?.id ? <Dialog open={commentsOpen} onOpenChange={setCommentsOpen} title="Comments" description={url.title || url.url} size="wide">
+              <div className="custom-scrollbar">
                 <Comments
                   listId={currentList.get()!.id!}
                   urlId={url.id}
                   currentUserId={currentUserId}
                 />
               </div>
-            </div>
-          </div>,
-          document.body,
-        )}
+      </Dialog> : null}
     </div>
   );
 };
