@@ -58,6 +58,7 @@ interface UnifiedListData {
     user: { id: string; email: string };
   }>;
   collaborators?: Array<{ email: string; role: "editor" | "viewer" }>;
+  commentCounts?: Record<string, number>;
 }
 
 export function useUnifiedListQuery(slug: string, enabled: boolean = true) {
@@ -92,24 +93,35 @@ export function useUnifiedListQuery(slug: string, enabled: boolean = true) {
       }
       const data = await response.json();
 
-      // Update store immediately
-      if (data.list) {
-        currentList.set(data.list);
+      const commentCounts: Record<string, number> = data.commentCounts || {};
+      const list = data.list
+        ? {
+            ...data.list,
+            urls: data.list.urls.map((url: UrlItem) => ({
+              ...url,
+              commentCount: commentCounts[url.id] || 0,
+            })),
+          }
+        : null;
+
+      // Update store immediately with the same complete data returned to callers.
+      if (list) {
+        currentList.set(list);
       }
 
       // Populate React Query cache for collaborators
-      if (data.list?.id && data.collaborators) {
-        queryClient.setQueryData(listQueryKeys.collaborators(data.list.id), {
+      if (list?.id && data.collaborators) {
+        queryClient.setQueryData(listQueryKeys.collaborators(list.id), {
           collaborators: data.collaborators,
         });
       }
 
       // Dispatch events for components
-      if (data.list?.id) {
+      if (list?.id) {
         window.dispatchEvent(
           new CustomEvent("unified-activities-updated", {
             detail: {
-              listId: data.list.id,
+              listId: list.id,
               activities: data.activities || [],
             },
           })
@@ -118,7 +130,7 @@ export function useUnifiedListQuery(slug: string, enabled: boolean = true) {
         window.dispatchEvent(
           new CustomEvent("unified-collaborators-updated", {
             detail: {
-              listId: data.list.id,
+              listId: list.id,
               collaborators: data.collaborators || [],
             },
           })
@@ -126,9 +138,10 @@ export function useUnifiedListQuery(slug: string, enabled: boolean = true) {
       }
 
       return {
-        list: data.list || null,
+        list,
         activities: data.activities || [],
         collaborators: data.collaborators || [],
+        commentCounts,
       };
     },
     enabled: enabled && !!slug,

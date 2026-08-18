@@ -25,7 +25,7 @@ export function CreateNewListButton({
       size={size}
       className={cn("w-full sm:w-auto", className)}
     >
-      <Icon className="h-4 w-4 sm:h-5 sm:w-5 shrink-0" aria-hidden />
+      <Icon className="h-4 w-4  shrink-0" aria-hidden />
       <span>{label}</span>
     </Button>
   );

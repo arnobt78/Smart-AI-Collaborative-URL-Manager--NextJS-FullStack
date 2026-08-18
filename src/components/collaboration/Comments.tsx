@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/Button";
 import { Textarea } from "@/components/ui/Textarea";
 import { useToast } from "@/components/ui/Toaster";
 import { AlertDialog } from "@/components/ui/AlertDialog";
-import { MessageSquare, Trash2, Edit2, X, Check } from "lucide-react";
+import { Trash2, Edit2, X, Check } from "lucide-react";
 
 interface Comment {
   id: string;
@@ -40,6 +40,19 @@ export function Comments({ listId, urlId, currentUserId }: CommentsProps) {
   const params = useParams();
   const slug = typeof params?.slug === "string" ? params.slug : null;
   const list = useStore(currentList);
+
+  const updateVisibleCommentCount = (delta: number) => {
+    const current = currentList.get();
+    if (current.id !== listId || !current.urls) return;
+    currentList.set({
+      ...current,
+      urls: current.urls.map((url) =>
+        url.id === urlId
+          ? { ...url, commentCount: Math.max(0, (url.commentCount || 0) + delta) }
+          : url,
+      ),
+    });
+  };
 
   // React Query key for comments
   const queryKey = useMemo(() => ["comments", listId, urlId], [listId, urlId]);
@@ -129,8 +142,9 @@ export function Comments({ listId, urlId, currentUserId }: CommentsProps) {
       queryClient.setQueryData<{ comments: Comment[] }>(queryKey, (old) => ({
         comments: [...(old?.comments || []), optimisticComment],
       }));
+      updateVisibleCommentCount(1);
 
-      return { previousData };
+      return { previousData, commentCountDelta: 1 };
     },
     onSuccess: async (data) => {
       // Update cache with server response
@@ -176,6 +190,7 @@ export function Comments({ listId, urlId, currentUserId }: CommentsProps) {
       if (context?.previousData) {
         queryClient.setQueryData(queryKey, context.previousData);
       }
+      if (context?.commentCountDelta) updateVisibleCommentCount(-context.commentCountDelta);
 
       toast({
         title: "Failed to add comment",
@@ -245,8 +260,9 @@ export function Comments({ listId, urlId, currentUserId }: CommentsProps) {
           ),
         };
       });
+      updateVisibleCommentCount(-1);
 
-      return { previousData };
+      return { previousData, commentCountDelta: -1 };
     },
     onSuccess: (data) => {
       // Update cache with server response
@@ -293,6 +309,7 @@ export function Comments({ listId, urlId, currentUserId }: CommentsProps) {
       if (context?.previousData) {
         queryClient.setQueryData(queryKey, context.previousData);
       }
+      if (context?.commentCountDelta) updateVisibleCommentCount(-context.commentCountDelta);
 
       toast({
         title: "Failed to update comment",
@@ -427,14 +444,6 @@ export function Comments({ listId, urlId, currentUserId }: CommentsProps) {
 
   return (
     <div className="space-y-2 sm:space-y-3">
-      {/* Comments Header */}
-      <div className="flex items-center gap-2">
-        <MessageSquare className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white/70" />
-        <h3 className="text-xs sm:text-sm font-medium text-white/90">
-          Comments ({comments.length})
-        </h3>
-      </div>
-
       {/* Add Comment Form */}
       {currentUserId && (
         <form onSubmit={handleSubmit} className="space-y-2">
@@ -459,7 +468,7 @@ export function Comments({ listId, urlId, currentUserId }: CommentsProps) {
 
       {/* Comments List */}
       <div className="space-y-2 sm:space-y-2 max-h-[400px] overflow-y-auto custom-scrollbar">
-        {isLoading ? (
+        {isLoading && !commentsData ? (
           <div className="text-xs sm:text-sm text-white/50 text-center py-3 sm:py-4">
             Loading comments...
           </div>

@@ -16,7 +16,7 @@ Next 15 URL bookmark manager. Demo: https://daily-urlist.vercel.app/
 - CTAs: `src/lib/ui/glass-*` shadow-glow (stock recipe); Auth Sign In Sparkles
 - Chrome: shared `UI_CHROME_ROW`; Navbar stays centered in `h-14`; Footer centers at desktop and uses `min-h-14` when compact content stacks
 - BG: static `FloatingBackground` (no `animate-float`) · PostHog `PostHogPageview` Suspense island only
-- Spacing: `lib/ui-spacing.ts` PAGE/SECTION/MARKETING/FORM/LIST/PAGE_HEADER/CARD_PAD
+- Spacing: `lib/ui-spacing.ts` PAGE/SECTION/MARKETING/FORM/LIST/HEADING_STACK/PAGE_HEADER/CARD_PAD; heading stacks have zero added title/subtitle gap only.
 - Layout main: `py-6 sm:py-10` · `html { scrollbar-gutter: stable }`
 - Auth toasts: `lib/auth-toast.ts` + `AuthToastBridge`
 - Logs: `lib/dev-log.ts` — SSE/AI/import quiet in prod
@@ -32,6 +32,7 @@ Next 15 URL bookmark manager. Demo: https://daily-urlist.vercel.app/
 - Data sync: unified React Query cache + optimistic `currentList` store + centralized invalidation + SSE; bulk import reconciles without a hard reload
 - Dialogs: `ui/Dialog.tsx` owns accessible capped overlays; list/URL CRUD, confirmations, comments, similarity, and collaborator actions share it. Legacy `/new` and `/list/[slug]/edit` preserve deep links through dialog-state redirects.
 - Stable data UI: Browse keeps cached cards visible on background refetch; `ui/PageHeader.tsx` provides the shared glass icon/title/subtitle row.
+- Stable data safety: Browse/Insights/API Status keep static chrome with delayed local cold placeholders; unified list batches comment counts; bulk import reconciles without reload; metadata documents/images/favicons accept public HTTP(S) destinations only after DNS/IP and redirect checks.
 - Audit: lint/typecheck/Jest/build and mutation/secret scans pass; user accepted the documented Prisma CLI advisory, while Gate 2 still needs EvalGate and human acceptance
 
 ## Versions

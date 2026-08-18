@@ -16,7 +16,12 @@ import {
   type UserList,
 } from "@/hooks/useListQueries";
 import { cn } from "@/lib/utils";
-import { LIST_STACK, PAGE_HEADER, PAGE_STACK } from "@/lib/ui-spacing";
+import {
+  HEADING_STACK,
+  LIST_STACK,
+  PAGE_HEADER,
+  PAGE_STACK,
+} from "@/lib/ui-spacing";
 import { Dialog } from "@/components/ui/Dialog";
 import NewListPageClient from "@/components/pages/NewListPage";
 
@@ -143,7 +148,7 @@ export default function ListsPageClient() {
     <div className={cn("min-h-screen w-full", PAGE_STACK)}>
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className={PAGE_HEADER}>
-          <h1 className="text-2xl sm:text-3xl  font-medium bg-gradient-to-r from-blue-300 to-purple-300 bg-clip-text text-transparent leading-tight">
+          <h1 className="text-lg sm:text-xl  font-medium bg-gradient-to-r from-blue-300 to-purple-300 bg-clip-text text-transparent leading-tight">
             My Lists
           </h1>
           <p className="text-sm sm:text-base text-white/70 leading-snug">
@@ -349,7 +354,7 @@ export default function ListsPageClient() {
                         className="text-white/80 hover:text-blue-400 hover:bg-blue-500/20 transition-all duration-200 border border-transparent hover:border-blue-400/30 p-2 sm:p-2.5"
                         title="Edit List"
                       >
-                        <PencilIcon className="h-4 w-4 sm:h-5 sm:w-5" />
+                        <PencilIcon className="h-4 w-4 " />
                       </Button>
                       <Button
                         onClick={() => handleDeleteClick(list)}
@@ -361,7 +366,7 @@ export default function ListsPageClient() {
                         }
                         title="Delete List"
                       >
-                        <TrashIcon className="h-4 w-4 sm:h-5 sm:w-5" />
+                        <TrashIcon className="h-4 w-4 " />
                       </Button>
                     </div>
                   </div>
@@ -374,12 +379,14 @@ export default function ListsPageClient() {
             <div className="mx-auto w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 bg-gradient-to-r from-blue-500/20 to-purple-500/20 border border-blue-400/30 rounded-full flex items-center justify-center">
               <LinkIcon className="h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12 text-blue-400" />
             </div>
-            <h3 className="mt-4 text-base sm:text-lg font-medium text-white">
-              No Lists Yet
-            </h3>
-            <p className="mt-2 text-sm sm:text-base text-white/60 px-2">
-              Start organizing your URLs by creating your first list
-            </p>
+            <div className={`${HEADING_STACK} mt-4`}>
+              <h3 className="text-base sm:text-lg font-medium text-white">
+                No Lists Yet
+              </h3>
+              <p className="text-sm sm:text-base text-white/60 px-2">
+                Start organizing your URLs by creating your first list
+              </p>
+            </div>
             <div className="mt-6 sm:mt-8">
               <CreateNewListButton />
             </div>

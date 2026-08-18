@@ -84,7 +84,7 @@
     display: block;
   }
 
-  .custom-scrollbar::-webkit-scrollbar-track {
+.custom-scrollbar::-webkit-scrollbar-track {
     background: rgba(0, 0, 0, 0.1);
     border-radius: 5px;
     margin: 4px;
@@ -122,6 +122,15 @@
   .input {
     @apply w-full rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent;
   }
+}
+
+/* Dialogs keep a usable thumb while making the scroll-track visually disappear. */
+.dialog-scrollbar {
+  scrollbar-color: rgba(255, 255, 255, 0.32) transparent;
+}
+
+.dialog-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
 }
 
 @layer utilities {

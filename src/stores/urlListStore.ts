@@ -22,6 +22,7 @@ export interface UrlItem {
   notes?: string;
   reminder?: string; // ISO date string
   clickCount?: number; // Track how many times this URL has been clicked
+  commentCount?: number; // Batched with the unified list payload for action badges
   position?: number; // Position in the list (used for ordering) - simpler than array reordering
   // URL Health Monitoring fields
   healthStatus?: "healthy" | "warning" | "broken" | "unknown"; // Health status

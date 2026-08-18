@@ -212,79 +212,79 @@ export function UrlAddForm({
       description="Save a URL, tags, and an optional note to this collection."
       pending={isLoading}
     >
-    <form
-      onSubmit={handleSubmit}
-      className="flex w-full flex-col gap-3 sm:gap-4"
-    >
-      <div className="space-y-2">
-        <Input
-          type="url"
-          value={newUrl}
-          onChange={handleUrlChange}
-          placeholder="Enter a URL to add to your list..."
-          error={error}
-          className="text-sm sm:text-base lg:text-lg shadow-md font-delicious bg-transparent"
-        />
+      <form
+        onSubmit={handleSubmit}
+        className="flex w-full flex-col gap-3 sm:gap-4"
+      >
+        <div className="space-y-2">
+          <Input
+            type="url"
+            value={newUrl}
+            onChange={handleUrlChange}
+            placeholder="Enter a URL to add to your list..."
+            error={error}
+            className="text-sm sm:text-base lg:text-lg shadow-md font-delicious bg-transparent"
+          />
 
-        {/* AI Enhancement - Compact mode for inline use */}
-        {newUrl && (
-          <div className="flex items-start gap-2">
-            <div className="flex-1">
-              <UrlEnhancer
-                url={newUrl}
-                onEnhance={handleEnhance}
-                compact={true}
+          {/* AI Enhancement - Compact mode for inline use */}
+          {newUrl && (
+            <div className="flex items-start gap-2">
+              <div className="flex-1">
+                <UrlEnhancer
+                  url={newUrl}
+                  onEnhance={handleEnhance}
+                  compact={true}
+                />
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Additional fields - shown only when URL input has content */}
+        {newUrl.trim() && (
+          <div
+            className={`
+            transition-all duration-300 ease-in-out overflow-hidden
+            max-h-[500px] opacity-100
+          `}
+          >
+            <div className="space-y-2">
+              {/* Tags input - visible when URL is entered or enhancement provides tags */}
+              <Input
+                type="text"
+                value={newTags}
+                onChange={(e) => setNewTags(e.target.value)}
+                placeholder="Tags (comma separated) - AI will suggest some!"
+                className="text-sm sm:text-base lg:text-lg shadow-md font-delicious bg-transparent"
+              />
+
+              <Textarea
+                value={newNote}
+                onChange={(e) => setNewNote(e.target.value)}
+                placeholder="Note (optional) - AI will suggest a summary!"
+                className="text-sm sm:text-base lg:text-lg shadow-md font-delicious rounded-xl min-h-[40px]"
+                rows={2}
               />
             </div>
           </div>
         )}
-      </div>
 
-      {/* Additional fields - shown only when URL input has content */}
-      {newUrl.trim() && (
-        <div
-          className={`
-            transition-all duration-300 ease-in-out overflow-hidden
-            max-h-[500px] opacity-100
-          `}
-        >
-          <div className="space-y-2">
-            {/* Tags input - visible when URL is entered or enhancement provides tags */}
-            <Input
-              type="text"
-              value={newTags}
-              onChange={(e) => setNewTags(e.target.value)}
-              placeholder="Tags (comma separated) - AI will suggest some!"
-              className="text-sm sm:text-base lg:text-lg shadow-md font-delicious bg-transparent"
-            />
-
-            <Textarea
-              value={newNote}
-              onChange={(e) => setNewNote(e.target.value)}
-              placeholder="Note (optional) - AI will suggest a summary!"
-              className="text-sm sm:text-base lg:text-lg shadow-md font-delicious rounded-xl min-h-[40px]"
-              rows={2}
-            />
-          </div>
-        </div>
-      )}
-
-      <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
-        {newUrl && (
-          <Button type="button" onClick={handleClear} variant="glassNeutral">
-            Clear
+        <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
+          {newUrl && (
+            <Button type="button" onClick={handleClear} variant="glassNeutral">
+              Clear
+            </Button>
+          )}
+          <Button type="button" onClick={onCancel} variant="glassNeutral">
+            <X className="h-4 w-4 shrink-0" aria-hidden />
+            Cancel
           </Button>
-        )}
-        <Button type="button" onClick={onCancel} variant="glassNeutral">
-          <X className="h-4 w-4 shrink-0" aria-hidden />
-          Cancel
-        </Button>
-        <Button type="submit" isLoading={isLoading} variant="glassEmerald">
-          <WandSparkles className="h-4 w-4 sm:h-5 sm:w-5 shrink-0" aria-hidden />
-          Add URL
-        </Button>
-      </div>
-    </form>
+          <Button type="submit" isLoading={isLoading} variant="glassEmerald">
+            <WandSparkles className="h-4 w-4  shrink-0" aria-hidden />
+            Add URL
+          </Button>
+        </div>
+      </form>
     </Dialog>
   );
 }

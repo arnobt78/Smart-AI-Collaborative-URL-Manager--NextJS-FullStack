@@ -164,7 +164,7 @@ export default function EditListPageClient() {
     <div className={cn("min-h-screen w-full", PAGE_STACK)}>
       {/* Header — title+sub tight (no mt between lines) */}
       <div className={PAGE_HEADER}>
-        <h1 className="text-2xl sm:text-3xl  font-medium bg-gradient-to-r from-blue-300 via-purple-300 to-indigo-300 bg-clip-text text-transparent leading-tight">
+        <h1 className="text-lg sm:text-xl  font-medium bg-gradient-to-r from-blue-300 via-purple-300 to-indigo-300 bg-clip-text text-transparent leading-tight">
           Edit List
         </h1>
         <p className="text-white/70 text-sm sm:text-base leading-snug">
@@ -237,7 +237,7 @@ export default function EditListPageClient() {
                   type="checkbox"
                   checked={isPublic}
                   onChange={(e) => setIsPublic(e.target.checked)}
-                  className="h-4 w-4 sm:h-5 sm:w-5 mt-0.5 text-blue-600 border-white/30 rounded bg-white/10 focus:ring-2 focus:ring-blue-500 focus:ring-offset-0 focus:ring-offset-transparent cursor-pointer flex-shrink-0"
+                  className="h-4 w-4  mt-0.5 text-blue-600 border-white/30 rounded bg-white/10 focus:ring-2 focus:ring-blue-500 focus:ring-offset-0 focus:ring-offset-transparent cursor-pointer flex-shrink-0"
                   id="is_public"
                 />
                 <div className="flex-1">

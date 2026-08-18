@@ -5,13 +5,15 @@ import { Badge } from "@/components/ui/Badge";
 import { CheckCircle2, AlertCircle, Clock, Activity } from "lucide-react";
 import { useApiStatusQuery } from "@/hooks/useBrowseQueries";
 import { cn } from "@/lib/utils";
-import { PAGE_HEADER, PAGE_STACK } from "@/lib/ui-spacing";
+import { PAGE_STACK } from "@/lib/ui-spacing";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { useDelayedPending } from "@/hooks/useDelayedPending";
 
 export default function ApiStatusPage() {
   // CRITICAL: Use React Query with refetchInterval for real-time status monitoring
   // This polls every 30 seconds automatically - no manual setInterval needed
   const { data: statusData, isLoading } = useApiStatusQuery();
+  const showInlinePending = useDelayedPending(isLoading, Boolean(statusData));
 
   const formatUptime = (seconds: number) => {
     if (seconds < 60) {
@@ -22,79 +24,6 @@ export default function ApiStatusPage() {
     const minutes = Math.floor((seconds % 3600) / 60);
     return `${days}d ${hours}h ${minutes}m`;
   };
-
-  if (isLoading || !statusData?.status) {
-    return (
-      <div className={cn("min-h-screen w-full", PAGE_STACK)}>
-        {/* Header Skeleton */}
-        <div className={PAGE_HEADER}>
-          <div className="h-10 bg-white/10 rounded w-64 animate-pulse" />
-          <div className="h-5 bg-white/10 rounded w-96 animate-pulse" />
-        </div>
-
-        {/* Overall Status Card Skeleton */}
-        <Card className=" animate-pulse">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div className="h-6 bg-white/10 rounded w-32" />
-              <div className="h-6 w-24 bg-white/10 rounded-full" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <div className="h-4 bg-white/10 rounded w-16 mb-1" />
-                <div className="flex items-center gap-2">
-                  <div className="h-4 w-4 bg-white/10 rounded-full" />
-                  <div className="h-4 bg-white/10 rounded w-24" />
-                </div>
-              </div>
-              <div>
-                <div className="h-4 bg-white/10 rounded w-12 mb-1" />
-                <div className="flex items-center gap-2">
-                  <div className="h-4 w-4 bg-white/10 rounded-full" />
-                  <div className="h-4 bg-white/10 rounded w-20" />
-                </div>
-              </div>
-              <div>
-                <div className="h-4 bg-white/10 rounded w-20 mb-1" />
-                <div className="h-4 bg-white/10 rounded w-16" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* API Endpoints Card Skeleton */}
-        <Card className="animate-pulse">
-          <CardHeader>
-            <div className="h-6 bg-white/10 rounded w-32" />
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              {[...Array(4)].map((_, i) => (
-                <div
-                  key={i}
-                  className="flex items-center justify-between p-4 rounded-lg bg-white/5 border border-white/10"
-                >
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <div className="h-5 bg-white/10 rounded w-32" />
-                      <div className="h-5 w-20 bg-white/10 rounded-full" />
-                    </div>
-                    <div className="h-4 bg-white/10 rounded w-64" />
-                  </div>
-                  <div className="text-right">
-                    <div className="h-3 bg-white/10 rounded w-20 mb-1" />
-                    <div className="h-5 bg-white/10 rounded w-16" />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
 
   const getStatusBadge = (status: string) => {
     if (status === "operational") {
@@ -125,7 +54,7 @@ export default function ApiStatusPage() {
             <CardTitle className="text-base sm:text-lg">
               System Status
             </CardTitle>
-            {statusData?.status && getStatusBadge(statusData.status.overall)}
+            {statusData?.status ? getStatusBadge(statusData.status.overall) : showInlinePending ? <span className="h-5 w-24 rounded-full bg-white/10" aria-label="Loading status" /> : <span className="text-sm text-white/50">Unavailable</span>}
           </div>
         </CardHeader>
         <CardContent>
@@ -196,7 +125,7 @@ export default function ApiStatusPage() {
                   </p>
                 </div>
               </div>
-            ))}
+            )) || (showInlinePending ? <div className="h-16 rounded-lg border border-white/10 bg-white/5" aria-label="Loading endpoint status" /> : <p className="text-sm text-white/50">Endpoint status is unavailable.</p>)}
           </div>
         </CardContent>
       </Card>

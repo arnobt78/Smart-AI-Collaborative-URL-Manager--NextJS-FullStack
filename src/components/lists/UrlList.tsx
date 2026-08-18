@@ -59,6 +59,7 @@ import { useListPermissions } from "@/hooks/useListPermissions";
 import { UrlFilterBar } from "./UrlFilterBar";
 import { UrlBulkImportExport } from "./UrlBulkImportExport";
 import { UrlAddForm } from "./UrlAddForm";
+import { HEADING_STACK } from "@/lib/ui-spacing";
 
 // Component wrapper that fetches metadata using React Query for each URL
 function UrlCardWrapper({
@@ -2819,13 +2820,15 @@ export function UrlList() {
               <div className="mx-auto w-32 h-32 bg-gradient-to-br from-gray-500/20 via-gray-500/20 to-transparent rounded-full flex items-center justify-center shadow-inner border border-gray-400/30">
                 <ArchiveBoxIcon className="h-16 w-16 text-gray-400" />
               </div>
-              <h3 className="mt-6 text-2xl font-medium text-white">
-                No Archived URLs
-              </h3>
-              <p className="mt-2 text-lg text-white/60 max-w-md mx-auto">
-                Archived URLs will appear here. You can restore them at any
-                time.
-              </p>
+              <div className={`${HEADING_STACK} mt-6`}>
+                <h3 className="text-2xl font-medium text-white">
+                  No Archived URLs
+                </h3>
+                <p className="text-lg text-white/60 max-w-md mx-auto">
+                  Archived URLs will appear here. You can restore them at any
+                  time.
+                </p>
+              </div>
             </div>
           ) : (
             archivedUrlsList.map((url) => (
@@ -2883,11 +2886,13 @@ export function UrlList() {
           <div className="mx-auto w-32 h-32 bg-gradient-to-br from-blue-500/20 via-blue-500/20 to-transparent rounded-full flex items-center justify-center shadow-inner border border-blue-400/30">
             <LinkIcon className="h-16 w-16 text-blue-400" />
           </div>
-          <h3 className="mt-6 text-2xl font-medium text-white">No URLs Yet</h3>
-          <p className="mt-2 text-lg text-white/60 max-w-md mx-auto">
-            Start building your collection by adding your first URL using the
-            form above
-          </p>
+          <div className={`${HEADING_STACK} mt-6`}>
+            <h3 className="text-2xl font-medium text-white">No URLs Yet</h3>
+            <p className="text-lg text-white/60 max-w-md mx-auto">
+              Start building your collection by adding your first URL using the
+              form above
+            </p>
+          </div>
         </div>
       )}
 

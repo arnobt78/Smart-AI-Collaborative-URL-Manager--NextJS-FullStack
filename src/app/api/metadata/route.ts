@@ -1,30 +1,80 @@
 import { NextResponse } from "next/server";
+import { lookup } from "node:dns/promises";
+import { isIP } from "node:net";
 import { uploadExternalImage } from "@/lib/cloudinary-server";
+
+export const runtime = "nodejs";
+
+const METADATA_TIMEOUT_MS = 8_000;
+const MAX_REDIRECTS = 3;
+
+function isPublicIp(address: string) {
+  if (isIP(address) === 4) {
+    const [a, b] = address.split(".").map(Number);
+    return !(
+      a === 0 || a === 10 || a === 127 ||
+      (a === 100 && b >= 64 && b <= 127) ||
+      (a === 169 && b === 254) ||
+      (a === 172 && b >= 16 && b <= 31) ||
+      (a === 192 && b === 168)
+    );
+  }
+  if (isIP(address) === 6) {
+    const normalized = address.toLowerCase();
+    return normalized !== "::1" && !normalized.startsWith("fe80:") && !normalized.startsWith("fc") && !normalized.startsWith("fd");
+  }
+  return false;
+}
+
+async function assertPublicHttpUrl(value: string) {
+  if (value.length > 2_048) throw new Error("URL is too long");
+  const target = new URL(value);
+  if (!/^https?:$/.test(target.protocol) || target.username || target.password) {
+    throw new Error("Only public HTTP(S) URLs are supported");
+  }
+  const hostname = target.hostname.toLowerCase();
+  if (hostname === "localhost" || hostname.endsWith(".localhost") || hostname.endsWith(".local")) {
+    throw new Error("Private network URLs are not supported");
+  }
+  const addresses = isIP(hostname) ? [{ address: hostname }] : await lookup(hostname, { all: true, verbatim: true });
+  if (!addresses.length || addresses.some(({ address }) => !isPublicIp(address))) {
+    throw new Error("Private network URLs are not supported");
+  }
+  return target;
+}
+
+async function fetchPublicHtml(initialUrl: string) {
+  let target = await assertPublicHttpUrl(initialUrl);
+  for (let redirectCount = 0; redirectCount <= MAX_REDIRECTS; redirectCount += 1) {
+    const response = await fetch(target, {
+      headers: {
+        "User-Agent": "DailyUrlistMetadata/1.0 (+https://daily-urlist.vercel.app)",
+        Accept: "text/html,application/xhtml+xml;q=0.9,*/*;q=0.1",
+        "Accept-Language": "en-US,en;q=0.9",
+      },
+      redirect: "manual",
+      signal: AbortSignal.timeout(METADATA_TIMEOUT_MS),
+    });
+    if (![301, 302, 303, 307, 308].includes(response.status)) return { response, target };
+    const location = response.headers.get("location");
+    if (!location || redirectCount === MAX_REDIRECTS) throw new Error("Too many metadata redirects");
+    target = await assertPublicHttpUrl(new URL(location, target).toString());
+  }
+  throw new Error("Unable to fetch metadata");
+}
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const url = searchParams.get("url");
+  let url = searchParams.get("url");
 
   if (!url) {
     return NextResponse.json({ error: "URL is required" }, { status: 400 });
   }
 
   try {
-    const response = await fetch(url, {
-      headers: {
-        "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-        Accept:
-          "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-        "Accept-Language": "en-US,en;q=0.9",
-        "Accept-Encoding": "gzip, deflate, br",
-        DNT: "1",
-        Connection: "keep-alive",
-        "Upgrade-Insecure-Requests": "1",
-      },
-      redirect: "follow",
-      signal: AbortSignal.timeout(10000), // 10 second timeout - faster failure, less blocking
-    });
+    const { response, target } = await fetchPublicHtml(url);
+    // Resolve relative metadata and image URLs from the final verified redirect target.
+    url = target.toString();
 
     // Check content type - if it's not HTML, return fallback
     const contentType = response.headers.get("content-type") || "";
@@ -34,11 +84,11 @@ export async function GET(request: Request) {
     ) {
       // Not HTML content (could be plain text, JSON, etc.)
       return NextResponse.json({
-        title: new URL(url).hostname,
+        title: target.hostname,
         description: null,
         image: null,
         favicon: null,
-        siteName: new URL(url).hostname,
+        siteName: target.hostname,
         error: `Content type is ${contentType}, not HTML`,
       });
     }
@@ -115,7 +165,14 @@ export async function GET(request: Request) {
       );
     }
 
+    const contentLength = Number(response.headers.get("content-length") || "0");
+    if (Number.isFinite(contentLength) && contentLength > 1_500_000) {
+      throw new Error("Metadata document is too large");
+    }
     const html = await response.text();
+    if (html.length > 1_500_000) {
+      throw new Error("Metadata document is too large");
+    }
 
     // Helper function to decode HTML entities
     const decodeHtmlEntities = (text: string): string => {
@@ -257,12 +314,12 @@ export async function GET(request: Request) {
       }
 
       // Fallback to hostname (clean it up)
-      const hostname = new URL(url).hostname;
+      const hostname = new URL(url!).hostname;
       return hostname.replace(/^www\./, ""); // Remove www. prefix
     };
 
     const getFavicon = async (): Promise<string | null> => {
-      const urlObj = new URL(url);
+      const urlObj = new URL(url!);
       const baseUrl = `${urlObj.protocol}//${urlObj.host}`;
 
       // Try various favicon patterns (more comprehensive)
@@ -345,7 +402,7 @@ export async function GET(request: Request) {
     // Helper function to resolve relative URLs to absolute URLs
     const resolveImageUrl = (imageUrl: string | null): string | null => {
       if (!imageUrl) return null;
-      const urlObj = new URL(url);
+      const urlObj = new URL(url!);
 
       // Already absolute URL
       if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) {
@@ -377,7 +434,8 @@ export async function GET(request: Request) {
     // Helper function to check if an image URL is accessible
     const checkImageExists = async (imageUrl: string): Promise<boolean> => {
       try {
-        const response = await fetch(imageUrl, {
+        const publicImageUrl = await assertPublicHttpUrl(imageUrl);
+        const response = await fetch(publicImageUrl, {
           method: "HEAD",
           headers: {
             "User-Agent":
@@ -691,18 +749,26 @@ export async function GET(request: Request) {
     // Optimize images using Cloudinary
     // Use upload method (like hotel-booking) instead of fetch URLs
     // This works even if Cloudinary Fetch is disabled
-    const optimizedImage = resolvedImage
-      ? await uploadExternalImage(resolvedImage, {
+    let optimizedImage: string | null = null;
+    if (resolvedImage) {
+      try {
+        await assertPublicHttpUrl(resolvedImage);
+        optimizedImage = await uploadExternalImage(resolvedImage, {
           width: 1200,
           height: 630,
           quality: "auto",
-        })
-      : null;
+        });
+      } catch {
+        // A preview image is optional; do not proxy a target that fails public-network validation.
+        optimizedImage = null;
+      }
+    }
 
     const faviconUrl = await getFavicon();
     let optimizedFavicon: string | null = null;
     if (faviconUrl) {
       try {
+        await assertPublicHttpUrl(faviconUrl);
         // Wrap in timeout to prevent blocking if uploadExternalImage hangs
         optimizedFavicon = await Promise.race([
           uploadExternalImage(faviconUrl, {

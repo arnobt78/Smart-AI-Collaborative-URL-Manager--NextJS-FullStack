@@ -195,7 +195,7 @@ export default function NewListPageClient() {
     <div className={cn("min-h-screen w-full", PAGE_STACK)}>
       {/* Header — PAGE_HEADER = title+sub tight (no mt between lines) */}
       <div className={PAGE_HEADER}>
-        <h1 className="text-2xl sm:text-3xl  font-medium bg-gradient-to-r from-blue-300 via-purple-300 to-indigo-300 bg-clip-text text-transparent leading-tight">
+        <h1 className="text-lg sm:text-xl  font-medium bg-gradient-to-r from-blue-300 via-purple-300 to-indigo-300 bg-clip-text text-transparent leading-tight">
           Create a New List
         </h1>
         <p className="text-white/70 text-sm sm:text-base leading-snug">
@@ -331,7 +331,7 @@ export default function NewListPageClient() {
                   onChange={(e) =>
                     setFormData({ ...formData, is_public: e.target.checked })
                   }
-                  className="h-4 w-4 sm:h-5 sm:w-5 mt-0.5 text-blue-600 border-white/30 rounded bg-white/10 focus:ring-2 focus:ring-blue-500 focus:ring-offset-0 focus:ring-offset-transparent cursor-pointer flex-shrink-0"
+                  className="h-4 w-4  mt-0.5 text-blue-600 border-white/30 rounded bg-white/10 focus:ring-2 focus:ring-blue-500 focus:ring-offset-0 focus:ring-offset-transparent cursor-pointer flex-shrink-0"
                   id="is_public"
                 />
                 <div className="flex-1">
@@ -362,10 +362,7 @@ export default function NewListPageClient() {
               size="lg"
               className="w-full sm:w-auto"
             >
-              <ListPlus
-                className="h-4 w-4 sm:h-5 sm:w-5 shrink-0"
-                aria-hidden
-              />
+              <ListPlus className="h-4 w-4  shrink-0" aria-hidden />
               Create List
             </Button>
           </form>

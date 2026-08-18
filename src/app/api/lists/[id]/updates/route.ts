@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { getListBySlug, updateList, getCollaboratorsWithRoles, type UrlItem } from "@/lib/db";
 import { getActivitiesForList } from "@/lib/db/activities";
+import { getCommentCountsForUrls } from "@/lib/db/comments";
 import { hasListAccess } from "@/lib/collaboration/permissions";
 
 /**
@@ -73,7 +74,7 @@ export async function GET(
 
     // Run ALL queries in parallel (much faster than sequential)
     // Position init is non-blocking - response returns immediately, position save happens in background
-    const [positionInitResult, activitiesResult, collaboratorsResult] = await Promise.allSettled([
+    const [positionInitResult, activitiesResult, collaboratorsResult, commentCountsResult] = await Promise.allSettled([
       // Position initialization (only if needed) - non-blocking
       needsPositionInit && urlsWithPositions.length > 0
         ? updateList(list.id, { urls: urlsWithPositions })
@@ -84,6 +85,7 @@ export async function GET(
       canViewCollaborators 
         ? getCollaboratorsWithRoles(list.id)
         : Promise.resolve([] as Array<{ email: string; role: "editor" | "viewer" }>),
+      getCommentCountsForUrls(list.id, urlsWithPositions.map((url) => url.id)),
     ]);
 
     // Extract results safely
@@ -111,6 +113,7 @@ export async function GET(
       urlId: u.id,
       clickCount: u.clickCount || 0,
     }));
+    const commentCounts = commentCountsResult.status === "fulfilled" ? commentCountsResult.value : {};
 
     // Return unified response with list, activities, and collaborators
     // Format matches what getList expects for list, ActivityFeed expects for activities,
@@ -121,6 +124,7 @@ export async function GET(
       collaborators,
       urlOrder,
       clickCounts,
+      commentCounts,
     });
   } catch (error) {
     console.error("❌ [UNIFIED] Failed to get updates:", error);

@@ -804,30 +804,6 @@ export function UrlBulkImportExport({
             }
           }
 
-          // CRITICAL: Force page reload to clear server state and prevent connection pool exhaustion
-          // The Next.js dev server can't handle the load from bulk import + SSE + metadata fetching
-          // A hard reload ensures a clean slate
-          if (process.env.NODE_ENV === "development") {
-            devLog(
-              "🔄 [BULK IMPORT] Forcing page reload to clear server state...",
-            );
-            // Set flag in sessionStorage to skip metadata fetch after reload
-            sessionStorage.setItem("skipMetadataAfterBulkImport", "true");
-
-            // Wait a bit for cleanup to fully propagate, then force reload
-            setTimeout(() => {
-              // Force stop interception one more time before reload
-              if (typeof window !== "undefined" && abortRegistry) {
-                abortRegistry.stopGlobalInterception();
-                abortRegistry.forceAbortAllGlobal();
-                window.__bulkImportActive = false;
-                window.__bulkImportDisableInterception = true;
-              }
-              // Use window.location.href for more forceful navigation
-              window.location.href = window.location.href;
-            }, 300);
-          }
-
           return; // Exit early - bulk import succeeded
         } catch (error) {
           console.error(
@@ -2186,7 +2162,7 @@ export function UrlBulkImportExport({
           // 1. Re-confirms interception is stopped.
           // 2. Re-aborts any straggler requests.
           // 3. Performs a gentle router refresh ping.
-          // 4. Falls back to a hard location.reload if still stuck after 5s.
+          // 4. Retains the current view and lets centralized invalidation reconcile data.
           // This code ONLY adds safeguards and does not remove or alter existing logic.
           const startRecoveryTs = Date.now();
           let recoveryAttempts = 0;

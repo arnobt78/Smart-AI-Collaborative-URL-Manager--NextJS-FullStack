@@ -11,6 +11,7 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { usePublicListsQuery } from "@/hooks/useBrowseQueries";
 import { cn } from "@/lib/utils";
 import { CARD_PAD, PAGE_STACK } from "@/lib/ui-spacing";
+import { useDelayedPending } from "@/hooks/useDelayedPending";
 
 interface UrlItem {
   id: string;
@@ -55,7 +56,7 @@ export default function BrowsePage() {
   const totalPages = data?.pagination?.totalPages || 1;
 
   // Preserve cached cards during background refetches; skeletons are initial-data only.
-  const shouldShowSkeleton = isLoading && !data;
+  const shouldShowSkeleton = useDelayedPending(isLoading, Boolean(data));
 
   // Update URL query params when search or page changes (but only if different from current URL)
   useEffect(() => {
@@ -117,7 +118,7 @@ export default function BrowsePage() {
             <div
               key={i}
               className={cn(
-                "group bg-white/5 border border-white/10 rounded-xl animate-pulse flex flex-col gap-2",
+                "group bg-white/5 border border-white/10 rounded-xl flex flex-col gap-2",
                 CARD_PAD,
               )}
             >

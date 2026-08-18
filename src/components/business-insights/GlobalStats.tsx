@@ -249,7 +249,7 @@ export function GlobalStats({ data, isLoading }: GlobalStatsProps) {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
-            <UserPlus className="h-4 w-4 sm:h-5 sm:w-5 text-blue-400" />
+            <UserPlus className="h-4 w-4  text-blue-400" />
             <span className="text-xs sm:text-base">
               User Growth (Last 30 Days)
             </span>

@@ -18,8 +18,9 @@ import {
   useBusinessGlobalQuery,
 } from "@/hooks/useBrowseQueries";
 import { cn } from "@/lib/utils";
-import { PAGE_HEADER, PAGE_STACK } from "@/lib/ui-spacing";
+import { PAGE_STACK } from "@/lib/ui-spacing";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { useDelayedPending } from "@/hooks/useDelayedPending";
 
 // Type definitions for all data structures
 interface _OverviewData {
@@ -94,6 +95,21 @@ interface _GlobalStatsData {
 // Props interface for future extensibility
 type BusinessInsightsPageProps = Record<string, never>;
 
+const emptyOverview: _OverviewData = {
+  totalLists: 0, totalUrls: 0, publicLists: 0, privateLists: 0,
+  totalCollaborators: 0, recentLists: 0, recentUrls: 0,
+};
+const emptyPerformance: _PerformanceData = {
+  totalUrls: 0, totalLists: 0, avgUrlsPerList: 0, publicCount: 0,
+  privateCount: 0, listsWithCollaborators: 0, topLists: [],
+};
+const emptyGlobal: _GlobalStatsData = {
+  totalUsers: 0, totalLists: 0, totalUrls: 0, liveUsersNow: 0,
+  publicLists: 0, privateLists: 0, listsWithCollaborators: 0,
+  avgUrlsPerList: 0, newUsersLast7Days: 0, newListsLast7Days: 0,
+  newUrlsLast7Days: 0, userGrowthData: [],
+};
+
 // Type reference to ensure Card components are available if needed
 type CardComponentTypes =
   | typeof Card
@@ -133,13 +149,11 @@ export default function BusinessInsightsPage(
   const performanceData = performanceResult?.performance || null;
   const globalData = globalResult?.global || null;
 
-  // Check if any query is loading
-  const isLoading =
-    isLoadingOverview ||
-    isLoadingActivity ||
-    isLoadingPopular ||
-    isLoadingPerformance ||
-    isLoadingGlobal;
+  const isOverviewPending = useDelayedPending(isLoadingOverview, Boolean(overviewData));
+  const isActivityPending = useDelayedPending(isLoadingActivity, Boolean(activityData));
+  const isPopularPending = useDelayedPending(isLoadingPopular, Boolean(popularData));
+  const isPerformancePending = useDelayedPending(isLoadingPerformance, Boolean(performanceData));
+  const isGlobalPending = useDelayedPending(isLoadingGlobal, Boolean(globalData));
 
   // Ensure props and Card imports are considered used (for future extensibility)
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -149,64 +163,6 @@ export default function BusinessInsightsPage(
   // References used to prevent unused warnings while keeping imports available
   void _propsReference;
   void _cardReference;
-
-  if (isLoading && !overviewData && !activityData && !popularData) {
-    return (
-      <div className={cn("min-h-screen w-full", PAGE_STACK)}>
-        {/* Header Skeleton */}
-        <div className={PAGE_HEADER}>
-          <div className="h-10 bg-white/10 rounded w-64 animate-pulse flex items-center gap-2">
-            <div className="h-8 w-8 bg-white/10 rounded" />
-            <div className="h-6 bg-white/10 rounded flex-1" />
-          </div>
-          <div className="h-5 bg-white/10 rounded w-96 animate-pulse" />
-        </div>
-
-        {/* Tabs Skeleton */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-5 ">
-            {[...Array(5)].map((_, i) => (
-              <div key={i} className="h-10 bg-white/10 rounded animate-pulse" />
-            ))}
-          </TabsList>
-
-          {/* Overview Tab Content Skeleton */}
-          <TabsContent value="overview" className="space-y-6">
-            {/* OverviewCards Skeleton */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {[...Array(6)].map((_, i) => (
-                <Card key={i} className="animate-pulse">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <div className="h-4 bg-white/10 rounded w-24" />
-                    <div className="h-8 w-8 bg-white/10 rounded-lg" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="h-8 bg-white/10 rounded w-16 mb-1" />
-                    <div className="h-3 bg-white/10 rounded w-20" />
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-
-            {/* ActivityChart Skeleton */}
-            <Card className="animate-pulse">
-              <CardHeader>
-                <div className="h-6 bg-white/10 rounded w-32" />
-              </CardHeader>
-              <CardContent>
-                <div className="mb-4 flex gap-2">
-                  {[...Array(3)].map((_, i) => (
-                    <div key={i} className="h-10 bg-white/10 rounded w-20" />
-                  ))}
-                </div>
-                <div className="h-64 bg-white/10 rounded" />
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
-      </div>
-    );
-  }
 
   return (
     <div className={cn("min-h-screen w-full", PAGE_STACK)}>
@@ -260,48 +216,31 @@ export default function BusinessInsightsPage(
 
         {/* Overview Tab */}
         <TabsContent value="overview" className="space-y-6">
-          {overviewData && (
-            <>
-              <OverviewCards data={overviewData} isLoading={isLoading} />
-              <ActivityChart
-                initialData={activityData}
-                initialLoading={isLoading}
-              />
-            </>
-          )}
+          <OverviewCards data={overviewData || emptyOverview} isLoading={isOverviewPending} />
+          <ActivityChart initialData={activityData} initialLoading={isActivityPending} />
         </TabsContent>
 
         {/* Activity Tab */}
         <TabsContent value="activity" className="space-y-6">
           <ActivityChart
             initialData={activityData}
-            initialLoading={isLoading}
+            initialLoading={isActivityPending}
           />
         </TabsContent>
 
         {/* Popular Tab */}
         <TabsContent value="popular" className="space-y-6">
-          {popularData && (
-            <PopularContent
-              popularUrls={popularData.popularUrls}
-              activeLists={popularData.activeLists}
-              isLoading={isLoading}
-            />
-          )}
+          <PopularContent popularUrls={popularData?.popularUrls || []} activeLists={popularData?.activeLists || []} isLoading={isPopularPending} />
         </TabsContent>
 
         {/* Performance Tab */}
         <TabsContent value="performance" className="space-y-6">
-          {performanceData && (
-            <PerformanceMetrics data={performanceData} isLoading={isLoading} />
-          )}
+          <PerformanceMetrics data={performanceData || emptyPerformance} isLoading={isPerformancePending} />
         </TabsContent>
 
         {/* Global Tab */}
         <TabsContent value="global" className="space-y-6">
-          {globalData && (
-            <GlobalStats data={globalData} isLoading={isLoading} />
-          )}
+          <GlobalStats data={globalData || emptyGlobal} isLoading={isGlobalPending} />
         </TabsContent>
       </Tabs>
     </div>

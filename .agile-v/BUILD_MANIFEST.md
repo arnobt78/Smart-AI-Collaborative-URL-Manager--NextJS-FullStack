@@ -10,5 +10,7 @@
 | ART-0015.1 | REQ-0015 | `src/components/layout/{Navbar,Footer}.tsx`; `src/types/browser-globals.d.ts` | Responsive 56px chrome alignment and one typed browser coordination contract. |
 | ART-0016.1 | REQ-0016 | `src/components/Auth.tsx` | Opaque guest-account panel and parent stacking-context correction. |
 | ART-0017.1 | REQ-0017 | `src/lib/ui/{control-styles,glass-button-styles}.ts`; `src/components/{ui/Button,ui/ScrollReveal,HomePage}.tsx`; `src/app/globals.css` | Shared compact geometry and dependency-free marketing reveal/parallax. |
+| ART-0019.1 | REQ-0019 | `src/lib/ui-spacing.ts`; shared UI headers; targeted heading pairs | Central zero-gap title/subtitle contract with no data, auth, or control changes. |
+| ART-0020.1 | REQ-0020 | requested data pages, unified list/comments, metadata route, Dialog, bulk import | Stable cached data surfaces, batched comment counts, no hard reload, and public-network metadata bounds. |
 
 Risk level: R2 (production UI and repository-wide behavior-sensitive lint remediation). No API, database, authorization, or session contract changes are authorized.

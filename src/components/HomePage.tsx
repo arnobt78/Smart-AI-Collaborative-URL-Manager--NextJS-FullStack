@@ -15,10 +15,7 @@ import { CreateNewListButton } from "@/components/ui/CreateNewListButton";
 import { OptimizedImage } from "@/components/ui/OptimizedImage";
 import { ScrollReveal } from "@/components/ui/ScrollReveal";
 import { cn } from "@/lib/utils";
-import {
-  CARD_PAD,
-  MARKETING_STACK,
-} from "@/lib/ui-spacing";
+import { CARD_PAD, HEADING_STACK, MARKETING_STACK } from "@/lib/ui-spacing";
 
 const features = [
   {
@@ -53,7 +50,11 @@ function MarketingHome() {
             MARKETING_STACK,
           )}
         >
-          <ScrollReveal className="flex justify-center" delay={0} direction="appear">
+          <ScrollReveal
+            className="flex justify-center"
+            delay={0}
+            direction="appear"
+          >
             <div className="bg-blue-500/20 backdrop-blur-md rounded-xl sm:rounded-2xl p-3 sm:p-4 inline-block border border-blue-400/30">
               <OptimizedImage
                 src="/favicon.ico"
@@ -66,28 +67,37 @@ function MarketingHome() {
             </div>
           </ScrollReveal>
           <ScrollReveal delay={160} direction="left">
-            <h1 className="text-2xl sm:text-4xl md:text-5xl font-medium text-white bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-indigo-400 px-2">
+            <h1 className="text-lg sm:text-xl font-medium text-white bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-indigo-400 px-2">
               The Daily Urlist
             </h1>
           </ScrollReveal>
           <ScrollReveal delay={320} direction="right">
-            <p className="text-sm sm:text-lg md:text-xl text-white/70 leading-relaxed px-2">
+            <p className="text-sm sm:text-lg text-white/70 leading-relaxed px-2">
               Create and share lists of URLs easily.
             </p>
           </ScrollReveal>
           <ScrollReveal delay={480} direction="left">
-            <p className="text-sm sm:text-lg md:text-xl text-white/70 leading-relaxed px-2">
-              Perfect for sharing resources, bookmarks, and collections with others.
+            <p className="text-sm sm:text-lg text-white/70 leading-relaxed px-2">
+              Perfect for sharing resources, bookmarks, and collections with
+              others.
             </p>
           </ScrollReveal>
           <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 justify-center px-2">
-            <ScrollReveal delay={640} direction="bottom" className="w-full sm:w-auto">
+            <ScrollReveal
+              delay={640}
+              direction="bottom"
+              className="w-full sm:w-auto"
+            >
               <CreateNewListButton
                 icon={ListPlus}
                 className="text-sm px-6 sm:px-8"
               />
             </ScrollReveal>
-            <ScrollReveal delay={800} direction="bottom" className="w-full sm:w-auto">
+            <ScrollReveal
+              delay={800}
+              direction="bottom"
+              className="w-full sm:w-auto"
+            >
               <Button
                 href="/lists"
                 variant="outline"
@@ -117,12 +127,14 @@ function MarketingHome() {
               <div className="bg-gradient-to-br from-blue-500/20 to-purple-500/20 backdrop-blur-md rounded-lg sm:rounded-xl p-2.5 sm:p-3 inline-block w-fit group-hover:scale-110 transition-transform duration-300 border border-blue-400/30">
                 {feature.icon}
               </div>
-              <h3 className="text-base sm:text-lg lg:text-xl font-medium text-white group-hover:text-blue-400 transition-colors">
-                {feature.title}
-              </h3>
-              <p className="text-sm sm:text-base text-white/60 leading-relaxed">
-                {feature.description}
-              </p>
+              <div className={HEADING_STACK}>
+                <h3 className="text-base sm:text-lg lg:text-xl font-medium text-white group-hover:text-blue-400 transition-colors">
+                  {feature.title}
+                </h3>
+                <p className="text-sm sm:text-base text-white/60 leading-relaxed">
+                  {feature.description}
+                </p>
+              </div>
             </ScrollReveal>
           ))}
         </div>
@@ -130,18 +142,23 @@ function MarketingHome() {
 
       {/* How It Works Section */}
       <section
-        className={cn(
-          "py-12 px-4 sm:py-20 sm:px-6 lg:px-8",
-          MARKETING_STACK,
-        )}
+        className={cn("py-12 px-4 sm:py-20 sm:px-6 lg:px-8", MARKETING_STACK)}
       >
         <ScrollReveal direction="appear">
-          <h2 className="text-xl sm:text-2xl lg:text-3xl font-medium text-white text-center text-balance">
+          <h2 className="text-lg sm:text-xl font-medium text-white text-center text-balance">
             How It Works
           </h2>
         </ScrollReveal>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-          <ScrollReveal delay={0} direction="left" parallax className={cn("text-center flex flex-col items-center gap-2 sm:gap-3", CARD_PAD)}>
+          <ScrollReveal
+            delay={0}
+            direction="left"
+            parallax
+            className={cn(
+              "text-center flex flex-col items-center gap-2 sm:gap-3",
+              CARD_PAD,
+            )}
+          >
             <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-blue-500/20 backdrop-blur-md border border-blue-400/30 text-blue-400 flex items-center justify-center text-base sm:text-lg lg:text-xl font-medium">
               1
             </div>
@@ -152,7 +169,15 @@ function MarketingHome() {
               Start by creating a new list and give it a memorable name.
             </p>
           </ScrollReveal>
-          <ScrollReveal delay={140} direction="bottom" parallax className={cn("text-center flex flex-col items-center gap-2 sm:gap-3", CARD_PAD)}>
+          <ScrollReveal
+            delay={140}
+            direction="bottom"
+            parallax
+            className={cn(
+              "text-center flex flex-col items-center gap-2 sm:gap-3",
+              CARD_PAD,
+            )}
+          >
             <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-purple-500/20 backdrop-blur-md border border-purple-400/30 text-purple-400 flex items-center justify-center text-base sm:text-lg lg:text-xl font-medium">
               2
             </div>
@@ -194,7 +219,7 @@ function MarketingHome() {
           )}
         >
           <ScrollReveal direction="left" parallax>
-            <h2 className="text-xl sm:text-2xl lg:text-3xl font-medium text-white px-2 text-balance">
+            <h2 className="text-lg sm:text-xl font-medium text-white px-2 text-balance">
               Ready to Create Your First List?
             </h2>
           </ScrollReveal>

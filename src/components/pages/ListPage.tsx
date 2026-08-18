@@ -9,17 +9,8 @@ import { UrlList } from "@/components/lists/UrlList";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { Switch } from "@/components/ui/Switch";
-import {
-  glassActionButtonClass,
-} from "@/lib/ui/glass-button-styles";
-import {
-  Copy,
-  Check,
-  Globe,
-  Lock,
-  Activity,
-  RefreshCw,
-} from "lucide-react";
+import { glassActionButtonClass } from "@/lib/ui/glass-button-styles";
+import { Copy, Check, Globe, Lock, Activity, RefreshCw } from "lucide-react";
 import { useToast } from "@/components/ui/Toaster";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { ActivityFeed } from "@/components/collaboration/ActivityFeed";
@@ -39,6 +30,7 @@ import {
 } from "@/utils/queryInvalidation";
 import { Dialog } from "@/components/ui/Dialog";
 import EditListPageClient from "@/components/pages/EditListPage";
+import { HEADING_STACK } from "@/lib/ui-spacing";
 
 export default function ListPageClient() {
   const { toast } = useToast();
@@ -802,11 +794,13 @@ export default function ListPageClient() {
     return (
       <div className="min-h-screen w-full">
         <div className="text-center">
-          <h1 className="text-3xl font-medium">List not found</h1>
-          <p className="mt-2 text-gray-600">
-            The list you&apos;re looking for doesn&apos;t exist or has been
-            deleted.
-          </p>
+          <div className={HEADING_STACK}>
+            <h1 className="text-lg sm:text-xl font-medium">List not found</h1>
+            <p className="text-gray-600">
+              The list you&apos;re looking for doesn&apos;t exist or has been
+              deleted.
+            </p>
+          </div>
           <Button href="/" className="mt-8">
             Go Home
           </Button>

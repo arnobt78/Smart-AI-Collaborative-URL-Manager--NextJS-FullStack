@@ -79,5 +79,18 @@ HA-0001 Firewall · Sentry org/token
 3. Keep cached data visible during background fetches and centralize page identity rows.
 4. Migrated Comments, Similar URLs, and PermissionManager portal surfaces; retained existing query and mutation contracts.
 
+### TASK-0020 — Central zero-gap heading contract — DONE
+
+1. Add a shared direct heading-stack token and consume it in page, dialog, and card headers.
+2. Migrate only direct legacy title/description pairs; preserve surrounding layout and control spacing.
+3. Validate responsive heading geometry, TypeScript, lint, Jest, production build, and diff hygiene.
+
+### TASK-0021 — Stable data surfaces and safe metadata retrieval — DONE
+
+1. Remove broad loading remounts while retaining cached content and delayed cold placeholders.
+2. Add grouped comment counts to the unified list response and update visible card badges optimistically.
+3. Harden metadata URL/redirect/image validation; remove import hard-reload recovery; normalize dialog content chrome and scrollbar track.
+4. Validate TypeScript, lint, Jest, production build, and diff hygiene.
+
 ## Deferred
 RSC shells · densify/Zod/SHA/Next16

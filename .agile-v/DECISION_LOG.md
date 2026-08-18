@@ -15,6 +15,19 @@ Append-only. Newest entries at bottom.
 | Linked REQs | REQ-0018 |
 | Status | Implemented foundation; remaining custom overlay callers are tracked in TASK-0019. |
 
+---
+
+## DEC-0021 — Scope zero-gap styling to direct heading pairs
+
+| Field | Value |
+|-------|-------|
+| Timestamp | 2026-08-18 |
+| Agent | Agile V Build |
+| Decision | Introduce one `HEADING_STACK` token and apply it only where a title directly owns a subtitle or description. |
+| Rationale | This removes inconsistent vertical whitespace without collapsing form, toolbar, menu, card-content, or prose layout rhythm. |
+| Linked REQs | REQ-0019 |
+| Status | Implemented and validated. |
+
 ## DEC-0001 — Bootstrap Agile V Cycle C1 without prior workspace
 
 | Field | Value |
@@ -256,3 +269,16 @@ Append-only. Newest entries at bottom.
 | Rationale | A grouped CTA wrapper made sibling buttons arrive simultaneously; individual semantic units produce the requested harmonic sequence without changing routes or data. |
 | Linked REQs | REQ-0017 |
 | Status | Implemented; lint and strict TypeScript pass. |
+
+---
+
+## DEC-0020 — Keep page chrome stable and bound metadata egress
+
+| Field | Value |
+|-------|-------|
+| Timestamp | 2026-08-18 |
+| Agent | Agile V implementation |
+| Decision | Preserve mounted static page chrome and cached query data; delay cold placeholders. Batch comment counts in the unified list response. Remove bulk-import hard reload recovery. Restrict metadata document, image, and favicon requests to public HTTP(S) addresses and validated redirects. |
+| Rationale | Full-page skeleton remounts caused visual flashes; a hard reload bypassed cache reconciliation; unvalidated metadata subrequests exposed internal-network access risk. |
+| Linked REQs | REQ-0020 |
+| Status | Implemented and validated. |

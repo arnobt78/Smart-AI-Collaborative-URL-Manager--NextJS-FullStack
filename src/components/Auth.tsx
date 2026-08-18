@@ -28,7 +28,7 @@ import { displayNameFromEmail, robohashUrl } from "@/lib/robohash";
 import { queueAuthToast } from "@/lib/auth-toast";
 import { setWasAuthedHintClient } from "@/lib/was-authed";
 import { cn } from "@/lib/utils";
-import { CARD_PAD, FORM_STACK, MARKETING_STACK } from "@/lib/ui-spacing";
+import { CARD_PAD, FORM_STACK, HEADING_STACK, MARKETING_STACK } from "@/lib/ui-spacing";
 import { glassPrimaryButtonClass } from "@/lib/ui/glass-button-styles";
 import { UI_FORM_CONTROL } from "@/lib/ui/control-styles";
 
@@ -365,7 +365,7 @@ export default function Auth() {
             )}
           >
             <div className="flex max-w-lg flex-col items-start gap-4 sm:gap-6">
-              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-medium text-[#00ff99] drop-shadow-[0_0_15px_rgba(0,255,153,0.6)] animate-fade-in">
+              <h1 className="text-lg sm:text-xl lg:text-5xl font-medium text-[#00ff99] drop-shadow-[0_0_15px_rgba(0,255,153,0.6)] animate-fade-in">
                 Welcome!
               </h1>
 
@@ -499,12 +499,14 @@ export default function Auth() {
                   className="h-14 w-14 sm:h-16 sm:w-16 object-contain"
                   publicAsset
                 />
-                <h2 className="text-2xl sm:text-3xl font-medium text-white">
-                  Welcome back
-                </h2>
-                <p className="text-sm sm:text-base text-gray-300">
-                  Pick a test account below, or sign in with your email
-                </p>
+                <div className={HEADING_STACK}>
+                  <h2 className="text-lg sm:text-xl font-medium text-white">
+                    Welcome back
+                  </h2>
+                  <p className="text-sm sm:text-base text-gray-300">
+                    Pick a test account below, or sign in with your email
+                  </p>
+                </div>
               </div>
 
               <form className={FORM_STACK} onSubmit={handleSignIn}>

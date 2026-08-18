@@ -45,6 +45,17 @@ export async function getCommentsForList(listId: string) {
   });
 }
 
+/** One grouped query powers all visible comment badges; never issue one request per URL card. */
+export async function getCommentCountsForUrls(listId: string, urlIds: string[]) {
+  if (!urlIds.length) return {} as Record<string, number>;
+  const rows = await prisma.comment.groupBy({
+    by: ["urlId"],
+    where: { listId, urlId: { in: urlIds } },
+    _count: { _all: true },
+  });
+  return Object.fromEntries(rows.map((row) => [row.urlId, row._count._all]));
+}
+
 /**
  * Get a comment by ID
  */

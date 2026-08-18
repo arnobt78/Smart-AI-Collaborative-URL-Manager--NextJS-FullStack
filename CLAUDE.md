@@ -10,6 +10,7 @@ Controls: shared Button/glass/input contract is `h-10 min-h-10`; placeholders us
 Home wave: Hero text lines and CTAs are separate timed `ScrollReveal` units; never group sibling CTAs in one reveal wrapper.
 Dialogs: `ui/Dialog.tsx` is the shared accessible 92vw/85dvh overlay; all CRUD, confirmation, comments, similarity, and collaborator flows use it. `/new` and `/list/[slug]/edit` redirect to dialog-state hosts.
 Stable UI: Browse retains cached cards during refetch; `ui/PageHeader.tsx` standardizes icon/title/subtitle identity rows.
+Stable data: delayed cold placeholders only; Browse/Insights/API Status keep their static shell. Unified list batches comment counts for card badges; bulk import never reloads. Metadata route is Node-only, public HTTP(S)-only, DNS/IP checked for documents/images/favicons, redirect-checked, and timeout-bounded.
 Auth menu: open guest credentials panel is opaque and stacked above reveal rows; trigger uses expanded/menu ARIA.
 Data: unified React Query + optimistic store updates + centralized invalidation + SSE; bulk import reconciles caches without reload.
 Human: HA-0001; match Sentry org/token before upload.  
@@ -32,7 +33,7 @@ Visit: `openExternalUrl` / `ensureAbsoluteHttpUrl` in `lib/utils.ts` (schemeless
 `WAS_AUTHED_COOKIE` + `session_token` SSR → HomePage/Navbar; `useWasAuthedHint`; static `FloatingBackground`; `PostHogPageview` Suspense sibling only
 
 ## Spacing
-`src/lib/ui-spacing.ts` — `PAGE_STACK` / `SECTION_STACK` / `MARKETING_STACK` / `FORM_STACK` / `LIST_STACK` / `PAGE_HEADER` / `CARD_PAD` on page roots (not per-child mb)
+`src/lib/ui-spacing.ts` — `PAGE_STACK` / `SECTION_STACK` / `MARKETING_STACK` / `FORM_STACK` / `LIST_STACK` / `HEADING_STACK` / `PAGE_HEADER` / `CARD_PAD`; `HEADING_STACK` is title+subtitle only (no control/content spacing changes).
 
 ## Auth layout
 `Auth.tsx` — `md:grid-cols-2` inside `max-w-7xl`: left Welcome typewriter + about-process (no divider/left logo); right labeled Sign In + Sign up row. No 8s overlay. Sign In uses `glassPrimaryButtonClass("blue")` + Sparkles.

@@ -2,7 +2,7 @@ export default function AboutPage() {
   return (
     <div className="min-h-screen w-full">
       <div className="max-w-7xl mx-auto px-4 sm:px-0">
-        <h1 className="text-2xl sm:text-3xl  font-medium text-white ">
+        <h1 className="text-lg sm:text-xl  font-medium text-white ">
           About The Daily Urlist
         </h1>
         <div className="prose prose-invert max-w-none">

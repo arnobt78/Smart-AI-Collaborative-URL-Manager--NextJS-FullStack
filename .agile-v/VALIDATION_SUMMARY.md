@@ -109,3 +109,24 @@ Gate 2: BLOCKED — RISK-0016 is accepted; `EVAL_RESULTS.md` PASS/WAIVED evidenc
 | Shared dialog, route redirects, stable Browse render | `npm test -- --runInBand` | PASS — 3 suites / 20 tests pass; 1 suite / 5 tests skipped. |
 | Shared dialog, route redirects, Browse stability, Similar URLs and Comments migration | `npm run build` | PASS — Prisma generate and Next production build complete. |
 | Diff hygiene | `git diff --check` | PASS — no whitespace errors. |
+
+## 2026-08-18 — REQ-0019 zero-gap heading contract
+
+| Scope | Command | Result | Notes |
+|---|---|---|---|
+| Type safety | `npx tsc --noEmit` | PASS | Shared heading token and targeted JSX compile. |
+| Static analysis | `npm run lint` | PASS | Zero ESLint warnings or errors. |
+| Heading-spacing scan | direct `h1`–`h4`/`p` utility scan | PASS | No direct title-to-description margin, padding, gap, or `space-y` utility remains in the targeted source. |
+| Regression suite | `npm test -- --runInBand` | PASS | 3 suites passed; 20 tests passed; 1 suite and 5 tests skipped. |
+| Production build | `npm run build` | PASS | Prisma generation and optimized Next.js build completed. |
+| Diff hygiene | `git diff --check -- src .agile-v docs CLAUDE.md` | PASS | No whitespace errors. |
+
+## 2026-08-18 — REQ-0020 stable data and metadata safety
+
+| Scope | Command | Result |
+|---|---|---|
+| Type safety | `npx tsc --noEmit` | PASS |
+| Static analysis | `npm run lint` | PASS — zero warnings/errors. |
+| Regression suite | `npm test -- --runInBand` | PASS — 3 suites / 20 tests pass; 1 suite / 5 tests skipped. |
+| Production build | `npm run build` | PASS — Prisma generation and optimized Next.js build complete. |
+| Diff hygiene | `git diff --check` | PASS |

@@ -79,7 +79,7 @@ These describe the current product as verified in code. They are **Accepted as b
 
 ### REQ-0003 — Safe remote image fallback
 
-**Priority:** P1  
+**Priority:** P1
 **Type:** Resilience  
 **Statement:** Introduce a reusable `SafeImage` (per `docs/SAFE_IMAGE_REUSABLE_COMPONENT.md`) and use it for remote URL preview images that currently rely solely on `next/image` (notably `UrlCard`), without regressing Cloudinary-optimized public assets that correctly use `OptimizedImage`.  
 **Acceptance:**
@@ -358,6 +358,38 @@ These describe the current product as verified in code. They are **Accepted as b
 **Trace:** TASK-0019, DEC-0020, RISK-0017
 **Status:** Completed — all approved dialog surfaces use the shared primitive; validation passes.
 **Status:** Approved — user authorized implementation in the 2026-08-18 control and Home-motion request.
+
+---
+
+### REQ-0019 — Central zero-gap heading contract (approved 2026-08-18)
+
+**Priority:** P2
+**Type:** UI consistency / layout stability
+**Statement:** Direct title/subtitle or title/description pairs MUST use one shared zero-gap heading stack. Natural line-height, surrounding content spacing, responsive typography, card padding, dialog focus, and scrolling MUST remain unchanged.
+
+**Acceptance:**
+
+- [x] `PageHeader`, `Dialog`, and `CardHeader` consume the shared heading stack.
+- [x] Legacy page, empty-state, and feature-card title/description pairs have no local margin, padding, gap, or `space-y` separation.
+- [x] Form fields, action rows, controls, menus, card content, and unrelated prose keep their existing spacing.
+- [x] TypeScript, zero-warning lint, Jest, production build, and diff checks pass.
+
+**Affected:** `src/lib/ui-spacing.ts`, shared UI headers, targeted title/description call sites, and traceability records only.
+**Trace:** TASK-0020, DEC-0021
+**Status:** Completed 2026-08-18 — central contract and targeted legacy pairs validated.
+
+---
+
+### REQ-0020 — Stable data surfaces and safe metadata retrieval (approved 2026-08-18)
+
+**Priority:** P1
+**Type:** UX stability / security
+**Statement:** Requested data pages MUST retain static chrome and cached content during refreshes. Metadata retrieval MUST reject private-network destinations and validate redirects. URL comment badges MUST use the unified payload rather than per-card requests.
+
+**Acceptance:** delayed, local-only cold placeholders; grouped comment counts; no import-triggered hard reload; public HTTP(S) metadata, preview-image, and favicon fetching with DNS/IP and redirect checks; zero-warning lint, TypeScript, Jest, build, and diff checks.
+
+**Trace:** TASK-0021, DEC-0020
+**Status:** Completed 2026-08-18.
 
 ---
 

@@ -53,7 +53,7 @@ export function UrlFilterBar({ sortOption, setSortOption }: UrlFilterBarProps) {
           `}
           aria-label="Filter and sort URLs"
         >
-          <Filter className="h-4 w-4 sm:h-5 sm:w-5" />
+          <Filter className="h-4 w-4 " />
           {(sortOption !== "latest" || isFilterDropdownOpen) && (
             <span className="absolute -top-1 -right-1 w-2 h-2 sm:w-2.5 sm:h-2.5 bg-blue-400 rounded-full ring-2 ring-white/20" />
           )}

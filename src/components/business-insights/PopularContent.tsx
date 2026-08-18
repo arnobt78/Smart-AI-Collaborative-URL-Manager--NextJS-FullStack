@@ -69,7 +69,7 @@ export function PopularContent({
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
-            <Star className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-400" />
+            <Star className="h-4 w-4  text-yellow-400" />
             <span>Popular URLs</span>
           </CardTitle>
         </CardHeader>
@@ -124,7 +124,7 @@ export function PopularContent({
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
-            <Users className="h-4 w-4 sm:h-5 sm:w-5 text-blue-400" />
+            <Users className="h-4 w-4  text-blue-400" />
             <span>Most Active Lists</span>
           </CardTitle>
         </CardHeader>

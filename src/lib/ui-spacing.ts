@@ -22,8 +22,11 @@ export const FORM_STACK = "space-y-3 sm:space-y-4";
 /** Vertical card lists (My Lists) — gap-* (space-y collapses between bordered cards) */
 export const LIST_STACK = "flex flex-col gap-4 sm:gap-6";
 
-/** Title + subtitle — no gap between lines (tight stack) */
-export const PAGE_HEADER = "flex flex-col gap-0";
+/** Direct title + subtitle/description pairs; natural line-height provides the only separation. */
+export const HEADING_STACK = "flex flex-col gap-0";
+
+/** Page-level alias retained for existing page header call sites. */
+export const PAGE_HEADER = HEADING_STACK;
 
 /** Align with Card Header/Content pad where raw divs mimic cards */
 export const CARD_PAD = "p-2 sm:p-4";

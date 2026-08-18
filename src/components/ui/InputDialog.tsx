@@ -111,7 +111,7 @@ export function InputDialog({
           disabled={isLoading}
           className="absolute top-3 right-3 sm:top-4 sm:right-4 text-white/60 hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          <X className="h-4 w-4 sm:h-5 sm:w-5" />
+          <X className="h-4 w-4 " />
         </button>
 
         <div className="pr-6 sm:pr-8">

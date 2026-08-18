@@ -30,9 +30,11 @@ import {
   CheckCircle2,
   Search,
   Trash2,
+  Telescope,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { AlertDialog } from "@/components/ui/AlertDialog";
+import { HEADING_STACK } from "@/lib/ui-spacing";
 
 interface SmartCollectionsProps {
   listId: string;
@@ -421,8 +423,8 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
         <CardContent className="p-2 sm:p-4">
           <div className="flex items-center justify-between gap-2 sm:gap-2">
             <div className="flex items-center gap-2 sm:gap-2 min-w-0 flex-1">
-              <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-blue-400 flex-shrink-0" />
-              <div className="min-w-0">
+              <Sparkles className="h-4 w-4  text-blue-400 flex-shrink-0" />
+              <div className={`${HEADING_STACK} min-w-0`}>
                 <h3 className="font-medium text-white text-sm sm:text-base truncate">
                   Smart Collections
                 </h3>
@@ -438,7 +440,7 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
               aria-expanded={false}
               aria-controls="smart-collections-content"
             >
-              <ListPlus className="h-4 w-4 shrink-0" aria-hidden />
+              <Telescope className="h-4 w-4 shrink-0" aria-hidden />
               View Suggestions
             </Button>
           </div>
@@ -453,8 +455,8 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
       <div className="p-2 sm:p-4 space-y-2 sm:space-y-3">
         <div className="flex items-center justify-between gap-2 sm:gap-2 ">
           <div className="flex items-center gap-2 sm:gap-2 min-w-0 flex-1">
-            <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-blue-400 flex-shrink-0" />
-            <div className="min-w-0">
+            <Sparkles className="h-4 w-4  text-blue-400 flex-shrink-0" />
+            <div className={`${HEADING_STACK} min-w-0`}>
               <CardTitle className="text-sm sm:text-base">
                 Smart Collections
               </CardTitle>
@@ -477,7 +479,10 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
           </Button>
         </div>
 
-        <div id="smart-collections-content" className="flex flex-col gap-3 sm:gap-4">
+        <div
+          id="smart-collections-content"
+          className="flex flex-col gap-3 sm:gap-4"
+        >
           {/* Loading State — only when cold (no suggestions yet) */}
           {isLoading && !hasSuggestions && (
             <div className="flex flex-col gap-3 sm:gap-4">
@@ -595,7 +600,7 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
               </div>
               {isLoadingDuplicates && (
                 <div className="text-center py-4 sm:py-6">
-                  <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 text-white/40 mx-auto animate-spin" />
+                  <Loader2 className="h-4 w-4  text-white/40 mx-auto animate-spin" />
                   <p className="text-[10px] sm:text-xs text-white/50 mt-2">
                     Checking URLs for duplicates...
                   </p>
@@ -613,7 +618,7 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
                       >
                         <div className="flex items-start gap-2 sm:gap-2 flex-col sm:flex-row">
                           <div className="flex items-start gap-2 sm:gap-2 flex-1 min-w-0 w-full">
-                            <AlertTriangle className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-400 mt-0.5 shrink-0" />
+                            <AlertTriangle className="h-4 w-4  text-yellow-400 mt-0.5 shrink-0" />
                             <div className="flex-1 min-w-0 w-full">
                               <p className="text-xs sm:text-sm font-medium text-white break-words">
                                 {dup.url.title || dup.url.url}

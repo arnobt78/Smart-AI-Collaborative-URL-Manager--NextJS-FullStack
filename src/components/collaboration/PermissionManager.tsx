@@ -242,7 +242,7 @@ export function PermissionManager({
       {isEmpty ? (
         <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-2">
           <div className="flex items-center gap-2 shrink-0">
-            <Shield className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
+            <Shield className="h-4 w-4  text-white" />
             <h3 className="text-base sm:text-lg font-medium text-white">
               Collaborators
             </h3>
@@ -256,7 +256,7 @@ export function PermissionManager({
         <>
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
             <div className="flex items-center gap-2">
-              <Shield className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
+              <Shield className="h-4 w-4  text-white" />
               <h3 className="text-base sm:text-lg font-medium text-white">
                 Collaborators
               </h3>
@@ -303,7 +303,7 @@ export function PermissionManager({
                     <div className="flex items-center justify-between gap-2 sm:gap-0">
                       <div className="flex items-center gap-2 sm:gap-2 flex-1 min-w-0">
                         <div className="flex-shrink-0 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-purple-500/30 to-blue-500/30 border border-purple-400/50 flex items-center justify-center">
-                          <Mail className="h-4 w-4 sm:h-5 sm:w-5 text-purple-200" />
+                          <Mail className="h-4 w-4  text-purple-200" />
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm sm:text-base text-white font-medium truncate">
@@ -402,193 +402,207 @@ export function PermissionManager({
       )}
 
       {/* Add Collaborator Dialog - Custom Implementation with Role Selection */}
-      <Dialog open={inviteDialogOpen} onOpenChange={(open) => { if (!open) { setInviteDialogOpen(false); setNewEmail(""); } }} title="Add Collaborator" description="Invite someone to collaborate on this list. They’ll receive an email invitation." pending={addCollaboratorMutation.isPending}>
-                <div className="space-y-3">
-                  <div>
-                    <label className="block text-sm font-medium text-white ">
-                      Email Address
-                    </label>
-                    <Input
-                      type="email"
-                      value={newEmail}
-                      onChange={(e) => setNewEmail(e.target.value)}
-                      placeholder="collaborator@example.com"
-                      disabled={addCollaboratorMutation.isPending}
-                      className="w-full"
-                      onKeyDown={(e) => {
-                        if (
-                          e.key === "Enter" &&
-                          newEmail.trim() &&
-                          !addCollaboratorMutation.isPending
-                        ) {
-                          handleAddCollaborator();
-                        }
-                      }}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-white ">
-                      Role
-                    </label>
-                    <div className="flex gap-2">
-                      <button
-                        type="button"
-                        onClick={() => setNewRole("editor")}
-                        disabled={addCollaboratorMutation.isPending}
-                        className={`flex-1 p-3 rounded-lg border transition-colors disabled:opacity-50 ${
-                          newRole === "editor"
-                            ? "bg-purple-500/30 border-purple-400/50 text-purple-200"
-                            : "bg-white/5 border-white/20 text-white/60 hover:border-white/30 hover:text-white/80"
-                        }`}
-                      >
-                        <Edit3 className="h-5 w-5 mx-auto mb-1" />
-                        <div className="text-sm font-medium">Editor</div>
-                        <div className="text-xs mt-1 opacity-75">
-                          Can add, edit, delete URLs
-                        </div>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setNewRole("viewer")}
-                        disabled={addCollaboratorMutation.isPending}
-                        className={`flex-1 p-3 rounded-lg border transition-colors disabled:opacity-50 ${
-                          newRole === "viewer"
-                            ? "bg-blue-500/30 border-blue-400/50 text-blue-200"
-                            : "bg-white/5 border-white/20 text-white/60 hover:border-white/30 hover:text-white/80"
-                        }`}
-                      >
-                        <Eye className="h-5 w-5 mx-auto mb-1" />
-                        <div className="text-sm font-medium">Viewer</div>
-                        <div className="text-xs mt-1 opacity-75">
-                          Can view and comment only
-                        </div>
-                      </button>
-                    </div>
-                  </div>
-                  <div className="flex justify-end gap-2 pt-2">
-                    <Button
-                      type="button"
-                      onClick={() => {
-                        if (!addCollaboratorMutation.isPending) {
-                          setInviteDialogOpen(false);
-                          setNewEmail("");
-                        }
-                      }}
-                      disabled={addCollaboratorMutation.isPending}
-                      variant="ghost"
-                    >
-                      Cancel
-                    </Button>
-                    <Button
-                      type="button"
-                      onClick={handleAddCollaborator}
-                      disabled={
-                        addCollaboratorMutation.isPending || !newEmail.trim()
-                      }
-                      isLoading={addCollaboratorMutation.isPending}
-                      variant="glass"
-                    >
-                      {addCollaboratorMutation.isPending
-                        ? "Sending..."
-                        : "Send Invite"}
-                    </Button>
-                  </div>
+      <Dialog
+        open={inviteDialogOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            setInviteDialogOpen(false);
+            setNewEmail("");
+          }
+        }}
+        title="Add Collaborator"
+        description="Invite someone to collaborate on this list. They’ll receive an email invitation."
+        pending={addCollaboratorMutation.isPending}
+      >
+        <div className="space-y-3">
+          <div>
+            <label className="block text-sm font-medium text-white ">
+              Email Address
+            </label>
+            <Input
+              type="email"
+              value={newEmail}
+              onChange={(e) => setNewEmail(e.target.value)}
+              placeholder="collaborator@example.com"
+              disabled={addCollaboratorMutation.isPending}
+              className="w-full"
+              onKeyDown={(e) => {
+                if (
+                  e.key === "Enter" &&
+                  newEmail.trim() &&
+                  !addCollaboratorMutation.isPending
+                ) {
+                  handleAddCollaborator();
+                }
+              }}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-white ">
+              Role
+            </label>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setNewRole("editor")}
+                disabled={addCollaboratorMutation.isPending}
+                className={`flex-1 p-3 rounded-lg border transition-colors disabled:opacity-50 ${
+                  newRole === "editor"
+                    ? "bg-purple-500/30 border-purple-400/50 text-purple-200"
+                    : "bg-white/5 border-white/20 text-white/60 hover:border-white/30 hover:text-white/80"
+                }`}
+              >
+                <Edit3 className="h-5 w-5 mx-auto mb-1" />
+                <div className="text-sm font-medium">Editor</div>
+                <div className="text-xs mt-1 opacity-75">
+                  Can add, edit, delete URLs
                 </div>
+              </button>
+              <button
+                type="button"
+                onClick={() => setNewRole("viewer")}
+                disabled={addCollaboratorMutation.isPending}
+                className={`flex-1 p-3 rounded-lg border transition-colors disabled:opacity-50 ${
+                  newRole === "viewer"
+                    ? "bg-blue-500/30 border-blue-400/50 text-blue-200"
+                    : "bg-white/5 border-white/20 text-white/60 hover:border-white/30 hover:text-white/80"
+                }`}
+              >
+                <Eye className="h-5 w-5 mx-auto mb-1" />
+                <div className="text-sm font-medium">Viewer</div>
+                <div className="text-xs mt-1 opacity-75">
+                  Can view and comment only
+                </div>
+              </button>
+            </div>
+          </div>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button
+              type="button"
+              onClick={() => {
+                if (!addCollaboratorMutation.isPending) {
+                  setInviteDialogOpen(false);
+                  setNewEmail("");
+                }
+              }}
+              disabled={addCollaboratorMutation.isPending}
+              variant="ghost"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              onClick={handleAddCollaborator}
+              disabled={addCollaboratorMutation.isPending || !newEmail.trim()}
+              isLoading={addCollaboratorMutation.isPending}
+              variant="glass"
+            >
+              {addCollaboratorMutation.isPending ? "Sending..." : "Send Invite"}
+            </Button>
+          </div>
+        </div>
       </Dialog>
 
-      <Dialog open={roleChangeDialog.open} onOpenChange={(open) => !open && setRoleChangeDialog({ open: false, email: "", currentRole: "editor" })} title="Change Collaborator Role" description={`Choose a role for ${roleChangeDialog.email}.`} pending={updateRoleMutation.isPending}>
-                <div className="space-y-4 sm:space-y-6">
-                <div className="flex gap-3 sm:gap-4">
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setRoleChangeDialog({
-                        ...roleChangeDialog,
-                        currentRole: "editor",
-                      })
-                    }
-                    disabled={updateRoleMutation.isPending}
-                    className={`flex-1 p-3 rounded-lg border transition-colors ${
-                      roleChangeDialog.currentRole === "editor"
-                        ? "bg-purple-500/30 border-purple-400/50 text-purple-200"
-                        : "bg-white/5 border-white/20 text-white/60 hover:border-white/30 hover:text-white/80"
-                    } disabled:opacity-50`}
-                  >
-                    <Edit3 className="h-5 w-5 mx-auto mb-1" />
-                    <div className="text-sm font-medium">Editor</div>
-                    <div className="text-xs mt-1 opacity-75">
-                      Can add, edit, delete URLs
-                    </div>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setRoleChangeDialog({
-                        ...roleChangeDialog,
-                        currentRole: "viewer",
-                      })
-                    }
-                    disabled={updateRoleMutation.isPending}
-                    className={`flex-1 p-3 rounded-lg border transition-colors ${
-                      roleChangeDialog.currentRole === "viewer"
-                        ? "bg-blue-500/30 border-blue-400/50 text-blue-200"
-                        : "bg-white/5 border-white/20 text-white/60 hover:border-white/30 hover:text-white/80"
-                    } disabled:opacity-50`}
-                  >
-                    <Eye className="h-5 w-5 mx-auto mb-1" />
-                    <div className="text-sm font-medium">Viewer</div>
-                    <div className="text-xs mt-1 opacity-75">
-                      Can view and comment only
-                    </div>
-                  </button>
-                </div>
-                <div className="flex justify-end gap-2 sm:gap-3">
-                  <button
-                    onClick={() =>
-                      setRoleChangeDialog({
-                        open: false,
-                        email: "",
-                        currentRole: "editor",
-                      })
-                    }
-                    disabled={updateRoleMutation.isPending}
-                    className="px-4 py-2 text-white/80 hover:text-white border border-white/10 bg-white/5 hover:bg-white/10 rounded-xl backdrop-blur-sm transition-colors font-medium disabled:opacity-50"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={() =>
-                      handleUpdateRole(roleChangeDialog.currentRole)
-                    }
-                    disabled={updateRoleMutation.isPending}
-                    className={glassPrimaryButtonClass("blue", "px-4 py-2 text-sm")}
-                  >
-                    {updateRoleMutation.isPending && (
-                      <svg
-                        className="h-4 w-4 animate-spin"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                      >
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
-                        />
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                        />
-                      </svg>
-                    )}
-                    Update Role
-                  </button>
-                </div>
-                </div>
+      <Dialog
+        open={roleChangeDialog.open}
+        onOpenChange={(open) =>
+          !open &&
+          setRoleChangeDialog({ open: false, email: "", currentRole: "editor" })
+        }
+        title="Change Collaborator Role"
+        description={`Choose a role for ${roleChangeDialog.email}.`}
+        pending={updateRoleMutation.isPending}
+      >
+        <div className="space-y-4 sm:space-y-6">
+          <div className="flex gap-3 sm:gap-4">
+            <button
+              type="button"
+              onClick={() =>
+                setRoleChangeDialog({
+                  ...roleChangeDialog,
+                  currentRole: "editor",
+                })
+              }
+              disabled={updateRoleMutation.isPending}
+              className={`flex-1 p-3 rounded-lg border transition-colors ${
+                roleChangeDialog.currentRole === "editor"
+                  ? "bg-purple-500/30 border-purple-400/50 text-purple-200"
+                  : "bg-white/5 border-white/20 text-white/60 hover:border-white/30 hover:text-white/80"
+              } disabled:opacity-50`}
+            >
+              <Edit3 className="h-5 w-5 mx-auto mb-1" />
+              <div className="text-sm font-medium">Editor</div>
+              <div className="text-xs mt-1 opacity-75">
+                Can add, edit, delete URLs
+              </div>
+            </button>
+            <button
+              type="button"
+              onClick={() =>
+                setRoleChangeDialog({
+                  ...roleChangeDialog,
+                  currentRole: "viewer",
+                })
+              }
+              disabled={updateRoleMutation.isPending}
+              className={`flex-1 p-3 rounded-lg border transition-colors ${
+                roleChangeDialog.currentRole === "viewer"
+                  ? "bg-blue-500/30 border-blue-400/50 text-blue-200"
+                  : "bg-white/5 border-white/20 text-white/60 hover:border-white/30 hover:text-white/80"
+              } disabled:opacity-50`}
+            >
+              <Eye className="h-5 w-5 mx-auto mb-1" />
+              <div className="text-sm font-medium">Viewer</div>
+              <div className="text-xs mt-1 opacity-75">
+                Can view and comment only
+              </div>
+            </button>
+          </div>
+          <div className="flex justify-end gap-2 sm:gap-3">
+            <button
+              onClick={() =>
+                setRoleChangeDialog({
+                  open: false,
+                  email: "",
+                  currentRole: "editor",
+                })
+              }
+              disabled={updateRoleMutation.isPending}
+              className="px-4 py-2 text-white/80 hover:text-white border border-white/10 bg-white/5 hover:bg-white/10 rounded-xl backdrop-blur-sm transition-colors font-medium disabled:opacity-50"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={() => handleUpdateRole(roleChangeDialog.currentRole)}
+              disabled={updateRoleMutation.isPending}
+              className={glassPrimaryButtonClass("blue", "px-4 py-2 text-sm")}
+            >
+              {updateRoleMutation.isPending && (
+                <svg
+                  className="h-4 w-4 animate-spin"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  />
+                </svg>
+              )}
+              Update Role
+            </button>
+          </div>
+        </div>
       </Dialog>
 
       {/* Delete Confirmation Dialog */}

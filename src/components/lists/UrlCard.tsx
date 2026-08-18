@@ -626,6 +626,7 @@ export const UrlCard: React.FC<UrlCardProps> = ({
                       onClick={handleShowAnalytics}
                       tooltip={`View analytics (${url.clickCount || 0} clicks)`}
                       variant="default"
+                      badge={url.clickCount}
                     />
                   )}
                   <IconButton
@@ -639,6 +640,7 @@ export const UrlCard: React.FC<UrlCardProps> = ({
                     onClick={() => setCommentsOpen(true)}
                     tooltip="Comments"
                     variant="default"
+                    badge={url.commentCount}
                   />
                 </div>
                 <div className="flex items-center gap-2 text-white/60 text-sm font-delicious">

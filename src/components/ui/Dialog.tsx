@@ -3,6 +3,7 @@
 import { useEffect, useId, useRef } from "react";
 import ReactDOM from "react-dom";
 import { X } from "lucide-react";
+import { HEADING_STACK } from "@/lib/ui-spacing";
 import { cn } from "@/lib/utils";
 
 type DialogSize = "form" | "wide" | "full";
@@ -85,11 +86,11 @@ export function Dialog({
         )}
       >
         <header className="flex shrink-0 items-start justify-between gap-4 border-b border-white/10 p-4 sm:p-6">
-          <div className="min-w-0">
+          <div className={cn(HEADING_STACK, "min-w-0")}>
             <h2 id={titleId} className="text-xl font-medium leading-tight text-white sm:text-2xl">
               {title}
             </h2>
-            {description ? <p id={descriptionId} className="mt-1 text-sm text-white/60 sm:text-base">{description}</p> : null}
+            {description ? <p id={descriptionId} className="text-sm text-white/60 sm:text-base">{description}</p> : null}
           </div>
           <button
             type="button"
@@ -101,7 +102,7 @@ export function Dialog({
             <X className="h-5 w-5" aria-hidden />
           </button>
         </header>
-        <div className="min-h-0 overflow-y-auto p-4 sm:p-6">{children}</div>
+        <div className="dialog-scrollbar min-h-0 overflow-y-auto p-4 sm:p-6">{children}</div>
       </div>
     </div>,
     document.body,

@@ -1,4 +1,5 @@
 import * as React from "react";
+import { HEADING_STACK } from "@/lib/ui-spacing";
 import { cn } from "@/lib/utils";
 
 const Card = React.forwardRef<
@@ -23,7 +24,7 @@ const CardHeader = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn("flex flex-col space-y-1.5 p-2 sm:p-4", className)}
+    className={cn(HEADING_STACK, "p-2 sm:p-4", className)}
     {...props}
   />
 ));

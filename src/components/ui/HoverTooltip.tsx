@@ -174,6 +174,7 @@ interface IconButtonProps {
   variant?: "default" | "primary" | "danger";
   className?: string;
   disabled?: boolean; // Disabled state for viewer permissions
+  badge?: number;
 }
 
 export function IconButton({
@@ -183,6 +184,7 @@ export function IconButton({
   variant = "default",
   className = "",
   disabled = false,
+  badge,
 }: IconButtonProps) {
   const variantClasses = {
     default:
@@ -199,11 +201,18 @@ export function IconButton({
 
   const buttonContent = (
     <button
+      type="button"
       onClick={disabled ? undefined : onClick}
       disabled={disabled}
+      aria-label={tooltip}
       className={`relative w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200 ${disabledClasses} shadow-sm hover:shadow-md ${variantClasses[variant]} ${className}`}
     >
       <div className="w-5 h-5">{icon}</div>
+      {badge && badge > 0 ? (
+        <span aria-hidden className="absolute -right-1 -top-1 min-w-4 rounded-full border border-zinc-950 bg-blue-500 px-1 text-[10px] font-semibold leading-4 text-white">
+          {badge > 99 ? "99+" : badge}
+        </span>
+      ) : null}
     </button>
   );
 
