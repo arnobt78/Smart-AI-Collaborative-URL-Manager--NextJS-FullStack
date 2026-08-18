@@ -618,7 +618,7 @@ export default function Auth() {
                             : "text-white/30 cursor-not-allowed"
                         }`}
                       >
-                        <Eraser className="h-4 w-4 text-white/70" aria-hidden />
+                        <Eraser className="h-4 w-4" aria-hidden />
                         <span>Clear Selection</span>
                       </button>
                     </div>

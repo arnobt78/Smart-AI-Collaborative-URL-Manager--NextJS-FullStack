@@ -72,9 +72,9 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     };
 
     const sizes = {
-      sm: "h-9 px-3 text-xs sm:text-sm",
+      sm: `${UI_CONTROL_HEIGHT} px-3 text-xs sm:text-sm`,
       md: `${UI_CONTROL_HEIGHT} px-4 text-sm`,
-      lg: "h-12 px-6 text-base",
+      lg: `${UI_CONTROL_HEIGHT} px-6 text-base`,
     };
 
     const classes = twMerge(

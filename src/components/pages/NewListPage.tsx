@@ -12,8 +12,7 @@ import {
   invalidateAllListsQueries,
   invalidateListQueries,
 } from "@/utils/queryInvalidation";
-import { ArrowTopRightOnSquareIcon } from "@heroicons/react/24/outline";
-import { FolderPlus } from "lucide-react";
+import { ListPlus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { FORM_STACK, PAGE_HEADER, PAGE_STACK } from "@/lib/ui-spacing";
 import { Button } from "@/components/ui/Button";
@@ -357,10 +356,17 @@ export default function NewListPageClient() {
               </div>
             )}
 
-            <Button type="submit" variant="glassPurple" size="lg" className="w-full sm:w-auto">
-              <FolderPlus className="h-4 w-4 sm:h-5 sm:w-5 shrink-0" aria-hidden />
+            <Button
+              type="submit"
+              variant="glassPurple"
+              size="lg"
+              className="w-full sm:w-auto"
+            >
+              <ListPlus
+                className="h-4 w-4 sm:h-5 sm:w-5 shrink-0"
+                aria-hidden
+              />
               Create List
-              <ArrowTopRightOnSquareIcon className="h-4 w-4 sm:h-5 sm:w-5 shrink-0" aria-hidden />
             </Button>
           </form>
         </div>

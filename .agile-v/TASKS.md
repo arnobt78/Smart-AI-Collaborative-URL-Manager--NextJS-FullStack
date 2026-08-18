@@ -66,5 +66,11 @@ HA-0001 Firewall · Sentry org/token
 2. Replace the translucent menu surface with an opaque accessible panel and preserve menu handlers.
 3. Validate lint, typecheck, Jest, and production build.
 
+### TASK-0018 — Compact controls and Home reveal — DONE
+
+1. Route every shared Button size and glass recipe through the `h-10 min-h-10` control token; remove Home CTA overrides.
+2. Add one CSS/IntersectionObserver motion primitive with reduced-motion fallback and use it for marketing hierarchy.
+3. Validate controls, routes, motion safety, lint, typecheck, Jest, and build.
+
 ## Deferred
 RSC shells · densify/Zod/SHA/Next16

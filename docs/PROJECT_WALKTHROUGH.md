@@ -27,6 +27,7 @@ Next 15 URL bookmark manager. Demo: https://daily-urlist.vercel.app/
 - Local DB: `.env` / `.env.local` → remote `77.42.71.87:25432` (gitignored)
 - Out of scope: densify / Zod / SHA / JWT-null SSR / Next 16 / Prisma 7
 - UI controls: `lib/ui/control-styles.ts` provides shared 48px field/trigger geometry; Auth uses CSS reveal with reduced-motion support
+- Home motion: `ui/ScrollReveal.tsx` provides replayable CSS/observer reveal plus subtle parallax; shared controls use `h-10 min-h-10` and text-sm placeholders
 - Data sync: unified React Query cache + optimistic `currentList` store + centralized invalidation + SSE; bulk import reconciles without a hard reload
 - Audit: lint/typecheck/Jest/build and mutation/secret scans pass; user accepted the documented Prisma CLI advisory, while Gate 2 still needs EvalGate and human acceptance
 

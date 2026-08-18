@@ -9,5 +9,6 @@
 | ART-0014.1 | REQ-0014 | Targeted source, hook, store, test, and utility files identified by lint | Type-safe lint remediation with no blanket suppressions. |
 | ART-0015.1 | REQ-0015 | `src/components/layout/{Navbar,Footer}.tsx`; `src/types/browser-globals.d.ts` | Responsive 56px chrome alignment and one typed browser coordination contract. |
 | ART-0016.1 | REQ-0016 | `src/components/Auth.tsx` | Opaque guest-account panel and parent stacking-context correction. |
+| ART-0017.1 | REQ-0017 | `src/lib/ui/{control-styles,glass-button-styles}.ts`; `src/components/{ui/Button,ui/ScrollReveal,HomePage}.tsx`; `src/app/globals.css` | Shared compact geometry and dependency-free marketing reveal/parallax. |
 
 Risk level: R2 (production UI and repository-wide behavior-sensitive lint remediation). No API, database, authorization, or session contract changes are authorized.

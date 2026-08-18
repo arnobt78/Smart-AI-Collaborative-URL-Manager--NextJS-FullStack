@@ -219,3 +219,16 @@ Append-only. Newest entries at bottom.
 | Rationale | CSS transforms on staggered siblings create independent stacking contexts; fixing the parent prevents click interception with no data, session, or mutation impact. |
 | Linked REQs | REQ-0016 |
 | Status | Implemented and validated. |
+
+---
+
+## DEC-0018 — Use shared CSS and observer motion for marketing content
+
+| Field | Value |
+|-------|-------|
+| Timestamp | 2026-08-18 |
+| Agent | Agile V UI audit |
+| Decision | Make all shared Button sizes use `UI_CONTROL_HEIGHT`; implement Home reveal/parallax with CSS variables and `IntersectionObserver`, not Framer Motion. |
+| Rationale | The audit found local Home CTA padding and `lg`/glass heights bypassing the shared token. Browser primitives avoid a new dependency, preserve the server shell, and honor reduced-motion. |
+| Linked REQs | REQ-0017 |
+| Status | Implemented and validated. |

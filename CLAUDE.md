@@ -5,7 +5,8 @@
 Live: https://daily-urlist.vercel.app/ · Resume: `.agile-v/STATE.md`
 
 ## Status (C1)
-Done: shared 48px controls · Auth row reveal · accessible Smart Collections disclosure · responsive Add URL cancel · consistent CTA icons · responsive 56px chrome · type-safe cache/SSE/abort paths · zero lint.
+Done: shared compact controls · Auth row reveal · accessible Smart Collections disclosure · responsive Add URL cancel · consistent CTA icons · responsive 56px chrome · type-safe cache/SSE/abort paths · zero lint.
+Controls: shared Button/glass/input contract is `h-10 min-h-10`; placeholders use `text-sm`. Home uses CSS/observer reveal/parallax, no motion dependency.
 Auth menu: open guest credentials panel is opaque and stacked above reveal rows; trigger uses expanded/menu ARIA.
 Data: unified React Query + optimistic store updates + centralized invalidation + SSE; bulk import reconciles caches without reload.
 Human: HA-0001; match Sentry org/token before upload.  

@@ -320,6 +320,27 @@ These describe the current product as verified in code. They are **Accepted as b
 
 ---
 
+### REQ-0017 — Unified compact controls and marketing scroll reveal (approved 2026-08-18)
+
+**Priority:** P2
+**Type:** UI consistency / motion accessibility
+**Statement:** Shared labeled buttons, inputs, and dropdowns MUST use `h-10 min-h-10` with `text-sm` placeholder text. Home CTAs MUST consume that shared control contract without local height/padding overrides. Authenticated marketing content MUST reveal in a short ordered sequence on enter/leave with subtle scroll parallax, without adding a runtime animation dependency.
+
+**Acceptance:**
+
+- [ ] `Button` sizes and glass recipes defer height to `UI_CONTROL_HEIGHT`; the only size variation is typography/horizontal padding.
+- [ ] Shared form control placeholder typography remains `text-sm` across breakpoints.
+- [ ] Home hero CTAs use the same `Button` geometry with no local vertical padding; their intended variants and destinations remain unchanged.
+- [ ] A reusable browser-platform reveal wrapper supports ordered opacity/transform reveal, enter/leave replay, small scroll parallax, and `prefers-reduced-motion`.
+- [ ] No auth, query, mutation, API, or session behavior changes.
+- [ ] Lint, strict TypeScript, Jest, and production build pass.
+
+**Affected:** `src/lib/ui/{control-styles,glass-button-styles}.ts`, `src/components/{ui/Button,ui/ScrollReveal,HomePage}.tsx`, `src/app/globals.css`, and traceability records.
+**Trace:** TASK-0018, DEC-0018
+**Status:** Approved — user authorized implementation in the 2026-08-18 control and Home-motion request.
+
+---
+
 ## Out of scope for default C1
 
 - Schema normalization of `List.urls` JSON → relational tables

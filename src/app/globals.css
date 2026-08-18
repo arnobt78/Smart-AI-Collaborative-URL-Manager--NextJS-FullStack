@@ -178,6 +178,37 @@
   .auth-reveal { animation: none; }
 }
 
+/* REQ-0017: viewport reveal uses compositor-only properties and replays on enter/leave. */
+.scroll-reveal {
+  --scroll-reveal-x: 0px;
+  --scroll-reveal-y: 18px;
+  --scroll-parallax-y: 0px;
+  opacity: 0;
+  transform: translate3d(var(--scroll-reveal-x), calc(var(--scroll-reveal-y) + var(--scroll-parallax-y)), 0);
+  transition-property: opacity, transform;
+  transition-duration: 520ms;
+  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  transition-delay: var(--scroll-reveal-delay);
+  will-change: opacity, transform;
+}
+
+.scroll-reveal--left { --scroll-reveal-x: -18px; --scroll-reveal-y: 0px; }
+.scroll-reveal--right { --scroll-reveal-x: 18px; --scroll-reveal-y: 0px; }
+.scroll-reveal--appear { --scroll-reveal-y: 0px; }
+.scroll-reveal--visible {
+  opacity: 1;
+  transform: translate3d(0, var(--scroll-parallax-y), 0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scroll-reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+    will-change: auto;
+  }
+}
+
 @keyframes fadeIn {
   0% {
     opacity: 0;

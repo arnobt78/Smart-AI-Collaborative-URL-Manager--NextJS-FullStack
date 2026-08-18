@@ -14,3 +14,5 @@ Overview: REQ-0010 through REQ-0014. Tests are derived from approved requirement
 | TC-0017 | REQ-0015 | Inspect header/footer at 320px, 768px, and 1440px | Desktop chrome is 56px centered; mobile content grows without clipping or overlap | manual responsive |
 | TC-0018 | REQ-0015 | Run static quality commands | Lint, typecheck, Jest, and build preserve layout component contracts | system |
 | TC-0019 | REQ-0016 | Open guest-account menu over later Auth rows | Accounts remain visible and clickable; trigger exposes expanded state and menu relationship | manual integration |
+| TC-0020 | REQ-0017 | Render shared controls and Home CTAs | Labeled controls retain `h-10 min-h-10`; CTA destinations/icons remain correct | unit/manual |
+| TC-0021 | REQ-0017 | Enter/leave marketing sections | Ordered transform/opacity reveal and parallax work; reduced-motion renders stable content | manual integration |

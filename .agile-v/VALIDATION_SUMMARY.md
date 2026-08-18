@@ -92,3 +92,9 @@ Gate 2: BLOCKED — RISK-0016 is accepted; `EVAL_RESULTS.md` PASS/WAIVED evidenc
 | Scope | Command | Result |
 |-------|---------|--------|
 | REQ-0016 | `npm run lint`; `npx tsc --noEmit`; `npm test -- --runInBand`; `npm run build` | PASS — zero lint warnings; 20 tests pass; production build completes. |
+
+## 2026-08-18 — compact controls and Home motion
+
+| Scope | Command | Result |
+|-------|---------|--------|
+| REQ-0017 | `npm run lint`; `npx tsc --noEmit`; `npm test -- --runInBand`; `npm run build` | PASS — shared `h-10 min-h-10` Button geometry, text-sm placeholders, and CSS/observer Home reveal compile and pass all checks. |

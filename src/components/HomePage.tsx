@@ -13,6 +13,7 @@ import { Bubbles, LayoutList, ListPlus } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { CreateNewListButton } from "@/components/ui/CreateNewListButton";
 import { OptimizedImage } from "@/components/ui/OptimizedImage";
+import { ScrollReveal } from "@/components/ui/ScrollReveal";
 import { cn } from "@/lib/utils";
 import {
   CARD_PAD,
@@ -52,7 +53,7 @@ function MarketingHome() {
             MARKETING_STACK,
           )}
         >
-          <div className="flex justify-center">
+          <ScrollReveal className="flex justify-center" delay={0} direction="appear">
             <div className="bg-blue-500/20 backdrop-blur-md rounded-xl sm:rounded-2xl p-3 sm:p-4 inline-block border border-blue-400/30">
               <OptimizedImage
                 src="/favicon.ico"
@@ -63,29 +64,34 @@ function MarketingHome() {
                 publicAsset
               />
             </div>
-          </div>
-          <h1 className="text-2xl sm:text-4xl md:text-5xl font-medium text-white bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-indigo-400 px-2">
-            The Daily Urlist
-          </h1>
-          <p className="text-sm sm:text-lg md:text-xl text-white/70 leading-relaxed px-2">
-            Create and share lists of URLs easily. Perfect for sharing
-            resources, bookmarks, and collections with others.
-          </p>
+          </ScrollReveal>
+          <ScrollReveal delay={80} direction="left">
+            <h1 className="text-2xl sm:text-4xl md:text-5xl font-medium text-white bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-indigo-400 px-2">
+              The Daily Urlist
+            </h1>
+          </ScrollReveal>
+          <ScrollReveal delay={160} direction="right">
+            <p className="text-sm sm:text-lg md:text-xl text-white/70 leading-relaxed px-2">
+              Create and share lists of URLs easily. Perfect for sharing
+              resources, bookmarks, and collections with others.
+            </p>
+          </ScrollReveal>
+          <ScrollReveal delay={240} direction="bottom">
           <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 justify-center px-2">
             <CreateNewListButton
-              size="lg"
               icon={ListPlus}
-              className="text-base sm:text-lg px-6 sm:px-8"
+              className="text-sm px-6 sm:px-8"
             />
             <Button
               href="/lists"
               variant="outline"
-              className="text-white border-white/30 hover:bg-white/10 text-base sm:text-lg px-6 sm:px-8 py-2 sm:py-3 rounded-xl w-full sm:w-auto"
+              className="text-white border-white/30 hover:bg-white/10 text-sm px-6 sm:px-8 rounded-xl w-full sm:w-auto"
             >
               <LayoutList className="h-5 w-5 shrink-0" aria-hidden />
               View My Lists
             </Button>
           </div>
+          </ScrollReveal>
         </div>
       </section>
 
@@ -93,8 +99,10 @@ function MarketingHome() {
       <section className="py-12 px-4 sm:py-20 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 lg:gap-12">
           {features.map((feature, index) => (
-            <div
+            <ScrollReveal
               key={index}
+              delay={index * 90}
+              parallax
               className={cn(
                 "group rounded-xl sm:rounded-2xl border border-white/20 bg-white/5 backdrop-blur-md shadow-lg hover:shadow-xl transition-all duration-300 hover:border-blue-400/30 flex flex-col gap-2 sm:gap-3",
                 CARD_PAD,
@@ -109,7 +117,7 @@ function MarketingHome() {
               <p className="text-sm sm:text-base text-white/60 leading-relaxed">
                 {feature.description}
               </p>
-            </div>
+            </ScrollReveal>
           ))}
         </div>
       </section>
@@ -121,11 +129,13 @@ function MarketingHome() {
           MARKETING_STACK,
         )}
       >
-        <h2 className="text-xl sm:text-2xl lg:text-3xl font-medium text-white text-center">
-          How It Works
-        </h2>
+        <ScrollReveal direction="appear">
+          <h2 className="text-xl sm:text-2xl lg:text-3xl font-medium text-white text-center text-balance">
+            How It Works
+          </h2>
+        </ScrollReveal>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-          <div className={cn("text-center flex flex-col items-center gap-2 sm:gap-3", CARD_PAD)}>
+          <ScrollReveal delay={0} direction="left" parallax className={cn("text-center flex flex-col items-center gap-2 sm:gap-3", CARD_PAD)}>
             <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-blue-500/20 backdrop-blur-md border border-blue-400/30 text-blue-400 flex items-center justify-center text-base sm:text-lg lg:text-xl font-medium">
               1
             </div>
@@ -135,8 +145,8 @@ function MarketingHome() {
             <p className="text-sm sm:text-base text-white/60">
               Start by creating a new list and give it a memorable name.
             </p>
-          </div>
-          <div className={cn("text-center flex flex-col items-center gap-2 sm:gap-3", CARD_PAD)}>
+          </ScrollReveal>
+          <ScrollReveal delay={90} direction="bottom" parallax className={cn("text-center flex flex-col items-center gap-2 sm:gap-3", CARD_PAD)}>
             <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-purple-500/20 backdrop-blur-md border border-purple-400/30 text-purple-400 flex items-center justify-center text-base sm:text-lg lg:text-xl font-medium">
               2
             </div>
@@ -146,8 +156,11 @@ function MarketingHome() {
             <p className="text-sm sm:text-base text-white/60">
               Add your favorite URLs to the list with rich previews.
             </p>
-          </div>
-          <div
+          </ScrollReveal>
+          <ScrollReveal
+            delay={180}
+            direction="right"
+            parallax
             className={cn(
               "text-center flex flex-col items-center gap-2 sm:gap-3 sm:col-span-2 lg:col-span-1",
               CARD_PAD,
@@ -162,7 +175,7 @@ function MarketingHome() {
             <p className="text-sm sm:text-base text-white/60">
               Share your list with others using a simple URL.
             </p>
-          </div>
+          </ScrollReveal>
         </div>
       </section>
 
@@ -174,18 +187,23 @@ function MarketingHome() {
             MARKETING_STACK,
           )}
         >
-          <h2 className="text-xl sm:text-2xl lg:text-3xl font-medium text-white px-2">
-            Ready to Create Your First List?
-          </h2>
-          <p className="text-sm sm:text-base lg:text-xl text-white/60 px-2">
-            Start organizing and sharing your favorite URLs today.
-          </p>
-          <CreateNewListButton
-            size="lg"
-            label="Get Started Now With Your Daily URL List"
-            icon={Bubbles}
-            className="text-sm sm:text-base lg:text-lg px-6 sm:px-8"
-          />
+          <ScrollReveal direction="left" parallax>
+            <h2 className="text-xl sm:text-2xl lg:text-3xl font-medium text-white px-2 text-balance">
+              Ready to Create Your First List?
+            </h2>
+          </ScrollReveal>
+          <ScrollReveal delay={80} direction="right">
+            <p className="text-sm sm:text-base lg:text-xl text-white/60 px-2">
+              Start organizing and sharing your favorite URLs today.
+            </p>
+          </ScrollReveal>
+          <ScrollReveal delay={160} direction="bottom">
+            <CreateNewListButton
+              label="Get Started Now With Your Daily URL List"
+              icon={Bubbles}
+              className="text-sm px-6 sm:px-8"
+            />
+          </ScrollReveal>
         </div>
       </section>
     </div>
