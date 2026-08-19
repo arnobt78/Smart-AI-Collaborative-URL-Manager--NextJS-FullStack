@@ -15,6 +15,45 @@
 import { QueryClient } from "@tanstack/react-query";
 import { listQueryKeys } from "@/lib/query-keys";
 
+/** REQ-0025: One typed impact contract prevents mutation families drifting apart. */
+export type MutationImpact =
+  | "list"
+  | "visibility"
+  | "url"
+  | "archive"
+  | "import"
+  | "collaborator"
+  | "comment"
+  | "collection"
+  | "metadata";
+
+export function invalidateMutationImpact(
+  queryClient: QueryClient,
+  impact: MutationImpact,
+  listSlug: string,
+  listId: string,
+): void {
+  switch (impact) {
+    case "collaborator":
+      invalidateCollaboratorQueries(queryClient, listSlug);
+      return;
+    case "metadata":
+      invalidateListMetadataQueries(queryClient, listId);
+      return;
+    case "list":
+    case "visibility":
+      invalidateListMutationQueries(queryClient, listSlug, listId);
+      return;
+    case "url":
+    case "archive":
+    case "import":
+    case "collection":
+    case "comment":
+      invalidateUrlQueries(queryClient, listSlug, listId, impact !== "comment");
+      return;
+  }
+}
+
 /**
  * Invalidate browse/public lists queries
  * 
