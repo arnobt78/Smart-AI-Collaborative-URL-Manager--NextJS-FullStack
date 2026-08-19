@@ -38,8 +38,6 @@ export const saveQueryDataToLocalStorage = (
     const key = `react-query:${queryKey.join(":")}`;
     localStorage.setItem(key, JSON.stringify({ data, timestamp: Date.now() }));
   } catch (_error) {
-    if (process.env.NODE_ENV === "development") {
-    }
   }
 };
 
@@ -59,8 +57,6 @@ export const loadQueryDataFromLocalStorage = (queryKey: readonly string[]) => {
       localStorage.removeItem(key);
     }
   } catch (_error) {
-    if (process.env.NODE_ENV === "development") {
-    }
   }
   return undefined;
 };

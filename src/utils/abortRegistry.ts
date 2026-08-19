@@ -89,12 +89,8 @@ class AbortRegistry {
       ) {
         if (this.permanentOriginalFetch) {
           this.originalFetch = this.permanentOriginalFetch;
-          if (process.env.NODE_ENV === "development") {
-          }
         } else if (this.nativeFetchBackup) {
           this.originalFetch = this.nativeFetchBackup;
-          if (process.env.NODE_ENV === "development") {
-          }
         }
       }
     } catch {}
@@ -102,8 +98,6 @@ class AbortRegistry {
     // CRITICAL FIX: Store permanent backup on FIRST interception only
     if (!this.permanentOriginalFetch) {
       this.permanentOriginalFetch = window.fetch;
-      if (process.env.NODE_ENV === "development") {
-      }
     }
 
     // Intercept fetch to track ALL requests (including Next.js RSC)
@@ -185,8 +179,6 @@ class AbortRegistry {
 
     this.isIntercepting = true;
 
-    if (process.env.NODE_ENV === "development") {
-    }
   }
 
   /**
@@ -210,21 +202,15 @@ class AbortRegistry {
       window.fetch = this.originalFetch;
       restored = true;
 
-      if (process.env.NODE_ENV === "development") {
-      }
     } else if (this.permanentOriginalFetch) {
       // Fallback to permanent backup
       window.fetch = this.permanentOriginalFetch;
       this.originalFetch = this.permanentOriginalFetch; // Restore primary reference too
       restored = true;
 
-      if (process.env.NODE_ENV === "development") {
-      }
     } else if (isCurrentlyWrapped) {
       // CRITICAL: If fetch is wrapped but we don't have ANY reference,
       // this is a critical bug
-      if (process.env.NODE_ENV === "development") {
-      }
     }
 
     this.isIntercepting = false;
@@ -262,8 +248,6 @@ class AbortRegistry {
     if (this.nativeFetchBackup) {
       window.fetch = this.nativeFetchBackup;
       this.originalFetch = this.nativeFetchBackup;
-      if (process.env.NODE_ENV === "development") {
-      }
     }
   }
 
@@ -371,12 +355,8 @@ class AbortRegistry {
         }
       }
 
-      if (process.env.NODE_ENV === "development") {
-      }
     } catch (_e) {
       // Ignore errors - internal APIs might not exist
-      if (process.env.NODE_ENV === "development") {
-      }
     }
   }
 }

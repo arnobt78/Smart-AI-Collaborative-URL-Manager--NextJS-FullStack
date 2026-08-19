@@ -396,8 +396,6 @@ export function UrlBulkImportExport({
             });
           }
         } catch (parseError) {
-          if (process.env.NODE_ENV === "development") {
-          }
           throw new Error(
             `Failed to parse Chrome bookmarks file: ${
               parseError instanceof Error
@@ -409,8 +407,6 @@ export function UrlBulkImportExport({
 
         // Log parsing warnings only in development (not critical errors)
         if (result.errors && result.errors.length > 0) {
-          if (process.env.NODE_ENV === "development") {
-          }
         }
 
         // Validate that we found some URLs
@@ -428,8 +424,6 @@ export function UrlBulkImportExport({
 
         // Log parsing warnings only in development
         if (result.errors && result.errors.length > 0) {
-          if (process.env.NODE_ENV === "development") {
-          }
         }
 
         // Validate that we found some URLs
@@ -447,8 +441,6 @@ export function UrlBulkImportExport({
 
         // Log parsing warnings only in development
         if (result.errors && result.errors.length > 0) {
-          if (process.env.NODE_ENV === "development") {
-          }
         }
 
         // Validate that we found some URLs
@@ -610,8 +602,6 @@ export function UrlBulkImportExport({
           new URL(item.url);
           return true;
         } catch {
-          if (process.env.NODE_ENV === "development") {
-          }
           return false;
         }
       });
@@ -944,8 +934,6 @@ export function UrlBulkImportExport({
               // Track URLs that failed metadata fetch (suppress console warnings)
               metadataFailedUrls.push(urlItem.url);
               // Continue with empty metadata - we'll use imported title/description
-              if (process.env.NODE_ENV === "development") {
-              }
             }
           }
 
@@ -1019,8 +1007,6 @@ export function UrlBulkImportExport({
             await addUrlWithTimeout;
           } catch (addUrlError) {
             // If addUrlToList fails or times out, log but continue with next URL
-            if (process.env.NODE_ENV === "development") {
-            }
             // Yield event loop after error to prevent server saturation
             await new Promise((resolve) => setTimeout(resolve, 0));
             // Re-throw to be caught by outer catch block
@@ -1083,8 +1069,6 @@ export function UrlBulkImportExport({
           }
 
           // Only log and count non-abort errors
-          if (process.env.NODE_ENV === "development") {
-          }
           errorCount++;
         } finally {
           processedCount++;
@@ -1318,8 +1302,6 @@ export function UrlBulkImportExport({
                   const elapsed = now - startTime;
                   if (elapsed > stuckThreshold) {
                     stuckPromises.push(index);
-                    if (process.env.NODE_ENV === "development") {
-                    }
                   }
                 }
 
@@ -1331,11 +1313,7 @@ export function UrlBulkImportExport({
                     completedCount++;
                     errorCount++;
                   }
-                  if (process.env.NODE_ENV === "development") {
-                  }
                 } else if (runningPromises.size > 0) {
-                  if (process.env.NODE_ENV === "development") {
-                  }
                 }
 
                 resolve();
@@ -1350,8 +1328,6 @@ export function UrlBulkImportExport({
             await new Promise((resolve) => setTimeout(resolve, 10));
           } catch (_error) {
             // Error already handled in processUrl, continue
-            if (process.env.NODE_ENV === "development") {
-            }
             await new Promise((resolve) => setTimeout(resolve, 10));
           }
         } else {
@@ -1395,8 +1371,6 @@ export function UrlBulkImportExport({
           const finalWaitTimeout = new Promise<void>((resolve) => {
             setTimeout(() => {
               const _waitDuration = Date.now() - finalWaitStartTime;
-              if (process.env.NODE_ENV === "development") {
-              }
               // Abort all pending requests
               if (abortControllerRef.current) {
                 abortControllerRef.current.abort();
@@ -1415,8 +1389,6 @@ export function UrlBulkImportExport({
 
           results.forEach((result) => {
             if (result.status === "rejected") {
-              if (process.env.NODE_ENV === "development") {
-              }
               errorCount++;
             }
           });
@@ -1435,8 +1407,6 @@ export function UrlBulkImportExport({
           }
         } catch (_error) {
           const _finalWaitDuration = Date.now() - finalWaitStartTime;
-          if (process.env.NODE_ENV === "development") {
-          }
         }
       } else if (
         process.env.NODE_ENV === "development" &&
@@ -1618,14 +1588,10 @@ export function UrlBulkImportExport({
 
       // If error is due to abort, that's expected - don't show error
       if (error instanceof Error && error.name === "AbortError") {
-        if (process.env.NODE_ENV === "development") {
-        }
         return; // Silent cancellation - page is refreshing/unmounting
       }
 
       // Log full error details for debugging
-      if (process.env.NODE_ENV === "development") {
-      }
 
       // Only show error toast if component is still mounted
       if (isMountedRef.current) {
@@ -1805,7 +1771,6 @@ export function UrlBulkImportExport({
             // Ignore errors
           }
         }, 50);
-      } else if (process.env.NODE_ENV === "development") {
       }
 
       // CRITICAL: Stop global fetch interception IMMEDIATELY after aborting
@@ -2067,8 +2032,6 @@ export function UrlBulkImportExport({
                 abortRegistry?.forceAbortAllGlobal?.();
                 abortRegistry?.stopGlobalInterception?.();
                 if (window.__bulkImportJustCompleted) {
-                  if (process.env.NODE_ENV === "development") {
-                  }
                   window.__bulkImportJustCompleted = false;
                 }
               }
@@ -2108,8 +2071,6 @@ export function UrlBulkImportExport({
             setTimeout(() => {
               // Only refresh if we're still on the same list and not unmounted
               if (isMountedRef.current && !isImportActiveRef.current) {
-                if (process.env.NODE_ENV === "development") {
-                }
                 invalidateMutationImpact(queryClient, "import", slug, listId);
               }
             }, 800); // Reduced delay since we're aborting all requests

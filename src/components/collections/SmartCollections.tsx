@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useStore } from "@nanostores/react";
-import { currentList } from "@/stores/urlListStore";
+import { currentList, removeUrlFromList } from "@/stores/urlListStore";
 import { Button } from "@/components/ui/Button";
 import {
   Card,
@@ -35,6 +35,7 @@ import {
 import { useRouter } from "next/navigation";
 import { AlertDialog } from "@/components/ui/AlertDialog";
 import { HEADING_STACK } from "@/lib/ui-spacing";
+import { invalidateMutationImpact } from "@/utils/queryInvalidation";
 
 interface SmartCollectionsProps {
   listId: string;
@@ -59,7 +60,6 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
   const {
     data: suggestionsData,
     isLoading: isLoadingSuggestions,
-    refetch: refetchSuggestions,
   } = useQuery<{ suggestions: CollectionSuggestion[] }>({
     queryKey: [...listQueryKeys.collections(listId), list?.urls?.length],
     queryFn: async () => {
@@ -171,25 +171,20 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
 
     setIsRefreshing(true);
     try {
-      // Clear server-side Redis cache first (use GET with clearCache=true, not DELETE)
-      try {
-        await fetch(
-          `/api/lists/${listSlug}/collections?clearCache=true&_t=${Date.now()}`,
-        );
-      } catch (_error) {
-        // Ignore cache clear errors
-      }
-
-      // Clear React Query cache and force refetch
-      queryClient.removeQueries({
-        queryKey: listQueryKeys.collections(listId),
-      });
-
-      // Force refetch with cache-busting
-      const result = await refetchSuggestions();
+      // The refresh endpoint returns the newly computed suggestions, so one request
+      // both clears server cache and commits the replacement client value.
+      const result = await fetch(
+        `/api/lists/${listSlug}/collections?clearCache=true&_t=${Date.now()}`,
+      );
+      if (!result.ok) throw new Error("Failed to refresh collection suggestions");
+      const refreshedData = await result.json() as { suggestions?: CollectionSuggestion[] };
+      queryClient.setQueryData(
+        [...listQueryKeys.collections(listId), list?.urls?.length],
+        { suggestions: refreshedData.suggestions || [] },
+      );
 
       // Show success toast with dynamic message based on result
-      const refreshedSuggestions = result.data?.suggestions || [];
+      const refreshedSuggestions = refreshedData.suggestions || [];
       if (refreshedSuggestions.length > 0) {
         toast({
           title: "Suggestions Refreshed",
@@ -241,7 +236,6 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
     suggestions.length,
     toast,
     queryClient,
-    refetchSuggestions,
   ]);
 
   // UNIFIED EVENT LISTENER: Listen for URL changes via unified-update events (single source of truth)
@@ -333,6 +327,37 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
     if (isCreating) return;
 
     setIsCreating(suggestion.id);
+    const suggestionKey = [...listQueryKeys.collections(listId), list?.urls?.length] as const;
+    const previousList = currentList.get();
+    const previousUnified = queryClient.getQueryData<{ list?: typeof previousList }>(
+      listQueryKeys.unified(listSlug),
+    );
+    const previousSuggestions = queryClient.getQueryData<{ suggestions: CollectionSuggestion[] }>(suggestionKey);
+    const movedUrlIds = new Set(suggestion.urls.map((url) => url.id));
+    const optimisticUrls = (previousList.urls || []).filter((url) => !movedUrlIds.has(url.id));
+    const optimisticSuggestionKey = [...listQueryKeys.collections(listId), optimisticUrls.length] as const;
+    const previousOptimisticSuggestions = queryClient.getQueryData<{ suggestions: CollectionSuggestion[] }>(
+      optimisticSuggestionKey,
+    );
+    const nextSuggestions = (previousSuggestions?.suggestions || suggestions).filter(
+      (item) => item.id !== suggestion.id,
+    );
+
+    // Commit the source-list change in both render surfaces before the request starts.
+    currentList.set({ ...previousList, urls: optimisticUrls });
+    queryClient.setQueryData(
+      listQueryKeys.unified(listSlug),
+      (cached: typeof previousUnified) =>
+        cached?.list ? { ...cached, list: { ...cached.list, urls: optimisticUrls } } : cached,
+    );
+    queryClient.setQueryData<{ suggestions: CollectionSuggestion[] }>(
+      suggestionKey,
+      { suggestions: nextSuggestions },
+    );
+    // The query key includes URL count; seed its post-mutation variant so the
+    // next render never falls through to an avoidable cold request.
+    queryClient.setQueryData(optimisticSuggestionKey, { suggestions: nextSuggestions });
+
     try {
       const response = await fetch(`/api/lists/${listSlug}/collections`, {
         method: "POST",
@@ -346,9 +371,6 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
       });
 
       if (!response.ok) {
-        if (response.status === 401) {
-          return; // Unauthorized - handled elsewhere
-        }
         const error = await response.json();
         throw new Error(error.error || "Failed to create collection");
       }
@@ -361,23 +383,16 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
         variant: "success",
       });
 
-      // Drop suggestion optimistically; invalidate in background (stay on current list)
-      queryClient.setQueryData<{ suggestions: CollectionSuggestion[] }>(
-        [...listQueryKeys.collections(listId), list?.urls?.length],
-        (oldData) => {
-          if (!oldData) return oldData;
-          return {
-            suggestions: oldData.suggestions.filter(
-              (s) => s.id !== suggestion.id,
-            ),
-          };
-        },
-      );
-      queryClient.invalidateQueries({
-        queryKey: listQueryKeys.unified(listSlug),
-      });
-      queryClient.invalidateQueries({ queryKey: listQueryKeys.allLists() });
+      invalidateMutationImpact(queryClient, "collection", listSlug, listId);
     } catch (error) {
+      currentList.set(previousList);
+      queryClient.setQueryData(listQueryKeys.unified(listSlug), previousUnified);
+      queryClient.setQueryData(suggestionKey, previousSuggestions);
+      if (previousOptimisticSuggestions) {
+        queryClient.setQueryData(optimisticSuggestionKey, previousOptimisticSuggestions);
+      } else {
+        queryClient.removeQueries({ queryKey: optimisticSuggestionKey, exact: true });
+      }
       // Handle expected errors silently (no error overlay):
       // - 401 Unauthorized (user lost access)
       // - NetworkError/AbortError (page refresh during bulk import)
@@ -399,8 +414,6 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
           description: errorMessage,
           variant: "error",
         });
-      } else if (process.env.NODE_ENV === "development") {
-        // Silently handle expected errors (no console spam)
       }
     } finally {
       setIsCreating(null);
@@ -817,16 +830,7 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
           setDeletingDuplicateIds((prev) => new Set(prev).add(dup.url.id));
 
           try {
-            const response = await fetch(
-              `/api/lists/${listSlug}/urls?urlId=${dup.url.id}`,
-              {
-                method: "DELETE",
-              },
-            );
-
-            if (!response.ok) {
-              throw new Error("Failed to remove duplicate");
-            }
+            await removeUrlFromList(dup.url.id);
 
             // Invalidate immediately for responsive UI, but use deduplication to prevent duplicate calls
             // Update lastInvalidationRef so unified-update event (which fires after SSE) won't duplicate this
@@ -845,19 +849,7 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
               },
             );
 
-            // Trigger fresh duplicate check after deletion to re-check ALL remaining URLs
-            // This ensures we discover new duplicates that were beyond the first 20 URLs
-            if (showDuplicates && shouldFetchDuplicates) {
-              // The query key includes list?.urls?.length, so when URL count changes,
-              // React Query will treat it as a new query and fetch fresh data
-              // Force a refetch to ensure we re-check all remaining URLs (not just first 20)
-              setTimeout(() => {
-                refetchDuplicates();
-              }, 100); // Small delay to ensure list state has updated with new URL count
-            }
-            queryClient.invalidateQueries({
-              queryKey: listQueryKeys.collections(listId),
-            });
+            // removeUrlFromList commits the list snapshot and invalidates its URL impact once.
 
             // Show success toast with dynamic text
             const urlTitle = dup.url.title || dup.url.url;

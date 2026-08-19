@@ -1,7 +1,10 @@
 import { atom, map } from "nanostores";
 import { queryClient } from "@/lib/react-query";
 import type { UrlMetadata } from "@/utils/urlMetadata";
-import { invalidateMutationImpact } from "@/utils/queryInvalidation";
+import {
+  invalidateMutationImpact,
+  type MutationImpact,
+} from "@/utils/queryInvalidation";
 import {
   syncDragOrderCacheWithServer,
   getCachedDragOrder,
@@ -107,6 +110,7 @@ function commitUrlMutation(
   previous: Partial<UrlList>,
   serverList: UrlList,
   urls: UrlItem[],
+  impact: Extract<MutationImpact, "url" | "archive"> = "url",
 ): UrlList {
   const next = { ...previous, ...serverList, urls } as UrlList;
   currentList.set(next);
@@ -116,7 +120,7 @@ function commitUrlMutation(
       ["unified-list", next.slug],
       (cached) => (cached?.list ? { ...cached, list: { ...cached.list, ...next } } : cached),
     );
-    invalidateMutationImpact(queryClient, "url", next.slug, next.id);
+    invalidateMutationImpact(queryClient, impact, next.slug, next.id);
   }
 
   return next;
@@ -140,8 +144,6 @@ export async function getList(
 ) {
   // CRITICAL: Skip ALL getList calls during bulk import to prevent spam
   if (typeof window !== "undefined" && window.__bulkImportActive) {
-    if (process.env.NODE_ENV === "development") {
-    }
     // Return current list state if available, otherwise null
     const current = currentList.get();
     return (current?.slug === slug ? (current as UrlList) : null);
@@ -1077,17 +1079,10 @@ export async function reorderUrls(startIndex: number, endIndex: number) {
     const optimisticOrder = optimisticUrls.map((u) => u.id).join(",");
     const serverOrder = serverUrls.map((u) => u.id).join(",");
 
-    if (optimisticOrder === serverOrder) {
-      // Order matches, but update other fields from server (like timestamps)
-      const mergedList = {
-        ...list,
-        urls: optimisticUrls, // Keep our optimistic order
-      };
-      currentList.set(mergedList);
-    } else {
-      // Use server order as source of truth if different
-      currentList.set(list);
-    }
+    const next = optimisticOrder === serverOrder
+      ? { ...list, urls: optimisticUrls }
+      : list;
+    const committed = commitUrlMutation(current, next, next.urls as UrlItem[]);
 
     // Dispatch activity events for optimistic feed update and refresh
     if (typeof window !== "undefined" && activityData && current.id) {
@@ -1106,8 +1101,9 @@ export async function reorderUrls(startIndex: number, endIndex: number) {
       }
     }
 
-    return currentList.get() as UrlList;
+    return committed;
   } catch (err) {
+    currentList.set(current);
     error.set(err instanceof Error ? err.message : "Failed to reorder URLs");
     return null;
   } finally {
@@ -1223,13 +1219,11 @@ export async function archiveUrlFromList(urlId: string) {
     // Note: Activity feed will also update via real-time SSE event
     // But optimistic update provides instant feedback
 
-    currentList.set(list);
-    return list;
+    return commitUrlMutation(current, list, list.urls as UrlItem[], "archive");
   } catch (err) {
     error.set(err instanceof Error ? err.message : "Failed to archive URL");
-    // Revert on error
-    // Note: Components that call this function handle errors and use React Query invalidations
-    // We don't call getList() here to avoid duplicate API calls
+    // Restore exactly the initiating snapshot; no refetch is needed to recover the UI.
+    currentList.set(current);
     throw err;
   } finally {
     isLoading.set(false);
@@ -1351,9 +1345,9 @@ export async function restoreArchivedUrl(urlId: string) {
     // Note: Activity feed will also update via real-time SSE event
     // But optimistic update provides instant feedback
 
-    currentList.set(list);
-    return list;
+    return commitUrlMutation(current, list, list.urls as UrlItem[], "archive");
   } catch (err) {
+    currentList.set(current);
     error.set(
       err instanceof Error ? err.message : "Failed to restore archived URL"
     );

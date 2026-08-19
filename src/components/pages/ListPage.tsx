@@ -21,12 +21,13 @@ import {
   useUnifiedListQuery,
   setupSSECacheSync,
   listQueryKeys,
+  useUpdateListVisibility,
 } from "@/hooks/useListQueries";
 import { useQueryClient } from "@tanstack/react-query";
-import { invalidateMutationImpact } from "@/utils/queryInvalidation";
 import { Dialog } from "@/components/ui/Dialog";
 import EditListPageClient from "@/components/pages/EditListPage";
 import { HEADING_STACK } from "@/lib/ui-spacing";
+import { invalidateMutationImpact } from "@/utils/queryInvalidation";
 
 export default function ListPageClient() {
   const { toast } = useToast();
@@ -68,12 +69,11 @@ export default function ListPageClient() {
   const [isLoading, setIsLoading] = useState(false);
   const [mounted, setMounted] = useState(false); // Track if component is mounted (prevents hydration errors)
   const [isCopied, setIsCopied] = useState(false);
-  const [isToggling, setIsToggling] = useState(false);
+  const visibilityMutation = useUpdateListVisibility();
   // inviteDialogOpen removed - PermissionManager handles dialogs internally
   const [isCheckingHealth, setIsCheckingHealth] = useState(false);
   const [isRefreshingMetadata, setIsRefreshingMetadata] = useState(false);
   const [isSettingUpSchedule, setIsSettingUpSchedule] = useState(false);
-  const [editDialogPending, setEditDialogPending] = useState(false);
   const hasSyncedVectors = useRef<string | null>(null); // Track which list ID we've synced (in-memory)
   const syncInProgress = useRef<string | null>(null); // Track if sync is currently in progress for a list
   const hasRedirectedRef = useRef<boolean>(false); // Track if we've already redirected to prevent duplicate redirects
@@ -451,141 +451,56 @@ export default function ListPageClient() {
     unifiedData?.list,
   ]);
 
-  // Auto-sync vectors for existing URLs when list loads (background, non-blocking)
+  // Auto-sync vectors is a background index operation: it intentionally does not
+  // invalidate list data because the route does not change any rendered list field.
   useEffect(() => {
-    if (!list?.id || !list.urls || list.urls.length === 0) {
+    if (!list?.id || !list.urls?.length) return;
+
+    const listId = list.id;
+    if (
+      hasListSyncedVectors(listId) ||
+      hasSyncedVectors.current === listId ||
+      syncInProgress.current === listId
+    ) {
+      hasSyncedVectors.current = listId;
       return;
     }
 
-    const listId = list.id; // Store in const to avoid stale closure issues
-
-    // DEBUG: Log localStorage and sessionStorage check for vector sync debugging
-    if (process.env.NODE_ENV === "development") {
-      const _isSynced = hasListSyncedVectors(listId);
-      const _localSyncedLists =
-        typeof window !== "undefined"
-          ? JSON.parse(localStorage.getItem("vector-synced-lists") || "[]")
-          : [];
-      const _sessionSyncedLists =
-        typeof window !== "undefined"
-          ? JSON.parse(sessionStorage.getItem("vector-synced-lists") || "[]")
-          : [];
-    }
-
-    // CRITICAL: Check localStorage IMMEDIATELY when component mounts (not after delay)
-    // This ensures we skip sync on second visit even before the timeout runs
-    if (hasListSyncedVectors(listId)) {
-      hasSyncedVectors.current = listId; // Update ref for in-memory check
-      if (process.env.NODE_ENV === "development") {
+    const clearVectorSyncMarker = () => {
+      if (typeof window === "undefined") return;
+      try {
+        const stored = JSON.parse(localStorage.getItem("vector-synced-lists") || "[]") as string[];
+        localStorage.setItem("vector-synced-lists", JSON.stringify(stored.filter((id) => id !== listId)));
+        const sessionStored = JSON.parse(sessionStorage.getItem("vector-synced-lists") || "[]") as string[];
+        sessionStorage.setItem("vector-synced-lists", JSON.stringify(sessionStored.filter((id) => id !== listId)));
+      } catch {
+        localStorage.removeItem("vector-synced-lists");
+        sessionStorage.removeItem("vector-synced-lists");
       }
-      return; // Already synced - skip entirely
-    }
-
-    // Also check in-memory ref (for same session)
-    if (hasSyncedVectors.current === listId) {
-      if (process.env.NODE_ENV === "development") {
-      }
-      return; // Already synced in this session
-    }
-
-    // Check if sync is already in progress for this list
-    if (syncInProgress.current === listId) {
-      if (process.env.NODE_ENV === "development") {
-      }
-      return; // Sync already in progress
-    }
-
-    if (process.env.NODE_ENV === "development") {
-    }
+    };
 
     async function syncVectors() {
-      // Double-check conditions before syncing
-      if (!list?.id || !list.urls || list.urls.length === 0) {
-        syncInProgress.current = null; // Clear progress flag
-        return;
-      }
-
-      // Mark sync as in progress immediately to prevent duplicate syncs
       syncInProgress.current = listId;
-
-      // Mark in-memory ref immediately to prevent duplicate syncs in same session
       hasSyncedVectors.current = listId;
-
-      // CRITICAL: Mark as synced in localStorage IMMEDIATELY (optimistic) BEFORE fetch
-      // This prevents duplicate syncs on second visit even if user navigates away quickly
-      // The localStorage is set synchronously and persists across page visits
-      if (process.env.NODE_ENV === "development") {
-      }
       markListVectorSynced(listId);
 
-      // DEBUG: Verify localStorage was set correctly
-      if (process.env.NODE_ENV === "development") {
-        const _verifySynced = hasListSyncedVectors(listId);
-        const _syncedLists =
-          typeof window !== "undefined"
-            ? JSON.parse(localStorage.getItem("vector-synced-lists") || "[]")
-            : [];
+      try {
+        const response = await fetch(`/api/lists/${listId}/sync-vectors`, { method: "POST" });
+        if (!response.ok) throw new Error("Vector sync failed");
+        if (!hasListSyncedVectors(listId)) markListVectorSynced(listId);
+      } catch {
+        clearVectorSyncMarker();
+        hasSyncedVectors.current = null;
+      } finally {
+        syncInProgress.current = null;
       }
-
-      // Double-check localStorage was set correctly (defensive check)
-      if (!hasListSyncedVectors(listId)) {
-        if (process.env.NODE_ENV === "development") {
-        }
-        // If localStorage failed, we'll still try to sync, but mark again after success
-      }
-
-      // Sync vectors in background (don't block UI)
-      if (process.env.NODE_ENV === "development") {
-      }
-      fetch(`/api/lists/${listId}/sync-vectors`, {
-        method: "POST",
-      })
-        .then(() => {
-          // Sync succeeded - localStorage already marked optimistically
-          // Double-check it's still marked (defensive)
-          if (!hasListSyncedVectors(listId)) {
-            if (process.env.NODE_ENV === "development") {
-            }
-            markListVectorSynced(listId);
-          }
-
-          if (process.env.NODE_ENV === "development") {
-            const _finalCheck = hasListSyncedVectors(listId);
-          }
-
-          // Clear sync in progress flag
-          syncInProgress.current = null;
-        })
-        .catch(() => {
-          // On failure, clear localStorage flag to allow retry on next visit
-          if (typeof window !== "undefined") {
-            const syncedLists = JSON.parse(
-              localStorage.getItem("vector-synced-lists") || "[]",
-            );
-            const filtered = syncedLists.filter((id: string) => id !== listId);
-            localStorage.setItem(
-              "vector-synced-lists",
-              JSON.stringify(filtered),
-            );
-          }
-
-          // Reset refs so we can retry in same session
-          hasSyncedVectors.current = null;
-          syncInProgress.current = null;
-
-          // Silently fail - vector sync is optional enhancement
-          if (process.env.NODE_ENV === "development") {
-          }
-        });
     }
 
-    // Only sync once when list is loaded (after initial load)
-    // Add a small delay to prevent immediate sync on every render
     const timeoutId = setTimeout(() => {
       if (list && !isLoading && list.id) {
-        syncVectors();
+        void syncVectors();
       }
-    }, 1000); // 1 second delay
+    }, 1000);
 
     return () => clearTimeout(timeoutId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -682,84 +597,25 @@ export default function ListPageClient() {
               <div className="flex items-center gap-1">
                 <Switch
                   checked={list.isPublic ?? false}
-                  disabled={isToggling || !permissions.canInvite}
-                  onChange={async (e) => {
+                  disabled={visibilityMutation.isPending || !permissions.canInvite}
+                  onChange={(e) => {
+                    if (!list.id || !list.slug) return;
                     const newValue = e.target.checked;
-                    setIsToggling(true);
-                    try {
-                      const response = await fetch(
-                        `/api/lists/${list.id}/visibility`,
-                        {
-                          method: "POST",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({ isPublic: newValue }),
-                        },
-                      );
-
-                      if (response.ok) {
-                        const { list: updatedList } = await response.json();
-                        if (updatedList) {
-                          flushSync(() => {
-                            currentList.set(updatedList);
-                          });
-
-                          // CRITICAL: Invalidate ALL related queries to ensure all pages update immediately
-                          // This ensures ListsPage, BrowsePage, and current page all update without refresh
-                          // Use centralized invalidation function for consistency
-                          if (typeof slug === "string" && list?.id) {
-                            invalidateMutationImpact(queryClient, "visibility", slug, list.id);
-                          }
-                          // CRITICAL: Invalidate browse/public lists queries so BrowsePage updates immediately
-                          // This is additional to list queries invalidation above
-
-                          // UNIFIED APPROACH: SSE handles ALL activity-updated events (single source of truth)
-                          // No local dispatch needed - prevents duplicate API calls
-
-                          toast({
-                            title: newValue
-                              ? "Made Public 🌐"
-                              : "Made Private 🔒",
-                            description: `List is now ${
-                              newValue ? "public" : "private"
-                            }`,
-                            variant: "success",
-                          });
-                        } else {
-                          // Refetch via React Query invalidation - triggers unified endpoint refetch
-                          // Use centralized invalidation function for consistency
-                          if (typeof slug === "string" && list?.id) {
-                            invalidateMutationImpact(queryClient, "visibility", slug, list.id);
-                          }
-                          // CRITICAL: Invalidate browse/public lists queries so BrowsePage updates immediately
-                          // This is additional to list queries invalidation above
-                          toast({
-                            title: newValue
-                              ? "Made Public 🌐"
-                              : "Made Private 🔒",
-                            description: `List is now ${
-                              newValue ? "public" : "private"
-                            }`,
-                            variant: "success",
-                          });
-                        }
-                      } else {
-                        const data = await response.json();
-                        toast({
-                          title: "Failed",
-                          description:
-                            data.error || "Failed to update visibility",
+                    visibilityMutation.mutate(
+                      { id: list.id, slug: list.slug, isPublic: newValue },
+                      {
+                        onSuccess: () => toast({
+                          title: newValue ? "Made Public 🌐" : "Made Private 🔒",
+                          description: `List is now ${newValue ? "public" : "private"}`,
+                          variant: "success",
+                        }),
+                        onError: (error) => toast({
+                          title: "Visibility Update Failed",
+                          description: error instanceof Error ? error.message : "Please try again.",
                           variant: "error",
-                        });
-                      }
-                    } catch {
-                      toast({
-                        title: "Error",
-                        description: "An unexpected error occurred",
-                        variant: "error",
-                      });
-                    } finally {
-                      setIsToggling(false);
-                    }
+                        }),
+                      },
+                    );
                   }}
                 />
                 <span className="text-[10px] text-white/50 hidden sm:inline">
@@ -799,8 +655,6 @@ export default function ListPageClient() {
                           "Scheduled jobs require a public URL. Deploy to production or set up manually in QStash dashboard. Check console for details.",
                         variant: "info",
                       });
-                      if (process.env.NODE_ENV === "development") {
-                      }
                     } else {
                       toast({
                         title: "Setup Failed",
@@ -866,11 +720,8 @@ export default function ListPageClient() {
                         );
                       }
 
-                      // Refetch via React Query invalidation - triggers unified endpoint refetch
                       if (typeof slug === "string") {
-                        queryClient.invalidateQueries({
-                          queryKey: listQueryKeys.unified(slug),
-                        });
+                        invalidateMutationImpact(queryClient, "metadata", slug, list.id);
                       }
 
                       toast({
@@ -950,18 +801,11 @@ export default function ListPageClient() {
                           );
                         }
 
-                        // CRITICAL: Invalidate unified query to trigger updates?activityLimit=30 refetch
-                        // This ensures activity feed gets complete updated list with health check activity
                         if (typeof slug === "string") {
-                          queryClient.invalidateQueries({
-                            queryKey: listQueryKeys.unified(slug),
-                          });
+                          invalidateMutationImpact(queryClient, "action", slug, list.id);
                         }
                       } else if (typeof slug === "string") {
-                        // Fallback: use React Query invalidation - triggers unified endpoint refetch
-                        queryClient.invalidateQueries({
-                          queryKey: listQueryKeys.unified(slug),
-                        });
+                        invalidateMutationImpact(queryClient, "action", slug, list.id);
                       }
 
                       toast({
@@ -1102,7 +946,6 @@ export default function ListPageClient() {
           description="Update your list details and settings."
           size="wide"
           headerMode="scroll"
-          pending={editDialogPending}
         >
           <EditListPageClient
             key={list.id}
@@ -1114,7 +957,6 @@ export default function ListPageClient() {
               isPublic: list.isPublic,
             }}
             onClose={() => router.replace(`/list/${listSlug}`, { scroll: false })}
-            onPendingChange={setEditDialogPending}
           />
         </Dialog>
       ) : null}

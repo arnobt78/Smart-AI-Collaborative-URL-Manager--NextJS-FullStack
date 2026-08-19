@@ -210,3 +210,21 @@ Gate 2: BLOCKED — RISK-0016 is accepted; `EVAL_RESULTS.md` PASS/WAIVED evidenc
 | Cache integrity | Focused query and mutation tests | PASS | Active list, URL, import, collaborator, and visibility mutations use the typed impact gateway while retaining optimistic rollback and SSE reconciliation. |
 | Type/lint/tests/build | `npx tsc --noEmit`; `npm run lint`; `npm test -- --runInBand`; `npm run build` | PASS | 52 passed, 5 skipped; strict TypeScript, zero-warning lint, and optimized production build pass. |
 | Hygiene | Console, tracked-secret, and `git diff --check` scans | PASS | Direct logging is limited to the production-gated helper and test mocks; no tracked secrets or whitespace errors. |
+
+## 2026-08-19 — C4 mutation UX reconciliation
+
+| Scope | Command / evidence | Result | Notes |
+|---|---|---|---|
+| Visibility mutation | Focused hook regression | PASS | Detail, all-lists, and active-store state update optimistically and restore on failure. |
+| External visits | Focused URL list regression | PASS | Visit controls expose browser-owned `_blank` links with `noopener noreferrer`. |
+| Full validation | `npx tsc --noEmit`; `npm run lint`; `npm test -- --runInBand`; `npm run build` | PASS | 54 passed, 5 skipped; strict TypeScript, zero-warning lint, and optimized build pass. |
+
+## 2026-08-19 — REQ-0026 C4 reconciliation completion
+
+| Scope | Command / evidence | Result | Notes |
+|---|---|---|---|
+| Store rollback | `urlListStore.mutations.test.ts` | PASS | Failed delete, archive, and restore retain the exact initiating list snapshot. |
+| Impact gateway | `queryInvalidation.test.ts`; `useListQueries.mutations.test.tsx` | PASS | List, visibility, URL, archive, import, collaborator, comment, collection, metadata, and action impacts remain typed and covered. |
+| URL-click rollback | `UrlList.test.tsx` | PASS | Click analytics increments immediately and restores the initiating store snapshot when tracking is rejected. |
+| Full validation | `npx tsc --noEmit`; `npm run lint`; `npm test -- --runInBand`; `npm run build` | PASS | 59 passed, 5 skipped; strict TypeScript, zero-warning lint, and optimized production build pass. |
+| Hygiene | parser and direct-console scans; `git diff --check` | PASS | No direct mutating-route JSON parsing, no application direct console calls, and no whitespace errors. |

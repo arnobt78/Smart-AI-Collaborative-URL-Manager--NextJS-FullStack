@@ -91,8 +91,6 @@ export async function GET(
     // Extract results safely
     // Note: Position init result is ignored - it's a background operation
     if (positionInitResult.status === "rejected") {
-      if (process.env.NODE_ENV === "development") {
-      }
     }
 
     const activities = activitiesResult.status === "fulfilled" ? activitiesResult.value : [];
@@ -101,8 +99,6 @@ export async function GET(
         ? collaboratorsResult.value 
         : (() => {
             // If collaborator fetch fails, log but continue without them (non-critical)
-            if (process.env.NODE_ENV === "development") {
-            }
             return [];
           })();
 

@@ -206,8 +206,6 @@ export default function Auth() {
               await queryClient.refetchQueries({ queryKey: ["session"] });
             } catch (_error) {
               // Non-critical - session will be refetched on next page load
-              if (process.env.NODE_ENV === "development") {
-              }
             }
 
             // Check if there's a redirect URL (user was trying to access a protected resource)
@@ -298,8 +296,6 @@ export default function Auth() {
               await queryClient.refetchQueries({ queryKey: ["session"] });
             } catch (_error) {
               // Non-critical - session will be refetched on next page load
-              if (process.env.NODE_ENV === "development") {
-              }
             }
 
             // Check if there's a redirect URL (user was trying to access a protected resource)
@@ -328,8 +324,6 @@ export default function Auth() {
         }
       }
 
-      if (process.env.NODE_ENV === "development") {
-      }
       toast({
         title: "Error",
         description: errorMsg,

@@ -170,6 +170,7 @@ export function HoverTooltip({
 interface IconButtonProps {
   icon: React.ReactNode;
   onClick?: () => void;
+  href?: string;
   tooltip: string;
   variant?: "default" | "primary" | "danger";
   className?: string;
@@ -180,6 +181,7 @@ interface IconButtonProps {
 export function IconButton({
   icon,
   onClick,
+  href,
   tooltip,
   variant = "default",
   className = "",
@@ -199,20 +201,39 @@ export function IconButton({
     ? "opacity-40 cursor-not-allowed hover:scale-100 hover:shadow-sm"
     : "hover:scale-110 active:scale-95";
 
-  const buttonContent = (
-    <button
-      type="button"
-      onClick={disabled ? undefined : onClick}
-      disabled={disabled}
-      aria-label={tooltip}
-      className={`relative w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200 ${disabledClasses} shadow-sm hover:shadow-md ${variantClasses[variant]} ${className}`}
-    >
+  const content = (
+    <>
       <div className="w-5 h-5">{icon}</div>
       {badge && badge > 0 ? (
         <span aria-hidden className="absolute -right-1 -top-1 min-w-4 rounded-full border border-zinc-950 bg-blue-500 px-1 text-[10px] font-semibold leading-4 text-white">
           {badge > 99 ? "99+" : badge}
         </span>
       ) : null}
+    </>
+  );
+
+  const buttonClassName = `relative w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200 ${disabledClasses} shadow-sm hover:shadow-md ${variantClasses[variant]} ${className}`;
+  const buttonContent = href && !disabled ? (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      referrerPolicy="no-referrer"
+      onClick={onClick}
+      aria-label={tooltip}
+      className={buttonClassName}
+    >
+      {content}
+    </a>
+  ) : (
+    <button
+      type="button"
+      onClick={disabled ? undefined : onClick}
+      disabled={disabled}
+      aria-label={tooltip}
+      className={buttonClassName}
+    >
+      {content}
     </button>
   );
 

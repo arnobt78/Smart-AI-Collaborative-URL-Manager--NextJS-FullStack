@@ -29,6 +29,20 @@
 - **Impact:** Profile dropdown, focused regression coverage, and existing project evidence only; no session-cookie or server route contract change.
 - **Requested by:** User
 
+## CR-0004 — C4 instant mutation UI and external visits
+
+- **Cycle:** C4
+- **Affected requirement:** REQ-0023 / REQ-0025 carry-forward
+- **Change:** Make visibility cache-first, remove dialog-wide mutation locks, and convert primary/suggested visits to semantic safe external links.
+- **Rationale:** Avoid stale toggles, blocked dialogs, and synthetic-click failures while retaining established optimistic rollback and SSE reconciliation.
+
+## CR-0005 — C4 mutation reconciliation completion
+
+- **Cycle:** C4
+- **Affected requirement:** REQ-0026 (new)
+- **Change:** Complete store-owned rollback and typed impacts for collections, archive/restore, reorder, metadata refresh, health, click analytics, favorites, pins, and duplicate deletion; remove duplicate caller invalidations and collection refresh duplication.
+- **Rationale:** Guarantee immediate local state, exact failure recovery, and one reconciliation path per mutation family.
+
 ## 2026-08-14 C1
 
 - AI free-tier model chains + shared client

@@ -45,8 +45,6 @@ export default function Navbar({ initialWasAuthed = false }: NavbarProps) {
         e.preventDefault();
         e.stopPropagation();
 
-        if (process.env.NODE_ENV === "development") {
-        }
 
         // CRITICAL: Force abort any pending requests and clear router cache
         // This ensures RSC requests don't get stuck
@@ -55,8 +53,6 @@ export default function Navbar({ initialWasAuthed = false }: NavbarProps) {
             abortRegistry.forceAbortAllGlobal();
             abortRegistry.stopGlobalInterception();
 
-            if (process.env.NODE_ENV === "development") {
-            }
           }
 
           const routerInstance = win.__nextRouter;
@@ -74,11 +70,7 @@ export default function Navbar({ initialWasAuthed = false }: NavbarProps) {
             nextFetchCache.clear();
           }
 
-          if (process.env.NODE_ENV === "development") {
-          }
         } catch (_err) {
-          if (process.env.NODE_ENV === "development") {
-          }
         }
 
         setTimeout(() => {

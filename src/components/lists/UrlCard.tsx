@@ -26,13 +26,12 @@ import { IconButton } from "@/components/ui/HoverTooltip";
 import type { UrlItem } from "@/stores/urlListStore";
 import type { UrlMetadata } from "@/utils/urlMetadata";
 import type { SearchResult } from "@/lib/ai/search";
-import { Button } from "@/components/ui/Button";
 import { Dialog } from "@/components/ui/Dialog";
 import { currentList } from "@/stores/urlListStore";
 import { UrlHealthIndicator } from "@/components/urls/UrlHealthIndicator";
 import { Comments } from "@/components/collaboration/Comments";
 import { MessageSquare } from "lucide-react";
-import { ensureAbsoluteHttpUrl, openExternalUrl } from "@/lib/utils";
+import { ensureAbsoluteHttpUrl } from "@/lib/utils";
 // Using public path instead of import
 const logoPath = "/favicon.ico";
 
@@ -210,6 +209,7 @@ export const UrlCard: React.FC<UrlCardProps> = ({
   // For own URLs, always use logo. For external URLs, only use metadata image (no favicon fallback)
   // We rely on server-side metadata API to find valid images - no client-side fallbacks to avoid 403 errors
   const primaryImage = isOwnUrl ? logoPath : metadata?.image || undefined;
+  const externalHref = ensureAbsoluteHttpUrl(url.url);
 
   // Determine current image URL to use
   React.useEffect(() => {
@@ -519,12 +519,10 @@ export const UrlCard: React.FC<UrlCardProps> = ({
                 <div className="flex items-center gap-2 flex-wrap">
                   <IconButton
                     icon={<ArrowTopRightOnSquareIcon />}
+                    href={externalHref}
                     onClick={() => {
-                      // Fire-and-forget click analytics; open must not wait on fetch
-                      if (onUrlClick) {
-                        onUrlClick(url.id);
-                      }
-                      openExternalUrl(url.url);
+                      // Analytics must never delay the browser-owned new-tab navigation.
+                      onUrlClick?.(url.id);
                     }}
                     tooltip="Visit Site"
                     variant="primary"
@@ -770,15 +768,15 @@ export const UrlCard: React.FC<UrlCardProps> = ({
                         </p>
                       )}
                     </div>
-                    <Button
-                      type="button"
-                      onClick={() => {
-                        openExternalUrl(result.url.url);
-                      }}
-                      className="flex-shrink-0 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg whitespace-nowrap"
+                    <a
+                      href={ensureAbsoluteHttpUrl(result.url.url)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      referrerPolicy="no-referrer"
+                      className="flex-shrink-0 rounded-lg bg-blue-600 px-4 py-2 text-white whitespace-nowrap transition-colors hover:bg-blue-700"
                     >
                       Visit
-                    </Button>
+                    </a>
                   </div>
                 </div>
               ))}

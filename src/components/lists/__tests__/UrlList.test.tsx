@@ -1,5 +1,5 @@
 import React from "react";
-import { render, screen, act, fireEvent } from "@testing-library/react";
+import { render, screen, act, fireEvent, waitFor } from "@testing-library/react";
 import { UrlList } from "../UrlList";
 import { currentList } from "@/stores/urlListStore";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -32,8 +32,10 @@ function renderWithProviders(ui: React.ReactElement) {
 
 describe("UrlList Component", () => {
   beforeEach(() => {
+    global.fetch = jest.fn();
     currentList.set({
       id: "test-list",
+      slug: "test-list",
       urls: [
         {
           id: "1",
@@ -58,6 +60,41 @@ describe("UrlList Component", () => {
 
     expect(screen.getByText("Example 1")).toBeInTheDocument();
     expect(screen.getByText("Example 2")).toBeInTheDocument();
+  });
+
+  it("uses native safe new-tab links for URL visits", () => {
+    renderWithProviders(<UrlList />);
+
+    const visitLinks = screen.getAllByRole("link", { name: "Visit Site" });
+    expect(visitLinks[0]).toHaveAttribute("href", "https://example.com/1");
+    expect(visitLinks[0]).toHaveAttribute("target", "_blank");
+    expect(visitLinks[0]).toHaveAttribute("rel", "noopener noreferrer");
+  });
+
+  it("rolls back an unconfirmed URL-click optimistic update", async () => {
+    let resolveRequest: (value: Response) => void = () => {};
+    (global.fetch as jest.Mock).mockReturnValue(
+      new Promise<Response>((resolve) => {
+        resolveRequest = resolve;
+      }),
+    );
+
+    renderWithProviders(<UrlList />);
+
+    fireEvent.click(screen.getAllByRole("link", { name: "Visit Site" })[0]);
+
+    expect((currentList.get().urls?.[0] as { clickCount?: number }).clickCount).toBe(1);
+
+    await act(async () => {
+      resolveRequest({
+        ok: false,
+        json: async () => ({ error: "Tracking failed" }),
+      } as Response);
+    });
+
+    await waitFor(() => {
+      expect((currentList.get().urls?.[0] as { clickCount?: number }).clickCount).toBeUndefined();
+    });
   });
 
   it("handles real-time updates correctly", () => {

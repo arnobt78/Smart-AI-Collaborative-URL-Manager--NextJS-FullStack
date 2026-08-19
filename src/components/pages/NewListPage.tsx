@@ -1,7 +1,7 @@
 // REQ-0021: Cache-aware create-list form is rendered directly inside the shared dialog.
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ListPlus } from "lucide-react";
 import { Textarea } from "@/components/ui/Textarea";
@@ -16,10 +16,9 @@ import { UI_FORM_CONTROL } from "@/lib/ui/control-styles";
 
 interface NewListPageClientProps {
   onClose?: () => void;
-  onPendingChange?: (pending: boolean) => void;
 }
 
-export default function NewListPageClient({ onClose, onPendingChange }: NewListPageClientProps) {
+export default function NewListPageClient({ onClose }: NewListPageClientProps) {
   const router = useRouter();
   const { toast } = useToast();
   const createListMutation = useCreateList();
@@ -31,11 +30,6 @@ export default function NewListPageClient({ onClose, onPendingChange }: NewListP
     description: "",
     isPublic: false,
   });
-
-  useEffect(() => {
-    onPendingChange?.(createListMutation.isPending);
-    return () => onPendingChange?.(false);
-  }, [createListMutation.isPending, onPendingChange]);
 
   const close = () => {
     if (createListMutation.isPending) return;

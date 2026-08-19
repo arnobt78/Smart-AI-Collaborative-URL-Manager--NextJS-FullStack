@@ -80,8 +80,6 @@ export async function GET(req: NextRequest, context: RouteContext) {
 
           if (urlsMatch && cached.metadata) {
             // Cache is valid, return instantly
-            if (process.env.NODE_ENV === "development") {
-            }
             return NextResponse.json({
               urls: cached.urls,
               metadata: cached.metadata,
@@ -167,16 +165,12 @@ export async function GET(req: NextRequest, context: RouteContext) {
       }
     }
 
-    if (process.env.NODE_ENV === "development") {
-    }
     return NextResponse.json({
       urls,
       metadata: metadataMap,
       cached: false,
     });
   } catch (error) {
-    if (process.env.NODE_ENV === "development") {
-    }
     const message =
       error instanceof Error ? error.message : "Failed to fetch URLs";
     return NextResponse.json({ error: message }, { status: 500 });
@@ -270,8 +264,6 @@ export async function POST(req: NextRequest, context: RouteContext) {
             const cached = await redis.get<UrlMetadata>(urlCacheKey);
             if (cached) {
               finalMetadata = cached;
-              if (process.env.NODE_ENV === "development") {
-              }
             }
           } catch {
             // Ignore Redis errors
@@ -365,8 +357,6 @@ export async function POST(req: NextRequest, context: RouteContext) {
                     }
                   } catch (_error) {
                     // Silently fail - metadata is cached, that's the main thing
-                    if (process.env.NODE_ENV === "development") {
-                    }
                   }
                 }
               }
@@ -385,8 +375,6 @@ export async function POST(req: NextRequest, context: RouteContext) {
         };
       }
     } else {
-      if (process.env.NODE_ENV === "development") {
-      }
 
       // CRITICAL: Cache provided metadata in Redis for unified endpoint
       // This ensures metadata is available for the batch metadata endpoint
@@ -407,8 +395,6 @@ export async function POST(req: NextRequest, context: RouteContext) {
           }
         } catch (_error) {
           // Ignore Redis errors (non-critical)
-          if (process.env.NODE_ENV === "development") {
-          }
         }
       }
     }
@@ -482,8 +468,6 @@ export async function POST(req: NextRequest, context: RouteContext) {
       });
     }
 
-    if (process.env.NODE_ENV === "development") {
-    }
     // Return unified response
     return NextResponse.json({
       success: true,
@@ -502,8 +486,6 @@ export async function POST(req: NextRequest, context: RouteContext) {
       },
     });
   } catch (error) {
-    if (process.env.NODE_ENV === "development") {
-    }
     const message =
       error instanceof Error ? error.message : "Failed to add URL";
     return NextResponse.json({ error: message }, { status: 500 });
@@ -562,8 +544,6 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
     // Log what we received from client
     if (reorderedUrls && Array.isArray(reorderedUrls)) {
       const _receivedOrder = reorderedUrls.map((u: UrlItem) => u.id).join(",");
-      if (process.env.NODE_ENV === "development") {
-      }
     }
 
     // Support both single URL update and bulk reorder
@@ -680,8 +660,6 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
         // Priority 1: Use provided metadata from client (from prefetch cache)
         if (providedMetadata) {
           urlMetadata = providedMetadata;
-          if (process.env.NODE_ENV === "development") {
-          }
 
           // Also cache it in Redis for future requests
           if (redis) {
@@ -700,8 +678,6 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
               const cached = await redis.get<UrlMetadata>(urlCacheKey);
               if (cached) {
                 urlMetadata = cached;
-                if (process.env.NODE_ENV === "development") {
-                }
               }
             } catch {
               // Ignore Redis errors
@@ -875,8 +851,6 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
     if (isReorderOperation) {
       const _savedOrder =
         (updated.urls as unknown as UrlItem[])?.map((u: UrlItem) => u.id) || [];
-      if (process.env.NODE_ENV === "development") {
-      }
       // Return unified response for reorder
       return NextResponse.json({
         success: true,
@@ -893,8 +867,6 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
         },
       });
     } else {
-      if (process.env.NODE_ENV === "development") {
-      }
       // Return unified response for single URL update
       return NextResponse.json({
         success: true,
@@ -914,8 +886,6 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
       });
     }
   } catch (error) {
-    if (process.env.NODE_ENV === "development") {
-    }
     const message =
       error instanceof Error ? error.message : "Failed to update URL";
     return NextResponse.json({ error: message }, { status: 500 });
@@ -1044,8 +1014,6 @@ export async function DELETE(req: NextRequest, context: RouteContext) {
       });
     }
 
-    if (process.env.NODE_ENV === "development") {
-    }
     // Return unified response with user info in activity to avoid client-side session fetch
     return NextResponse.json({
       success: true,
@@ -1073,8 +1041,6 @@ export async function DELETE(req: NextRequest, context: RouteContext) {
       },
     });
   } catch (error) {
-    if (process.env.NODE_ENV === "development") {
-    }
     const message =
       error instanceof Error ? error.message : "Failed to delete URL";
     return NextResponse.json({ error: message }, { status: 500 });

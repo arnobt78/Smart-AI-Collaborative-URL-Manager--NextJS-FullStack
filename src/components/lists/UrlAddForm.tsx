@@ -211,7 +211,6 @@ export function UrlAddForm({
       onOpenChange={(open) => !open && onCancel()}
       title="Add URL"
       description="Save a URL, tags, and an optional note to this collection."
-      pending={isLoading}
     >
       <form
         onSubmit={handleSubmit}

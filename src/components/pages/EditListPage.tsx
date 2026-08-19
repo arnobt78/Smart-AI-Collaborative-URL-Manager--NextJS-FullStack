@@ -1,7 +1,7 @@
 // REQ-0021: Cache-seeded editor avoids loading/remount chrome when a dialog opens.
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Save } from "lucide-react";
 import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
@@ -15,21 +15,15 @@ import { FORM_STACK } from "@/lib/ui-spacing";
 interface EditListPageClientProps {
   list: EditableList;
   onClose: () => void;
-  onPendingChange?: (pending: boolean) => void;
 }
 
-export default function EditListPageClient({ list, onClose, onPendingChange }: EditListPageClientProps) {
+export default function EditListPageClient({ list, onClose }: EditListPageClientProps) {
   const { toast } = useToast();
   const updateListMutation = useUpdateList();
   const [title, setTitle] = useState(list.title ?? "");
   const [description, setDescription] = useState(list.description ?? "");
   const [isPublic, setIsPublic] = useState(list.isPublic ?? false);
   const [error, setError] = useState("");
-
-  useEffect(() => {
-    onPendingChange?.(updateListMutation.isPending);
-    return () => onPendingChange?.(false);
-  }, [onPendingChange, updateListMutation.isPending]);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();

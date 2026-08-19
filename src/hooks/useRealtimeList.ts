@@ -332,15 +332,6 @@ export function useRealtimeList(listId: string | null) {
           return; // Don't log errors or reconnect during page navigation
         }
 
-        // Check if this is a connection interruption (common in Firefox during page load)
-        const isConnectionInterrupted = 
-          eventSource.readyState === EventSource.CLOSED || 
-          eventSource.readyState === EventSource.CONNECTING;
-
-        // Only log error if not a simple connection interruption during page load
-        if (!isConnectionInterrupted || process.env.NODE_ENV === "development") {
-        }
-
         setIsConnected(false);
         isConnectingRef.current = false;
         

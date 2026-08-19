@@ -361,8 +361,6 @@ export function UrlList() {
     if (typeof window !== "undefined") {
       const skipFlag = sessionStorage.getItem("skipMetadataAfterBulkImport");
       if (skipFlag === "true") {
-        if (process.env.NODE_ENV === "development") {
-        }
         // Keep flag set for entire session - don't clear it
         return;
       }
@@ -701,6 +699,7 @@ export function UrlList() {
             }
           }
         } catch {
+          // A stale drag-order cache must never block authoritative SSE reconciliation.
         }
       }
 
@@ -798,8 +797,6 @@ export function UrlList() {
           typeof window !== "undefined" &&
           window.__bulkImportActive
         ) {
-          if (process.env.NODE_ENV === "development") {
-          }
           return;
         }
 
@@ -821,9 +818,6 @@ export function UrlList() {
             typeof window !== "undefined" &&
             window.__bulkImportActive
           ) {
-            if (process.env.NODE_ENV === "development") {
-              // Skipping queued getList - bulk import in progress
-            }
             return;
           }
           // CRITICAL: Check drag end time here too - queued refreshes must respect drag protection
@@ -989,6 +983,9 @@ export function UrlList() {
     }
 
     const oldClickCount = urlToUpdate.clickCount || 0;
+    const previousUnified = current.slug
+      ? queryClient.getQueryData<{ list?: typeof current }>(listQueryKeys.unified(current.slug))
+      : undefined;
 
     // Update click count optimistically FIRST - immediate UI feedback
     const newClickCount = oldClickCount + 1;
@@ -1016,8 +1013,6 @@ export function UrlList() {
 
       if (response.ok) {
         const data = await response.json();
-        if (process.env.NODE_ENV === "development") {
-        }
 
         // Update with server response to ensure accuracy
         if (data.list) {
@@ -1055,15 +1050,25 @@ export function UrlList() {
           flushSync(() => {
             currentList.set(updatedListData);
           });
+          if (current.slug) {
+            queryClient.setQueryData(
+              listQueryKeys.unified(current.slug),
+              (cached: typeof previousUnified) =>
+                cached?.list ? { ...cached, list: updatedListData } : cached,
+            );
+          }
+        }
+        if (current.slug) {
+          invalidateMutationImpact(queryClient, "analytics", current.slug, current.id);
         }
       } else {
-        // If server call failed, keep optimistic update
         await response.json().catch(() => ({}));
-        // Keep optimistic update even if server call fails - better UX
+        currentList.set(current);
+        if (current.slug) queryClient.setQueryData(listQueryKeys.unified(current.slug), previousUnified);
       }
     } catch {
-      // Network error or other issue - keep optimistic update
-      // Keep optimistic update for better UX even if network fails
+      currentList.set(current);
+      if (current.slug) queryClient.setQueryData(listQueryKeys.unified(current.slug), previousUnified);
     }
   };
 
@@ -1230,34 +1235,11 @@ export function UrlList() {
 
     // Toggle favorite status optimistically
     const updatedUrl = { ...urlToToggle, isFavorite: !urlToToggle.isFavorite };
-    const updatedUrls = currentUrls.map((u) => (u.id === id ? updatedUrl : u));
-
-    // Update store immediately
-    flushSync(() => {
-      currentList.set({ ...current, urls: updatedUrls });
-    });
-
-    // Note: Activity feed will update via activity-added event from updateUrlInList
-    // No need to dispatch activity-updated here - that would trigger redundant fetch
-
     try {
-      // Use updateUrlInList which will sync with server
+      // The store owns the snapshot and synchronous optimistic commit.
       await updateUrlInList(id, { isFavorite: updatedUrl.isFavorite });
-
-      // CRITICAL: Invalidate unified query to trigger updates?activityLimit=30 refetch
-      // Store function already dispatches activity-added event, but we need to invalidate cache
-      if (current.slug) {
-        queryClient.invalidateQueries({
-          queryKey: listQueryKeys.unified(current.slug),
-        });
-      }
     } catch {
-      // Revert on error - use React Query invalidation to trigger unified endpoint refetch
-      if (current.slug) {
-        queryClient.invalidateQueries({
-          queryKey: listQueryKeys.unified(current.slug),
-        });
-      }
+      // updateUrlInList restores its own snapshot on failure.
     } finally {
       setTimeout(() => {
         isLocalOperationRef.current = false;
@@ -1311,14 +1293,6 @@ export function UrlList() {
         true, // isDuplicate flag - creates url_duplicated activity instead of url_added
       );
 
-      // CRITICAL: Invalidate unified query to trigger updates?activityLimit=30 refetch
-      // Store function already dispatches activity-added event, but we need to invalidate cache
-      if (current.slug) {
-        queryClient.invalidateQueries({
-          queryKey: listQueryKeys.unified(current.slug),
-        });
-      }
-
       // Show success toast
       toast({
         title: "URL Duplicated",
@@ -1326,12 +1300,6 @@ export function UrlList() {
         variant: "success",
       });
     } catch (err) {
-      // Revert on error - use React Query invalidation to trigger unified endpoint refetch
-      if (current.slug) {
-        queryClient.invalidateQueries({
-          queryKey: listQueryKeys.unified(current.slug),
-        });
-      }
       // Show error toast
       toast({
         title: "Duplicate Failed",
@@ -1366,14 +1334,6 @@ export function UrlList() {
       const { archiveUrlFromList } = await import("@/stores/urlListStore");
       await archiveUrlFromList(id);
 
-      // CRITICAL: Invalidate unified query to trigger updates?activityLimit=30 refetch
-      // Store function already dispatches activity-added event, but we need to invalidate cache
-      if (current.slug) {
-        queryClient.invalidateQueries({
-          queryKey: listQueryKeys.unified(current.slug),
-        });
-      }
-
       // Show success toast
       toast({
         title: "URL Archived",
@@ -1381,12 +1341,6 @@ export function UrlList() {
         variant: "success",
       });
     } catch (err) {
-      // Revert on error - use React Query invalidation to trigger unified endpoint refetch
-      if (current?.slug) {
-        queryClient.invalidateQueries({
-          queryKey: listQueryKeys.unified(current.slug),
-        });
-      }
       // Show error toast
       toast({
         title: "Archive Failed",
@@ -1420,35 +1374,11 @@ export function UrlList() {
     const updatedUrl = { ...urlToPin, isPinned: !isCurrentlyPinned };
 
     // Update the URL in the list
-    const currentUrls = current.urls as unknown as UrlItem[];
-    const updatedUrls = currentUrls.map((u) => (u.id === id ? updatedUrl : u));
-
-    // Optimistic update - update store immediately
-    flushSync(() => {
-      currentList.set({ ...current, urls: updatedUrls });
-    });
-
-    // Note: Activity feed will update via activity-added event from updateUrlInList
-    // No need to dispatch activity-updated here - that would trigger redundant fetch
-
     try {
-      // Use unified PATCH endpoint which handles pin/unpin and returns activity data
+      // The store owns the snapshot and synchronous optimistic commit.
       await updateUrlInList(id, { isPinned: updatedUrl.isPinned });
-
-      // CRITICAL: Invalidate unified query to trigger updates?activityLimit=30 refetch
-      // Store function already dispatches activity-added event, but we need to invalidate cache
-      if (current.slug) {
-        queryClient.invalidateQueries({
-          queryKey: listQueryKeys.unified(current.slug),
-        });
-      }
     } catch {
-      // Revert on error - use React Query invalidation to trigger unified endpoint refetch
-      if (current.slug) {
-        queryClient.invalidateQueries({
-          queryKey: listQueryKeys.unified(current.slug),
-        });
-      }
+      // updateUrlInList restores its own snapshot on failure.
     } finally {
       setTimeout(() => {
         isLocalOperationRef.current = false;
@@ -1587,8 +1517,6 @@ export function UrlList() {
       // CRITICAL: Always use the preserved order from ref, not from store after API response
 
       try {
-        if (process.env.NODE_ENV === "development") {
-        }
         const response = await fetch(`/api/lists/${current.id}/urls`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
@@ -1687,9 +1615,8 @@ export function UrlList() {
           }, 60000); // Keep for 60 seconds to survive Fast Refresh cycles
         }
       } catch (_err) {
-        if (process.env.NODE_ENV === "development") {
-        }
-        // Revert on error - fetch the current list
+        // Restore the initiating order synchronously; the impact gateway reconciles once.
+        currentList.set(current);
         finalDragOrderRef.current = null; // Clear ref on error
         // Clear localStorage on error (using localStorage instead of sessionStorage)
         if (current.id && typeof window !== "undefined") {
@@ -1699,12 +1626,8 @@ export function UrlList() {
             // Ignore localStorage errors
           }
         }
-        const currentSlug = currentList.get().slug;
-        if (currentSlug) {
-          // Use React Query invalidation instead of getList() - triggers unified endpoint refetch
-          queryClient.invalidateQueries({
-            queryKey: listQueryKeys.unified(currentSlug),
-          });
+        if (current.slug && current.id) {
+          invalidateMutationImpact(queryClient, "url", current.slug, current.id);
         }
       } finally {
         // Clear flags IMMEDIATELY after API call completes
@@ -1794,8 +1717,6 @@ export function UrlList() {
       // The ref ensures urlsToUse memo uses preserved order during drag
       // The store ensures the final order is persisted after drag completes
 
-      if (process.env.NODE_ENV === "development") {
-      }
 
       // Use unified PATCH endpoint for reorder (same pattern as other URL actions)
       // CRITICAL: Always use the preserved order from ref, not from store after API response
@@ -1803,8 +1724,6 @@ export function UrlList() {
       // CRITICAL: Log what we're sending to the API
       const urlsToSend = finalDragOrderRef.current;
       try {
-        if (process.env.NODE_ENV === "development") {
-        }
         const response = await fetch(`/api/lists/${current.id}/urls`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
@@ -1815,8 +1734,6 @@ export function UrlList() {
         });
         if (response.ok) {
           const { list, activity: activityData } = await response.json();
-          if (process.env.NODE_ENV === "development") {
-          }
 
           // CRITICAL: Always use the preserved order from ref (survives re-renders)
           // Get the preserved order BEFORE checking anything else
@@ -1858,9 +1775,6 @@ export function UrlList() {
           // NOTE: The order is now preserved in both store AND ref
           // The ref ensures urlsToUse memo uses preserved order during drag
           // The store ensures the final order is persisted after drag completes
-
-          if (process.env.NODE_ENV === "development") {
-          }
 
           // Dispatch activity-added event for optimistic feed update (no redundant fetch)
           if (activityData) {
@@ -1917,9 +1831,8 @@ export function UrlList() {
           }, 60000); // Keep for 60 seconds to survive Fast Refresh cycles
         }
       } catch (_err) {
-        if (process.env.NODE_ENV === "development") {
-        }
-        // Revert on error - fetch the current list
+        // Restore the initiating order synchronously; the impact gateway reconciles once.
+        currentList.set(current);
         finalDragOrderRef.current = null; // Clear ref on error
         // Clear localStorage on error (using localStorage instead of sessionStorage)
         if (current.id && typeof window !== "undefined") {
@@ -1929,12 +1842,8 @@ export function UrlList() {
             // Ignore localStorage errors
           }
         }
-        const currentSlug = currentList.get().slug;
-        if (currentSlug) {
-          // Use React Query invalidation instead of getList() - triggers unified endpoint refetch
-          queryClient.invalidateQueries({
-            queryKey: listQueryKeys.unified(currentSlug),
-          });
+        if (current.slug && current.id) {
+          invalidateMutationImpact(queryClient, "url", current.slug, current.id);
         }
       } finally {
         // Clear flags IMMEDIATELY after API call completes
@@ -2409,14 +2318,6 @@ export function UrlList() {
       const { restoreArchivedUrl } = await import("@/stores/urlListStore");
       await restoreArchivedUrl(urlId);
 
-      // CRITICAL: Invalidate unified query to trigger updates?activityLimit=30 refetch
-      // Store function already dispatches activity-added event, but we need to invalidate cache
-      if (current?.slug) {
-        queryClient.invalidateQueries({
-          queryKey: listQueryKeys.unified(current.slug),
-        });
-      }
-
       // Show success toast
       toast({
         title: "URL Restored",
@@ -2424,12 +2325,6 @@ export function UrlList() {
         variant: "success",
       });
     } catch (err) {
-      // Revert on error - use React Query invalidation to trigger unified endpoint refetch
-      if (current?.slug) {
-        queryClient.invalidateQueries({
-          queryKey: listQueryKeys.unified(current.slug),
-        });
-      }
       // Show error toast
       toast({
         title: "Restore Failed",
@@ -2693,14 +2588,7 @@ export function UrlList() {
 
                       // Perform delete (it does optimistic update internally)
                       removeUrlFromList(urlId)
-                        .catch(() => {
-                          // Revert on error - use React Query invalidation to trigger unified endpoint refetch
-                          if (current?.slug) {
-                            queryClient.invalidateQueries({
-                              queryKey: listQueryKeys.unified(current.slug),
-                            });
-                          }
-                        })
+                        .catch(() => undefined)
                         .finally(() => {
                           // Clear flag after operation completes
                           setTimeout(() => {

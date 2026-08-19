@@ -150,8 +150,6 @@ export async function fetchUrlMetadata(
 
       // If aborted due to timeout, it's expected - just return empty
       if (fetchError instanceof Error && fetchError.name === "AbortError") {
-        if (process.env.NODE_ENV === "development") {
-        }
         return {};
       }
       throw fetchError;

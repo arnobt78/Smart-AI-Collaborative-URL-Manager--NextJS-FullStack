@@ -160,3 +160,9 @@ RSC shells · densify/Zod/SHA/Next16
 
 1. Run strict typecheck, lint, Jest, production build, dependency audit, direct-console scan, and diff hygiene.
 2. Record automated evidence; retain C1/C2 browser acceptance and Gate 2 as pending until actual browser evidence exists.
+
+### TASK-0031 — C4 mutation reconciliation — DONE
+
+1. Route remaining collection, archive/restore, reorder, metadata, health, click-analytics, and duplicate-delete flows through the typed impact contract; keep non-rendered vector indexing isolated.
+2. Remove caller-level duplicate invalidations and preserve exact initiating snapshots for rollback.
+3. Add focused rollback/impact coverage and record strict type, lint, Jest, build, and diff evidence.

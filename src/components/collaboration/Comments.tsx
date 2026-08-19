@@ -5,13 +5,13 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useParams } from "next/navigation";
 import { useStore } from "@nanostores/react";
 import { currentList } from "@/stores/urlListStore";
-import { listQueryKeys } from "@/hooks/useListQueries";
 import { Button } from "@/components/ui/Button";
 import { CancelButton } from "@/components/ui/ActionButtons";
 import { Textarea } from "@/components/ui/Textarea";
 import { useToast } from "@/components/ui/Toaster";
 import { AlertDialog } from "@/components/ui/AlertDialog";
 import { Trash2, Edit2, Check } from "lucide-react";
+import { invalidateMutationImpact } from "@/utils/queryInvalidation";
 
 interface Comment {
   id: string;
@@ -36,6 +36,7 @@ export function Comments({ listId, urlId, currentUserId }: CommentsProps) {
   const [editContent, setEditContent] = useState("");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [commentToDelete, setCommentToDelete] = useState<string | null>(null);
+  const [showColdLoading, setShowColdLoading] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const params = useParams();
@@ -89,6 +90,17 @@ export function Comments({ listId, urlId, currentUserId }: CommentsProps) {
   });
 
   const comments = commentsData?.comments || [];
+
+  // Cached comments stay visible; an uncached dialog only shows feedback when
+  // the request is genuinely slow, preventing an opening-state spinner flash.
+  useEffect(() => {
+    if (!isLoading || commentsData) {
+      setShowColdLoading(false);
+      return;
+    }
+    const timeout = setTimeout(() => setShowColdLoading(true), 200);
+    return () => clearTimeout(timeout);
+  }, [commentsData, isLoading]);
 
   // Listen for real-time comment updates (from other clients)
   useEffect(() => {
@@ -180,11 +192,7 @@ export function Comments({ listId, urlId, currentUserId }: CommentsProps) {
       // This ensures activity feed gets complete updated list (matches edit/delete behavior)
       // Same pattern as URL add/edit/delete mutations for consistency
       const currentSlug = slug || list?.slug;
-      if (currentSlug) {
-        queryClient.invalidateQueries({
-          queryKey: listQueryKeys.unified(currentSlug),
-        });
-      }
+      if (currentSlug) invalidateMutationImpact(queryClient, "comment", currentSlug, listId);
     },
     onError: (error, _variables, context) => {
       // Rollback optimistic update
@@ -297,11 +305,7 @@ export function Comments({ listId, urlId, currentUserId }: CommentsProps) {
       // CRITICAL: Invalidate unified query to trigger updates?activityLimit=30 refetch
       // This ensures activity feed gets complete updated list
       const currentSlug = slug || list?.slug;
-      if (currentSlug) {
-        queryClient.invalidateQueries({
-          queryKey: listQueryKeys.unified(currentSlug),
-        });
-      }
+      if (currentSlug) invalidateMutationImpact(queryClient, "comment", currentSlug, listId);
     },
     onError: (error, _variables, context) => {
       // Rollback optimistic update
@@ -384,11 +388,7 @@ export function Comments({ listId, urlId, currentUserId }: CommentsProps) {
       // CRITICAL: Invalidate unified query to trigger updates?activityLimit=30 refetch
       // This ensures activity feed gets complete updated list
       const currentSlug = slug || list?.slug;
-      if (currentSlug) {
-        queryClient.invalidateQueries({
-          queryKey: listQueryKeys.unified(currentSlug),
-        });
-      }
+      if (currentSlug) invalidateMutationImpact(queryClient, "comment", currentSlug, listId);
 
       // Note: We don't dispatch "comment-updated" here because:
       // 1. We've already updated the cache optimistically
@@ -468,11 +468,11 @@ export function Comments({ listId, urlId, currentUserId }: CommentsProps) {
 
       {/* Comments List */}
       <div className="space-y-2 sm:space-y-2 max-h-[400px] overflow-y-auto custom-scrollbar">
-        {isLoading && !commentsData ? (
+        {showColdLoading ? (
           <div className="text-xs sm:text-sm text-white/50 text-center py-3 sm:py-4">
             Loading comments...
           </div>
-        ) : comments.length === 0 ? (
+        ) : isLoading && !commentsData ? null : comments.length === 0 ? (
           <div className="text-xs sm:text-sm text-white/50 text-center py-3 sm:py-4">
             No comments yet. Be the first to comment!
           </div>

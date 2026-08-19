@@ -1,4 +1,10 @@
-import { currentList, removeUrlFromList, type UrlList } from "@/stores/urlListStore";
+import {
+  archiveUrlFromList,
+  currentList,
+  removeUrlFromList,
+  restoreArchivedUrl,
+  type UrlList,
+} from "@/stores/urlListStore";
 
 const list: UrlList = {
   id: "list-1",
@@ -38,5 +44,27 @@ describe("REQ-0023 URL mutation cache safety", () => {
     await expect(removeUrlFromList("url-1")).rejects.toThrow("Failed to remove URL");
 
     expect(currentList.get()).toEqual(list);
+  });
+
+  it("restores the exact active and archived URL snapshot after archive failure", async () => {
+    (global.fetch as jest.Mock).mockResolvedValue({ ok: false } as Response);
+
+    await expect(archiveUrlFromList("url-1")).rejects.toThrow("Failed to archive URL");
+
+    expect(currentList.get()).toEqual(list);
+  });
+
+  it("restores the exact active and archived URL snapshot after restore failure", async () => {
+    const archivedList: UrlList = {
+      ...list,
+      urls: [],
+      archivedUrls: [{ ...list.urls[0], archivedAt: "2026-08-19T00:00:00.000Z" } as NonNullable<UrlList["archivedUrls"]>[number]],
+    };
+    currentList.set(archivedList);
+    (global.fetch as jest.Mock).mockResolvedValue({ ok: false } as Response);
+
+    await restoreArchivedUrl("url-1");
+
+    expect(currentList.get()).toEqual(archivedList);
   });
 });

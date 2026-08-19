@@ -166,7 +166,6 @@ export function UrlEditModal({
       title="Edit URL"
       description="Update this saved URL and its organization details."
       size="form"
-      pending={isEditing}
     >
       <form
         onSubmit={(e) => {

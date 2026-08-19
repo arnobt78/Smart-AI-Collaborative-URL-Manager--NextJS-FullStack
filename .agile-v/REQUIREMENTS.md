@@ -508,3 +508,21 @@ These describe the current product as verified in code. They are **Accepted as b
 **Affected:** `src/lib/auth.ts`, shared server validation utilities, mutating route handlers, mutation/query helpers and focused tests.
 **Trace:** CR-0002, TASK-0027 through TASK-0030, DEC-0027, GATE-0016.
 **Status:** Completed and locally validated [C3] on 2026-08-19.
+
+---
+
+### REQ-0026 — C4 mutation reconciliation and cache-first refresh (approved 2026-08-19)
+
+**Priority:** P1
+**Type:** UX stability / cache consistency
+**Statement:** Remaining collection, URL archive/reorder/metadata, and list action mutations MUST commit the initiating cache/store state immediately, restore only their initiating snapshot on failure, and reconcile affected cache families once without duplicate requests or page refreshes.
+
+**Acceptance:**
+
+- [x] Collection creation and duplicate deletion optimistically patch the source list and local result cache, then roll back their own snapshots on failure.
+- [x] Archive, restore, reorder, favorite, and pin mutations are store-owned transactions with exact rollback and one typed impact invalidation.
+- [x] Metadata, health, and click-analytics actions use typed scoped impacts; vector indexing remains explicitly non-rendered; collection refresh commits its single refreshed response without a second cache-clear fetch.
+- [x] Focused rollback/impact tests plus TypeScript, zero-warning lint, Jest, production build, and diff checks pass.
+
+**Trace:** CR-0004, TASK-0031, DEC-0028.
+**Status:** Completed and locally validated [C4] on 2026-08-19.

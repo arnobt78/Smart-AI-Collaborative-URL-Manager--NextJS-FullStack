@@ -25,7 +25,9 @@ export type MutationImpact =
   | "collaborator"
   | "comment"
   | "collection"
-  | "metadata";
+  | "metadata"
+  | "action"
+  | "analytics";
 
 export function invalidateMutationImpact(
   queryClient: QueryClient,
@@ -38,7 +40,13 @@ export function invalidateMutationImpact(
       invalidateCollaboratorQueries(queryClient, listSlug);
       return;
     case "metadata":
-      invalidateListMetadataQueries(queryClient, listId);
+      invalidateUrlQueries(queryClient, listSlug, listId, true);
+      return;
+    case "action":
+      invalidateActionQueries(queryClient, listSlug);
+      return;
+    case "analytics":
+      invalidateAnalyticsQueries(queryClient, listSlug);
       return;
     case "list":
     case "visibility":
@@ -47,11 +55,40 @@ export function invalidateMutationImpact(
     case "url":
     case "archive":
     case "import":
+      invalidateUrlQueries(queryClient, listSlug, listId, true);
+      return;
     case "collection":
+      invalidateCollectionMutationQueries(queryClient, listSlug, listId);
+      return;
     case "comment":
       invalidateUrlQueries(queryClient, listSlug, listId, impact !== "comment");
       return;
   }
+}
+
+/** REQ-0025: Actions change list-visible state without reloading unrelated data. */
+function invalidateActionQueries(queryClient: QueryClient, listSlug: string): void {
+  queryClient.invalidateQueries({ queryKey: listQueryKeys.unified(listSlug) });
+  queryClient.invalidateQueries({ queryKey: listQueryKeys.allLists() });
+}
+
+/** REQ-0026: Clicks affect the list card and cached business insight KPIs. */
+function invalidateAnalyticsQueries(queryClient: QueryClient, listSlug: string): void {
+  invalidateActionQueries(queryClient, listSlug);
+  queryClient.invalidateQueries({
+    predicate: (query) => Array.isArray(query.queryKey) && query.queryKey[0] === "business-insights",
+  });
+}
+
+/** REQ-0025: Collection creation changes suggestions and activity, not URL metadata. */
+function invalidateCollectionMutationQueries(
+  queryClient: QueryClient,
+  listSlug: string,
+  listId: string,
+): void {
+  invalidateActionQueries(queryClient, listSlug);
+  queryClient.invalidateQueries({ queryKey: listQueryKeys.collections(listId) });
+  queryClient.invalidateQueries({ queryKey: listQueryKeys.duplicates(listId) });
 }
 
 /**

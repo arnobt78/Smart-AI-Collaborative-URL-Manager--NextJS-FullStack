@@ -373,3 +373,16 @@ Append-only. Newest entries at bottom.
 | Rationale | Central contracts prevent validation, session-storage, and cache-family behavior from diverging while retaining existing cookie-session, SSR, optimistic-update, and SSE behavior. |
 | Linked REQs | REQ-0025, REQ-BASE-001 |
 | Status | Implemented and locally validated. |
+
+---
+
+## DEC-0028 — Keep mutation ownership at the cache/store boundary
+
+| Field | Value |
+|---|---|
+| Timestamp | 2026-08-19 |
+| Agent | Agile V C4 implementation |
+| Decision | Let the store or typed mutation hook perform the optimistic commit, rollback, and single impact invalidation; UI callers only trigger it and present feedback. Keep vector indexing isolated because it has no rendered cache impact. |
+| Rationale | Caller-side optimistic patches and invalidations were duplicating requests and could snapshot already-mutated state. One owner preserves immediate UI while preventing stale cache flashes. |
+| Linked REQs | REQ-0026 |
+| Status | Implemented and locally validated. |

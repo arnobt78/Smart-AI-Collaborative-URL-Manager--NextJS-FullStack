@@ -462,7 +462,9 @@ function patchUnifiedListCache(
   list: UrlList & UserList,
 ): void {
   queryClient.setQueryData<UnifiedListData>(listQueryKeys.unified(list.slug), (current) =>
-    current?.list ? { ...current, list: { ...current.list, ...list } } : current,
+    current
+      ? { ...current, list: current.list ? { ...current.list, ...list } : list }
+      : { list, activities: [], collaborators: [], commentCounts: {} },
   );
 
   const currentListValue = currentList.get();
@@ -560,6 +562,55 @@ export function useUpdateList() {
       if (context?.previousCurrent?.id === input.id) {
         currentList.set(context.previousCurrent);
       }
+    },
+  });
+}
+
+/**
+ * REQ-0025: Visibility changes commit to every visible list surface before
+ * the request resolves, then reconcile once through the shared impact map.
+ */
+export function useUpdateListVisibility() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, isPublic }: { id: string; slug: string; isPublic: boolean }): Promise<ListMutationResponse> => {
+      const response = await fetch(`/api/lists/${id}/visibility`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isPublic }),
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to update visibility");
+      }
+      return response.json();
+    },
+    onMutate: async ({ id, slug, isPublic }) => {
+      await Promise.all([
+        queryClient.cancelQueries({ queryKey: listQueryKeys.allLists() }),
+        queryClient.cancelQueries({ queryKey: listQueryKeys.unified(slug) }),
+      ]);
+      const previousLists = queryClient.getQueryData<{ lists: UserList[] }>(listQueryKeys.allLists());
+      const previousUnified = queryClient.getQueryData<UnifiedListData>(listQueryKeys.unified(slug));
+      const previousCurrent = currentList.get();
+      const optimistic = { id, slug, isPublic } as UrlList & UserList;
+      patchAllListsCache(queryClient, optimistic);
+      patchUnifiedListCache(queryClient, optimistic);
+      if (previousCurrent.id === id) {
+        currentList.set({ ...previousCurrent, isPublic });
+      }
+      return { previousLists, previousUnified, previousCurrent };
+    },
+    onSuccess: (data) => {
+      patchAllListsCache(queryClient, data.list);
+      patchUnifiedListCache(queryClient, data.list);
+      invalidateMutationImpact(queryClient, "visibility", data.list.slug, data.list.id);
+    },
+    onError: (_error, input, context) => {
+      if (context?.previousLists) queryClient.setQueryData(listQueryKeys.allLists(), context.previousLists);
+      if (context?.previousUnified) queryClient.setQueryData(listQueryKeys.unified(input.slug), context.previousUnified);
+      if (context?.previousCurrent.id === input.id) currentList.set(context.previousCurrent);
     },
   });
 }
@@ -924,8 +975,6 @@ export function setupSSECacheSync() {
       // Set global SSE connection time (use timestamp from event or current time)
       if (!globalSSEConnectedTime) {
         globalSSEConnectedTime = customEvent.detail?.timestamp || Date.now();
-        if (process.env.NODE_ENV === "development") {
-        }
       }
     };
 

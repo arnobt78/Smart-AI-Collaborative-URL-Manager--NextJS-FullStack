@@ -33,8 +33,6 @@ export default function ListsPageClient() {
   const searchParams = useSearchParams();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [listToDelete, setListToDelete] = useState<List | null>(null);
-  const [createDialogPending, setCreateDialogPending] = useState(false);
-  const [editDialogPending, setEditDialogPending] = useState(false);
   const createDialogOpen = searchParams.get("dialog") === "create";
   const editDialogSlug = searchParams.get("dialog") === "edit" ? searchParams.get("list") : null;
 
@@ -350,11 +348,9 @@ export default function ListsPageClient() {
         description="Organize your favorite URLs into beautiful, shareable collections."
         size="wide"
         headerMode="scroll"
-        pending={createDialogPending}
       >
         <NewListPageClient
           onClose={() => router.replace("/lists", { scroll: false })}
-          onPendingChange={setCreateDialogPending}
         />
       </Dialog>
       {editList ? (
@@ -365,13 +361,11 @@ export default function ListsPageClient() {
           description="Update your list details and settings."
           size="wide"
           headerMode="scroll"
-          pending={editDialogPending}
         >
           <EditListPageClient
             key={editList.id}
             list={editList}
             onClose={() => router.replace("/lists", { scroll: false })}
-            onPendingChange={setEditDialogPending}
           />
         </Dialog>
       ) : null}

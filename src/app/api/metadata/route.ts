@@ -146,8 +146,6 @@ export async function GET(request: Request) {
       // For rate limiting (429), return empty metadata instead of throwing
       // This allows import to continue with imported data
       if (response.status === 429) {
-        if (process.env.NODE_ENV === "development") {
-        }
         return NextResponse.json({
           title: new URL(url).hostname.replace(/^www\./, ""),
           description: null,

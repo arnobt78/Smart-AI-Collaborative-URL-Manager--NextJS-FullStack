@@ -414,7 +414,6 @@ export function PermissionManager({
         }}
         title="Add Collaborator"
         description="Invite someone to collaborate on this list. They’ll receive an email invitation."
-        pending={addCollaboratorMutation.isPending}
       >
         <div className="space-y-3">
           <div>
@@ -514,7 +513,6 @@ export function PermissionManager({
         }
         title="Change Collaborator Role"
         description={`Choose a role for ${roleChangeDialog.email}.`}
-        pending={updateRoleMutation.isPending}
       >
         <div className="space-y-4 sm:space-y-6">
           <div className="flex gap-3 sm:gap-4">

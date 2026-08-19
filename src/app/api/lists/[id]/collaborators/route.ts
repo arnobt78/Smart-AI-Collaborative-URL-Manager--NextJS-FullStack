@@ -174,12 +174,8 @@ export async function POST(
 
       if (result.success) {
         emailSent = true;
-        if (process.env.NODE_ENV === "development") {
-        }
       } else {
         emailError = result.error || "Failed to send email";
-        if (process.env.NODE_ENV === "development") {
-        }
       }
     } catch (emailErr: unknown) {
       emailError =

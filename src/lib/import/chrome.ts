@@ -24,8 +24,6 @@ export function parseChromeBookmarks(html: string): ImportResult {
     if (parserError) {
       const errorText = parserError.textContent || "Unknown parsing error";
       errors.push(`HTML parsing error: ${errorText}`);
-      if (process.env.NODE_ENV === "development") {
-      }
       return {
         items: [],
         source: "Chrome Bookmarks",
@@ -121,4 +119,3 @@ export function parseChromeBookmarks(html: string): ImportResult {
     errors: errors.length > 0 ? errors : undefined,
   };
 }
-
