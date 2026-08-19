@@ -184,3 +184,9 @@ RSC shells · densify/Zod/SHA/Next16
 1. Add the shared disclosure, server page-auth, and data-slot primitives; hydrate the remaining requested cold surface.
 2. Commit list-summary mutation state synchronously and align list-card controls/badges.
 3. Compact Insights KPI/tab layout, remove the duplicate activity tab, add focused regressions, validate, document, and commit.
+
+### TASK-0035 — C6.1 authenticated public discovery & hydration parity — DONE
+
+1. Require a persisted session for public discovery/detail/read APIs through canonical list access.
+2. Remove GET position persistence and share unified-response normalization across server/client hydration.
+3. Add access and hydration regressions; validate, document, and commit.

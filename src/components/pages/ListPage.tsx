@@ -167,15 +167,13 @@ export default function ListPageClient() {
       return;
     }
 
-    // Wait for query to complete before checking (public lists allow unauthenticated access)
-    // But show skeleton during this time to prevent flicker
+    // Wait for query completion before the client fallback redirect. Server page
+    // guards normally redirect first; this covers a revoked session in-flight.
     if (isLoadingQuery) {
       return;
     }
 
-    // Check if user is not authenticated and list query returned null (401 unauthorized)
-    // This indicates the user needs to log in to access the list
-    // Note: Public lists will return data even for unauthenticated users, so we only redirect on 401
+    // A missing session can never read a public or private list.
     if (
       !isAuthenticated &&
       !unifiedData?.list &&
@@ -202,7 +200,7 @@ export default function ListPageClient() {
       // Redirect to login page immediately (no delay to prevent flicker)
       router.push("/");
     } else {
-      // User is authenticated or list is available (including public lists for unauthenticated users)
+      // The authenticated session or loaded list remains available.
       hasCheckedAuthRef.current = true;
     }
   }, [

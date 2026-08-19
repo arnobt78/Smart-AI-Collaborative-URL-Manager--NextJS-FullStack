@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { browseQueryKeys } from "@/lib/browse-query-keys";
 import { listQueryKeys } from "@/lib/query-keys";
+import { normalizeUnifiedListResponse, type UnifiedListResponse } from "@/lib/unified-list-response";
 
 const INTERNAL_ORIGIN = "http://daily-urlist.internal";
 
@@ -26,9 +27,9 @@ export async function loadUnifiedList(slug: string) {
   const request = new NextRequest(
     `${INTERNAL_ORIGIN}/api/lists/${encodeURIComponent(slug)}/updates?activityLimit=30`,
   );
-  return readResponse<unknown>(
+  return normalizeUnifiedListResponse(await readResponse<UnifiedListResponse>(
     await GET(request, { params: Promise.resolve({ id: slug }) }),
-  );
+  ));
 }
 
 export async function loadPublicLists(page: number, search: string) {

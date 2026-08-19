@@ -247,6 +247,14 @@ Gate 2: BLOCKED — RISK-0016 is accepted; `EVAL_RESULTS.md` PASS/WAIVED evidenc
 | Full validation | `npx tsc --noEmit`; `npm run lint`; `npm test -- --runInBand`; `npm run build` | PASS | 68 passed, 5 skipped; strict TypeScript, zero-warning lint, and optimized production build pass. |
 | Hygiene | parser/direct-console scans; `git diff --check` | PASS | No direct mutating-route JSON parsing, no application console calls outside `dev-log`, and no whitespace errors. |
 
+## 2026-08-19 — REQ-0029 C6.1 authenticated public discovery & hydration parity
+
+| Scope | Command / evidence | Result | Notes |
+|---|---|---|---|
+| Access/hydration regression | list-route, public-read, public-discovery, view, unified-response tests | PASS | Anonymous reads reject before database access; authenticated public readers retain normalized list, comment, and collaborator data. |
+| Full validation | `npx tsc --noEmit`; `npm run lint`; `npm test -- --runInBand`; `npm run build` | PASS | 76 passed, 5 skipped; strict TypeScript, zero-warning lint, and optimized production build pass. |
+| Hygiene | parser/direct-console/secret scans; `git diff --check` | PASS | No direct mutating-route JSON parsing, application console calls, tracked secrets, or whitespace errors. |
+
 ## 2026-08-19 — REQ-0028 C6 stable data-surface & compact analytics polish
 
 | Scope | Command / evidence | Result | Notes |

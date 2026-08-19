@@ -2,6 +2,7 @@ import { HydrationBoundary } from "@tanstack/react-query";
 import BrowsePage from "@/components/pages/BrowsePage";
 import { createServerQueryClient, dehydrate } from "@/lib/server-query";
 import { loadPublicLists, serverQueryKeys } from "@/lib/server-data";
+import { requirePageUser } from "@/lib/page-auth";
 
 // Query parameters are owned by the client search form. Dynamic rendering avoids
 // a route-level Suspense fallback that used to remount the entire browse shell.
@@ -12,6 +13,7 @@ export default async function Browse({
 }: {
   searchParams: Promise<{ page?: string; search?: string }>;
 }) {
+  await requirePageUser();
   const params = await searchParams;
   const requestedPage = Number.parseInt(params.page || "1", 10);
   const page = Number.isFinite(requestedPage) && requestedPage > 0 ? requestedPage : 1;

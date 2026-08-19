@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { currentList, type UrlList, type UrlItem } from "@/stores/urlListStore";
+import { currentList, type UrlList } from "@/stores/urlListStore";
 import { queryClient } from "@/lib/react-query";
 import { useToast } from "@/components/ui/Toaster";
 import {
@@ -9,6 +9,10 @@ import {
 } from "@/utils/queryInvalidation";
 import { devLog, devWarn } from "@/lib/dev-log";
 import { listQueryKeys } from "@/lib/query-keys";
+import {
+  normalizeUnifiedListResponse,
+  type UnifiedListResponse,
+} from "@/lib/unified-list-response";
 
 export { listQueryKeys } from "@/lib/query-keys";
 
@@ -18,18 +22,7 @@ export { listQueryKeys } from "@/lib/query-keys";
 // ============================================
 // UNIFIED LIST QUERY (Initial Page Load)
 // ============================================
-interface UnifiedListData {
-  list: UrlList | null;
-  activities: Array<{
-    id: string;
-    action: string;
-    details: Record<string, unknown> | null;
-    createdAt: string;
-    user: { id: string; email: string };
-  }>;
-  collaborators?: Array<{ email: string; role: "editor" | "viewer" }>;
-  commentCounts?: Record<string, number>;
-}
+type UnifiedListData = UnifiedListResponse;
 
 export function useUnifiedListQuery(slug: string, enabled: boolean = true) {
   const queryClient = useQueryClient();
@@ -61,18 +54,8 @@ export function useUnifiedListQuery(slug: string, enabled: boolean = true) {
         }
         throw new Error(`Failed to fetch: ${response.status}`);
       }
-      const data = await response.json();
-
-      const commentCounts: Record<string, number> = data.commentCounts || {};
-      const list = data.list
-        ? {
-            ...data.list,
-            urls: data.list.urls.map((url: UrlItem) => ({
-              ...url,
-              commentCount: commentCounts[url.id] || 0,
-            })),
-          }
-        : null;
+      const data = normalizeUnifiedListResponse(await response.json() as UnifiedListData);
+      const { commentCounts, list } = data;
 
       // Update store immediately with the same complete data returned to callers.
       if (list) {

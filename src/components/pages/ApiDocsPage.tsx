@@ -205,7 +205,7 @@ const listEndpoints: ApiEndpoint[] = [
     method: "POST",
     path: "/api/lists/[id]/views",
     description: "Track a view for a public list",
-    auth: false,
+    auth: true,
     params: {
       id: "string (slug)",
     },
@@ -217,7 +217,7 @@ const listEndpoints: ApiEndpoint[] = [
     method: "GET",
     path: "/api/lists/public",
     description: "Browse public lists",
-    auth: false,
+    auth: true,
     params: {
       page: "number (optional, default: 1)",
       limit: "number (optional, default: 20)",
@@ -378,10 +378,8 @@ export default function ApiDocsPage() {
             Cookie: session_token
           </code>
           <p className="text-white/60 text-xs">
-            Note: Some endpoints like{" "}
-            <code className="text-blue-400">/api/lists/public</code> and{" "}
-            <code className="text-blue-400">/api/metadata</code> are publicly
-            accessible.
+            Note: <code className="text-blue-400">/api/metadata</code> is
+            publicly accessible; list discovery requires a session.
           </p>
         </CardContent>
       </Card>

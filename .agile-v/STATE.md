@@ -1,6 +1,6 @@
 # STATE.md
 
-**C6** | 2026-08-19
+**C6.1** | 2026-08-19
 
 ## Done
 
@@ -73,6 +73,7 @@
 - **C5 completion (2026-08-19):** REQ-0027 / TASK-0032 and TASK-0033 complete. Session authorization no longer uses a process-wide cache; server-prefetched query hydration covers Lists, list detail, Browse, and Insights; delete-list joins the typed impact contract; anonymous public detail/collaborator reads now match the shared viewer role. Jest (68 pass/5 skip), strict TypeScript, lint, production build, and hygiene scans pass.
 - **C6 scope (2026-08-19):** REQ-0028 / TASK-0034 is user-approved. Resume with server page guards/hydration, compact cold slots, synchronous list-summary updates, collapsible Activity Feed, and List/Insights layout polish.
 - **C6 completion (2026-08-19):** REQ-0028 / TASK-0034 complete. Protected data pages now render dynamically with persisted-session guards; requested data surfaces hydrate before client paint; list summaries receive completed URL mutation timestamps; Activity Feed is collapsed by default; Insights uses compact KPI cards and no duplicate activity tab. Jest (70 pass/5 skip), strict TypeScript, lint, production build, and hygiene scans pass.
+- **C6.1 completion (2026-08-19):** REQ-0029 / TASK-0035 supersedes the anonymous public-list viewer policy. Browse, shared detail, list discovery, collaborator reads, and view tracking require a persisted session; legacy position normalization is read-only; hydrated unified payloads retain URL comment counts and collaborator cache data. Jest (76 pass/5 skip), strict TypeScript, lint, production build, and hygiene scans pass.
 
 ## Next
 

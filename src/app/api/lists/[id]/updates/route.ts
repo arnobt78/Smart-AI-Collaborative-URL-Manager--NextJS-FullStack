@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getCurrentUser } from "@/lib/auth";
-import { getListBySlug, updateList, getCollaboratorsWithRoles, type UrlItem } from "@/lib/db";
+import { getCollaboratorsWithRoles, type UrlItem } from "@/lib/db";
 import { getActivitiesForList } from "@/lib/db/activities";
 import { getCommentCountsForUrls } from "@/lib/db/comments";
-import { hasListAccess } from "@/lib/collaboration/permissions";
+import { resolveAuthorizedList } from "@/lib/list-route-access";
 
 /**
  * GET /api/lists/[id]/updates
@@ -19,27 +18,16 @@ export async function GET(
     const { searchParams } = new URL(req.url);
     const activityLimit = parseInt(searchParams.get("activityLimit") || "30", 10);
 
-    const list = await getListBySlug(id);
-
-    if (!list) {
-      return NextResponse.json({ error: "List not found" }, { status: 404 });
+    const access = await resolveAuthorizedList(id, "view");
+    if (!access.ok) {
+      return NextResponse.json({ error: access.error }, { status: access.status });
     }
-
-    // Check if user has access to this list
-    const user = await getCurrentUser();
-    const hasAccess = await hasListAccess(list, user);
-
-    if (!hasAccess) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const { list, user } = access;
 
     // Initialize positions for URLs that don't have them (backward compatibility)
     const urls = (list.urls as unknown as UrlItem[]) || [];
-    let needsPositionInit = false;
-
     const urlsWithPositions: UrlItem[] = urls.map((url, idx) => {
       if (url.position === undefined) {
-        needsPositionInit = true;
         return { ...url, position: idx };
       }
       return url;
@@ -54,7 +42,8 @@ export async function GET(
     // Always update list.urls to the sorted version
     list.urls = urlsWithPositions as unknown as typeof list.urls;
 
-    // OPTIMIZATION: Run position initialization (if needed), activities, and collaborators queries in PARALLEL
+    // Read normalization must never persist data. Legacy URLs receive stable response
+    // positions here; authorized mutations persist positions through their own routes.
     // Determine if user can access collaborators first (synchronous check, no DB query)
     // CRITICAL: Email matching must be case-insensitive to handle email casing differences
     const userEmailLower = user?.email.toLowerCase();
@@ -73,13 +62,8 @@ export async function GET(
        list.collaborators.some((email) => email.toLowerCase() === userEmailLower)) || // Legacy check (case-insensitive)
       false;
 
-    // Run ALL queries in parallel (much faster than sequential)
-    // Position init is non-blocking - response returns immediately, position save happens in background
-    const [positionInitResult, activitiesResult, collaboratorsResult, commentCountsResult] = await Promise.allSettled([
-      // Position initialization (only if needed) - non-blocking
-      needsPositionInit && urlsWithPositions.length > 0
-        ? updateList(list.id, { urls: urlsWithPositions })
-        : Promise.resolve(null),
+    // Run all read dependencies in parallel.
+    const [activitiesResult, collaboratorsResult, commentCountsResult] = await Promise.allSettled([
       // Activities fetch
       getActivitiesForList(list.id, activityLimit),
       // Collaborators fetch (only if user has access)
@@ -88,9 +72,6 @@ export async function GET(
         : Promise.resolve([] as Array<{ email: string; role: "editor" | "viewer" }>),
       getCommentCountsForUrls(list.id, urlsWithPositions.map((url) => url.id)),
     ]);
-
-    // Position initialization is best-effort; the sorted response remains valid on failure.
-    void positionInitResult;
 
     const activities = activitiesResult.status === "fulfilled" ? activitiesResult.value : [];
     const collaborators: Array<{ email: string; role: "editor" | "viewer" }> = 

@@ -563,3 +563,20 @@ These describe the current product as verified in code. They are **Accepted as b
 
 **Trace:** TASK-0034, ART-0028.1, C6 checkpoint.
 **Status:** Completed and locally validated [C6] on 2026-08-19.
+
+---
+
+### REQ-0029 — C6.1 authenticated public discovery & hydration parity (approved 2026-08-19)
+
+**Priority:** P1
+**Type:** Security / data consistency
+
+**Acceptance criteria:**
+
+- [x] Browse and public shared-list pages require a persisted Daily Urlist session before rendering data.
+- [x] Public-list discovery, shared detail, collaborators, and view tracking reject anonymous requests before reads or writes.
+- [x] Legacy URL position normalization never writes from a GET request.
+- [x] Server-hydrated unified payloads retain comment counts and seed collaborator cache state identically to browser-fetched payloads.
+
+**Trace:** TASK-0035, ART-0029.1, C6.1 checkpoint.
+**Status:** Completed and locally validated [C6.1] on 2026-08-19.

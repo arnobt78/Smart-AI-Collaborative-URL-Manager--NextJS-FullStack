@@ -17,7 +17,8 @@ import {
 import { sendCollaboratorInviteEmail } from "@/lib/email";
 import { createActivity } from "@/lib/db/activities";
 import { publishMessage, CHANNELS } from "@/lib/realtime/redis";
-import { hasListAccess, requirePermission } from "@/lib/collaboration/permissions";
+import { requirePermission } from "@/lib/collaboration/permissions";
+import { resolveAuthorizedList } from "@/lib/list-route-access";
 
 export async function GET(
   req: NextRequest,
@@ -26,21 +27,11 @@ export async function GET(
   try {
     const { id } = await params;
 
-    // Check if user has access to view collaborators
-    // Allow viewing if: user is owner OR user is a collaborator (editor/viewer)
-    // Support both slug and ID
-    const list = await getListBySlugOrId(id);
-    if (!list) {
-      return NextResponse.json({ error: "List not found" }, { status: 404 });
+    const access = await resolveAuthorizedList(id, "view");
+    if (!access.ok) {
+      return NextResponse.json({ error: access.error }, { status: access.status });
     }
-
-    const user = await getCurrentUser();
-    if (!await hasListAccess(list, user)) {
-      return NextResponse.json(
-        { error: "You don't have permission to view collaborators" },
-        { status: 403 }
-      );
-    }
+    const { list } = access;
 
     const collaborators = await getCollaboratorsWithRoles(list.id);
     return NextResponse.json({ collaborators });

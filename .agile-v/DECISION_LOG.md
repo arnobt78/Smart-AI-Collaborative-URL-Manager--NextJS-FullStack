@@ -337,6 +337,17 @@ Append-only. Newest entries at bottom.
 
 ---
 
+| Field | Value |
+|---|---|
+| Timestamp | 2026-08-19 |
+| Agent | Agile V C6.1 implementation |
+| Decision | Public lists are visible to authenticated Daily Urlist accounts only; unified GET normalization is response-only and shared server/client payload normalization seeds hydrated collaborators. |
+| Rationale | Anonymous public reads could persist legacy URL positions, and direct server dehydration bypassed browser-only transforms. |
+| Linked REQs | REQ-0029 |
+| Status | Implemented and locally validated. |
+
+---
+
 ## DEC-0029 — Prefer persisted authorization and server-hydrated query keys
 
 | Field | Value |

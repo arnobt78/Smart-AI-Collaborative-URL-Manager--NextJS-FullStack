@@ -43,14 +43,15 @@ describe("REQ-0022 list route authorization", () => {
     await expect(resolveAuthorizedList(list.id, "delete")).resolves.toMatchObject({ ok: false, status: 403 });
   });
 
-  it("allows public viewing without a session but blocks private viewing", async () => {
-    jest.mocked(getCurrentUser).mockResolvedValue(null);
+  it("allows authenticated viewing of public lists but rejects anonymous reads before lookup", async () => {
+    jest.mocked(getCurrentUser).mockResolvedValue(viewer as never);
     jest.mocked(getListBySlugOrId).mockResolvedValue({ ...list, isPublic: true } as never);
 
-    await expect(resolveAuthorizedList(list.slug, "view")).resolves.toMatchObject({ ok: true, user: null, role: "viewer" });
+    await expect(resolveAuthorizedList(list.slug, "view")).resolves.toMatchObject({ ok: true, user: viewer, role: "viewer" });
 
-    jest.mocked(getListBySlugOrId).mockResolvedValue(list as never);
+    jest.mocked(getCurrentUser).mockResolvedValue(null);
     await expect(resolveAuthorizedList(list.slug, "view")).resolves.toMatchObject({ ok: false, status: 401 });
+    expect(getListBySlugOrId).toHaveBeenCalledTimes(1);
   });
 
   it("rejects an unrelated authenticated user before a protected mutation can run", async () => {

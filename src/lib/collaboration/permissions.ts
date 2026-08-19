@@ -28,7 +28,9 @@ export function getRoleForListUser(
   list: AccessibleList,
   user: SessionUser,
 ): UserRole {
-  if (!user) return list.isPublic ? "viewer" : "none";
+  // Public visibility is for authenticated Daily Urlist members, not anonymous
+  // internet access. Every list read therefore starts with a cookie session.
+  if (!user) return "none";
 
   if (list.userId === user.id) return "owner";
 

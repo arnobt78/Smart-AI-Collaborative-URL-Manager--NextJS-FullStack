@@ -22,10 +22,12 @@ export async function resolveAuthorizedList(
   identifier: string,
   permission: ListRoutePermission,
 ): Promise<ListRouteAccessResult> {
+  const user = await getCurrentUser();
+  if (!user) return { ok: false, status: 401, error: "Unauthorized" };
+
   const list = await getListBySlugOrId(identifier);
   if (!list) return { ok: false, status: 404, error: "List not found" };
 
-  const user = await getCurrentUser();
   const role = getRoleForListUser(list, user);
 
   if (permission === "view") {
@@ -33,7 +35,6 @@ export async function resolveAuthorizedList(
       return { ok: false, status: user ? 403 : 401, error: "Unauthorized" };
     }
   } else {
-    if (!user) return { ok: false, status: 401, error: "Unauthorized" };
     if (permission === "edit" && role !== "owner" && role !== "editor") {
       return { ok: false, status: 403, error: "Forbidden" };
     }

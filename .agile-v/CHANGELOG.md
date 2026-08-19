@@ -1,5 +1,14 @@
 # CHANGELOG.md
 
+## CR-0008 — C6.1 authenticated public discovery & hydration parity
+
+- **Cycle:** C6.1
+- **Affected requirement:** REQ-0029 (new)
+- **Change:** Require persisted sessions for public-list discovery/detail/read APIs, remove GET position persistence, and normalize unified hydration on server and client.
+- **Rationale:** Eliminate anonymous data access/writes and ensure hydrated list caches preserve comment and collaborator state.
+- **Impact:** List access/read routes, Browse/detail server pages, shared hydration response, regression tests, and C6.1 traceability; no schema, session-cookie, Redis, or SSE contract changes.
+- **Requested by / approval:** User explicitly requested implementation on 2026-08-19.
+
 ## CR-0001 — C2 Homepage hero mount stagger
 
 - **Cycle:** C2

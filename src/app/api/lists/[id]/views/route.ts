@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getListById, updateList } from "@/lib/db";
+import { updateList } from "@/lib/db";
 import { listRouteParamsSchema, parseRouteParams } from "@/lib/api-validation";
+import { resolveAuthorizedList } from "@/lib/list-route-access";
 
 export async function POST(
   req: NextRequest,
@@ -13,11 +14,11 @@ export async function POST(
     );
     if (!paramsValidation.success) return paramsValidation.response;
     const { id } = paramsValidation.data;
-    const list = await getListById(id);
-
-    if (!list) {
-      return NextResponse.json({ error: "List not found" }, { status: 404 });
+    const access = await resolveAuthorizedList(id, "view");
+    if (!access.ok) {
+      return NextResponse.json({ error: access.error }, { status: access.status });
     }
+    const { list } = access;
 
     // Only track views for public lists
     if (!list.isPublic) {
@@ -33,7 +34,7 @@ export async function POST(
     // - A separate views table with timestamps
     // - IP-based deduplication
     // - Daily/weekly view counts
-    await updateList(id, {
+    await updateList(list.id, {
       // Store views count in a custom field or metadata
       // For now, we'll return success and handle views tracking separately
     });

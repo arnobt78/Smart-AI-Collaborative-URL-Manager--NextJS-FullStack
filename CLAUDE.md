@@ -4,7 +4,7 @@
 **The Daily Urlist** (`urlist` v0.2.1) — AI collaborative URL lists.  
 Live: https://daily-urlist.vercel.app/ · Resume: `.agile-v/STATE.md`
 
-## Status (C6)
+## Status (C6.1)
 Done: shared compact controls · Auth row reveal · homepage hero mount stagger · accessible Smart Collections disclosure · responsive Add URL cancel · consistent CTA icons · responsive 56px chrome · type-safe cache/SSE/abort paths · zero lint.
 Controls: shared Button/glass/input contract is `h-10 min-h-10`; placeholders use `text-sm`. Marketing sections use CSS/observer reveal/parallax, no motion dependency.
 Home wave: Authenticated hero logo/title/copy/CTA rows reuse the login form's CSS mount stagger; feature, workflow, and final CTA sections retain `ScrollReveal`/parallax.
@@ -13,7 +13,7 @@ Stable UI: Browse retains cached cards during refetch; `ui/PageHeader.tsx` stand
 Stable data: delayed cold placeholders only; Browse/Lists/Insights/API Status/detail keep their static shell. Unified list batches comment counts for card badges; bulk import never reloads. Metadata route is Node-only, public HTTP(S)-only, DNS/IP checked for documents/images/favicons, redirect-checked, timeout-bounded, and list-access guarded.
 Comment badge rule: create +1, delete -1, edit 0; failed mutations restore only their own optimistic delta.
 Auth menu: open guest credentials panel is opaque and stacked above reveal rows; trigger uses expanded/menu ARIA. Logout closes its menu immediately, shows a non-blocking status only after 1.2s, and clears cache only after secure server confirmation.
-Data: unified React Query + snapshot-first optimistic store updates + centralized invalidation + SSE; completed URL mutations patch list-card summaries before one reconciliation. Public shared detail/collaborator reads preserve anonymous viewer access; protected pages verify persisted sessions before rendering. Server pages hydrate Lists, detail, Browse, Insights, and API Status with request-scoped query clients; `lib/*-query-keys.ts` owns shared keys.
+Data: unified React Query + snapshot-first optimistic store updates + centralized invalidation + SSE; completed URL mutations patch list-card summaries before one reconciliation. Public lists are discoverable and viewable by authenticated Daily Urlist accounts only; protected pages verify persisted sessions before rendering. Server pages hydrate Lists, detail, Browse, Insights, and API Status with request-scoped query clients; `lib/*-query-keys.ts` owns shared keys.
 Mutation UX: visibility updates all visible list surfaces optimistically; form/dialog submit controls guard duplicate requests without dialog-wide locks; collection/archive/reorder/metadata/action flows use one store or hook-owned snapshot commit/rollback and typed impact; primary and suggested URL visits are semantic safe new-tab links.
 Human: HA-0001; match Sentry org/token before upload.  
 Audit: Prisma CLI transitively pins `deepmerge-ts@7.1.5` (3 high findings); user accepted RISK-0016. Retain Prisma 6; do not force-downgrade or upgrade.
