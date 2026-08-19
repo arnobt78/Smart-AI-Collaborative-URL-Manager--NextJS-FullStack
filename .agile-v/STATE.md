@@ -27,6 +27,7 @@
 - Stable data surfaces: requested pages keep their static chrome, cold placeholders are delayed and local, comment badges use one grouped unified payload, import recovery has no hard reload, and metadata rejects private network targets for documents, images, favicons, and redirects.
 - Stable list-form dialogs: scroll-header Dialog mode yields one accessible heading/X; cache-seeded My Lists editing, shared compact form primitives, optimistic list hooks, and note-with-X/Eraser action conventions eliminate editor toasts, timers, and form-open/close skeletons.
 - Homepage hero: authenticated logo, title, two description rows, and CTA row reuse the login form's five-step initial-mount stagger; lower marketing scroll reveals are unchanged.
+- Logout UX: profile menu dismisses immediately; duplicate requests are ref-guarded, a non-blocking status appears only after 1.2s, and server-confirmed sign-out clears cached client state before history-safe replacement.
 
 ## Human
 
@@ -40,7 +41,7 @@
 
 ## Current checkpoint
 
-- **Stage:** Stage 4 local verification complete for REQ-0022/REQ-0023 following approved Human Gate 1.
+- **Stage:** Stage 4 local verification complete for REQ-0025 following approved Human Gate 1.
 - **Gate:** **GATE-0014 — APPROVED 2026-08-19** (`C1-HG1-SECURITY-CACHE-2026-08-19`). GATE-0002 remains pending and cannot be accepted while this critical authorization remediation is open; `EVAL_RESULTS.md` does not exist.
 - **Scope:** REQ-0022 closes missing list-route access checks; REQ-0023 consolidates URL mutation rollback/cache commits and removes identified cold-loading remounts. Existing cookie sessions, Prisma 6, Redis, SSE, API contracts, and public UI remain the baseline.
 - **Reconciliation (2026-08-18):** the user-reconciled local baseline is `65d5806`; prior state incorrectly referenced `a69f0a7`. The original GATE-0001 remains historically unapproved/superseded; GATE-0011/0012/0013 supplied the applicable implementation authority.
@@ -63,9 +64,10 @@
 - **Manual acceptance:** REQ-0017 control/Home-motion and REQ-0018 metadata/action-badge flows await user browser testing; implementation and automated validation are complete.
 - **Production test handoff (2026-08-19):** User will test the deployed Vercel application later; no browser action or defect report has been received yet. Resume from TASK-0025 when feedback arrives.
 - **C2 completion (2026-08-19):** REQ-0024 / TASK-0026 complete under GATE-0015. The homepage hero now reuses login's mount stagger; focused regression coverage, strict TypeScript, zero-warning lint, full Jest, and production build pass. C1/C2 Gate 2 release acceptance remains pending.
+- **C3 completion (2026-08-19):** REQ-0025 / TASK-0027 through TASK-0030 complete under GATE-0016. Shared Zod parsing covers mutation bodies and identifier-only boundaries; signed jobs preserve the raw body for QStash verification; new session persistence is SHA-256 digest-only with safe legacy-rotation conflict recovery; active mutation paths use the typed impact gateway. Strict TypeScript, zero-warning lint, Jest (52 pass/5 skip), production build, direct-console, parser, secret, and diff scans pass.
 
 ## Next
 
 ```text
-For release acceptance: obtain browser-level homepage-motion and metadata/action evidence, create `EVAL_RESULTS.md`, and satisfy Gate 2. HA-0001 remains human-owned; no densify/Zod changes are implied.
+For release acceptance: obtain browser-level homepage-motion and metadata/action evidence, create `EVAL_RESULTS.md`, and satisfy Gate 2. HA-0001 remains human-owned.
 ```

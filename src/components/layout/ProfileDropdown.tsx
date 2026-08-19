@@ -6,12 +6,15 @@
  * `top-full` + `right-0` under the trigger — no manual flow/mt hacks.
  * Kept as custom panel (not Radix) so sticky Navbar does not scroll-lock.
  * Order: name+email → separator → utility links → separator → Logout.
+ * REQ-BASE-001: Logout closes the menu immediately while server confirmation
+ * remains authoritative before clearing authenticated client state.
  */
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useQueryClient } from "@tanstack/react-query";
 import { Activity, FileText, LogOut } from "lucide-react";
 import { UserAvatar } from "@/components/ui/UserAvatar";
+import { useToast } from "@/components/ui/Toaster";
 import { UTILITY_NAVIGATION_ITEMS } from "@/constants/auth";
 import { displayNameFromEmail } from "@/lib/robohash";
 import { queueAuthToast } from "@/lib/auth-toast";
@@ -36,9 +39,14 @@ export function ProfileDropdown({
   onNavigate,
 }: ProfileDropdownProps) {
   const [open, setOpen] = useState(false);
-  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [isLogoutSlow, setIsLogoutSlow] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
+  const logoutInFlightRef = useRef(false);
+  const slowLogoutTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
   const queryClient = useQueryClient();
+  const { toast } = useToast();
   const name = fullName || displayNameFromEmail(email);
 
   useEffect(() => {
@@ -62,32 +70,63 @@ export function ProfileDropdown({
     };
   }, [open]);
 
+  useEffect(() => {
+    return () => {
+      if (slowLogoutTimerRef.current) {
+        clearTimeout(slowLogoutTimerRef.current);
+      }
+    };
+  }, []);
+
+  const clearSlowLogoutTimer = () => {
+    if (slowLogoutTimerRef.current) {
+      clearTimeout(slowLogoutTimerRef.current);
+      slowLogoutTimerRef.current = null;
+    }
+  };
+
   const handleLogout = async () => {
-    if (isLoggingOut) return;
-    setIsLoggingOut(true);
+    if (logoutInFlightRef.current) return;
+    logoutInFlightRef.current = true;
+    setOpen(false);
+    slowLogoutTimerRef.current = setTimeout(() => {
+      setIsLogoutSlow(true);
+    }, 1200);
+
     try {
       const response = await fetch("/api/auth/signout", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
       });
 
-      if (response.ok) {
-        queueAuthToast({ kind: "goodbye", name });
-        queryClient.clear();
-        if (typeof window !== "undefined") {
-          setWasAuthedHintClient(false);
-          Object.keys(localStorage).forEach((key) => {
-            if (key.startsWith("react-query:")) {
-              localStorage.removeItem(key);
-            }
-          });
-        }
-        window.location.href = "/";
-      } else {
-        setIsLoggingOut(false);
+      if (!response.ok) {
+        throw new Error("Failed to sign out");
+      }
+
+      clearSlowLogoutTimer();
+      setIsLogoutSlow(false);
+      queueAuthToast({ kind: "goodbye", name });
+      await queryClient.cancelQueries();
+      queryClient.clear();
+      if (typeof window !== "undefined") {
+        setWasAuthedHintClient(false);
+        Object.keys(localStorage).forEach((key) => {
+          if (key.startsWith("react-query:")) {
+            localStorage.removeItem(key);
+          }
+        });
+        // A server-confirmed hard replacement prevents an authenticated RSC race
+        // and removes the previous protected page from browser history.
+        window.location.replace("/");
       }
     } catch {
-      setIsLoggingOut(false);
+      clearSlowLogoutTimer();
+      setIsLogoutSlow(false);
+      logoutInFlightRef.current = false;
+      toast({
+        title: "Logout Failed",
+        description: "Please try again.",
+        variant: "error",
+      });
     }
   };
 
@@ -110,6 +149,16 @@ export function ProfileDropdown({
           className="border-0 bg-transparent size-full"
         />
       </button>
+
+      {isLogoutSlow && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="fixed bottom-4 left-1/2 z-[100] -translate-x-1/2 rounded-lg border border-blue-500/30 bg-blue-500/20 px-4 py-3 text-sm text-blue-100 shadow-lg backdrop-blur-md sm:left-auto sm:right-4 sm:translate-x-0"
+        >
+          Signing out…
+        </div>
+      )}
 
       {open && (
         <div
@@ -147,17 +196,13 @@ export function ProfileDropdown({
           <button
             type="button"
             role="menuitem"
-            disabled={isLoggingOut}
             onClick={() => {
               void handleLogout();
             }}
-            className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-white/80 transition hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-white/80 transition hover:bg-white/10 hover:text-white"
           >
-            <LogOut
-              className={`h-4 w-4 shrink-0 ${isLoggingOut ? "animate-pulse" : ""}`}
-              aria-hidden
-            />
-            {isLoggingOut ? "Logging out…" : "Logout"}
+            <LogOut className="h-4 w-4 shrink-0" aria-hidden />
+            Logout
           </button>
         </div>
       )}

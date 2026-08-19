@@ -212,11 +212,22 @@ export async function getCurrentSession(): Promise<Session | null> {
     });
 
     if (legacySession) {
-      session = await prisma.session.update({
-        where: { id: legacySession.id },
-        data: { token: tokenDigest },
-        include: { user: true },
-      });
+      try {
+        session = await prisma.session.update({
+          where: { id: legacySession.id },
+          data: { token: tokenDigest },
+          include: { user: true },
+        });
+      } catch (error) {
+        // A concurrent request can rotate the same legacy token first. Re-read
+        // the digest record rather than rejecting an otherwise valid session.
+        const rotatedSession = await prisma.session.findUnique({
+          where: { token: tokenDigest },
+          include: { user: true },
+        });
+        if (!rotatedSession) throw error;
+        session = rotatedSession;
+      }
     }
   }
 

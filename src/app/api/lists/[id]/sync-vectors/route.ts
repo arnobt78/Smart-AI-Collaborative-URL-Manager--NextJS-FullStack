@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { upsertUrlVectors } from "@/lib/vector";
 import type { UrlItem } from "@/stores/urlListStore";
 import { resolveAuthorizedList } from "@/lib/list-route-access";
+import { listRouteParamsSchema, parseRouteParams } from "@/lib/api-validation";
 
 /**
  * Sync all URLs from a list to the vector database
@@ -12,7 +13,12 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = await params;
+    const paramsValidation = parseRouteParams(
+      await params,
+      listRouteParamsSchema,
+    );
+    if (!paramsValidation.success) return paramsValidation.response;
+    const { id } = paramsValidation.data;
     const access = await resolveAuthorizedList(id, "edit");
     if (!access.ok) {
       return NextResponse.json({ error: access.error }, { status: access.status });

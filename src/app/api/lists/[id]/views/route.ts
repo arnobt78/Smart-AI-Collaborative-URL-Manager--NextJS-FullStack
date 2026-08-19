@@ -1,12 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getListById, updateList } from "@/lib/db";
+import { listRouteParamsSchema, parseRouteParams } from "@/lib/api-validation";
 
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = await params;
+    const paramsValidation = parseRouteParams(
+      await params,
+      listRouteParamsSchema,
+    );
+    if (!paramsValidation.success) return paramsValidation.response;
+    const { id } = paramsValidation.data;
     const list = await getListById(id);
 
     if (!list) {

@@ -360,3 +360,16 @@ Append-only. Newest entries at bottom.
 | Rationale | The approved requirement explicitly calls for the login form's initial mount sequence. Reuse avoids new runtime state, CSS contracts, dependencies, hydration risk, or duplicate animation logic. |
 | Linked REQs | REQ-0024 |
 | Status | Approved for implementation. |
+
+---
+
+## DEC-0027 — Centralize validated mutation and cache impact boundaries
+
+| Field | Value |
+|---|---|
+| Timestamp | 2026-08-19 |
+| Agent | Agile V C3 implementation |
+| Decision | Use shared Zod parser contracts for mutating payloads and identifiers, digest opaque session tokens with transparent legacy rotation, and route active client mutations through one typed cache-impact gateway. |
+| Rationale | Central contracts prevent validation, session-storage, and cache-family behavior from diverging while retaining existing cookie-session, SSR, optimistic-update, and SSE behavior. |
+| Linked REQs | REQ-0025, REQ-BASE-001 |
+| Status | Implemented and locally validated. |

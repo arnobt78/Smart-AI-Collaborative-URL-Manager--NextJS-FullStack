@@ -14,7 +14,8 @@ import { jobListSchema, parseJsonBody } from "@/lib/api-validation";
  */
 export async function POST(request: NextRequest) {
   try {
-    const parsed = await parseJsonBody(request, jobListSchema);
+    // Validate a clone so QStash verification can still sign the untouched body.
+    const parsed = await parseJsonBody(request.clone(), jobListSchema);
     if (!parsed.success) return parsed.response;
     if (!(await isAuthorizedInternalJob(request))) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     const { listId } = parsed.data;

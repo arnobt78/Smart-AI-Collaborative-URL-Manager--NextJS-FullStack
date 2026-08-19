@@ -138,25 +138,25 @@ REQ-0017 control/Home-motion and REQ-0018 metadata/action-badge flows await user
 ## Deferred
 RSC shells · densify/Zod/SHA/Next16
 
-### TASK-0027 — Shared mutation request validation (C3) — IN PROGRESS
+### TASK-0027 — Shared mutation request validation (C3) — DONE
 
 1. Add reusable typed Zod parsers for bounded JSON bodies and route identifiers.
 2. Apply them before authorization and side effects at every mutating API route.
 3. Add rejection-before-side-effects coverage for representative boundary families.
 
-### TASK-0028 — Session digest transition (C3) — IN PROGRESS
+### TASK-0028 — Session digest transition (C3) — DONE
 
 1. Persist only SHA-256 digests for newly generated opaque session cookies.
 2. Look up digests first, rotate valid legacy plaintext records in place, and delete either representation during transition.
 3. Cover creation, lookup, rotation, expiry, logout, and cookie-option contracts.
 
-### TASK-0029 — Mutation impact mapping (C3) — PENDING
+### TASK-0029 — Mutation impact mapping (C3) — DONE
 
 1. Inventory client mutation families against the existing query-key and invalidation gateway.
 2. Add isolated optimistic snapshot rollback and one success invalidation per affected family.
 3. Add focused rollback/invalidation coverage while retaining SSE reconciliation.
 
-### TASK-0030 — C3 verification and handoff — PENDING
+### TASK-0030 — C3 verification and handoff — DONE
 
 1. Run strict typecheck, lint, Jest, production build, dependency audit, direct-console scan, and diff hygiene.
 2. Record automated evidence; retain C1/C2 browser acceptance and Gate 2 as pending until actual browser evidence exists.

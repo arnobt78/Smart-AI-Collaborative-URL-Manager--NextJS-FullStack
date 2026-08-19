@@ -23,10 +23,7 @@ import {
   listQueryKeys,
 } from "@/hooks/useListQueries";
 import { useQueryClient } from "@tanstack/react-query";
-import {
-  invalidateBrowseQueries,
-  invalidateListQueries,
-} from "@/utils/queryInvalidation";
+import { invalidateMutationImpact } from "@/utils/queryInvalidation";
 import { Dialog } from "@/components/ui/Dialog";
 import EditListPageClient from "@/components/pages/EditListPage";
 import { HEADING_STACK } from "@/lib/ui-spacing";
@@ -710,11 +707,10 @@ export default function ListPageClient() {
                           // This ensures ListsPage, BrowsePage, and current page all update without refresh
                           // Use centralized invalidation function for consistency
                           if (typeof slug === "string" && list?.id) {
-                            invalidateListQueries(queryClient, slug, list.id);
+                            invalidateMutationImpact(queryClient, "visibility", slug, list.id);
                           }
                           // CRITICAL: Invalidate browse/public lists queries so BrowsePage updates immediately
                           // This is additional to list queries invalidation above
-                          invalidateBrowseQueries(queryClient);
 
                           // UNIFIED APPROACH: SSE handles ALL activity-updated events (single source of truth)
                           // No local dispatch needed - prevents duplicate API calls
@@ -732,11 +728,10 @@ export default function ListPageClient() {
                           // Refetch via React Query invalidation - triggers unified endpoint refetch
                           // Use centralized invalidation function for consistency
                           if (typeof slug === "string" && list?.id) {
-                            invalidateListQueries(queryClient, slug, list.id);
+                            invalidateMutationImpact(queryClient, "visibility", slug, list.id);
                           }
                           // CRITICAL: Invalidate browse/public lists queries so BrowsePage updates immediately
                           // This is additional to list queries invalidation above
-                          invalidateBrowseQueries(queryClient);
                           toast({
                             title: newValue
                               ? "Made Public 🌐"

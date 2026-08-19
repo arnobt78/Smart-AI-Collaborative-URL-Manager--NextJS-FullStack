@@ -6,20 +6,27 @@ import type { Prisma } from "@prisma/client";
 import { hasListAccess } from "@/lib/collaboration/permissions";
 import { publishMessage, CHANNELS } from "@/lib/realtime/redis";
 import { redis, cacheKeys } from "@/lib/redis";
+import {
+  listUrlRouteParamsSchema,
+  parseRouteParams,
+} from "@/lib/api-validation";
 import type { UrlItem as StoreUrlItem } from "@/stores/urlListStore";
 
 type RouteContext = { params: Promise<{ id: string; urlId: string }> };
 
 export async function POST(req: NextRequest, context: RouteContext) {
   try {
+    const paramsValidation = parseRouteParams(
+      await context.params,
+      listUrlRouteParamsSchema,
+    );
+    if (!paramsValidation.success) return paramsValidation.response;
+    const { id: listId, urlId } = paramsValidation.data;
+
     const user = await getCurrentUser();
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-
-    const params = await context.params;
-    const listId = params.id;
-    const urlId = params.urlId;
 
     // Get the list and verify ownership
     const list = await getListById(listId);

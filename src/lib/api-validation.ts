@@ -5,6 +5,14 @@ import { z } from "zod";
 /** List routes retain legacy slug support, so identifiers are not UUID-only. */
 export const routeIdSchema = z.string().trim().min(1).max(128).regex(/^[a-zA-Z0-9][a-zA-Z0-9_-]*$/);
 
+/** REQ-0025: Shared identifier contracts for bodyless list URL mutations. */
+export const listRouteParamsSchema = z.object({ id: routeIdSchema }).strict();
+
+export const listUrlRouteParamsSchema = z.object({
+  id: routeIdSchema,
+  urlId: z.string().trim().min(1).max(128),
+}).strict();
+
 export const uuidSchema = z.string().uuid();
 
 export const emailSchema = z.string().trim().email().max(320).transform((email) => email.toLowerCase());

@@ -19,17 +19,19 @@ Next 15 URL bookmark manager. Demo: https://daily-urlist.vercel.app/
 - Spacing: `lib/ui-spacing.ts` PAGE/SECTION/MARKETING/FORM/LIST/HEADING_STACK/PAGE_HEADER/CARD_PAD; heading stacks have zero added title/subtitle gap only.
 - Layout main: `py-6 sm:py-10` · `html { scrollbar-gutter: stable }`
 - Auth toasts: `lib/auth-toast.ts` + `AuthToastBridge`
+- Logout: menu dismisses immediately; server-confirmed sign-out clears React Query and persisted query metadata before `location.replace("/")`; a non-blocking status appears only after 1.2s.
 - Logs: `lib/dev-log.ts` — SSE/AI/import quiet in prod
 - Deploy: Sentry upload only if `SENTRY_UPLOAD_SOURCEMAPS=1` · `prisma.config.ts` seed
 - Lists: slug-safe placeholder · ListPage `currentList` sync · My Lists title → `/list/[slug]` · SC create stays
 - Visit: `ensureAbsoluteHttpUrl` + `openExternalUrl`
 - Collaborators empty one-row · Card/SC `p-2 sm:p-4`
 - Local DB: `.env` / `.env.local` → remote `77.42.71.87:25432` (gitignored)
-- Out of scope: densify / Zod / SHA / JWT-null SSR / Next 16 / Prisma 7
+- Out of scope: densify / JWT-null SSR / Next 16 / Prisma 7
 - UI controls: `lib/ui/control-styles.ts` provides shared 48px field/trigger geometry; Auth uses CSS reveal with reduced-motion support
 - Home motion: `ui/ScrollReveal.tsx` provides replayable CSS/observer reveal plus subtle parallax; shared controls use `h-10 min-h-10` and text-sm placeholders
 - Home wave: hero copy lines and CTAs are individual reveal units, staggered in order rather than animated as a grouped row
 - Data sync: unified React Query cache + snapshot-first optimistic `currentList` store + centralized invalidation + SSE; `lib/query-keys.ts` is hook-independent; bulk import reconciles without a hard reload
+- C3 boundaries: `lib/api-validation.ts` owns strict Zod payload/identifier parsing; opaque session cookies persist as SHA-256 digests with legacy rotation; `invalidateMutationImpact` maps active mutation cache families once.
 - Dialogs: `ui/Dialog.tsx` owns accessible capped overlays; list/URL CRUD, confirmations, comments, similarity, and collaborator actions share it. List forms use its scroll-header mode for exactly one heading/X and cache-seeded editor values; legacy `/new` and `/list/[slug]/edit` preserve deep links through dialog-state redirects.
 - Stable data UI: Browse keeps cached cards visible on background refetch; `ui/PageHeader.tsx` provides the shared glass icon/title/subtitle row.
 - Stable data safety: Browse/Lists/Insights/API Status/detail keep static chrome with delayed local cold placeholders; unified list batches comment counts; bulk import reconciles without reload; metadata documents/images/favicons accept public HTTP(S) destinations only after DNS/IP and redirect checks.

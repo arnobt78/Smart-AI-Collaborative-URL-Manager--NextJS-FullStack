@@ -17,7 +17,7 @@ import { addUrlToList, cancelPendingGetList } from "@/stores/urlListStore";
 import { abortRegistry } from "@/utils/abortRegistry";
 import { fetchUrlMetadata, type UrlMetadata } from "@/utils/urlMetadata";
 import { useQueryClient } from "@tanstack/react-query";
-import { invalidateUrlQueries } from "@/utils/queryInvalidation";
+import { invalidateMutationImpact } from "@/utils/queryInvalidation";
 import {
   parseChromeBookmarks,
   parsePocketExport,
@@ -2110,7 +2110,7 @@ export function UrlBulkImportExport({
               if (isMountedRef.current && !isImportActiveRef.current) {
                 if (process.env.NODE_ENV === "development") {
                 }
-                invalidateUrlQueries(queryClient, slug, listId, true);
+                invalidateMutationImpact(queryClient, "import", slug, listId);
               }
             }, 800); // Reduced delay since we're aborting all requests
           }

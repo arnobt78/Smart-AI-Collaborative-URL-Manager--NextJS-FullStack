@@ -5,10 +5,9 @@ import { currentList, type UrlList, type UrlItem } from "@/stores/urlListStore";
 import { queryClient } from "@/lib/react-query";
 import { useToast } from "@/components/ui/Toaster";
 import {
-  invalidateCollaboratorQueries,
   invalidateAllListsQueries,
   invalidateBrowseQueries,
-  invalidateListMutationQueries,
+  invalidateMutationImpact,
 } from "@/utils/queryInvalidation";
 import { devLog, devWarn } from "@/lib/dev-log";
 import { listQueryKeys } from "@/lib/query-keys";
@@ -209,7 +208,7 @@ export function useAddCollaborator(listId: string, listSlug?: string) {
       // Invalidates unified query and all lists query
       if (listSlug) {
         // Invalidate on owner's screen immediately
-        invalidateCollaboratorQueries(queryClient, listSlug);
+        invalidateMutationImpact(queryClient, "collaborator", listSlug, listId);
 
         // NOTE: We don't dispatch unified-update event here because:
         // 1. Owner screen already updated via invalidateCollaboratorQueries
@@ -295,7 +294,7 @@ export function useUpdateCollaboratorRole(listId: string, listSlug?: string) {
       // Invalidates unified query and all lists query
       if (listSlug) {
         // Invalidate on owner's screen immediately
-        invalidateCollaboratorQueries(queryClient, listSlug);
+        invalidateMutationImpact(queryClient, "collaborator", listSlug, listId);
 
         // NOTE: We don't dispatch unified-update event here because:
         // 1. Owner screen already updated via invalidateCollaboratorQueries
@@ -375,7 +374,7 @@ export function useRemoveCollaborator(listId: string, listSlug?: string) {
       // Invalidates unified query and all lists query
       if (listSlug) {
         // Invalidate on owner's screen immediately
-        invalidateCollaboratorQueries(queryClient, listSlug);
+        invalidateMutationImpact(queryClient, "collaborator", listSlug, listId);
 
         // NOTE: We don't dispatch unified-update event here because:
         // 1. Owner screen already updated via invalidateCollaboratorQueries
@@ -506,7 +505,7 @@ export function useCreateList() {
     onSuccess: (data, _input, context) => {
       patchAllListsCache(queryClient, data.list, context?.temporaryId);
       patchUnifiedListCache(queryClient, data.list);
-      invalidateListMutationQueries(queryClient, data.list.slug, data.list.id);
+      invalidateMutationImpact(queryClient, "list", data.list.slug, data.list.id);
     },
     onError: (_error, _input, context) => {
       if (context?.previous) {
@@ -549,7 +548,7 @@ export function useUpdateList() {
     onSuccess: (data) => {
       patchAllListsCache(queryClient, data.list);
       patchUnifiedListCache(queryClient, data.list);
-      invalidateListMutationQueries(queryClient, data.list.slug, data.list.id);
+      invalidateMutationImpact(queryClient, "list", data.list.slug, data.list.id);
     },
     onError: (_error, input, context) => {
       if (context?.previousLists) {

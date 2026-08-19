@@ -85,6 +85,30 @@ describe("REQ-0025 digest-backed cookie sessions", () => {
     }));
   });
 
+  it("uses the concurrent digest record when legacy rotation conflicts", async () => {
+    const token = "legacy-race-cookie-token";
+    const { getCurrentSession, hashSessionToken } = await import("@/lib/auth");
+    mockCookies.mockResolvedValue({ get: () => ({ value: token }) });
+    const legacy = {
+      id: "session-legacy",
+      token,
+      userId: "user-1",
+      expiresAt: new Date(Date.now() + 60_000),
+      user: { id: "user-1", email: "user@example.com" },
+    };
+    const rotated = { ...legacy, token: hashSessionToken(token) };
+    mockPrisma.session.findUnique
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce(legacy)
+      .mockResolvedValueOnce(rotated);
+    mockPrisma.session.update.mockRejectedValueOnce(new Error("Unique constraint"));
+
+    await expect(getCurrentSession()).resolves.toMatchObject({
+      id: legacy.id,
+      token: rotated.token,
+    });
+  });
+
   it("removes both token representations during transition logout", async () => {
     const { deleteSession, hashSessionToken } = await import("@/lib/auth");
 

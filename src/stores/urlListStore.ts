@@ -1,7 +1,7 @@
 import { atom, map } from "nanostores";
 import { queryClient } from "@/lib/react-query";
 import type { UrlMetadata } from "@/utils/urlMetadata";
-import { invalidateUrlQueries } from "@/utils/queryInvalidation";
+import { invalidateMutationImpact } from "@/utils/queryInvalidation";
 import {
   syncDragOrderCacheWithServer,
   getCachedDragOrder,
@@ -116,7 +116,7 @@ function commitUrlMutation(
       ["unified-list", next.slug],
       (cached) => (cached?.list ? { ...cached, list: { ...cached.list, ...next } } : cached),
     );
-    invalidateUrlQueries(queryClient, next.slug, next.id, false);
+    invalidateMutationImpact(queryClient, "url", next.slug, next.id);
   }
 
   return next;

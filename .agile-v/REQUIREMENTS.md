@@ -498,13 +498,13 @@ These describe the current product as verified in code. They are **Accepted as b
 
 **Acceptance:**
 
-- [ ] Shared typed request parsing rejects malformed JSON and invalid route identifiers/payloads with a non-disclosing 400 before database, Redis, vector, email, SSE, or authorization side effects.
-- [ ] Auth, lists, URLs/actions, comments, collaborators, visibility, collections, metadata, imports, AI, email, and internal job mutations use the shared schemas.
-- [ ] New sessions use cryptographically random opaque tokens and SHA-256 database digests; valid legacy plaintext tokens rotate in place without logout; lookup, expiry, and sign-out support both representations during transition.
-- [ ] `session_token` remains HttpOnly, production-Secure, SameSite=Lax, and unavailable to client JavaScript; passwords remain bcrypt hashes and Prisma 6 remains unchanged.
-- [ ] Mutation families retain optimistic snapshots, roll back only their own failed operation, and invalidate their mapped cache families once after success while SSE continues cross-client synchronization.
-- [ ] Focused rejection, session transition, mutation rollback/invalidation, and invite-pending tests pass with strict TypeScript, zero-warning lint, Jest, production build, dependency audit, and direct-console scan.
+- [x] Shared typed request parsing rejects malformed JSON and invalid route identifiers/payloads with a non-disclosing 400 before database, Redis, vector, email, SSE, or authorization side effects.
+- [x] Auth, lists, URLs/actions, comments, collaborators, visibility, collections, metadata, imports, AI, email, and internal job mutations use the shared schemas.
+- [x] New sessions use cryptographically random opaque tokens and SHA-256 database digests; valid legacy plaintext tokens rotate in place without logout; lookup, expiry, and sign-out support both representations during transition.
+- [x] `session_token` remains HttpOnly, production-Secure, SameSite=Lax, and unavailable to client JavaScript; passwords remain bcrypt hashes and Prisma 6 remains unchanged.
+- [x] Mutation families retain optimistic snapshots, roll back only their own failed operation, and invalidate their mapped cache families once after success while SSE continues cross-client synchronization.
+- [x] Focused rejection, session transition, mutation rollback/invalidation, and invite-pending tests pass with strict TypeScript, zero-warning lint, Jest, production build, dependency audit, and direct-console scan.
 
 **Affected:** `src/lib/auth.ts`, shared server validation utilities, mutating route handlers, mutation/query helpers and focused tests.
 **Trace:** CR-0002, TASK-0027 through TASK-0030, DEC-0027, GATE-0016.
-**Status:** In progress [C3].
+**Status:** Completed and locally validated [C3] on 2026-08-19.

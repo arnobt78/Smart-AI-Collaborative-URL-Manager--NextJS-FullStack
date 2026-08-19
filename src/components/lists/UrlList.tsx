@@ -44,7 +44,7 @@ import { Input } from "@/components/ui/Input";
 import { useUrlMetadata } from "@/hooks/useUrlMetadata";
 import { useQueryClient } from "@tanstack/react-query";
 import { listQueryKeys } from "@/hooks/useListQueries";
-import { invalidateUrlQueries } from "@/utils/queryInvalidation";
+import { invalidateMutationImpact } from "@/utils/queryInvalidation";
 import { fetchUrlMetadata, type UrlMetadata } from "@/utils/urlMetadata";
 import { UrlCard } from "./UrlCard";
 import { UrlEditModal } from "./UrlEditModal";
@@ -1653,7 +1653,7 @@ export function UrlList() {
           // CRITICAL: Invalidate unified query to trigger updates?activityLimit=30 API call
           // This ensures activity feed updates immediately after reorder (same pattern as other URL actions)
           if (current.slug && current.id) {
-            invalidateUrlQueries(queryClient, current.slug, current.id, false);
+            invalidateMutationImpact(queryClient, "url", current.slug, current.id);
           }
 
           // DON'T clear localStorage immediately - keep it much longer to survive Fast Refresh
@@ -1883,7 +1883,7 @@ export function UrlList() {
           // CRITICAL: Invalidate unified query to trigger updates?activityLimit=30 API call
           // This ensures activity feed updates immediately after reorder (same pattern as other URL actions)
           if (current.slug && current.id) {
-            invalidateUrlQueries(queryClient, current.slug, current.id, false);
+            invalidateMutationImpact(queryClient, "url", current.slug, current.id);
           }
 
           // DON'T clear localStorage immediately - keep it much longer to survive Fast Refresh

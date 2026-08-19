@@ -5,6 +5,10 @@ import { createActivity } from "@/lib/db/activities";
 import { publishMessage, CHANNELS } from "@/lib/realtime/redis";
 import { deleteUrlVector, vectorIndex } from "@/lib/vector";
 import { requirePermission } from "@/lib/collaboration/permissions";
+import {
+  listUrlRouteParamsSchema,
+  parseRouteParams,
+} from "@/lib/api-validation";
 import type { UrlItem } from "@/stores/urlListStore";
 
 type RouteContext = { params: Promise<{ id: string; urlId: string }> };
@@ -20,6 +24,13 @@ export async function DELETE(
   context: RouteContext
 ) {
   try {
+    const paramsValidation = parseRouteParams(
+      await context.params,
+      listUrlRouteParamsSchema,
+    );
+    if (!paramsValidation.success) return paramsValidation.response;
+    const { id: listId, urlId } = paramsValidation.data;
+
     const user = await getCurrentUser();
     if (!user) {
       return NextResponse.json(
@@ -27,10 +38,6 @@ export async function DELETE(
         { status: 401 }
       );
     }
-
-    const params = await context.params;
-    const listId = params.id;
-    const urlId = params.urlId;
 
     // Get current list to detect changes
     const currentList = await getListById(listId);

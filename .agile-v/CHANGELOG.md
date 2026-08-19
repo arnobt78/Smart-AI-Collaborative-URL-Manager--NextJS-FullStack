@@ -20,6 +20,15 @@
 - **Requested by:** User
 - **Approval:** Approved by explicit implementation request on 2026-08-19 (GATE-0016).
 
+## CR-0003 — Immediate logout menu dismissal
+
+- **Cycle:** C3
+- **Affected requirement:** REQ-BASE-001
+- **Change:** Close the profile menu immediately, guard duplicate requests without menu loading UI, show a delayed non-blocking sign-out status, and clear client cache only after server confirmation.
+- **Rationale:** Preserve secure cookie-session confirmation without leaving the user in a visibly blocked dropdown state.
+- **Impact:** Profile dropdown, focused regression coverage, and existing project evidence only; no session-cookie or server route contract change.
+- **Requested by:** User
+
 ## 2026-08-14 C1
 
 - AI free-tier model chains + shared client

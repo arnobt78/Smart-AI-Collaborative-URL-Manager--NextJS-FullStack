@@ -188,3 +188,25 @@ Gate 2: BLOCKED — RISK-0016 is accepted; `EVAL_RESULTS.md` PASS/WAIVED evidenc
 | Full regression suite | `npm test -- --runInBand` | PASS | 8 suites passed, 1 skipped; 30 tests passed, 5 skipped. |
 | Production build | `npm run build` | PASS | Prisma generation and optimized Next.js production build completed. |
 | Browser acceptance | TC-0027 | PENDING USER TEST | Automated checks cannot substitute for the requested 320px, 768px, 1440px, and reduced-motion visual review. |
+
+## 2026-08-19 — REQ-BASE-001 immediate logout menu dismissal
+
+| Scope | Command / evidence | Result | Notes |
+|---|---|---|---|
+| Focused regression | `npm test -- --runInBand src/components/layout/__tests__/ProfileDropdown.test.tsx` | PASS | Immediate dismissal, duplicate guard, delayed status, and retryable failure are covered. |
+| Type safety | `npx tsc --noEmit` | PASS | Strict TypeScript passes. |
+| Static analysis | `npm run lint` | PASS | Zero warnings/errors. |
+| Full regression suite | `npm test -- --runInBand` | PASS | 13 suites passed, 1 skipped; 50 tests passed, 5 skipped. |
+| Production build | `npm run build` | PASS | Prisma generation and optimized Next.js production build completed. |
+| Diff hygiene | `git diff --check` | PASS | No whitespace errors. |
+
+## 2026-08-19 — REQ-0025 C3 completion audit
+
+| Scope | Command / evidence | Result | Notes |
+|---|---|---|---|
+| Mutation boundaries | Shared-parser scan | PASS | Every request-bearing mutation and all identifier-only list URL mutations use the shared validation boundary; bodyless sign-out remains intentionally parser-free. |
+| Session security | Focused session tests | PASS | Digest creation/lookup, legacy rotation, sign-out cleanup, and rotation-conflict recovery pass. |
+| Job security | Focused authorization tests | PASS | QStash/internal-secret rejection coverage passes; JSON jobs validate a request clone before signature verification. |
+| Cache integrity | Focused query and mutation tests | PASS | Active list, URL, import, collaborator, and visibility mutations use the typed impact gateway while retaining optimistic rollback and SSE reconciliation. |
+| Type/lint/tests/build | `npx tsc --noEmit`; `npm run lint`; `npm test -- --runInBand`; `npm run build` | PASS | 52 passed, 5 skipped; strict TypeScript, zero-warning lint, and optimized production build pass. |
+| Hygiene | Console, tracked-secret, and `git diff --check` scans | PASS | Direct logging is limited to the production-gated helper and test mocks; no tracked secrets or whitespace errors. |
