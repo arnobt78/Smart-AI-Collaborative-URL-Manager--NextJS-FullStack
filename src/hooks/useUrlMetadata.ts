@@ -43,13 +43,9 @@ export function useUrlMetadata(url: string, enabled: boolean = true) {
   // Log cache status when hook is enabled (development only)
   if (process.env.NODE_ENV === "development" && enabled && url) {
     if (cachedData) {
-      console.log(`✅ [HOOK ${url.slice(0, 30)}...] React Query cache HIT - using cached data`);
     } else if (initialData) {
-      console.log(`✅ [HOOK ${url.slice(0, 30)}...] localStorage cache HIT - hydrated to React Query`);
     } else if (!enabled) {
-      console.log(`⏸️ [HOOK ${url.slice(0, 30)}...] Hook DISABLED - batch fetch not ready yet`);
     } else {
-      console.log(`🔄 [HOOK ${url.slice(0, 30)}...] Cache MISS - will fetch from API (enabled: ${enabled})`);
     }
   }
 
@@ -57,17 +53,13 @@ export function useUrlMetadata(url: string, enabled: boolean = true) {
     queryKey,
     queryFn: async () => {
       // Log when actually fetching (development only, only if enabled and no cache)
-      const startTime = process.env.NODE_ENV === "development" ? performance.now() : 0;
+      const _startTime = process.env.NODE_ENV === "development" ? performance.now() : 0;
       if (process.env.NODE_ENV === "development" && enabled && !hasCachedData) {
-        console.log(`🌐 [HOOK FETCH ${url.slice(0, 30)}...] Fetching metadata from API...`);
       }
       const metadata = await fetchUrlMetadata(url);
       
       if (process.env.NODE_ENV === "development" && enabled && !hasCachedData) {
-        const endTime = performance.now();
-        console.log(
-          `✅ [HOOK FETCH ${url.slice(0, 30)}...] Metadata fetched in ${(endTime - startTime).toFixed(2)}ms`
-        );
+        const _endTime = performance.now();
       }
 
       // Save to localStorage for persistence
@@ -100,7 +92,6 @@ export function useUrlMetadata(url: string, enabled: boolean = true) {
   if (query.data && initialData && !query.isFetching) {
     // Silently using cache - no log needed as Cache HIT already logged
     // Uncomment below if you want to see when React Query uses the cache
-    // console.log(`⚡ [INSTANT] ${url}`);
   }
 
   // Return query with overridden isLoading to prevent skeletons when cached data exists

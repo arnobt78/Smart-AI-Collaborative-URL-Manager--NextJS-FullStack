@@ -3,17 +3,13 @@ import { signIn } from "@/lib/auth";
 import { cookies } from "next/headers";
 import { WAS_AUTHED_COOKIE } from "@/constants/auth";
 import { wasAuthedCookieSetOptions } from "@/lib/was-authed";
+import { parseJsonBody, signInSchema } from "@/lib/api-validation";
 
 export async function POST(req: NextRequest) {
   try {
-    const { email, password } = await req.json();
-
-    if (!email || !password) {
-      return NextResponse.json(
-        { error: "Email and password are required" },
-        { status: 400 },
-      );
-    }
+    const parsed = await parseJsonBody(req, signInSchema);
+    if (!parsed.success) return parsed.response;
+    const { email, password } = parsed.data;
 
     // Sign in the user
     const result = await signIn(email, password);
@@ -42,10 +38,7 @@ export async function POST(req: NextRequest) {
         email: result.user.email,
       },
     });
-  } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Failed to sign in";
-    return NextResponse.json({ error: message }, { status: 400 });
+  } catch {
+    return NextResponse.json({ error: "Unable to sign in" }, { status: 400 });
   }
 }
-

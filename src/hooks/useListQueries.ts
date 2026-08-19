@@ -926,9 +926,6 @@ export function setupSSECacheSync() {
       if (!globalSSEConnectedTime) {
         globalSSEConnectedTime = customEvent.detail?.timestamp || Date.now();
         if (process.env.NODE_ENV === "development") {
-          console.debug(
-            `✅ [SSE CACHE SYNC] SSE connected, starting grace period from now`
-          );
         }
       }
     };

@@ -89,8 +89,7 @@ export function getOptimizedImageUrl(
     const encodedUrl = encodeURIComponent(imageUrl);
 
     return `https://res.cloudinary.com/${cloudName}/image/fetch/${transformationString}/${encodedUrl}`;
-  } catch (error) {
-    console.error("Error generating optimized image URL:", error);
+  } catch (_error) {
     return imageUrl; // Fallback to original URL
   }
 }

@@ -45,7 +45,6 @@ export async function uploadPublicImage(
   options: OptimizedImageOptions = {}
 ): Promise<string | null> {
   if (!process.env.CLOUDINARY_CLOUD_NAME) {
-    console.warn("Cloudinary not configured, returning original path");
     return publicPath;
   }
 
@@ -74,8 +73,7 @@ export async function uploadPublicImage(
     });
 
     return result.secure_url;
-  } catch (error) {
-    console.error("Error uploading public image to Cloudinary:", error);
+  } catch (_error) {
     return publicPath; // Fallback to original path
   }
 }
@@ -91,7 +89,6 @@ export async function uploadExternalImage(
   options: OptimizedImageOptions = {}
 ): Promise<string | null> {
   if (!process.env.CLOUDINARY_CLOUD_NAME) {
-    console.warn("Cloudinary not configured, returning original URL");
     return imageUrl;
   }
 
@@ -180,11 +177,7 @@ export async function uploadExternalImage(
       clearTimeout(timeoutId); // Clear timeout on error
       // Timeout or network error - don't block, just return null
       if (fetchError instanceof Error && fetchError.name === "AbortError") {
-        console.warn(
-          `Timeout fetching image from ${imageUrl} (exceeded 10s)`
-        );
       } else {
-        console.warn(`Failed to fetch image from ${imageUrl}:`, fetchError);
       }
       // Cache empty string to indicate failure
       imageUploadCache.set(cacheKey, "");
@@ -192,9 +185,6 @@ export async function uploadExternalImage(
     }
 
     if (!response.ok) {
-      console.warn(
-        `Failed to fetch image from ${imageUrl}: ${response.status} ${response.statusText}`
-      );
       // Return null instead of broken URL to prevent client from trying to load 404 images
       // Cache null to avoid repeated failed requests for the same broken URL
       imageUploadCache.set(cacheKey, ""); // Cache empty string to indicate failure
@@ -229,8 +219,7 @@ export async function uploadExternalImage(
     // Cache the result
     imageUploadCache.set(cacheKey, result.secure_url);
     return result.secure_url;
-  } catch (error) {
-    console.error("Error uploading external image to Cloudinary:", error);
+  } catch (_error) {
     return imageUrl; // Fallback to original URL
   }
 }

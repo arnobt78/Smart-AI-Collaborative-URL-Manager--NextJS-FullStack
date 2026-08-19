@@ -51,7 +51,6 @@ export async function upsertUrlVector(
   listId: string
 ): Promise<void> {
   if (!vectorIndex) {
-    console.warn("Vector index not configured, skipping vector upsert");
     return;
   }
 
@@ -75,13 +74,7 @@ export async function upsertUrlVector(
       data: embeddingText, // Upstash will automatically generate embeddings using the model
       metadata,
     });
-    console.log(
-      `✅ [VECTOR] Upserted vector for URL: ${
-        url.title || url.url
-      } (${vectorId})`
-    );
-  } catch (error) {
-    console.error("❌ [VECTOR] Failed to upsert URL vector:", error);
+  } catch (_error) {
     // Don't throw - vector search is optional enhancement
   }
 }
@@ -100,9 +93,7 @@ export async function deleteUrlVector(
   try {
     const vectorId = `${listId}:${urlId}`;
     await vectorIndex.delete([vectorId]);
-    console.log(`🗑️ [VECTOR] Deleted vector: ${vectorId}`);
-  } catch (error) {
-    console.error("❌ [VECTOR] Failed to delete URL vector:", error);
+  } catch (_error) {
   }
 }
 
@@ -121,14 +112,10 @@ export async function findSimilarUrls(
   }>
 > {
   if (!vectorIndex) {
-    console.warn(
-      "⚠️ [VECTOR] Vector index not configured, returning empty results"
-    );
     return [];
   }
 
   try {
-    const startTime = Date.now();
     // Query vector database - Upstash will automatically generate embedding for the query
     // Note: Upstash Vector filters work differently, we'll filter results after fetching
     const results = await vectorIndex.query({
@@ -149,16 +136,6 @@ export async function findSimilarUrls(
           (result.score || 0) >= MIN_SIMILARITY_SCORE
       )
       .slice(0, topK); // Limit to requested topK
-
-    const duration = Date.now() - startTime;
-    console.log(
-      `🔍 [VECTOR] Found ${
-        filteredResults.length
-      } similar URLs in ${duration}ms (min similarity: ${MIN_SIMILARITY_SCORE}, query: "${query.substring(
-        0,
-        50
-      )}...")`
-    );
 
     // Transform results to match our SearchResult interface
     return filteredResults.map((result) => {
@@ -187,8 +164,7 @@ export async function findSimilarUrls(
         metadata: vectorMetadata,
       };
     });
-  } catch (error) {
-    console.error("❌ [VECTOR] Vector search failed:", error);
+  } catch (_error) {
     return [];
   }
 }
@@ -201,19 +177,14 @@ export async function upsertUrlVectors(
   listId: string
 ): Promise<void> {
   if (!vectorIndex) {
-    console.warn(
-      "⚠️ [VECTOR] Vector index not configured, skipping batch upsert"
-    );
     return;
   }
 
   if (urls.length === 0) {
-    console.log("ℹ️ [VECTOR] No URLs to sync, skipping");
     return;
   }
 
   try {
-    const startTime = Date.now();
     const vectors = urls.map((url) => {
       const embeddingText = generateEmbeddingText(url);
       const metadata: Record<string, unknown> = {
@@ -235,18 +206,10 @@ export async function upsertUrlVectors(
 
     // Upsert in batches (Upstash supports up to 100 vectors per request)
     const batchSize = 100;
-    let totalSynced = 0;
     for (let i = 0; i < vectors.length; i += batchSize) {
       const batch = vectors.slice(i, i + batchSize);
       await vectorIndex.upsert(batch);
-      totalSynced += batch.length;
     }
-
-    const duration = Date.now() - startTime;
-    console.log(
-      `✅ [VECTOR] Synced ${totalSynced} URLs to vector database in ${duration}ms (listId: ${listId})`
-    );
-  } catch (error) {
-    console.error("❌ [VECTOR] Failed to upsert URL vectors in batch:", error);
+  } catch (_error) {
   }
 }

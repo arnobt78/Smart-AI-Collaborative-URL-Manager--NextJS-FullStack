@@ -1,4 +1,4 @@
-# TEST_SPEC.md — C1 UI remediation
+# TEST_SPEC.md — C2 homepage hero polish
 
 Overview: REQ-0010 through REQ-0014. Tests are derived from approved requirements and must be run independently of implementation rationale.
 
@@ -16,3 +16,5 @@ Overview: REQ-0010 through REQ-0014. Tests are derived from approved requirement
 | TC-0019 | REQ-0016 | Open guest-account menu over later Auth rows | Accounts remain visible and clickable; trigger exposes expanded state and menu relationship | manual integration |
 | TC-0020 | REQ-0017 | Render shared controls and Home CTAs | Labeled controls retain `h-10 min-h-10`; CTA destinations/icons remain correct | unit/manual |
 | TC-0021 | REQ-0017 | Enter/leave marketing sections | Ordered transform/opacity reveal and parallax work; reduced-motion renders stable content | manual integration |
+| TC-0026 [C2] | REQ-0024 | Render authenticated homepage hero | Logo, title, two descriptions, and CTA row use `auth-reveal-delay-0` through `auth-reveal-delay-4`; links retain their internal destinations | unit |
+| TC-0027 [C2] | REQ-0024 | Inspect homepage at 320px, 768px, and 1440px with normal and reduced motion | No clipping, overlap, layout shift, or interaction delay; lower sections retain viewport scroll reveal | manual responsive |

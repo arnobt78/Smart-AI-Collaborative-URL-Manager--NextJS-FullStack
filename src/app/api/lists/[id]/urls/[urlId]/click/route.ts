@@ -82,7 +82,6 @@ export async function POST(req: NextRequest, context: RouteContext) {
           },
         });
 
-        console.log(`✅ [CLICK] Database update committed for ${urlId}: ${oldClickCount} → ${newClickCount}`);
 
         return result;
       }, {
@@ -91,7 +90,6 @@ export async function POST(req: NextRequest, context: RouteContext) {
         maxWait: 5000,
       });
     } catch (dbError) {
-      console.error(`❌ [CLICK] Database transaction failed:`, dbError);
       throw dbError;
     }
 
@@ -100,7 +98,6 @@ export async function POST(req: NextRequest, context: RouteContext) {
     }
 
     // Log the final update
-    console.log(`✅ [CLICK] Transaction completed. Final clickCount: ${newClickCount}`);
 
     // Invalidate Redis cache for this list's metadata and URLs
     // This ensures the updated clickCount is fetched fresh on next request
@@ -110,9 +107,8 @@ export async function POST(req: NextRequest, context: RouteContext) {
           redis.del(cacheKeys.listMetadata(listId)),
           redis.del(`list-urls:${listId}`),
         ]);
-      } catch (error) {
+      } catch (_error) {
         // Non-critical, log but don't fail the request
-        console.warn("⚠️ [CLICK] Failed to invalidate Redis cache:", error);
       }
     }
 

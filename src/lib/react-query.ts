@@ -37,9 +37,8 @@ export const saveQueryDataToLocalStorage = (
   try {
     const key = `react-query:${queryKey.join(":")}`;
     localStorage.setItem(key, JSON.stringify({ data, timestamp: Date.now() }));
-  } catch (error) {
+  } catch (_error) {
     if (process.env.NODE_ENV === "development") {
-      console.error("Failed to save query data to localStorage:", error);
     }
   }
 };
@@ -59,9 +58,8 @@ export const loadQueryDataFromLocalStorage = (queryKey: readonly string[]) => {
       // Remove old data
       localStorage.removeItem(key);
     }
-  } catch (error) {
+  } catch (_error) {
     if (process.env.NODE_ENV === "development") {
-      console.error("Failed to load query data from localStorage:", error);
     }
   }
   return undefined;

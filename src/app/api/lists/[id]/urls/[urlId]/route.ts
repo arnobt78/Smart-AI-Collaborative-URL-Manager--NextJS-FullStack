@@ -109,11 +109,7 @@ export async function DELETE(
 
     // Sync vectors in background (non-blocking)
     if (vectorIndex) {
-      console.log(
-        `🔄 [VECTOR SYNC] Deleting vector for URL ${urlId} after deletion`
-      );
-      deleteUrlVector(urlId, listId).catch((error) => {
-        console.error("❌ [VECTOR] Failed to delete URL vector:", error);
+      deleteUrlVector(urlId, listId).catch(() => {
       });
     }
 
@@ -139,4 +135,3 @@ export async function DELETE(
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
-

@@ -175,3 +175,16 @@ Gate 2: BLOCKED — RISK-0016 is accepted; `EVAL_RESULTS.md` PASS/WAIVED evidenc
 | Production build | `npm run build` | PASS | Fresh `.next/BUILD_ID` confirms the optimized build completed. |
 | Diff hygiene | `git diff --check -- src .agile-v docs CLAUDE.md` | PASS | No whitespace errors. |
 | Browser acceptance | REQ-0017 control/Home motion; REQ-0018 metadata/action badges | PENDING USER TEST | Automated checks cannot substitute for interactive browser validation. |
+
+| Production test handoff | TASK-0025 | PENDING USER | User will test deployed commit `084aced` later; no production action or result has been received. |
+
+## 2026-08-19 — REQ-0024 homepage hero mount stagger
+
+| Scope | Command / evidence | Result | Notes |
+|---|---|---|---|
+| Focused regression | `npm test -- --runInBand src/components/__tests__/HomePage.test.tsx` | PASS | Authenticated hero uses delays 0–4 and retains `/lists?dialog=create` and `/lists` destinations. |
+| Type safety | `npx tsc --noEmit` | PASS | Strict TypeScript passes. |
+| Static analysis | `npm run lint` | PASS | Zero warnings/errors. |
+| Full regression suite | `npm test -- --runInBand` | PASS | 8 suites passed, 1 skipped; 30 tests passed, 5 skipped. |
+| Production build | `npm run build` | PASS | Prisma generation and optimized Next.js production build completed. |
+| Browser acceptance | TC-0027 | PENDING USER TEST | Automated checks cannot substitute for the requested 320px, 768px, 1440px, and reduced-motion visual review. |

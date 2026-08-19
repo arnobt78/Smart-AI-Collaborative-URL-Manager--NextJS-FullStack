@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { getUserLists, createList as createListDB } from "@/lib/db";
+import type { UrlItem } from "@/lib/db";
+import { listCreateSchema, parseJsonBody } from "@/lib/api-validation";
 
 export async function GET() {
   try {
@@ -20,19 +22,20 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
+    const parsed = await parseJsonBody(req, listCreateSchema);
+    if (!parsed.success) return parsed.response;
     const user = await getCurrentUser();
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const body = await req.json();
-    const { title, description, slug, urls, isPublic } = body;
+    const { title, description, slug, urls, isPublic } = parsed.data;
 
     const list = await createListDB({
       title,
-      description,
+      description: description ?? undefined,
       slug,
-      urls: urls || [],
+      urls: (urls ?? []) as UrlItem[],
       isPublic: isPublic || false,
       userId: user.id,
     });

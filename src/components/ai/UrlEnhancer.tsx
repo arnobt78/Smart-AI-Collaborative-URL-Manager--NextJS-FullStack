@@ -86,9 +86,8 @@ export function UrlEnhancer({
               // Ignore localStorage errors
             }
           }
-        } catch (err) {
+        } catch (_err) {
           // Metadata fetch failed, continue with provided values
-          console.warn("Failed to fetch metadata for AI enhancement:", err);
         }
       }
 
@@ -122,7 +121,6 @@ export function UrlEnhancer({
       const errorMessage =
         err instanceof Error ? err.message : "Failed to enhance URL";
       setError(errorMessage);
-      console.error("Enhancement error:", err);
     } finally {
       setLoading(false);
     }

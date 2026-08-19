@@ -10,6 +10,14 @@ import { redis, cacheKeys } from "@/lib/redis";
 import { fetchUrlMetadata } from "@/utils/urlMetadata";
 import type { UrlItem } from "@/stores/urlListStore";
 import type { UrlMetadata } from "@/utils/urlMetadata";
+import {
+  createUrlSchema,
+  deleteUrlSchema,
+  parseJsonBody,
+  parseOptionalJsonBody,
+  parseRouteParams,
+  updateUrlSchema,
+} from "@/lib/api-validation";
 
 type RouteContext = { params: Promise<{ id: string }> };
 
@@ -73,7 +81,6 @@ export async function GET(req: NextRequest, context: RouteContext) {
           if (urlsMatch && cached.metadata) {
             // Cache is valid, return instantly
             if (process.env.NODE_ENV === "development") {
-              console.log(`✅ [GET] URLs with metadata loaded from cache`);
             }
             return NextResponse.json({
               urls: cached.urls,
@@ -161,7 +168,6 @@ export async function GET(req: NextRequest, context: RouteContext) {
     }
 
     if (process.env.NODE_ENV === "development") {
-      console.log(`✅ [GET] URLs fetched and cached (${urls.length} URLs)`);
     }
     return NextResponse.json({
       urls,
@@ -170,7 +176,6 @@ export async function GET(req: NextRequest, context: RouteContext) {
     });
   } catch (error) {
     if (process.env.NODE_ENV === "development") {
-      console.error("❌ [GET] Error:", error);
     }
     const message =
       error instanceof Error ? error.message : "Failed to fetch URLs";
@@ -185,6 +190,9 @@ export async function GET(req: NextRequest, context: RouteContext) {
  */
 export async function POST(req: NextRequest, context: RouteContext) {
   try {
+    const parsed = await parseJsonBody(req, createUrlSchema);
+    if (!parsed.success) return parsed.response;
+    const { url, title, tags, notes, reminder, category, metadata, isDuplicate } = parsed.data;
     const user = await getCurrentUser();
     if (!user) {
       return NextResponse.json(
@@ -195,30 +203,6 @@ export async function POST(req: NextRequest, context: RouteContext) {
 
     const params = await context.params;
     const identifier = params.id; // Can be slug or UUID
-    const body = await req.json();
-    const {
-      url,
-      title,
-      tags,
-      notes,
-      reminder,
-      category,
-      metadata,
-      isDuplicate,
-    }: {
-      url: string;
-      title?: string;
-      tags?: string[];
-      notes?: string;
-      reminder?: string;
-      category?: string;
-      metadata?: UrlMetadata;
-      isDuplicate?: boolean;
-    } = body;
-
-    if (!url) {
-      return NextResponse.json({ error: "URL is required" }, { status: 400 });
-    }
 
     // Get current list (supports both slug and UUID)
     const currentList = await getListBySlugOrId(identifier);
@@ -287,12 +271,6 @@ export async function POST(req: NextRequest, context: RouteContext) {
             if (cached) {
               finalMetadata = cached;
               if (process.env.NODE_ENV === "development") {
-                console.log(
-                  `✅ [POST] Using cached metadata from Redis for: ${url.slice(
-                    0,
-                    40
-                  )}...`
-                );
               }
             }
           } catch {
@@ -385,13 +363,9 @@ export async function POST(req: NextRequest, context: RouteContext) {
                         }
                       }
                     }
-                  } catch (error) {
+                  } catch (_error) {
                     // Silently fail - metadata is cached, that's the main thing
                     if (process.env.NODE_ENV === "development") {
-                      console.warn(
-                        "Failed to update URL object with background metadata:",
-                        error
-                      );
                     }
                   }
                 }
@@ -412,12 +386,6 @@ export async function POST(req: NextRequest, context: RouteContext) {
       }
     } else {
       if (process.env.NODE_ENV === "development") {
-        console.log(
-          `✅ [POST] Using provided metadata (from cache) for: ${url.slice(
-            0,
-            40
-          )}...`
-        );
       }
 
       // CRITICAL: Cache provided metadata in Redis for unified endpoint
@@ -437,10 +405,9 @@ export async function POST(req: NextRequest, context: RouteContext) {
           if (finalMetadata.siteName && !newUrl.category) {
             newUrl.category = finalMetadata.siteName;
           }
-        } catch (error) {
+        } catch (_error) {
           // Ignore Redis errors (non-critical)
           if (process.env.NODE_ENV === "development") {
-            console.warn("Failed to cache provided metadata:", error);
           }
         }
       }
@@ -516,9 +483,6 @@ export async function POST(req: NextRequest, context: RouteContext) {
     }
 
     if (process.env.NODE_ENV === "development") {
-      console.log(
-        `✅ [POST] URL added: ${url}${isDuplicate ? " (duplicated)" : ""}`
-      );
     }
     // Return unified response
     return NextResponse.json({
@@ -539,7 +503,6 @@ export async function POST(req: NextRequest, context: RouteContext) {
     });
   } catch (error) {
     if (process.env.NODE_ENV === "development") {
-      console.error("❌ [POST] Error:", error);
     }
     const message =
       error instanceof Error ? error.message : "Failed to add URL";
@@ -554,6 +517,9 @@ export async function POST(req: NextRequest, context: RouteContext) {
  */
 export async function PATCH(req: NextRequest, context: RouteContext) {
   try {
+    const parsed = await parseJsonBody(req, updateUrlSchema);
+    if (!parsed.success) return parsed.response;
+    const body = parsed.data;
     const user = await getCurrentUser();
     if (!user) {
       return NextResponse.json(
@@ -564,7 +530,6 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
 
     const params = await context.params;
     const identifier = params.id; // Can be slug or UUID
-    const body = await req.json();
     const {
       urlId,
       updates,
@@ -577,7 +542,13 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
       urls?: UrlItem[]; // For reorder operation
       action?: string;
       metadata?: UrlMetadata;
-    } = body;
+    } = body as {
+      urlId?: string;
+      updates?: Partial<UrlItem>;
+      urls?: UrlItem[];
+      action?: string;
+      metadata?: UrlMetadata;
+    };
 
     // Get current list (supports both slug and UUID)
     const currentList = await getListBySlugOrId(identifier);
@@ -590,14 +561,8 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
 
     // Log what we received from client
     if (reorderedUrls && Array.isArray(reorderedUrls)) {
-      const receivedOrder = reorderedUrls.map((u: UrlItem) => u.id).join(",");
+      const _receivedOrder = reorderedUrls.map((u: UrlItem) => u.id).join(",");
       if (process.env.NODE_ENV === "development") {
-        console.log(`📥 [PATCH] Received reorder request`, {
-          listId: listId,
-          receivedOrder: receivedOrder,
-          urlCount: reorderedUrls.length,
-          action: requestAction,
-        });
       }
     }
 
@@ -662,12 +627,7 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
       // Sort by position for consistent storage
       updatedUrls.sort((a, b) => (a.position ?? 999) - (b.position ?? 999));
 
-      const orderToSave = updatedUrls.map((u) => u.id).join(",");
-      console.log(`💾 [PATCH] Updating positions`, {
-        listId: listId,
-        orderToSave: orderToSave,
-        urlCount: updatedUrls.length,
-      });
+      const _orderToSave = updatedUrls.map((u) => u.id).join(",");
 
       updated = await updateList(listId, { urls: updatedUrls });
 
@@ -676,12 +636,7 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
       }
 
       const savedUrls = (updated.urls as unknown as UrlItem[]) || [];
-      const savedOrder = savedUrls.map((u) => u.id).join(",");
-      console.log(`✅ [PATCH] Positions updated`, {
-        listId: listId,
-        savedOrder: savedOrder,
-        matchesSent: savedOrder === orderToSave,
-      });
+      const _savedOrder = savedUrls.map((u) => u.id).join(",");
 
       // For reorder, we don't have a single updatedUrl, so set to undefined
       updatedUrl = undefined;
@@ -726,12 +681,6 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
         if (providedMetadata) {
           urlMetadata = providedMetadata;
           if (process.env.NODE_ENV === "development") {
-            console.log(
-              `✅ [PATCH] Using provided metadata (from prefetch cache) for: ${updatedUrl.url.slice(
-                0,
-                40
-              )}...`
-            );
           }
 
           // Also cache it in Redis for future requests
@@ -752,12 +701,6 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
               if (cached) {
                 urlMetadata = cached;
                 if (process.env.NODE_ENV === "development") {
-                  console.log(
-                    `✅ [PATCH] Using cached metadata from Redis for: ${updatedUrl.url.slice(
-                      0,
-                      40
-                    )}...`
-                  );
                 }
               }
             } catch {
@@ -919,8 +862,7 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
     if (vectorIndex) {
       if (isReorderOperation) {
         // For reorder, sync all URLs
-        upsertUrlVectors(updatedUrls, listId).catch((error) => {
-          console.error("❌ [VECTOR] Failed to sync URLs to vector DB:", error);
+        upsertUrlVectors(updatedUrls, listId).catch(() => {
         });
       } else if (updatedUrl) {
         // For single URL update, sync only that URL
@@ -931,14 +873,9 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
     }
 
     if (isReorderOperation) {
-      const savedOrder =
+      const _savedOrder =
         (updated.urls as unknown as UrlItem[])?.map((u: UrlItem) => u.id) || [];
       if (process.env.NODE_ENV === "development") {
-        console.log(`✅ [PATCH] URLs reordered (action: ${activityAction})`, {
-          savedOrder: savedOrder.join(","),
-          urlCount: savedOrder.length,
-          listId: listId,
-        });
       }
       // Return unified response for reorder
       return NextResponse.json({
@@ -957,9 +894,6 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
       });
     } else {
       if (process.env.NODE_ENV === "development") {
-        console.log(
-          `✅ [PATCH] URL updated: ${updatedUrl?.url} (action: ${activityAction})`
-        );
       }
       // Return unified response for single URL update
       return NextResponse.json({
@@ -981,7 +915,6 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
     }
   } catch (error) {
     if (process.env.NODE_ENV === "development") {
-      console.error("❌ [PATCH] Error:", error);
     }
     const message =
       error instanceof Error ? error.message : "Failed to update URL";
@@ -996,6 +929,12 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
  */
 export async function DELETE(req: NextRequest, context: RouteContext) {
   try {
+    const parsed = await parseOptionalJsonBody(req, deleteUrlSchema);
+    if (!parsed.success) return parsed.response;
+    const query = parseRouteParams({ urlId: req.nextUrl.searchParams.get("urlId") }, deleteUrlSchema);
+    if (!parsed.data && !query.success) return query.response;
+    const finalUrlId = parsed.data?.urlId ?? (query.success ? query.data.urlId : undefined);
+    if (!finalUrlId) return NextResponse.json({ error: "Invalid request" }, { status: 400 });
     const user = await getCurrentUser();
     if (!user) {
       return NextResponse.json(
@@ -1006,16 +945,6 @@ export async function DELETE(req: NextRequest, context: RouteContext) {
 
     const params = await context.params;
     const identifier = params.id; // Can be slug or UUID
-    const body = await req.json().catch(() => ({}));
-    const { urlId }: { urlId?: string } = body;
-
-    // Support both query param and body for urlId (for backward compatibility)
-    const searchParams = req.nextUrl.searchParams;
-    const finalUrlId = urlId || searchParams.get("urlId");
-
-    if (!finalUrlId) {
-      return NextResponse.json({ error: "urlId is required" }, { status: 400 });
-    }
 
     // Get current list (supports both slug and UUID)
     const currentList = await getListBySlugOrId(identifier);
@@ -1116,7 +1045,6 @@ export async function DELETE(req: NextRequest, context: RouteContext) {
     }
 
     if (process.env.NODE_ENV === "development") {
-      console.log(`✅ [DELETE] URL deleted: ${deletedUrl.url}`);
     }
     // Return unified response with user info in activity to avoid client-side session fetch
     return NextResponse.json({
@@ -1146,7 +1074,6 @@ export async function DELETE(req: NextRequest, context: RouteContext) {
     });
   } catch (error) {
     if (process.env.NODE_ENV === "development") {
-      console.error("❌ [DELETE] Error:", error);
     }
     const message =
       error instanceof Error ? error.message : "Failed to delete URL";

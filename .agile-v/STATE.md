@@ -1,6 +1,6 @@
 # STATE.md
 
-**C1** | 2026-08-14
+**C2** | 2026-08-19
 
 ## Done
 
@@ -26,6 +26,7 @@
 - Zero-gap heading contract: `HEADING_STACK` is used by PageHeader, Dialog, CardHeader, Auth, Smart Collections, feature cards, and legacy empty states; surrounding form, action, menu, and card-content spacing is retained.
 - Stable data surfaces: requested pages keep their static chrome, cold placeholders are delayed and local, comment badges use one grouped unified payload, import recovery has no hard reload, and metadata rejects private network targets for documents, images, favicons, and redirects.
 - Stable list-form dialogs: scroll-header Dialog mode yields one accessible heading/X; cache-seeded My Lists editing, shared compact form primitives, optimistic list hooks, and note-with-X/Eraser action conventions eliminate editor toasts, timers, and form-open/close skeletons.
+- Homepage hero: authenticated logo, title, two description rows, and CTA row reuse the login form's five-step initial-mount stagger; lower marketing scroll reveals are unchanged.
 
 ## Human
 
@@ -60,9 +61,11 @@
 - **Audit (2026-08-19):** verified critical missing authorization on `PATCH`/`DELETE /api/lists/[id]`; high-risk missing access checks on list metadata and vector-sync routes; duplicate URL mutation paths with incomplete delete rollback; Browse Suspense fallback and Lists/Insights/detail cold-state behavior can remount broad placeholders. These are tracked in REQ-0022/REQ-0023 and RISK-0017/RISK-0018.
 - **Completion (2026-08-19):** REQ-0022/REQ-0023 are implemented and locally verified. Canonical route access protects list mutations, metadata, and vector sync; URL mutations use one snapshot/commit/rollback path; query keys are hook-independent; requested data surfaces retain their static shells and cached data.
 - **Manual acceptance:** REQ-0017 control/Home-motion and REQ-0018 metadata/action-badge flows await user browser testing; implementation and automated validation are complete.
+- **Production test handoff (2026-08-19):** User will test the deployed Vercel application later; no browser action or defect report has been received yet. Resume from TASK-0025 when feedback arrives.
+- **C2 completion (2026-08-19):** REQ-0024 / TASK-0026 complete under GATE-0015. The homepage hero now reuses login's mount stagger; focused regression coverage, strict TypeScript, zero-warning lint, full Jest, and production build pass. C1/C2 Gate 2 release acceptance remains pending.
 
 ## Next
 
 ```text
-For release acceptance: obtain browser-level metadata/action evidence, create `EVAL_RESULTS.md`, and satisfy GATE-0002. HA-0001 remains human-owned; no densify/Zod changes are implied.
+For release acceptance: obtain browser-level homepage-motion and metadata/action evidence, create `EVAL_RESULTS.md`, and satisfy Gate 2. HA-0001 remains human-owned; no densify/Zod changes are implied.
 ```

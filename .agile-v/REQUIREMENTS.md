@@ -1,6 +1,8 @@
-# REQUIREMENTS.md — Cycle C1
+# REQUIREMENTS.md — Cycle C2
 
-**Status:** C1 in progress — AI/guardrails/SafeImage/observability done; hygiene open  
+<!-- Revision: C2 | Date: 2026-08-19 | Human Gate 1: approved by user implementation request -->
+
+**Status:** C2 locally verified — C1 release acceptance and C2 browser acceptance remain pending
 **Created:** 2026-08-14
 
 ---
@@ -443,6 +445,28 @@ These describe the current product as verified in code. They are **Accepted as b
 
 ---
 
+## C2 requirements
+
+### REQ-0024 — Homepage hero mount stagger (approved 2026-08-19)
+
+**Priority:** P2
+**Type:** UI consistency / accessibility / rendering stability
+**Statement:** The authenticated homepage hero MUST reveal its logo, title, two description rows, and CTA row with the same initial-mount CSS stagger used by the login form. The hero MUST keep its current copy, logo asset, internal destinations, responsive control geometry, and session/SSR behavior.
+
+**Acceptance:**
+
+- [x] The five ordered hero rows use the existing `auth-reveal` CSS contract with delays 0 through 4; the CTA buttons share the final row.
+- [x] The feature, workflow, and final CTA sections retain their existing `ScrollReveal` behavior.
+- [x] Reduced motion renders all hero rows immediately; normal motion uses only existing opacity/transform CSS and does not delay interaction or cause layout shift.
+- [x] No query, cache, mutation, API, database, authorization, or session contract changes are introduced.
+- [x] Focused homepage coverage verifies ordered reveal classes and CTA destinations; TypeScript, zero-warning lint, Jest, production build, and diff checks pass.
+
+**Affected:** `src/components/HomePage.tsx`, `src/components/__tests__/HomePage.test.tsx`, test setup debug output, and C2 traceability records only.
+**Trace:** CR-0001, TASK-0026, DEC-0026, GATE-0015
+**Status:** Completed and locally validated [C2] on 2026-08-19.
+
+---
+
 ### REQ-0023 — Single list mutation gateway and stable data surfaces (proposed 2026-08-19)
 
 **Priority:** P1
@@ -461,3 +485,26 @@ These describe the current product as verified in code. They are **Accepted as b
 **Affected:** `src/hooks/useListQueries.ts`, `src/stores/urlListStore.ts`, `src/utils/queryInvalidation.ts`, URL/list page and query components, and focused tests only.
 **Trace:** TASK-0024, DEC-0023, RISK-0018, GATE-0014
 **Status:** Completed and locally validated 2026-08-19.
+
+---
+
+## C3 requirements
+
+### REQ-0025 — Validated mutation boundaries, digest-backed sessions, and cache integrity (approved 2026-08-19)
+
+**Priority:** P0
+**Type:** Security / data integrity / cache consistency
+**Statement:** Every mutating API boundary MUST parse route identifiers and payloads through shared Zod schemas before authorization or side effects. New opaque cookie-session tokens MUST be persisted only as SHA-256 digests while valid legacy plaintext records rotate transparently on access. Client CRUD mutations MUST use the existing query-key and invalidation gateway with isolated optimistic rollback and one successful-impact invalidation.
+
+**Acceptance:**
+
+- [ ] Shared typed request parsing rejects malformed JSON and invalid route identifiers/payloads with a non-disclosing 400 before database, Redis, vector, email, SSE, or authorization side effects.
+- [ ] Auth, lists, URLs/actions, comments, collaborators, visibility, collections, metadata, imports, AI, email, and internal job mutations use the shared schemas.
+- [ ] New sessions use cryptographically random opaque tokens and SHA-256 database digests; valid legacy plaintext tokens rotate in place without logout; lookup, expiry, and sign-out support both representations during transition.
+- [ ] `session_token` remains HttpOnly, production-Secure, SameSite=Lax, and unavailable to client JavaScript; passwords remain bcrypt hashes and Prisma 6 remains unchanged.
+- [ ] Mutation families retain optimistic snapshots, roll back only their own failed operation, and invalidate their mapped cache families once after success while SSE continues cross-client synchronization.
+- [ ] Focused rejection, session transition, mutation rollback/invalidation, and invite-pending tests pass with strict TypeScript, zero-warning lint, Jest, production build, dependency audit, and direct-console scan.
+
+**Affected:** `src/lib/auth.ts`, shared server validation utilities, mutating route handlers, mutation/query helpers and focused tests.
+**Trace:** CR-0002, TASK-0027 through TASK-0030, DEC-0027, GATE-0016.
+**Status:** In progress [C3].

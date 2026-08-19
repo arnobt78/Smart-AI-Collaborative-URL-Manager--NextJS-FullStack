@@ -220,7 +220,6 @@ export function useRealtimeList(listId: string | null) {
                 // Return early for collaborator actions - unified-update event is dispatched above
                 return;
               } else {
-                console.warn(`⚠️ [REALTIME] Cannot dispatch unified-update for collaborator action - no slug found (listId: ${listId}, data:`, data, `)`);
               }
             }
 
@@ -323,12 +322,11 @@ export function useRealtimeList(listId: string | null) {
               })
             );
           }
-        } catch (error) {
-          console.error(`❌ [API] SSE event parsing error:`, error);
+        } catch (_error) {
         }
       };
 
-      eventSource.onerror = (error) => {
+      eventSource.onerror = () => {
         // Suppress errors during page unload/navigation (Firefox-specific)
         if (isUnloading) {
           return; // Don't log errors or reconnect during page navigation
@@ -341,7 +339,6 @@ export function useRealtimeList(listId: string | null) {
 
         // Only log error if not a simple connection interruption during page load
         if (!isConnectionInterrupted || process.env.NODE_ENV === "development") {
-          console.error(`❌ [API] SSE connection error:`, error);
         }
 
         setIsConnected(false);

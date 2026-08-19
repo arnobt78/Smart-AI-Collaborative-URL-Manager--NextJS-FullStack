@@ -4,17 +4,13 @@ import { cookies } from "next/headers";
 import { sendWelcomeEmail } from "@/lib/email";
 import { WAS_AUTHED_COOKIE } from "@/constants/auth";
 import { wasAuthedCookieSetOptions } from "@/lib/was-authed";
+import { parseJsonBody, signUpSchema } from "@/lib/api-validation";
 
 export async function POST(req: NextRequest) {
   try {
-    const { email, password } = await req.json();
-
-    if (!email || !password) {
-      return NextResponse.json(
-        { error: "Email and password are required" },
-        { status: 400 }
-      );
-    }
+    const parsed = await parseJsonBody(req, signUpSchema);
+    if (!parsed.success) return parsed.response;
+    const { email, password } = parsed.data;
 
     // Create the user
     const user = await signUp(email, password);
@@ -39,19 +35,10 @@ export async function POST(req: NextRequest) {
         userEmail: user.email,
       });
       if (result.success) {
-        console.log(
-          `✅ Welcome email sent to ${user.email}:`,
-          result.messageId
-        );
       } else {
-        console.error(
-          `❌ Failed to send welcome email to ${user.email}:`,
-          result.error
-        );
       }
-    } catch (emailError) {
-      // Log error but don't fail the signup
-      console.error("Failed to send welcome email:", emailError);
+    } catch {
+      // Email delivery is non-critical after the account and session are persisted.
     }
 
     return NextResponse.json({
@@ -60,9 +47,7 @@ export async function POST(req: NextRequest) {
         email: user.email,
       },
     });
-  } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Failed to sign up";
-    return NextResponse.json({ error: message }, { status: 400 });
+  } catch {
+    return NextResponse.json({ error: "Unable to sign up" }, { status: 400 });
   }
 }

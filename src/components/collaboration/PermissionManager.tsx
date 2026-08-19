@@ -16,6 +16,7 @@ import {
   Shield,
   MoreVertical,
   Trash2,
+  Send,
 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useListPermissions } from "@/hooks/useListPermissions";
@@ -493,9 +494,12 @@ export function PermissionManager({
               type="button"
               onClick={handleAddCollaborator}
               disabled={addCollaboratorMutation.isPending || !newEmail.trim()}
-              isLoading={addCollaboratorMutation.isPending}
-              variant="glass"
-            >
+            isLoading={addCollaboratorMutation.isPending}
+            variant="glass"
+          >
+              {!addCollaboratorMutation.isPending ? (
+                <Send className="h-4 w-4" aria-hidden />
+              ) : null}
               {addCollaboratorMutation.isPending ? "Sending..." : "Send Invite"}
             </Button>
           </div>

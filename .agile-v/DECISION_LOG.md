@@ -347,3 +347,16 @@ Append-only. Newest entries at bottom.
 | Rationale | Type, lint, unit, build, and diff checks verify the code path but cannot prove the final interactive visual and action behavior in a real browser. |
 | Linked REQs | REQ-0017, REQ-0018 |
 | Status | Pending user feedback; no code change. |
+
+---
+
+## DEC-0026 — Reuse login mount stagger for the homepage hero
+
+| Field | Value |
+|-------|-------|
+| Timestamp | 2026-08-19 |
+| Agent | Agile V C2 implementation |
+| Decision | Replace only the authenticated homepage hero's viewport-reveal wrappers with the existing `auth-reveal` CSS classes and delays 0–4. |
+| Rationale | The approved requirement explicitly calls for the login form's initial mount sequence. Reuse avoids new runtime state, CSS contracts, dependencies, hydration risk, or duplicate animation logic. |
+| Linked REQs | REQ-0024 |
+| Status | Approved for implementation. |

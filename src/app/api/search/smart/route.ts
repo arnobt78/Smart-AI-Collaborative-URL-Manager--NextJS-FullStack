@@ -67,7 +67,6 @@ export async function GET(request: NextRequest) {
         matchReason: string;
       }> = [];
 
-      console.log(`🔍 [SMART SEARCH] Finding similar URLs for: ${targetUrl.title || targetUrl.url} (using vector search)`);
       const vectorResults = await vectorFindSimilar(
         generateEmbeddingText(targetUrl),
         listId,
@@ -75,7 +74,6 @@ export async function GET(request: NextRequest) {
       );
 
       if (vectorResults.length > 0) {
-        console.log(`✅ [SMART SEARCH] Vector search found ${vectorResults.length} similar URLs`);
         // Transform vector results to match SearchResult format
         similarResults = vectorResults.map((result) => ({
           url: result.url,
@@ -83,14 +81,12 @@ export async function GET(request: NextRequest) {
           matchReason: `Vector similarity: ${Math.round(result.score * 100)}% match`,
         }));
       } else {
-        console.log(`⚠️ [SMART SEARCH] Vector search returned no results, falling back to AI semantic search`);
         // Fallback to AI semantic search if vector search fails/empty
         similarResults = await semanticSearchService.findSimilarUrls(
           targetUrl,
           urls,
           { limit: 5, minRelevanceScore: 0.5 }
         );
-        console.log(`✅ [SMART SEARCH] AI search found ${similarResults.length} similar URLs`);
       }
 
       // Cache results
@@ -184,11 +180,9 @@ export async function GET(request: NextRequest) {
 
     // Only use vector search if keyword search found NO results
     if (keywordResults.length === 0) {
-      console.log(`🔍 [SMART SEARCH] No keyword matches for "${query}", trying vector search`);
       const vectorResults = await vectorFindSimilar(query, listId, 20);
 
       if (vectorResults.length > 0) {
-        console.log(`✅ [SMART SEARCH] Vector search found ${vectorResults.length} results`);
         // Transform vector results to match SearchResult format
         // Also enrich with full URL data from database
         const vectorSearchResults = vectorResults
@@ -206,13 +200,11 @@ export async function GET(request: NextRequest) {
         searchResults = [...vectorSearchResults];
       }
     } else {
-      console.log(`✅ [SMART SEARCH] Keyword search found ${keywordResults.length} exact matches, skipping vector search`);
     }
 
     // Only use AI semantic search as fallback if we have NO results from keyword/vector search
     // If keyword search found results (even just 1), we should ONLY return those - don't add AI results
     if (searchResults.length === 0) {
-      console.log(`⚠️ [SMART SEARCH] No keyword or vector results found, trying AI semantic search`);
       const aiResults = await semanticSearchService.semanticSearch(
         query,
         urls,
@@ -222,9 +214,7 @@ export async function GET(request: NextRequest) {
       searchResults = aiResults
         .sort((a, b) => b.relevanceScore - a.relevanceScore)
         .slice(0, 20);
-      console.log(`✅ [SMART SEARCH] AI search found ${searchResults.length} results as fallback`);
     } else {
-      console.log(`✅ [SMART SEARCH] Returning ${searchResults.length} results from keyword/vector search (no AI fallback needed)`);
     }
 
     // Sort all results by relevance score
@@ -243,7 +233,6 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ results: searchResults, cached: false });
   } catch (error) {
-    console.error("Smart search error:", error);
     return NextResponse.json(
       {
         error: "Search failed",

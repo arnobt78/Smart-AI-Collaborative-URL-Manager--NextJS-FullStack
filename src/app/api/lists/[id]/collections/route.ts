@@ -6,6 +6,7 @@ import {
   smartCollectionsService,
   type DuplicateDetection,
 } from "@/lib/ai/collections";
+import { collectionCreateSchema, parseJsonBody } from "@/lib/api-validation";
 
 /**
  * GET /api/lists/[id]/collections
@@ -84,7 +85,6 @@ export async function GET(
           ? urls.slice(0, 20) // Only check first 20 URLs for large lists
           : urls; // Check all URLs for smaller lists
 
-        console.log(`🔍 [DUPLICATES] Checking ${urlsToCheck.length} of ${urls.length} URLs for duplicates across ${listsWithUrls.length} other lists`);
 
         // Batch duplicate detection with concurrency limit (process 5 at a time)
         // This prevents overwhelming the system with too many simultaneous vector searches
@@ -105,9 +105,7 @@ export async function GET(
           duplicates.push(...batchDuplicates);
         }
 
-        console.log(`✅ [DUPLICATES] Found ${duplicates.length} duplicate URL${duplicates.length !== 1 ? "s" : ""} after checking ${urlsToCheck.length} URLs`);
-      } catch (error) {
-        console.error("Failed to detect duplicates:", error);
+      } catch (_error) {
         // Continue without duplicates
       }
     }
@@ -119,7 +117,6 @@ export async function GET(
       urlCount: urls.length,
     });
   } catch (error) {
-    console.error("❌ [COLLECTIONS] Failed to get collections:", error);
     const message =
       error instanceof Error ? error.message : "Failed to get collections";
     return NextResponse.json({ error: message }, { status: 500 });
@@ -135,16 +132,10 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const parsed = await parseJsonBody(req, collectionCreateSchema);
+    if (!parsed.success) return parsed.response;
     const { id } = await params;
-    const body = await req.json();
-    const { collectionId, name, description, urlIds } = body;
-
-    if (!collectionId || !name || !Array.isArray(urlIds) || urlIds.length === 0) {
-      return NextResponse.json(
-        { error: "Missing required fields: collectionId, name, urlIds" },
-        { status: 400 }
-      );
-    }
+    const { collectionId: _collectionId, name, description, urlIds } = parsed.data;
 
     const list = await getListBySlug(id);
 
@@ -252,7 +243,6 @@ export async function POST(
       },
     });
   } catch (error) {
-    console.error("❌ [COLLECTIONS] Failed to create collection:", error);
     const message =
       error instanceof Error
         ? error.message

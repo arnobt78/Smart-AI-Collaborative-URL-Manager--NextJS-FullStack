@@ -1,4 +1,17 @@
-# GATES.md — Cycle C1
+# GATES.md — Cycle C2
+
+## GATE-0015 — Human Gate 1 (C2 homepage hero mount stagger)
+
+| Field | Value |
+|-------|-------|
+| Type | Human-Decision |
+| Status | **APPROVED 2026-08-19** |
+| Checkpoint | `C2-HG1-HOME-HERO-2026-08-19` in `CHECKPOINTS.md` |
+| Evidence | CR-0001; REQ-0024; TASK-0026; DEC-0026; TC-0026/TC-0027 |
+| Required human action | Completed — user explicitly requested implementation of the presented plan. |
+| Scope | Authenticated homepage hero mount stagger, focused regression test, and test setup debug cleanup only. No API, data, cache, authorization, SSR, or schema changes. |
+
+Implementation is locally verified; C2 Gate 2 remains pending release evidence and human acceptance.
 
 ## Pipeline position
 

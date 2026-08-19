@@ -92,7 +92,6 @@ export async function GET(
     // Note: Position init result is ignored - it's a background operation
     if (positionInitResult.status === "rejected") {
       if (process.env.NODE_ENV === "development") {
-        console.warn("Failed to initialize positions (non-critical):", positionInitResult.reason);
       }
     }
 
@@ -103,7 +102,6 @@ export async function GET(
         : (() => {
             // If collaborator fetch fails, log but continue without them (non-critical)
             if (process.env.NODE_ENV === "development") {
-              console.warn("Failed to fetch collaborators in unified endpoint:", collaboratorsResult.reason);
             }
             return [];
           })();
@@ -127,7 +125,6 @@ export async function GET(
       commentCounts,
     });
   } catch (error) {
-    console.error("❌ [UNIFIED] Failed to get updates:", error);
     const message =
       error instanceof Error ? error.message : "Failed to get updates";
     return NextResponse.json({ error: message }, { status: 500 });

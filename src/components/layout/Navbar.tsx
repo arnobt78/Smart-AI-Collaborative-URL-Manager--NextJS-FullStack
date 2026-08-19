@@ -46,9 +46,6 @@ export default function Navbar({ initialWasAuthed = false }: NavbarProps) {
         e.stopPropagation();
 
         if (process.env.NODE_ENV === "development") {
-          console.log(
-            `⏸️ [NAVBAR] Navigation blocked - import active: ${isImportActive}, just completed: ${importJustCompleted}`,
-          );
         }
 
         // CRITICAL: Force abort any pending requests and clear router cache
@@ -59,9 +56,6 @@ export default function Navbar({ initialWasAuthed = false }: NavbarProps) {
             abortRegistry.stopGlobalInterception();
 
             if (process.env.NODE_ENV === "development") {
-              console.log(
-                `🧹 [NAVBAR] Force cleaned up abort registry before navigation`,
-              );
             }
           }
 
@@ -81,11 +75,9 @@ export default function Navbar({ initialWasAuthed = false }: NavbarProps) {
           }
 
           if (process.env.NODE_ENV === "development") {
-            console.log(`🧹 [NAVBAR] Cleared all Next.js router caches`);
           }
-        } catch (err) {
+        } catch (_err) {
           if (process.env.NODE_ENV === "development") {
-            console.warn(`⚠️ [NAVBAR] Error during cleanup:`, err);
           }
         }
 

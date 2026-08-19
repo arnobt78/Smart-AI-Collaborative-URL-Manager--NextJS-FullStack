@@ -1,4 +1,14 @@
-# TASKS.md — C1
+# TASKS.md — C2
+
+## C2 approved
+
+### TASK-0026 — Homepage hero mount stagger — DONE
+
+1. Reuse the login form's existing stagger classes for the authenticated homepage logo, title, copy rows, and CTA row.
+2. Preserve the lower marketing-section `ScrollReveal` behavior and all session/data contracts.
+3. Add focused regression coverage, remove test setup debug output, and record actual validation evidence.
+
+**Dependencies:** REQ-0024; GATE-0015 approved.
 
 ## Done
 AI · guardrails · SafeImage · observability · deps · SEO · Portable Auth UI · educational README/SECURITY
@@ -8,6 +18,15 @@ HA-0001 Firewall · Sentry org/token
 
 ## Pending browser acceptance
 REQ-0017 control/Home-motion and REQ-0018 metadata/action-badge flows await user testing; implementation and automated verification are complete.
+
+### TASK-0025 — Production browser verification — PENDING USER
+
+1. Verify shared controls and independent Home reveal/parallax at desktop and mobile widths, including reduced-motion behavior.
+2. Verify metadata preview/fallback, external Visit behavior, and comment/action badges after create, edit, and delete flows.
+3. Report only reproducible production findings with route, action, expected result, actual result, and screenshot/video when available.
+
+**Dependencies:** REQ-0017, REQ-0018; deployed commit `084aced`.
+**Resume condition:** User supplies production-test results; no application implementation is authorized by this task alone.
 
 ## Superseded — GATE-0010
 
@@ -118,3 +137,26 @@ REQ-0017 control/Home-motion and REQ-0018 metadata/action-badge flows await user
 
 ## Deferred
 RSC shells · densify/Zod/SHA/Next16
+
+### TASK-0027 — Shared mutation request validation (C3) — IN PROGRESS
+
+1. Add reusable typed Zod parsers for bounded JSON bodies and route identifiers.
+2. Apply them before authorization and side effects at every mutating API route.
+3. Add rejection-before-side-effects coverage for representative boundary families.
+
+### TASK-0028 — Session digest transition (C3) — IN PROGRESS
+
+1. Persist only SHA-256 digests for newly generated opaque session cookies.
+2. Look up digests first, rotate valid legacy plaintext records in place, and delete either representation during transition.
+3. Cover creation, lookup, rotation, expiry, logout, and cookie-option contracts.
+
+### TASK-0029 — Mutation impact mapping (C3) — PENDING
+
+1. Inventory client mutation families against the existing query-key and invalidation gateway.
+2. Add isolated optimistic snapshot rollback and one success invalidation per affected family.
+3. Add focused rollback/invalidation coverage while retaining SSE reconciliation.
+
+### TASK-0030 — C3 verification and handoff — PENDING
+
+1. Run strict typecheck, lint, Jest, production build, dependency audit, direct-console scan, and diff hygiene.
+2. Record automated evidence; retain C1/C2 browser acceptance and Gate 2 as pending until actual browser evidence exists.

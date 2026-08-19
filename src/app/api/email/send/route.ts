@@ -3,22 +3,14 @@ import {
   sendWelcomeEmail,
   sendCollaboratorInviteEmail,
 } from "@/lib/email";
-import type {
-  WelcomeEmailProps,
-  CollaboratorInviteProps,
-} from "@/lib/email/templates";
-
-type EmailType = "welcome" | "collaborator-invite";
-
-interface EmailRequest {
-  type: EmailType;
-  data: WelcomeEmailProps | CollaboratorInviteProps;
-}
+import type { CollaboratorInviteProps, WelcomeEmailProps } from "@/lib/email/templates";
+import { emailSendSchema, parseJsonBody } from "@/lib/api-validation";
 
 export async function POST(req: NextRequest) {
   try {
-    const body: EmailRequest = await req.json();
-    const { type, data } = body;
+    const parsed = await parseJsonBody(req, emailSendSchema);
+    if (!parsed.success) return parsed.response;
+    const { type, data } = parsed.data;
 
     let result:
       | Awaited<ReturnType<typeof sendWelcomeEmail>>
@@ -56,7 +48,6 @@ export async function POST(req: NextRequest) {
       messageId: result.messageId,
     });
   } catch (error) {
-    console.error("Error sending email:", error);
     return NextResponse.json(
       {
         error: error instanceof Error ? error.message : "Failed to send email",

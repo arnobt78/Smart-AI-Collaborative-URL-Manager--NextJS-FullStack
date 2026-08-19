@@ -141,9 +141,6 @@ export async function getList(
   // CRITICAL: Skip ALL getList calls during bulk import to prevent spam
   if (typeof window !== "undefined" && window.__bulkImportActive) {
     if (process.env.NODE_ENV === "development") {
-      console.debug(
-        `⏭️ [STORE] Skipping getList('${slug}') - bulk import in progress`
-      );
     }
     // Return current list state if available, otherwise null
     const current = currentList.get();
@@ -239,7 +236,6 @@ export async function getList(
       if (typeof window !== "undefined") {
         const currentPath = window.location.pathname;
         sessionStorage.setItem("authRedirect", currentPath);
-        console.log("🔒 [AUTH] 401 detected - stored redirect URL:", currentPath);
         
         // IMMEDIATELY redirect to login page - synchronous redirect
         // Use replace() to prevent back button issues and ensure immediate redirect
@@ -362,12 +358,10 @@ export async function getList(
           );
 
           if (syncResult.cleared) {
-            // console.log("🧹 [STORE] Synced cache with server - cleared stale data", {
             //   listId: list.id,
             //   serverCount: newUrls.length,
             // });
           } else if (syncResult.updated) {
-            // console.log("🔄 [STORE] Synced cache with server - updated cache", {
             //   listId: list.id,
             //   serverCount: newUrls.length,
             // });
@@ -377,14 +371,12 @@ export async function getList(
           preservedOrder = getCachedDragOrder(list.id, newUrls);
 
           if (preservedOrder) {
-            // console.log("✅ [STORE] Found valid cached drag order", {
             //   listId: list.id,
             //   order: preservedOrder.map((u) => u.id),
             //   count: preservedOrder.length,
             // });
           }
         } catch {
-          // console.error(
           //   "❌ [STORE] Failed to sync drag order cache in getList",
           //   err
           // );
@@ -420,7 +412,6 @@ export async function getList(
             ...list, // Includes updated collaboratorRoles from server
             urls: mergedUrls, // Preserve order but use latest server data
           };
-          console.log("🔄 [STORE] Updating collaboratorRoles while preserving drag order");
           currentList.set(mergedList);
           return currentList.get() as UrlList;
         }
@@ -444,7 +435,6 @@ export async function getList(
           ...list,
           urls: mergedUrls, // Keep order but use latest server data
         };
-        // console.log("🔄 [STORE] Preserving drag order (only order changed)", {
         //   preserved: orderToUse.map((u) => u.id),
         //   server: newUrls.map((u) => u.id),
         // });
@@ -459,7 +449,6 @@ export async function getList(
           ...list,
           urls: mergedUrls, // Preserve order, but use latest server data
         };
-        // console.log("🔄 [STORE] Preserving drag order (drag in progress)", {
         //   preserved: preservedOrder.map((u) => u.id),
         //   server: newUrls.map((u) => u.id),
         // });
@@ -497,7 +486,6 @@ export async function getList(
               ...list, // Always includes latest collaboratorRoles from server
               urls: mergedUrls, // Keep current order but use latest server data
             };
-            // console.log(
             //   "🔄 [STORE] Preserving current order (reorder detected)",
             //   {
             //     current: currentUrls.map((u) => u.id),
@@ -517,7 +505,6 @@ export async function getList(
           syncDragOrderCacheWithServer(list.id, newUrls, skipIfDragInProgress && isDragInProgress);
         }
         
-        // console.log("🔄 [STORE] Using server order (normal update)", {
         //   server: newUrls.map((u) => u.id),
         //   current: currentUrls.map((u) => u.id),
         // });
@@ -564,7 +551,6 @@ export async function getList(
     }
 
     if (process.env.NODE_ENV === "development" && isAborted) {
-      console.debug(`getList fetch aborted for slug: ${slug}`);
     }
 
     return null;

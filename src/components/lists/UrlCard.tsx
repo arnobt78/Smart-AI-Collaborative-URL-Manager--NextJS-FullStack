@@ -157,13 +157,11 @@ export const UrlCard: React.FC<UrlCardProps> = ({
         setSimilarUrls(data.results || []);
         // Don't show toast for empty results - modal will show empty state
       } else {
-        const errorData = await response.json().catch(() => ({}));
-        console.error("Failed to find similar URLs:", errorData);
+        const _errorData = await response.json().catch(() => ({}));
         // Don't show toast - modal will show error state
         setSimilarUrls([]);
       }
-    } catch (error) {
-      console.error("Failed to find similar URLs:", error);
+    } catch (_error) {
       // Don't show toast - modal will show error state
       setSimilarUrls([]);
     } finally {

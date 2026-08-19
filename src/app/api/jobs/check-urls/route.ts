@@ -8,6 +8,8 @@ import {
 import { getCurrentUser } from "@/lib/auth";
 import { createActivity } from "@/lib/db/activities";
 import { publishMessage, CHANNELS } from "@/lib/realtime/redis";
+import { isAuthorizedInternalJob } from "@/lib/jobs/authorization";
+import { jobListSchema, parseJsonBody } from "@/lib/api-validation";
 
 /**
  * POST /api/jobs/check-urls
@@ -16,17 +18,11 @@ import { publishMessage, CHANNELS } from "@/lib/realtime/redis";
  */
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { listId } = body;
+    const parsed = await parseJsonBody(request, jobListSchema);
+    if (!parsed.success) return parsed.response;
+    if (!(await isAuthorizedInternalJob(request))) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const { listId } = parsed.data;
 
-    if (!listId) {
-      return NextResponse.json(
-        { error: "List ID is required" },
-        { status: 400 }
-      );
-    }
-
-    console.log(`🔍 [HEALTH CHECK] Starting health check for list ${listId}`);
 
     // Get the list
     const list = await getListById(listId);
@@ -36,7 +32,6 @@ export async function POST(request: NextRequest) {
 
     const urls = (list.urls as unknown as UrlItem[]) || [];
     if (urls.length === 0) {
-      console.log(`ℹ️ [HEALTH CHECK] No URLs to check in list ${listId}`);
       return NextResponse.json({
         success: true,
         message: "No URLs to check",
@@ -44,7 +39,6 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    console.log(`🔍 [HEALTH CHECK] Checking ${urls.length} URLs...`);
 
     // Check health of all URLs
     const startTime = Date.now();
@@ -107,14 +101,10 @@ export async function POST(request: NextRequest) {
           },
         });
       }
-    } catch (error) {
+    } catch (_error) {
       // Don't fail health check if activity creation fails
-      console.error("Failed to create health check activity:", error);
     }
 
-    console.log(
-      `✅ [HEALTH CHECK] Completed in ${duration}ms - Healthy: ${healthyCount}, Warning: ${warningCount}, Broken: ${brokenCount}`
-    );
 
     return NextResponse.json({
       success: true,
@@ -129,10 +119,8 @@ export async function POST(request: NextRequest) {
       list: updatedList, // Return updated list for immediate UI update
     });
   } catch (error) {
-    console.error("❌ [HEALTH CHECK] Error:", error);
     const message =
       error instanceof Error ? error.message : "Health check failed";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
-

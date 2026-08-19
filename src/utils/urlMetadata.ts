@@ -151,7 +151,6 @@ export async function fetchUrlMetadata(
       // If aborted due to timeout, it's expected - just return empty
       if (fetchError instanceof Error && fetchError.name === "AbortError") {
         if (process.env.NODE_ENV === "development") {
-          console.debug(`Metadata fetch cancelled/timeout for: ${url}`);
         }
         return {};
       }
@@ -180,7 +179,6 @@ export async function fetchUrlMetadata(
     // Only log in development for debugging
     if (process.env.NODE_ENV === "development") {
       // Suppress error logging - it's expected for inaccessible URLs
-      // Uncomment for debugging: console.debug('Metadata fetch failed:', url, error);
     }
     return {};
   }

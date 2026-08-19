@@ -91,8 +91,7 @@ class AIEnhancementService {
     if (jsonMatch) {
       try {
         return JSON.parse(jsonMatch[0]);
-      } catch (error) {
-        console.warn("Failed to parse JSON response:", error);
+      } catch (_error) {
       }
     }
 
@@ -231,8 +230,7 @@ class AIEnhancementService {
           provider: providerConfig.displayName,
           success: true,
         };
-      } catch (error) {
-        console.warn(`${providerConfig.displayName} failed:`, error);
+      } catch (_error) {
         continue; // Try next provider
       }
     }

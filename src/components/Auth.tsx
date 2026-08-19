@@ -204,10 +204,9 @@ export default function Auth() {
               await queryClient.invalidateQueries({ queryKey: ["session"] });
               // Refetch session to ensure it's updated with new cookie
               await queryClient.refetchQueries({ queryKey: ["session"] });
-            } catch (error) {
+            } catch (_error) {
               // Non-critical - session will be refetched on next page load
               if (process.env.NODE_ENV === "development") {
-                console.error("Session refetch error (non-critical):", error);
               }
             }
 
@@ -297,10 +296,9 @@ export default function Auth() {
               await queryClient.invalidateQueries({ queryKey: ["session"] });
               // Refetch session to ensure it's updated with new cookie
               await queryClient.refetchQueries({ queryKey: ["session"] });
-            } catch (error) {
+            } catch (_error) {
               // Non-critical - session will be refetched on next page load
               if (process.env.NODE_ENV === "development") {
-                console.error("Session refetch error (non-critical):", error);
               }
             }
 
@@ -331,7 +329,6 @@ export default function Auth() {
       }
 
       if (process.env.NODE_ENV === "development") {
-        console.error("Sign in error:", error);
       }
       toast({
         title: "Error",

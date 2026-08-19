@@ -6,13 +6,16 @@ import { createActivity } from "@/lib/db/activities";
 import { getCurrentUser } from "@/lib/auth";
 import { requirePermission } from "@/lib/collaboration/permissions";
 import type { UrlItem } from "@/stores/urlListStore";
+import { parseJsonBody, reorderUrlsSchema } from "@/lib/api-validation";
 
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { urls, action } = await req.json();
+    const parsed = await parseJsonBody(req, reorderUrlsSchema);
+    if (!parsed.success) return parsed.response;
+    const { urls, action } = parsed.data;
     const { id } = await params;
 
     const user = await getCurrentUser();
@@ -39,7 +42,7 @@ export async function POST(
     }
 
     const currentUrls = (currentList.urls as unknown as UrlItem[]) || [];
-    const newUrls = (urls as UrlItem[]) || [];
+    const newUrls = urls as UrlItem[];
 
     // Detect what action was performed
     let activityAction = "url_reordered";
@@ -177,23 +180,15 @@ export async function POST(
 
       // Delete vectors for removed URLs
       if (deletedUrlIds.length > 0) {
-        console.log(
-          `🔄 [VECTOR SYNC] Deleting ${deletedUrlIds.length} vectors after URL removal`
-        );
         Promise.all(
           deletedUrlIds.map((urlId) => deleteUrlVector(urlId, id))
-        ).catch((error) => {
-          console.error("❌ [VECTOR] Failed to delete URL vectors:", error);
+        ).catch(() => {
         });
       }
 
       // Upsert vectors for all current URLs
       if (newUrls.length > 0) {
-        console.log(
-          `🔄 [VECTOR SYNC] Syncing ${newUrls.length} URLs after reorder/update`
-        );
-        upsertUrlVectors(newUrls, id).catch((error) => {
-          console.error("❌ [VECTOR] Failed to sync URLs to vector DB:", error);
+        upsertUrlVectors(newUrls, id).catch(() => {
         });
       }
     }

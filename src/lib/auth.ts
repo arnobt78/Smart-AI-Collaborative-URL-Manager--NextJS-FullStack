@@ -1,6 +1,7 @@
 import { prisma } from "./prisma";
 import bcrypt from "bcryptjs";
 import { cookies } from "next/headers";
+import { createHash, randomBytes } from "crypto";
 import type {
   User as PrismaUser,
   Session as PrismaSession,
@@ -33,7 +34,12 @@ export async function verifyPassword(
  * Generate a random session token
  */
 function generateToken(): string {
-  return Buffer.from(crypto.randomUUID()).toString("base64");
+  return randomBytes(32).toString("base64url");
+}
+
+/** REQ-0025: Persist opaque session credentials only as deterministic digests. */
+export function hashSessionToken(token: string): string {
+  return createHash("sha256").update(token).digest("hex");
 }
 
 /**
@@ -48,9 +54,8 @@ async function cleanupExpiredSessions(): Promise<void> {
         },
       },
     });
-  } catch (error) {
+  } catch (_error) {
     // Silently fail - cleanup is not critical
-    console.error("Failed to cleanup expired sessions:", error);
   }
 }
 
@@ -128,15 +133,9 @@ async function cleanupOldSessionsForUser(
         },
       });
       
-      if (process.env.NODE_ENV === "development") {
-        console.log(
-          `🧹 [SESSION CLEANUP] Deleted ${allSessionsToDelete.length} old sessions for user ${userId}`
-        );
-      }
     }
-  } catch (error) {
+  } catch (_error) {
     // Silently fail - cleanup is not critical
-    console.error("Failed to cleanup old sessions for user:", error);
   }
 }
 
@@ -146,12 +145,13 @@ async function cleanupOldSessionsForUser(
  */
 export async function createSession(userId: string): Promise<string> {
   const token = generateToken();
+  const tokenDigest = hashSessionToken(token);
   const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
 
   await prisma.session.create({
     data: {
       userId,
-      token,
+      token: tokenDigest,
       expiresAt,
     },
   });
@@ -199,10 +199,26 @@ export async function getCurrentSession(): Promise<Session | null> {
     return sessionCache.session;
   }
 
-  const session = await prisma.session.findUnique({
-    where: { token },
+  const tokenDigest = hashSessionToken(token);
+  let session = await prisma.session.findUnique({
+    where: { token: tokenDigest },
     include: { user: true },
   });
+
+  if (!session) {
+    const legacySession = await prisma.session.findUnique({
+      where: { token },
+      include: { user: true },
+    });
+
+    if (legacySession) {
+      session = await prisma.session.update({
+        where: { id: legacySession.id },
+        data: { token: tokenDigest },
+        include: { user: true },
+      });
+    }
+  }
 
   if (!session || session.expiresAt < new Date()) {
     // Session expired or invalid
@@ -215,24 +231,10 @@ export async function getCurrentSession(): Promise<Session | null> {
   // This is fire-and-forget to not slow down the request
   prisma.session
     .update({
-      where: { token },
+      where: { id: session.id },
       data: { lastActivityAt: new Date() },
     })
-    .catch((err: unknown) => {
-      // Silently fail - not critical if update fails
-      // P2025 = Record not found (session was deleted, e.g., during logout)
-      // This is expected and can be safely ignored
-      if (
-        !(
-          typeof err === "object" &&
-          err !== null &&
-          "code" in err &&
-          err.code === "P2025"
-        )
-      ) {
-        console.error("Failed to update session lastActivityAt:", err);
-      }
-    });
+    .catch(() => undefined);
 
   // Cache the result
   sessionCache = { token, session, timestamp: now };
@@ -244,7 +246,7 @@ export async function getCurrentSession(): Promise<Session | null> {
  */
 export async function deleteSession(token: string): Promise<void> {
   await prisma.session.deleteMany({
-    where: { token },
+    where: { token: { in: [token, hashSessionToken(token)] } },
   });
 }
 
@@ -438,21 +440,12 @@ export async function globalSessionCleanup(): Promise<{
 
     const totalDeleted = expiredDeleted + oldDeleted;
 
-    if (process.env.NODE_ENV === "development") {
-      console.log("🧹 [GLOBAL CLEANUP] Session cleanup completed:", {
-        expiredDeleted,
-        oldDeleted,
-        totalDeleted,
-      });
-    }
-
     return {
       expiredDeleted,
       oldDeleted,
       totalDeleted,
     };
-  } catch (error) {
-    console.error("Failed to run global session cleanup:", error);
+  } catch (_error) {
     return {
       expiredDeleted: 0,
       oldDeleted: 0,

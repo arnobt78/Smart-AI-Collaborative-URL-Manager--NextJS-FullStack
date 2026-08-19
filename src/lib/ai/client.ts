@@ -171,10 +171,6 @@ export async function callProviderWithModelChain(
       }
 
       // Retriable or network/empty: try next model in chain
-      console.warn(
-        `${config.displayName} model ${model} failed, trying next...`,
-        error instanceof Error ? error.message : error
-      );
       continue;
     }
   }

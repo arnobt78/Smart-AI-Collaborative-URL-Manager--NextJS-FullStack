@@ -90,13 +90,11 @@ export function clearDragOrderCache(listId: string): void {
       delete globalCache[storageKey];
     }
 
-    // console.log("🧹 [CACHE] Cleared drag order cache", {
     //   listId,
     //   storageKey,
     // });
   } catch {
     // Ignore errors - not critical
-    // console.debug("Failed to clear drag order cache", error);
   }
 }
 
@@ -135,7 +133,6 @@ export function updateDragOrderCache(
 
     return true;
   } catch {
-    // console.debug("Failed to update drag order cache", error);
     return false;
   }
 }
@@ -196,7 +193,6 @@ export function syncDragOrderCacheWithServer(
     // Cache is valid and up-to-date
     return { cleared: false, updated: false };
   } catch {
-    // console.error("Failed to sync drag order cache", error);
     return { cleared: false, updated: false };
   }
 }
@@ -242,7 +238,6 @@ export function getCachedDragOrder(
     clearDragOrderCache(listId);
     return null;
   } catch {
-    // console.debug("Failed to get cached drag order", error);
     return null;
   }
 }

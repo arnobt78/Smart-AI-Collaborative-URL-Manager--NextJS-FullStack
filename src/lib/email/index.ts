@@ -56,7 +56,6 @@ export async function sendWelcomeEmail(props: WelcomeEmailProps) {
       });
       return { success: true, messageId: result.messageId };
     } catch (error) {
-      console.error("Failed to send welcome email via SMTP:", error);
       return {
         success: false,
         error: error instanceof Error ? error.message : "Unknown error",
@@ -90,7 +89,6 @@ export async function sendWelcomeEmail(props: WelcomeEmailProps) {
         };
       }
     } catch (error) {
-      console.error("Failed to send welcome email via Resend:", error);
       return {
         success: false,
         error: error instanceof Error ? error.message : "Unknown error",
@@ -118,10 +116,6 @@ export async function sendCollaboratorInviteEmail(
       });
       return { success: true, messageId: result.messageId };
     } catch (error) {
-      console.error(
-        "Failed to send collaborator invite email via SMTP:",
-        error
-      );
       return {
         success: false,
         error: error instanceof Error ? error.message : "Unknown error",
@@ -174,10 +168,6 @@ export async function sendCollaboratorInviteEmail(
         };
       }
     } catch (error) {
-      console.error(
-        "Failed to send collaborator invite email via Resend:",
-        error
-      );
       return {
         success: false,
         error: error instanceof Error ? error.message : "Unknown error",

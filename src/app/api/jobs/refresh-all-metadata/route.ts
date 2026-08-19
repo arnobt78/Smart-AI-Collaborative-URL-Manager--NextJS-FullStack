@@ -1,16 +1,17 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { updateList } from "@/lib/db";
 import type { UrlItem } from "@/stores/urlListStore";
+import { isAuthorizedInternalJob } from "@/lib/jobs/authorization";
 
 /**
  * POST /api/jobs/refresh-all-metadata
  * Refresh metadata for URLs in all lists
  * Called by QStash weekly cron job
  */
-export async function POST() {
+export async function POST(request: NextRequest) {
   try {
-    console.log("🔄 [METADATA REFRESH] Starting metadata refresh for all lists...");
+    if (!(await isAuthorizedInternalJob(request))) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     // Get all lists
     const lists = await prisma.list.findMany({
@@ -32,9 +33,6 @@ export async function POST() {
       if (urls.length === 0) continue;
 
       try {
-        console.log(
-          `🔄 [METADATA REFRESH] Refreshing ${urls.length} URLs in list ${list.id}`
-        );
 
         const updatedUrls: UrlItem[] = [];
         let successCount = 0;
@@ -69,11 +67,7 @@ export async function POST() {
 
               successCount++;
               return updatedUrl;
-            } catch (error) {
-              console.error(
-                `❌ [METADATA REFRESH] Error refreshing ${urlItem.url}:`,
-                error
-              );
+            } catch (_error) {
               errorCount++;
               // Return original URL if refresh fails
               return urlItem;
@@ -96,24 +90,14 @@ export async function POST() {
         totalSuccess += successCount;
         totalErrors += errorCount;
 
-        console.log(
-          `✅ [METADATA REFRESH] List ${list.id} - Success: ${successCount}, Errors: ${errorCount}`
-        );
 
         // Small delay between lists
         await new Promise((resolve) => setTimeout(resolve, 500));
-      } catch (error) {
-        console.error(
-          `❌ [METADATA REFRESH] Error refreshing list ${list.id}:`,
-          error
-        );
+      } catch (_error) {
         // Continue with next list
       }
     }
 
-    console.log(
-      `✅ [METADATA REFRESH] Completed - Total: ${totalRefreshed}, Success: ${totalSuccess}, Errors: ${totalErrors}`
-    );
 
     return NextResponse.json({
       success: true,
@@ -126,7 +110,6 @@ export async function POST() {
       },
     });
   } catch (error) {
-    console.error("❌ [METADATA REFRESH] Error:", error);
     const message =
       error instanceof Error ? error.message : "Metadata refresh failed";
     return NextResponse.json({ error: message }, { status: 500 });

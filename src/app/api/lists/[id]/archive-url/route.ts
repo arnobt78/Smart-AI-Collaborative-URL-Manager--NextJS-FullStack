@@ -8,27 +8,22 @@ import { redis, cacheKeys } from "@/lib/redis";
 import { fetchUrlMetadata } from "@/utils/urlMetadata";
 import type { UrlItem } from "@/stores/urlListStore";
 import type { UrlMetadata } from "@/utils/urlMetadata";
-
-type ArchiveUrlRequest = {
-  urls?: UrlItem[];
-  archivedUrls?: UrlItem[];
-  action?: "archive" | "restore";
-  urlId?: string;
-};
+import { archiveUrlSchema, parseJsonBody } from "@/lib/api-validation";
 
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const parsed = await parseJsonBody(req, archiveUrlSchema);
+    if (!parsed.success) return parsed.response;
+    const { urls, archivedUrls, action, urlId } = parsed.data;
     const user = await getCurrentUser();
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const { id } = await params;
-    const { urls, archivedUrls, action, urlId } =
-      (await req.json()) as ArchiveUrlRequest;
 
     const list = await getListById(id);
     if (!list) {
@@ -59,13 +54,13 @@ export async function POST(
     } = {};
 
     if (urls !== undefined) {
-      updatePayload.urls = urls;
+      updatePayload.urls = urls as UrlItem[];
     } else if (existingUrls.length > 0) {
       updatePayload.urls = existingUrls;
     }
 
     if (archivedUrls !== undefined) {
-      updatePayload.archivedUrls = archivedUrls;
+      updatePayload.archivedUrls = archivedUrls as UrlItem[];
     } else {
       updatePayload.archivedUrls = existingArchivedUrls;
     }
@@ -186,7 +181,6 @@ export async function POST(
       }
     }
 
-    console.log(`✅ [ARCHIVE] ${action === "archive" ? "Archived" : "Restored"} URL: ${urlId || "unknown"}`);
     
     // Return unified response with activity data if available
     return NextResponse.json({
@@ -206,7 +200,6 @@ export async function POST(
         : null,
     });
   } catch (error) {
-    console.error("❌ [ARCHIVE] Error:", error);
     const message =
       error instanceof Error ? error.message : "Failed to update list";
     return NextResponse.json(

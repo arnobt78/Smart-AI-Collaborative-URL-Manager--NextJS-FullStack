@@ -4,6 +4,8 @@ import type { UrlItem } from "@/stores/urlListStore";
 import { createActivity } from "@/lib/db/activities";
 import { publishMessage, CHANNELS } from "@/lib/realtime/redis";
 import { getCurrentUser } from "@/lib/auth";
+import { isAuthorizedInternalJob } from "@/lib/jobs/authorization";
+import { jobListSchema, parseJsonBody } from "@/lib/api-validation";
 
 /**
  * POST /api/jobs/refresh-metadata
@@ -12,17 +14,11 @@ import { getCurrentUser } from "@/lib/auth";
  */
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { listId } = body;
+    const parsed = await parseJsonBody(request, jobListSchema);
+    if (!parsed.success) return parsed.response;
+    if (!(await isAuthorizedInternalJob(request))) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const { listId } = parsed.data;
 
-    if (!listId) {
-      return NextResponse.json(
-        { error: "List ID is required" },
-        { status: 400 }
-      );
-    }
-
-    console.log(`🔄 [METADATA REFRESH] Starting metadata refresh for list ${listId}`);
 
     // Get the list
     const list = await getListById(listId);
@@ -32,7 +28,6 @@ export async function POST(request: NextRequest) {
 
     const urls = (list.urls as unknown as UrlItem[]) || [];
     if (urls.length === 0) {
-      console.log(`ℹ️ [METADATA REFRESH] No URLs to refresh in list ${listId}`);
       return NextResponse.json({
         success: true,
         message: "No URLs to refresh",
@@ -40,7 +35,6 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    console.log(`🔄 [METADATA REFRESH] Refreshing metadata for ${urls.length} URLs...`);
 
     const startTime = Date.now();
     const updatedUrls: UrlItem[] = [];
@@ -80,11 +74,7 @@ export async function POST(request: NextRequest) {
 
           successCount++;
           return updatedUrl;
-        } catch (error) {
-          console.error(
-            `❌ [METADATA REFRESH] Error refreshing ${urlItem.url}:`,
-            error
-          );
+        } catch (_error) {
           errorCount++;
           // Return original URL if refresh fails
           return urlItem;
@@ -104,9 +94,6 @@ export async function POST(request: NextRequest) {
     await updateList(listId, { urls: updatedUrls });
 
     const duration = Date.now() - startTime;
-    console.log(
-      `✅ [METADATA REFRESH] Completed in ${duration}ms - Success: ${successCount}, Errors: ${errorCount}`
-    );
 
     // CRITICAL: Publish real-time updates so collaborators see metadata refresh immediately
     // Get user for activity log (if available - may be null for scheduled jobs)
@@ -160,9 +147,8 @@ export async function POST(request: NextRequest) {
           action: "metadata_refreshed",
           timestamp: new Date().toISOString(),
         });
-      } catch (publishError) {
+      } catch (_publishError) {
         // Ignore publish errors - not critical
-        console.error("❌ [METADATA REFRESH] Failed to publish SSE update:", publishError);
       }
     }
 
@@ -177,7 +163,6 @@ export async function POST(request: NextRequest) {
       duration,
     });
   } catch (error) {
-    console.error("❌ [METADATA REFRESH] Error:", error);
     const message =
       error instanceof Error ? error.message : "Metadata refresh failed";
     return NextResponse.json({ error: message }, { status: 500 });

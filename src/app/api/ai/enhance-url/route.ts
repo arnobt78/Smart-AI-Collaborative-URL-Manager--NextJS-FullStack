@@ -1,18 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { aiEnhancementService } from "@/lib/ai/enhancement";
 import type { AIProvider } from "@/lib/ai/providers";
+import { aiEnhanceSchema, parseJsonBody } from "@/lib/api-validation";
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
-    const { url, title, description, provider, options } = body;
-
-    if (!url) {
-      return NextResponse.json(
-        { error: "URL is required" },
-        { status: 400 }
-      );
-    }
+    const parsed = await parseJsonBody(req, aiEnhanceSchema);
+    if (!parsed.success) return parsed.response;
+    const { url, title, description, provider, options } = parsed.data;
 
     const result = await aiEnhancementService.enhanceUrl(
       {
@@ -38,7 +33,6 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(result);
   } catch (error) {
-    console.error("Error enhancing URL:", error);
     return NextResponse.json(
       {
         error:

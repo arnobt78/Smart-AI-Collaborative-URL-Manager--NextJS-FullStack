@@ -187,7 +187,6 @@ export function UrlBulkImportExport({
         });
       }
     } catch (error) {
-      // console.error("Export failed:", error);
       toast({
         title: "Export Failed",
         description:
@@ -397,19 +396,7 @@ export function UrlBulkImportExport({
             });
           }
         } catch (parseError) {
-          console.error(
-            "❌ [IMPORT] Failed to parse Chrome bookmarks:",
-            parseError,
-          );
           if (process.env.NODE_ENV === "development") {
-            console.error("Parse error details:", {
-              error: parseError,
-              message:
-                parseError instanceof Error
-                  ? parseError.message
-                  : String(parseError),
-              stack: parseError instanceof Error ? parseError.stack : undefined,
-            });
           }
           throw new Error(
             `Failed to parse Chrome bookmarks file: ${
@@ -423,10 +410,6 @@ export function UrlBulkImportExport({
         // Log parsing warnings only in development (not critical errors)
         if (result.errors && result.errors.length > 0) {
           if (process.env.NODE_ENV === "development") {
-            console.info(
-              `ℹ️ [CHROME IMPORT] ${result.errors.length} parsing warning(s):`,
-              result.errors.slice(0, 3), // Only show first 3 in dev mode
-            );
           }
         }
 
@@ -436,13 +419,6 @@ export function UrlBulkImportExport({
             result.errors && result.errors.length > 0
               ? result.errors[0]
               : "No bookmarks found in Chrome export file. Please check the file format.";
-          console.error("❌ [IMPORT] Chrome import validation failed:", {
-            count: result.count,
-            errors: result.errors,
-            itemsLength: result.items.length,
-            textLength: text.length,
-            textPreview: text.substring(0, 500),
-          });
           throw new Error(errorMessage);
         }
       } else if (detectedType === "pocket") {
@@ -453,10 +429,6 @@ export function UrlBulkImportExport({
         // Log parsing warnings only in development
         if (result.errors && result.errors.length > 0) {
           if (process.env.NODE_ENV === "development") {
-            console.info(
-              `ℹ️ [POCKET IMPORT] ${result.errors.length} parsing warning(s):`,
-              result.errors.slice(0, 3),
-            );
           }
         }
 
@@ -476,10 +448,6 @@ export function UrlBulkImportExport({
         // Log parsing warnings only in development
         if (result.errors && result.errors.length > 0) {
           if (process.env.NODE_ENV === "development") {
-            console.info(
-              `ℹ️ [PINBOARD IMPORT] ${result.errors.length} parsing warning(s):`,
-              result.errors.slice(0, 3),
-            );
           }
         }
 
@@ -643,7 +611,6 @@ export function UrlBulkImportExport({
           return true;
         } catch {
           if (process.env.NODE_ENV === "development") {
-            console.warn(`⚠️ [IMPORT] Invalid URL skipped: ${item.url}`);
           }
           return false;
         }
@@ -658,10 +625,6 @@ export function UrlBulkImportExport({
       }
 
       if (validUrls.length === 0) {
-        console.error("❌ [IMPORT] No valid URLs found:", {
-          totalImported: importedUrls.length,
-          sampleUrls: importedUrls.slice(0, 5).map((item) => item.url),
-        });
         throw new Error(
           `No valid URLs found in the file. Found ${importedUrls.length} bookmarks, but none had valid URLs. Please check the file format.`,
         );
@@ -805,11 +768,7 @@ export function UrlBulkImportExport({
           }
 
           return; // Exit early - bulk import succeeded
-        } catch (error) {
-          console.error(
-            "❌ [BULK IMPORT] Failed, falling back to one-by-one:",
-            error,
-          );
+        } catch (_error) {
           // Fall through to one-by-one import
         }
       }
@@ -986,10 +945,6 @@ export function UrlBulkImportExport({
               metadataFailedUrls.push(urlItem.url);
               // Continue with empty metadata - we'll use imported title/description
               if (process.env.NODE_ENV === "development") {
-                console.debug(
-                  `Metadata fetch failed for ${urlItem.url}:`,
-                  metadataError,
-                );
               }
             }
           }
@@ -1065,12 +1020,6 @@ export function UrlBulkImportExport({
           } catch (addUrlError) {
             // If addUrlToList fails or times out, log but continue with next URL
             if (process.env.NODE_ENV === "development") {
-              console.warn(
-                `⚠️ [IMPORT] Failed to add URL ${urlItem.url}:`,
-                addUrlError instanceof Error
-                  ? addUrlError.message
-                  : String(addUrlError),
-              );
             }
             // Yield event loop after error to prevent server saturation
             await new Promise((resolve) => setTimeout(resolve, 0));
@@ -1135,22 +1084,6 @@ export function UrlBulkImportExport({
 
           // Only log and count non-abort errors
           if (process.env.NODE_ENV === "development") {
-            console.warn(
-              `⚠️ [IMPORT] Failed to import URL ${urlItem.url.substring(
-                0,
-                60,
-              )}...:`,
-              error instanceof Error ? error.message : String(error),
-            );
-            console.warn(`⚠️ [IMPORT] Failed URL details:`, {
-              url: urlItem.url,
-              title: urlItem.title,
-              index: nextUrlIndex - runningPromises.size - 1,
-              errorType:
-                error instanceof Error ? error.constructor.name : typeof error,
-              errorMessage:
-                error instanceof Error ? error.message : String(error),
-            });
           }
           errorCount++;
         } finally {
@@ -1255,7 +1188,7 @@ export function UrlBulkImportExport({
             // Yield to event loop to prevent server saturation
             await new Promise((resolve) => setTimeout(resolve, 0));
           })
-          .catch((error) => {
+          .catch(() => {
             const urlEndTime = Date.now();
             const urlDuration = urlEndTime - urlStartTime;
             completedCount++;
@@ -1271,13 +1204,7 @@ export function UrlBulkImportExport({
             }
 
             if (process.env.NODE_ENV === "development") {
-              const elapsed = Math.round((urlEndTime - importStartTime) / 1000);
-              console.error(
-                `❌ [IMPORT] [${elapsed}s] URL ${currentIndex + 1}/${
-                  validUrls.length
-                } failed after ${Math.round(urlDuration / 1000)}s:`,
-                error instanceof Error ? error.message : String(error),
-              );
+              const _elapsed = Math.round((urlEndTime - importStartTime) / 1000);
             }
           })
           .finally(async () => {
@@ -1312,9 +1239,6 @@ export function UrlBulkImportExport({
         isImportActiveRef.current &&
         isMountedRef.current
       ) {
-        console.warn(
-          "⚠️ [IMPORT] Abort signal was aborted before processing started. Creating fresh controller.",
-        );
         abortControllerRef.current = new AbortController();
         // Note: We can't update the local abortSignal const, but we'll use abortControllerRef.current.signal
         // for all checks in the processing loop to ensure we use the fresh signal
@@ -1347,14 +1271,6 @@ export function UrlBulkImportExport({
           if (!promise) break;
         }
       } else {
-        console.error(
-          "❌ [IMPORT] Cannot start processing - abort signal aborted or import inactive",
-          {
-            abortSignalAborted: currentAbortSignal.aborted,
-            isImportActive: isImportActiveRef.current,
-            isMounted: isMountedRef.current,
-          },
-        );
         throw new Error(
           "Cannot start import - abort signal was aborted before processing could begin",
         );
@@ -1403,13 +1319,6 @@ export function UrlBulkImportExport({
                   if (elapsed > stuckThreshold) {
                     stuckPromises.push(index);
                     if (process.env.NODE_ENV === "development") {
-                      console.warn(
-                        `⚠️ [IMPORT] Promise ${
-                          index + 1
-                        } stuck (running for ${Math.round(
-                          elapsed / 1000,
-                        )}s), forcing cleanup`,
-                      );
                     }
                   }
                 }
@@ -1423,15 +1332,9 @@ export function UrlBulkImportExport({
                     errorCount++;
                   }
                   if (process.env.NODE_ENV === "development") {
-                    console.warn(
-                      `⚠️ [IMPORT] Cleaned up ${stuckPromises.length} stuck promise(s), continuing with remaining URLs...`,
-                    );
                   }
                 } else if (runningPromises.size > 0) {
                   if (process.env.NODE_ENV === "development") {
-                    console.warn(
-                      `⚠️ [IMPORT] Promise.race timeout after 45s - ${runningPromises.size} promises still running, continuing to wait...`,
-                    );
                   }
                 }
 
@@ -1445,13 +1348,9 @@ export function UrlBulkImportExport({
             ]);
             // Small delay to allow finally blocks to execute
             await new Promise((resolve) => setTimeout(resolve, 10));
-          } catch (error) {
+          } catch (_error) {
             // Error already handled in processUrl, continue
             if (process.env.NODE_ENV === "development") {
-              console.warn(
-                "⚠️ [IMPORT] Error waiting for promise completion, continuing...",
-                error,
-              );
             }
             await new Promise((resolve) => setTimeout(resolve, 10));
           }
@@ -1495,17 +1394,8 @@ export function UrlBulkImportExport({
           // Wait max 10 seconds for remaining promises, then force abort
           const finalWaitTimeout = new Promise<void>((resolve) => {
             setTimeout(() => {
-              const waitDuration = Date.now() - finalWaitStartTime;
+              const _waitDuration = Date.now() - finalWaitStartTime;
               if (process.env.NODE_ENV === "development") {
-                console.warn(
-                  `⚠️ [IMPORT] Final wait timeout after ${Math.round(
-                    waitDuration / 1000,
-                  )}s - aborting remaining ${runningPromises.size} request(s)`,
-                  {
-                    pendingIndices: Array.from(runningPromises.keys()),
-                    abortRegistryCount: abortRegistry?.getCount() || 0,
-                  },
-                );
               }
               // Abort all pending requests
               if (abortControllerRef.current) {
@@ -1526,10 +1416,6 @@ export function UrlBulkImportExport({
           results.forEach((result) => {
             if (result.status === "rejected") {
               if (process.env.NODE_ENV === "development") {
-                console.warn(
-                  `⚠️ [IMPORT] URL processing promise was rejected (final wait):`,
-                  result.reason,
-                );
               }
               errorCount++;
             }
@@ -1547,15 +1433,9 @@ export function UrlBulkImportExport({
               },
             );
           }
-        } catch (error) {
-          const finalWaitDuration = Date.now() - finalWaitStartTime;
+        } catch (_error) {
+          const _finalWaitDuration = Date.now() - finalWaitStartTime;
           if (process.env.NODE_ENV === "development") {
-            console.error(
-              `❌ [IMPORT] Error in final wait after ${Math.round(
-                finalWaitDuration / 1000,
-              )}s:`,
-              error,
-            );
           }
         }
       } else if (
@@ -1720,10 +1600,6 @@ export function UrlBulkImportExport({
           metadataFailedUrls.length > 0 &&
           process.env.NODE_ENV === "development"
         ) {
-          console.info(
-            `ℹ️ [IMPORT] ${metadataFailedUrls.length} URL(s) couldn't fetch metadata (using imported data):`,
-            metadataFailedUrls.slice(0, 10), // Show first 10 in dev mode
-          );
         }
       } else {
         toast({
@@ -1743,20 +1619,12 @@ export function UrlBulkImportExport({
       // If error is due to abort, that's expected - don't show error
       if (error instanceof Error && error.name === "AbortError") {
         if (process.env.NODE_ENV === "development") {
-          console.debug("Import cancelled (page refresh or unmount)");
         }
         return; // Silent cancellation - page is refreshing/unmounting
       }
 
       // Log full error details for debugging
-      console.error("Import failed:", error);
       if (process.env.NODE_ENV === "development") {
-        console.error("Error details:", {
-          error,
-          message: error instanceof Error ? error.message : String(error),
-          stack: error instanceof Error ? error.stack : undefined,
-          name: error instanceof Error ? error.name : undefined,
-        });
       }
 
       // Only show error toast if component is still mounted
@@ -1916,11 +1784,7 @@ export function UrlBulkImportExport({
         } catch {
           // Ignore - Next.js internal API might change
           if (process.env.NODE_ENV === "development") {
-            const routerCleanupDuration = Date.now() - routerCleanupStartTime;
-            console.warn(
-              `⚠️ [IMPORT] [FINALLY] Router cleanup failed after ${routerCleanupDuration}ms:`,
-              e,
-            );
+            const _routerCleanupDuration = Date.now() - routerCleanupStartTime;
           }
         }
 
@@ -1942,7 +1806,6 @@ export function UrlBulkImportExport({
           }
         }, 50);
       } else if (process.env.NODE_ENV === "development") {
-        console.warn(`⚠️ [IMPORT] [FINALLY] Abort registry not available`);
       }
 
       // CRITICAL: Stop global fetch interception IMMEDIATELY after aborting
@@ -2205,9 +2068,6 @@ export function UrlBulkImportExport({
                 abortRegistry?.stopGlobalInterception?.();
                 if (window.__bulkImportJustCompleted) {
                   if (process.env.NODE_ENV === "development") {
-                    console.warn(
-                      "⚠️ [IMPORT] Navigation recovery window elapsed; retaining the current page and reconciling query data",
-                    );
                   }
                   window.__bulkImportJustCompleted = false;
                 }
@@ -2249,9 +2109,6 @@ export function UrlBulkImportExport({
               // Only refresh if we're still on the same list and not unmounted
               if (isMountedRef.current && !isImportActiveRef.current) {
                 if (process.env.NODE_ENV === "development") {
-                  console.debug(
-                    "🔄 [IMPORT] Triggering final list refresh after import completion",
-                  );
                 }
                 invalidateUrlQueries(queryClient, slug, listId, true);
               }

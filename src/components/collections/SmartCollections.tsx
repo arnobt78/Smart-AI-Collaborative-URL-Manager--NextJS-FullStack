@@ -401,9 +401,6 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
         });
       } else if (process.env.NODE_ENV === "development") {
         // Silently handle expected errors (no console spam)
-        console.debug(
-          "⏭️ [COLLECTIONS] Create request aborted (expected during page refresh)",
-        );
       }
     } finally {
       setIsCreating(null);
@@ -745,8 +742,7 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
                         variant: "success",
                       });
                     }
-                  } catch (error) {
-                    console.error("Failed to check duplicates:", error);
+                  } catch (_error) {
                     toast({
                       title: "Error",
                       description:
@@ -879,8 +875,7 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
             });
 
             setPendingDeleteDuplicate(null);
-          } catch (error) {
-            console.error("Failed to remove duplicate:", error);
+          } catch (_error) {
             toast({
               title: "Error",
               description: `Failed to remove "${

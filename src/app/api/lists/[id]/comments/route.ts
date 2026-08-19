@@ -12,6 +12,13 @@ import {
 import { publishMessage, CHANNELS } from "@/lib/realtime/redis";
 import { createActivity } from "@/lib/db/activities";
 import { requirePermission } from "@/lib/collaboration/permissions";
+import {
+  commentCreateSchema,
+  commentDeleteSchema,
+  commentPatchSchema,
+  parseJsonBody,
+  parseRouteParams,
+} from "@/lib/api-validation";
 import { redis, cacheKeys } from "@/lib/redis";
 import { prisma } from "@/lib/prisma";
 
@@ -52,9 +59,6 @@ export async function GET(
       try {
         cachedComments = await redis.get<unknown[]>(cacheKey);
         if (cachedComments) {
-          console.log(
-            `✅ [GET] Comments loaded from cache (listId: ${listId}, urlId: ${urlId || "all"})`
-          );
           return NextResponse.json({
             comments: cachedComments,
             cached: true,
@@ -79,15 +83,11 @@ export async function GET(
       }
     }
 
-    console.log(
-      `✅ [GET] Comments fetched (${comments.length} comments, listId: ${listId}, urlId: ${urlId || "all"})`
-    );
     return NextResponse.json({
       comments,
       cached: false,
     });
   } catch (error) {
-    console.error("❌ [GET] Error:", error);
     const message =
       error instanceof Error ? error.message : "Failed to get comments";
     return NextResponse.json({ error: message }, { status: 500 });
@@ -103,15 +103,10 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const parsed = await parseJsonBody(request, commentCreateSchema);
+    if (!parsed.success) return parsed.response;
     const { id: listId } = await params;
-    const { urlId, content } = await request.json();
-
-    if (!urlId || !content?.trim()) {
-      return NextResponse.json(
-        { error: "URL ID and content are required" },
-        { status: 400 }
-      );
-    }
+    const { urlId, content } = parsed.data;
 
     const user = await getCurrentUser();
     if (!user) {
@@ -193,7 +188,6 @@ export async function POST(
       },
     });
 
-    console.log(`✅ [POST] Comment created: ${comment.id}`);
     return NextResponse.json(
       {
         comment,
@@ -211,7 +205,6 @@ export async function POST(
       { status: 201 }
     );
   } catch (error) {
-    console.error("❌ [POST] Error:", error);
     const message =
       error instanceof Error ? error.message : "Failed to create comment";
     return NextResponse.json({ error: message }, { status: 500 });
@@ -227,15 +220,10 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const parsed = await parseJsonBody(request, commentPatchSchema);
+    if (!parsed.success) return parsed.response;
     const { id: listId } = await params;
-    const { commentId, content } = await request.json();
-
-    if (!commentId || !content?.trim()) {
-      return NextResponse.json(
-        { error: "Comment ID and content are required" },
-        { status: 400 }
-      );
-    }
+    const { commentId, content } = parsed.data;
 
     const user = await getCurrentUser();
     if (!user) {
@@ -320,7 +308,6 @@ export async function PATCH(
       },
     });
 
-    console.log(`✅ [PATCH] Comment updated: ${comment.id}`);
     return NextResponse.json({
       comment,
       activity: {
@@ -335,7 +322,6 @@ export async function PATCH(
       },
     });
   } catch (error) {
-    console.error("❌ [PATCH] Error:", error);
     const message =
       error instanceof Error ? error.message : "Failed to update comment";
     const status = message.includes("Unauthorized") ? 403 : 500;
@@ -352,16 +338,13 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const query = parseRouteParams(
+      { commentId: new URL(request.url).searchParams.get("commentId") },
+      commentDeleteSchema,
+    );
+    if (!query.success) return query.response;
+    const { commentId } = query.data;
     const { id: listId } = await params;
-    const { searchParams } = new URL(request.url);
-    const commentId = searchParams.get("commentId");
-
-    if (!commentId) {
-      return NextResponse.json(
-        { error: "Comment ID is required" },
-        { status: 400 }
-      );
-    }
 
     const user = await getCurrentUser();
     if (!user) {
@@ -446,7 +429,6 @@ export async function DELETE(
       },
     });
 
-    console.log(`✅ [DELETE] Comment deleted: ${commentId}`);
     return NextResponse.json({
       success: true,
       activity: {
@@ -461,7 +443,6 @@ export async function DELETE(
       },
     });
   } catch (error) {
-    console.error("❌ [DELETE] Error:", error);
     const message =
       error instanceof Error ? error.message : "Failed to delete comment";
     const status = message.includes("Unauthorized") ? 403 : 500;

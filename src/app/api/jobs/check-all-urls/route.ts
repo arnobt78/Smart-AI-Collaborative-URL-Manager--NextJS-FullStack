@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { updateList } from "@/lib/db";
 import type { UrlItem } from "@/stores/urlListStore";
@@ -6,15 +6,16 @@ import {
   checkUrlsHealth,
   updateUrlsWithHealthResults,
 } from "@/lib/jobs/url-health";
+import { isAuthorizedInternalJob } from "@/lib/jobs/authorization";
 
 /**
  * POST /api/jobs/check-all-urls
  * Check health of URLs in all lists
  * Called by QStash daily cron job
  */
-export async function POST() {
+export async function POST(request: NextRequest) {
   try {
-    console.log("🔍 [HEALTH CHECK] Starting health check for all lists...");
+    if (!(await isAuthorizedInternalJob(request))) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     // Get all lists
     const lists = await prisma.list.findMany({
@@ -35,9 +36,6 @@ export async function POST() {
       if (urls.length === 0) continue;
 
       try {
-        console.log(
-          `🔍 [HEALTH CHECK] Checking ${urls.length} URLs in list ${list.id}`
-        );
 
         // Check health of all URLs in this list
         const healthResults = await checkUrlsHealth(urls, 5);
@@ -64,24 +62,14 @@ export async function POST() {
         totalWarning += warningCount;
         totalBroken += brokenCount;
 
-        console.log(
-          `✅ [HEALTH CHECK] List ${list.id} - Healthy: ${healthyCount}, Warning: ${warningCount}, Broken: ${brokenCount}`
-        );
 
         // Small delay between lists to avoid overwhelming the system
         await new Promise((resolve) => setTimeout(resolve, 500));
-      } catch (error) {
-        console.error(
-          `❌ [HEALTH CHECK] Error checking list ${list.id}:`,
-          error
-        );
+      } catch (_error) {
         // Continue with next list
       }
     }
 
-    console.log(
-      `✅ [HEALTH CHECK] Completed - Total: ${totalChecked}, Healthy: ${totalHealthy}, Warning: ${totalWarning}, Broken: ${totalBroken}`
-    );
 
     return NextResponse.json({
       success: true,
@@ -95,7 +83,6 @@ export async function POST() {
       },
     });
   } catch (error) {
-    console.error("❌ [HEALTH CHECK] Error:", error);
     const message =
       error instanceof Error ? error.message : "Health check failed";
     return NextResponse.json({ error: message }, { status: 500 });

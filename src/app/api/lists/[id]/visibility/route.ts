@@ -3,18 +3,21 @@ import { getCurrentUser } from "@/lib/auth";
 import { updateList, getListById } from "@/lib/db";
 import { createActivity } from "@/lib/db/activities";
 import { publishMessage, CHANNELS } from "@/lib/realtime/redis";
+import { parseJsonBody, visibilitySchema } from "@/lib/api-validation";
 
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const parsed = await parseJsonBody(req, visibilitySchema);
+    if (!parsed.success) return parsed.response;
+    const { isPublic } = parsed.data;
     const user = await getCurrentUser();
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { isPublic } = await req.json();
     const { id } = await params;
 
     // Check if user owns the list

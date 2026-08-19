@@ -38,7 +38,6 @@ export async function GET(
 
     return NextResponse.json({ activities });
   } catch (error) {
-    console.error("❌ [ACTIVITIES] Failed to get activities:", error);
     const message =
       error instanceof Error ? error.message : "Failed to get activities";
     return NextResponse.json({ error: message }, { status: 500 });

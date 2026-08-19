@@ -22,7 +22,6 @@ export async function POST(
     const urls = (list.urls as unknown as UrlItem[]) || [];
 
     if (urls.length === 0) {
-      console.log(`ℹ️ [VECTOR SYNC] No URLs to sync for list ${id}`);
       return NextResponse.json({
         success: true,
         message: "No URLs to sync",
@@ -30,9 +29,6 @@ export async function POST(
       });
     }
 
-    console.log(
-      `🔄 [VECTOR SYNC] Starting sync for ${urls.length} URLs in list ${id}`
-    );
     // Sync all URLs to vector database
     await upsertUrlVectors(urls, list.id);
 

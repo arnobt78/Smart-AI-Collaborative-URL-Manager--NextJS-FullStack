@@ -46,8 +46,7 @@ export async function getCache<T>(key: string): Promise<T | null> {
   if (!redis) return null;
   try {
     return (await redis.get<T>(key)) ?? null;
-  } catch (error) {
-    console.error("Redis get error:", error);
+  } catch (_error) {
     return null;
   }
 }
@@ -65,8 +64,7 @@ export async function setCache<T>(
     } else {
       await redis.set(key, value);
     }
-  } catch (error) {
-    console.error("Redis set error:", error);
+  } catch (_error) {
   }
 }
 
@@ -75,7 +73,6 @@ export async function deleteCache(key: string): Promise<void> {
   if (!redis) return;
   try {
     await redis.del(key);
-  } catch (error) {
-    console.error("Redis delete error:", error);
+  } catch (_error) {
   }
 }

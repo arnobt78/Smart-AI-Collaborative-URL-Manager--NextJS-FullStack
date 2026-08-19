@@ -50,11 +50,8 @@ function MarketingHome() {
             MARKETING_STACK,
           )}
         >
-          <ScrollReveal
-            className="flex justify-center"
-            delay={0}
-            direction="appear"
-          >
+          {/* Match the login form's immediate, reduced-motion-safe mount stagger. */}
+          <div className="auth-reveal auth-reveal-delay-0 flex justify-center">
             <div className="bg-blue-500/20 backdrop-blur-md rounded-xl sm:rounded-2xl p-3 sm:p-4 inline-block border border-blue-400/30">
               <OptimizedImage
                 src="/favicon.ico"
@@ -65,39 +62,31 @@ function MarketingHome() {
                 publicAsset
               />
             </div>
-          </ScrollReveal>
-          <ScrollReveal delay={160} direction="left">
+          </div>
+          <div className="auth-reveal auth-reveal-delay-1">
             <h1 className="text-lg sm:text-xl font-medium text-white bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-indigo-400 px-2">
               The Daily Urlist
             </h1>
-          </ScrollReveal>
-          <ScrollReveal delay={320} direction="right">
+          </div>
+          <div className="auth-reveal auth-reveal-delay-2">
             <p className="text-sm sm:text-lg text-white/70 leading-relaxed px-2">
               Create and share lists of URLs easily.
             </p>
-          </ScrollReveal>
-          <ScrollReveal delay={480} direction="left">
+          </div>
+          <div className="auth-reveal auth-reveal-delay-3">
             <p className="text-sm sm:text-lg text-white/70 leading-relaxed px-2">
               Perfect for sharing resources, bookmarks, and collections with
               others.
             </p>
-          </ScrollReveal>
-          <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 justify-center px-2">
-            <ScrollReveal
-              delay={640}
-              direction="bottom"
-              className="w-full sm:w-auto"
-            >
+          </div>
+          <div className="auth-reveal auth-reveal-delay-4 flex flex-col sm:flex-row gap-2 sm:gap-4 justify-center px-2">
+            <div className="w-full sm:w-auto">
               <CreateNewListButton
                 icon={ListPlus}
                 className="text-sm px-6 sm:px-8"
               />
-            </ScrollReveal>
-            <ScrollReveal
-              delay={800}
-              direction="bottom"
-              className="w-full sm:w-auto"
-            >
+            </div>
+            <div className="w-full sm:w-auto">
               <Button
                 href="/lists"
                 variant="outline"
@@ -106,7 +95,7 @@ function MarketingHome() {
                 <LayoutList className="h-5 w-5 shrink-0" aria-hidden />
                 View My Lists
               </Button>
-            </ScrollReveal>
+            </div>
           </div>
         </div>
       </section>

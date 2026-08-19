@@ -32,7 +32,6 @@ export async function publishMessage(
   message: Record<string, unknown>
 ): Promise<void> {
   if (!redis) {
-    console.warn("⚠️ [REALTIME] Redis not configured, skipping publish");
     return;
   }
 
@@ -50,9 +49,7 @@ export async function publishMessage(
     await redis.ltrim(channelList, 0, 99); // Keep last 100 messages
     await redis.expire(channelList, 3600); // 1 hour expiration
 
-    console.log(`✅ [REALTIME] Published message to ${channel}`);
-  } catch (error) {
-    console.error(`❌ [REALTIME] Failed to publish to ${channel}:`, error);
+  } catch (_error) {
   }
 }
 
@@ -80,11 +77,7 @@ export async function getRecentMessages(
         }
       })
       .filter((msg): msg is Record<string, unknown> => msg !== null);
-  } catch (error) {
-    console.error(
-      `❌ [REALTIME] Failed to get messages from ${channel}:`,
-      error
-    );
+  } catch (_error) {
     return [];
   }
 }

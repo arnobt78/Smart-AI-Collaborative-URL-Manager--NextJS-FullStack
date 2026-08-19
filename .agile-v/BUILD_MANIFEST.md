@@ -1,4 +1,4 @@
-# BUILD_MANIFEST.md — C1 UI remediation
+# BUILD_MANIFEST.md — C2 homepage hero polish
 
 | Artifact | Requirement | Planned location | Notes |
 |----------|-------------|------------------|-------|
@@ -15,5 +15,6 @@
 | ART-0022.1 | REQ-0022 | `src/lib/list-route-access.ts`; list, metadata, and vector route handlers; focused route tests | Canonical list resolution with cookie-session and collaborator-role authorization before list mutations or private side effects. |
 | ART-0023.1 | REQ-0023 | URL mutation store/hooks, query invalidation utilities, Browse/Lists/Insights/detail data surfaces, focused tests | One optimistic URL mutation transaction with complete rollback and stable cached/static page surfaces. |
 | ART-0023.2 | REQ-0023 | `src/lib/query-keys.ts`; `src/hooks/useListQueries.ts`; `src/utils/queryInvalidation.ts` | Hook-independent query-key contract prevents store/invalidation import cycles while preserving existing key values. |
+| ART-0024.1 | REQ-0024 | `src/components/HomePage.tsx`; `src/components/__tests__/HomePage.test.tsx`; `jest.setup.js` | Reuse existing login mount-stagger classes for five hero rows; preserve lower scroll reveals and remove test debug output. |
 
 Risk level: R2 (production UI and repository-wide behavior-sensitive lint remediation). No API, database, authorization, or session contract changes are authorized.

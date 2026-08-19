@@ -13,3 +13,5 @@ Append-only record of Human Gate decisions.
 | 2026-08-18 | GATE-0013 | APPROVED | User | `C1-HG1-REQ-0021-2026-08-18` | User approved REQ-0021 Stable List Form Dialogs exactly as scoped. |
 | 2026-08-19 | GATE-0014 | PENDING | — | `C1-HG1-SECURITY-CACHE-2026-08-19` | Scope: REQ-0022/REQ-0023 only; requires explicit approval before implementation. |
 | 2026-08-19 | GATE-0014 | APPROVED | User | `C1-HG1-SECURITY-CACHE-2026-08-19` | User explicitly approved implementation of REQ-0022/REQ-0023: list-route authorization, URL mutation cache rollback, and stable data surfaces. |
+| 2026-08-19 | GATE-0015 | APPROVED | User | `C2-HG1-HOME-HERO-2026-08-19` | User explicitly approved implementation of the C2 homepage hero mount-stagger plan (REQ-0024). |
+| 2026-08-19 | GATE-0016 | APPROVED | User | `C3-HG1-VALIDATION-SESSION-CACHE-2026-08-19` | User explicitly approved C3: shared mutation validation, graceful SHA-256 session-token persistence transition, and mutation cache integrity coverage; Prisma 6 remains unchanged. |

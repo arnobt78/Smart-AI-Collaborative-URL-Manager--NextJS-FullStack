@@ -206,7 +206,6 @@ export function UrlList() {
         // Populate React Query cache immediately so cards don't fetch
         const queryKey = listQueryKeys.urlMetadata(url);
         queryClient.setQueryData(queryKey, metadata);
-        // console.log(
         //   `✅ [POST] Populated React Query cache for: ${url.slice(0, 40)}...`
         // );
       }
@@ -291,7 +290,6 @@ export function UrlList() {
       // Check if lengths match
       if (refLength !== storeLength) {
         // URLs were added/deleted - clear ref to prevent warnings
-        // console.log("🧹 [REF] Clearing finalDragOrderRef - URLs added/deleted", {
         //   refLength,
         //   storeLength,
         //   listId: list.id,
@@ -307,7 +305,6 @@ export function UrlList() {
 
         if (!sameIds) {
           // Different URLs (replaced, not reordered) - clear ref
-          // console.log("🧹 [REF] Clearing finalDragOrderRef - URLs replaced", {
           //   refIds: Array.from(refIds),
           //   storeIds: Array.from(storeIds),
           //   listId: list.id,
@@ -365,9 +362,6 @@ export function UrlList() {
       const skipFlag = sessionStorage.getItem("skipMetadataAfterBulkImport");
       if (skipFlag === "true") {
         if (process.env.NODE_ENV === "development") {
-          console.log(
-            `⏭️ [BATCH] Skipping ALL metadata fetches after bulk import (dev server workaround)`,
-          );
         }
         // Keep flag set for entire session - don't clear it
         return;
@@ -383,7 +377,6 @@ export function UrlList() {
     // Skip batch fetch if a local operation is in progress (delete, add, etc.)
     // This prevents unnecessary metadata fetches during optimistic updates
     if (isLocalOperationRef.current) {
-      // console.log(
       //   `⏭️ [BATCH] Skipping batch fetch - local operation in progress`
       // );
       return;
@@ -494,7 +487,6 @@ export function UrlList() {
                 }
               } catch {
                 // Ignore prefetch errors (non-critical)
-                // console.warn(
                 //   `  ⚠️ [BATCH] Failed to prefetch image for ${url}:`,
                 //   error
                 // );
@@ -528,13 +520,11 @@ export function UrlList() {
             refetchType: "none",
           });
         } else {
-          // console.error(
           //   `❌ [BATCH] API error: ${response.status} ${response.statusText}`
           // );
           prefetchedMetadataRef.current = null; // Reset on error
         }
       } catch {
-        // console.error(`❌ [BATCH] Failed to fetch batch metadata:`, error);
         prefetchedMetadataRef.current = null; // Reset on error
 
         // Fallback to individual prefetching if batch endpoint fails
@@ -654,7 +644,6 @@ export function UrlList() {
     const handleListUpdate = async (event: Event) => {
       // Skip refresh if we're performing a local operation or dragging (avoid loop/interference)
       if (isLocalOperationRef.current || isDraggingRef.current) {
-        // console.log(
         //   "⏭️ [REALTIME] Skipping refresh - local operation or drag in progress"
         // );
         return;
@@ -669,7 +658,6 @@ export function UrlList() {
       // Increased to 30 seconds to survive queued refreshes and Fast Refresh cycles
       // This is especially important because real-time updates can queue refreshes that run later
       if (now - lastDragEndTimeRef.current < 30000) {
-        // console.log(
         //   `⏭️ [REALTIME] Skipping refresh - drag operation just completed (${dragEndTime.toFixed(
         //     0
         //   )}ms ago, protecting optimistic state)`
@@ -704,7 +692,6 @@ export function UrlList() {
                 const storedOrder = parsed.map((u) => u.id).join(",");
                 const currentOrder = currentUrls.map((u) => u.id).join(",");
                 if (storedOrder !== currentOrder) {
-                  // console.log(
                   //   `⏭️ [REALTIME] Skipping refresh - drag order preserved in localStorage`,
                   //   { stored: storedOrder, current: currentOrder }
                   // );
@@ -714,12 +701,10 @@ export function UrlList() {
             }
           }
         } catch {
-          // console.error("❌ [REALTIME] Error checking localStorage", err);
         }
       }
 
       // Only proceed if no drag order is preserved
-      // console.log("🔄 [REALTIME] Proceeding with refresh", {
       //   currentOrder: (current.urls as unknown as UrlItem[]).map(
       //     (u: UrlItem) => u.id
       //   ),
@@ -728,7 +713,6 @@ export function UrlList() {
       // Prevent refreshing if we just deleted a URL (protect optimistic state)
       // Real-time events from our own delete operation should be ignored
       if (now - lastDeleteTimeRef.current < 5000) {
-        // console.log(
         //   "⏭️ [REALTIME] Skipping refresh - delete operation just completed (protecting optimistic state)"
         // );
         return;
@@ -749,7 +733,6 @@ export function UrlList() {
           customEvent.detail.action === "collaborator_removed";
 
         if (isCollaboratorActionToSkip) {
-          // console.log(
           //   "⏭️ [REALTIME] Skipping refresh - collaborator action (handled optimistically)"
           // );
           return; // Skip refetch for collaborator add/remove changes
@@ -776,7 +759,6 @@ export function UrlList() {
         const timeSinceLastRefresh = now - lastRefreshRef.current;
         if (timeSinceLastRefresh < throttleWindow) {
           const remainingTime = throttleWindow - timeSinceLastRefresh;
-          // console.log(
           //   `⏭️ [REALTIME] Throttling refresh (${remainingTime}ms remaining), queuing for later...`
           // );
 
@@ -817,9 +799,6 @@ export function UrlList() {
           window.__bulkImportActive
         ) {
           if (process.env.NODE_ENV === "development") {
-            console.debug(
-              "⏭️ [URL_LIST] Skipping getList - bulk import in progress",
-            );
           }
           return;
         }
@@ -973,7 +952,6 @@ export function UrlList() {
           setLastSearchedQuery(currentSearchQuery);
         }
       } catch {
-        // console.error("Smart search failed:", error);
         // On error, set empty array (not null) so we know search completed with no results
         setSmartSearchResults([]);
         setLastSearchedQuery(currentSearchQuery);
@@ -1039,9 +1017,6 @@ export function UrlList() {
       if (response.ok) {
         const data = await response.json();
         if (process.env.NODE_ENV === "development") {
-          console.log(
-            `✅ [API] POST /api/lists/${current.id}/urls/${urlId}/click - success`,
-          );
         }
 
         // Update with server response to ensure accuracy
@@ -1179,7 +1154,6 @@ export function UrlList() {
           const queryKey = listQueryKeys.urlMetadata(url);
           existingMetadata = queryClient.getQueryData<UrlMetadata>(queryKey);
           if (existingMetadata) {
-            // console.log(
             //   `✅ [EDIT] Found cached metadata from prefetch for: ${url.slice(
             //     0,
             //     40
@@ -1278,7 +1252,6 @@ export function UrlList() {
         });
       }
     } catch {
-      // console.error("Failed to toggle favorite:", err);
       // Revert on error - use React Query invalidation to trigger unified endpoint refetch
       if (current.slug) {
         queryClient.invalidateQueries({
@@ -1314,7 +1287,6 @@ export function UrlList() {
           const queryKey = ["url-metadata", urlToDuplicate.url] as const;
           existingMetadata = queryClient.getQueryData<UrlMetadata>(queryKey);
           if (existingMetadata) {
-            // console.log(
             //   `✅ [DUPLICATE] Found cached metadata from React Query for: ${urlToDuplicate.url.slice(
             //     0,
             //     40
@@ -1354,7 +1326,6 @@ export function UrlList() {
         variant: "success",
       });
     } catch (err) {
-      // console.error("Failed to duplicate URL:", err);
       // Revert on error - use React Query invalidation to trigger unified endpoint refetch
       if (current.slug) {
         queryClient.invalidateQueries({
@@ -1410,7 +1381,6 @@ export function UrlList() {
         variant: "success",
       });
     } catch (err) {
-      // console.error("Failed to archive URL:", err);
       // Revert on error - use React Query invalidation to trigger unified endpoint refetch
       if (current?.slug) {
         queryClient.invalidateQueries({
@@ -1500,7 +1470,6 @@ export function UrlList() {
         if (err instanceof Error && err.name === "AbortError") {
           return;
         }
-        // console.error("Error sharing:", err);
         // Fallback to clipboard on other errors
         try {
           await navigator.clipboard.writeText(url.url);
@@ -1619,7 +1588,6 @@ export function UrlList() {
 
       try {
         if (process.env.NODE_ENV === "development") {
-          console.log(`🔄 [API] PATCH /api/lists/${current.id}/urls - reorder`);
         }
         const response = await fetch(`/api/lists/${current.id}/urls`, {
           method: "PATCH",
@@ -1718,12 +1686,8 @@ export function UrlList() {
             }
           }, 60000); // Keep for 60 seconds to survive Fast Refresh cycles
         }
-      } catch (err) {
+      } catch (_err) {
         if (process.env.NODE_ENV === "development") {
-          console.error(
-            `❌ [API] PATCH /api/lists/${current.id}/urls - reorder failed:`,
-            err,
-          );
         }
         // Revert on error - fetch the current list
         finalDragOrderRef.current = null; // Clear ref on error
@@ -1831,10 +1795,6 @@ export function UrlList() {
       // The store ensures the final order is persisted after drag completes
 
       if (process.env.NODE_ENV === "development") {
-        console.log(
-          "✅ [DRAG] Store updated, sortableContextKey will increment on next render",
-          currentList.get().urls?.map((u: UrlItem) => u.id),
-        );
       }
 
       // Use unified PATCH endpoint for reorder (same pattern as other URL actions)
@@ -1844,7 +1804,6 @@ export function UrlList() {
       const urlsToSend = finalDragOrderRef.current;
       try {
         if (process.env.NODE_ENV === "development") {
-          console.log(`🔄 [API] PATCH /api/lists/${current.id}/urls - reorder`);
         }
         const response = await fetch(`/api/lists/${current.id}/urls`, {
           method: "PATCH",
@@ -1857,9 +1816,6 @@ export function UrlList() {
         if (response.ok) {
           const { list, activity: activityData } = await response.json();
           if (process.env.NODE_ENV === "development") {
-            console.log(
-              `✅ [API] PATCH /api/lists/${current.id}/urls - reorder success`,
-            );
           }
 
           // CRITICAL: Always use the preserved order from ref (survives re-renders)
@@ -1904,10 +1860,6 @@ export function UrlList() {
           // The store ensures the final order is persisted after drag completes
 
           if (process.env.NODE_ENV === "development") {
-            console.log(
-              "✅ [DRAG] Final store state",
-              currentList.get().urls?.map((u: UrlItem) => u.id),
-            );
           }
 
           // Dispatch activity-added event for optimistic feed update (no redundant fetch)
@@ -1964,12 +1916,8 @@ export function UrlList() {
             }
           }, 60000); // Keep for 60 seconds to survive Fast Refresh cycles
         }
-      } catch (err) {
+      } catch (_err) {
         if (process.env.NODE_ENV === "development") {
-          console.error(
-            `❌ [API] PATCH /api/lists/${current.id}/urls - reorder failed:`,
-            err,
-          );
         }
         // Revert on error - fetch the current list
         finalDragOrderRef.current = null; // Clear ref on error
@@ -2028,7 +1976,6 @@ export function UrlList() {
           }
         }
 
-        // console.log("🔍 [RENDER] Checking for drag order", {
         //   hasGlobalCache: !!globalCache?.[storageKey],
         //   hasStored: !!storedOrder,
         //   source: storedOrder ? source || "localStorage" : "none",
@@ -2040,7 +1987,6 @@ export function UrlList() {
           const parsed = storedOrder as UrlItem[];
           const currentUrls = (list.urls as unknown as UrlItem[]) || [];
 
-          // console.log("🔍 [RENDER] Found stored order", {
           //   storedLength: parsed.length,
           //   currentLength: currentUrls.length,
           //   storedOrderIds: parsed.map((u: UrlItem) => u.id).join(","),
@@ -2055,7 +2001,6 @@ export function UrlList() {
               storedIds.size === currentIds.size &&
               [...storedIds].every((id: string) => currentIds.has(id));
 
-            // console.log("🔍 [RENDER] Comparing IDs", {
             //   sameIds,
             //   storedIds: Array.from(storedIds),
             //   currentIds: Array.from(currentIds),
@@ -2068,7 +2013,6 @@ export function UrlList() {
                 .map((u: UrlItem) => u.id)
                 .join(",");
 
-              // console.log("🔍 [RENDER] Comparing order", {
               //   storedOrderIds,
               //   currentOrder,
               //   differs: storedOrderIds !== currentOrder,
@@ -2084,30 +2028,23 @@ export function UrlList() {
                 }
                 // Store update will happen in useLayoutEffect to avoid "setState during render" error
               } else {
-                // console.log("⏭️ [RENDER] Orders match, no restoration needed");
               }
             } else {
-              // console.log("⚠️ [RENDER] Different URLs, cannot restore");
             }
           } else {
-            // console.log("⚠️ [RENDER] Different lengths, cannot restore");
           }
         } else {
-          // console.log("⏭️ [RENDER] No stored order in localStorage");
         }
       } catch {
-        // console.error(
         //   "❌ [RENDER] Failed to read localStorage during render",
         //   err
         // );
       }
     } else {
-      // console.log("⏭️ [RENDER] Ref already populated, skipping restoration", {
       //   refOrder: finalDragOrderRef.current.map((u) => u.id).join(","),
       // });
     }
   } else {
-    // console.log("⏭️ [RENDER] Cannot restore - missing list.id or window", {
     //   hasListId: !!list?.id,
     //   hasWindow: typeof window !== "undefined",
     // });
@@ -2139,7 +2076,6 @@ export function UrlList() {
           preservedOrder = globalCache[storageKey];
           if (preservedOrder) {
             finalDragOrderRef.current = preservedOrder; // Sync ref
-            // console.log(
             //   "📦 [URLS] Restored from global cache in memo",
             //   preservedOrder.map((u) => u.id)
             // );
@@ -2154,7 +2090,6 @@ export function UrlList() {
               if (globalCache) {
                 globalCache[storageKey] = preservedOrder;
               }
-              // console.log(
               //   "📦 [URLS] Restored from localStorage in memo",
               //   preservedOrder.map((u) => u.id)
               // );
@@ -2162,7 +2097,6 @@ export function UrlList() {
           }
         }
       } catch {
-        // console.error("❌ [URLS] Failed to read localStorage in memo", err);
       }
     }
 
@@ -2170,7 +2104,6 @@ export function UrlList() {
     if (preservedOrder) {
       const preservedOrderIds = preservedOrder.map((u) => u.id).join(",");
 
-      // console.log("🔍 [URLS] Checking preserved order", {
       //   hasPreserved: true,
       //   preservedOrder: preservedOrderIds,
       //   storeOrder: storeOrder,
@@ -2188,7 +2121,6 @@ export function UrlList() {
           preservedIds.size === storeIds.size &&
           [...preservedIds].every((id) => storeIds.has(id));
 
-        // console.log("🔍 [URLS] ID comparison", {
         //   sameIds,
         //   preservedIds: Array.from(preservedIds),
         //   storeIds: Array.from(storeIds),
@@ -2199,7 +2131,6 @@ export function UrlList() {
           // Same URLs, just reordered - use preserved order BUT merge with latest store data
           // This ensures we use preserved order for positioning, but get latest clickCount and other dynamic fields
           if (preservedOrderIds !== storeOrder) {
-            // console.log(
             //   "✅ [URLS] Using preserved order (different from store)",
             //   {
             //     preserved: preservedOrderIds,
@@ -2207,7 +2138,6 @@ export function UrlList() {
             //   }
             // );
           } else {
-            // console.log(
             //   "✅ [URLS] Preserved order matches store, using preserved",
             //   {
             //     order: preservedOrderIds,
@@ -2230,7 +2160,6 @@ export function UrlList() {
           // Reduced to debug level - this is expected behavior when URLs are replaced
           // The system correctly detects and ignores stale data, so this is not a warning
           if (process.env.NODE_ENV === "development") {
-            // console.debug(
             //   "ℹ️ [URLS] Preserved order has different URLs (URLs replaced), ignoring",
             //   {
             //     preserved: preservedOrderIds,
@@ -2261,7 +2190,6 @@ export function UrlList() {
         // Reduced to debug level - this is expected behavior when URLs are added/deleted
         // The system correctly detects and ignores stale data, so this is not a warning
         if (process.env.NODE_ENV === "development") {
-          // console.debug(
           //   "ℹ️ [URLS] Preserved order has different length (URLs added/deleted), ignoring",
           //   {
           //     preservedLength: preservedOrder.length,
@@ -2295,7 +2223,6 @@ export function UrlList() {
         }
       }
     } else {
-      // console.log("🔍 [URLS] No preserved order found", {
       //   refEmpty: !finalDragOrderRef.current,
       //   hasLocalStorage:
       //     list.id && typeof window !== "undefined"
@@ -2305,7 +2232,6 @@ export function UrlList() {
     }
 
     // Otherwise use store URLs (normal case)
-    // console.log("📋 [URLS] Using store URLs", storeOrder);
     return storeUrls;
   }, [list?.urls, list?.id]);
 
@@ -2443,17 +2369,6 @@ export function UrlList() {
         (u) => u.clickCount !== undefined && u.clickCount > 0,
       );
       if (urlWithClickCount) {
-        console.log("🔍 [FILTERED_URLS] filteredAndSortedUrls computed:", {
-          totalUrls: result.length,
-          urlWithClickCount: {
-            id: urlWithClickCount.id,
-            title: urlWithClickCount.title?.substring(0, 30),
-            clickCount: urlWithClickCount.clickCount,
-          },
-          listUrlsLength: list?.urls
-            ? (list.urls as unknown as UrlItem[]).length
-            : 0,
-        });
       }
     }
 
@@ -2509,7 +2424,6 @@ export function UrlList() {
         variant: "success",
       });
     } catch (err) {
-      console.error("Failed to restore URL:", err);
       // Revert on error - use React Query invalidation to trigger unified endpoint refetch
       if (current?.slug) {
         queryClient.invalidateQueries({
@@ -2779,8 +2693,7 @@ export function UrlList() {
 
                       // Perform delete (it does optimistic update internally)
                       removeUrlFromList(urlId)
-                        .catch((err) => {
-                          console.error("Failed to delete URL:", err);
+                        .catch(() => {
                           // Revert on error - use React Query invalidation to trigger unified endpoint refetch
                           if (current?.slug) {
                             queryClient.invalidateQueries({

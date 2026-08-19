@@ -60,7 +60,6 @@ export async function GET(
         try {
 
           if (!redis) {
-            console.warn("⚠️ [REALTIME] Redis not available");
             return;
           }
 
@@ -186,7 +185,6 @@ export async function GET(
             clearInterval(interval);
             return;
           }
-          console.error("❌ [REALTIME] Error in SSE stream:", error);
           // Only try to send error message if controller is still open
           if (!request.signal.aborted) {
             try {

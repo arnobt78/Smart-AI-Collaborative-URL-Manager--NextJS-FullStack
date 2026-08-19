@@ -1,8 +1,9 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import {
   scheduleDailyHealthChecks,
   scheduleWeeklyMetadataRefresh,
 } from "@/lib/jobs/qstash";
+import { isAuthorizedInternalJob } from "@/lib/jobs/authorization";
 
 /**
  * Get the base URL for the application
@@ -35,8 +36,9 @@ function isLocalDevelopment(): boolean {
  * Call this endpoint once to set up the cron jobs
  * Note: QStash requires a publicly accessible URL (not localhost)
  */
-export async function POST() {
+export async function POST(request: NextRequest) {
   try {
+    if (!(await isAuthorizedInternalJob(request))) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     // Check if we're in local development
     if (isLocalDevelopment()) {
       return NextResponse.json(
@@ -74,7 +76,6 @@ export async function POST() {
       );
     }
 
-    console.log("🔧 [SCHEDULE SETUP] Setting up scheduled jobs...");
 
     const results = {
       dailyHealthChecks: false,
@@ -86,30 +87,20 @@ export async function POST() {
     try {
       await scheduleDailyHealthChecks();
       results.dailyHealthChecks = true;
-      console.log("✅ [SCHEDULE SETUP] Daily health checks scheduled");
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : "Unknown error";
       results.errors.push(`Daily health checks: ${errorMessage}`);
-      console.error(
-        "❌ [SCHEDULE SETUP] Failed to schedule daily health checks:",
-        error
-      );
     }
 
     // Schedule weekly metadata refresh
     try {
       await scheduleWeeklyMetadataRefresh();
       results.weeklyMetadataRefresh = true;
-      console.log("✅ [SCHEDULE SETUP] Weekly metadata refresh scheduled");
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : "Unknown error";
       results.errors.push(`Weekly metadata refresh: ${errorMessage}`);
-      console.error(
-        "❌ [SCHEDULE SETUP] Failed to schedule weekly metadata refresh:",
-        error
-      );
     }
 
     if (results.errors.length > 0) {
@@ -133,7 +124,6 @@ export async function POST() {
       },
     });
   } catch (error) {
-    console.error("❌ [SCHEDULE SETUP] Error:", error);
     const message =
       error instanceof Error ? error.message : "Failed to setup schedule";
     return NextResponse.json({ error: message }, { status: 500 });

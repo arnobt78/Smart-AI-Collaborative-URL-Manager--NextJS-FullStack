@@ -211,11 +211,6 @@ describe.skip("UrlList Drag-and-Drop Diagnostic Tests", () => {
     // Get initial order from DOM
     const initialItems = screen.getAllByText(/Example \d/);
     const initialOrder = initialItems.map((item) => item.textContent);
-    console.log("🔍 [TEST] Initial DOM order:", initialOrder);
-    console.log(
-      "🔍 [TEST] Initial store order:",
-      currentList.get().urls?.map((u: any) => u.id)
-    );
 
     // Find draggable elements - dnd-kit uses data-id attribute or aria-describedby
     // The items are rendered within SortableContext
@@ -256,10 +251,6 @@ describe.skip("UrlList Drag-and-Drop Diagnostic Tests", () => {
           position: idx,
         }));
 
-        console.log(
-          "🔍 [TEST] Reordered URLs:",
-          reorderedWithPositions.map((u: any) => u.id)
-        );
         currentList.set({ ...current, urls: reorderedWithPositions });
       }
     });
@@ -270,11 +261,7 @@ describe.skip("UrlList Drag-and-Drop Diagnostic Tests", () => {
     });
 
     // Check store order immediately after update
-    const storeAfterUpdate = currentList.get().urls?.map((u: any) => u.id);
-    console.log(
-      "🔍 [TEST] Store order immediately after update:",
-      storeAfterUpdate
-    );
+    const _storeAfterUpdate = currentList.get().urls?.map((u: any) => u.id);
 
     // Wait for re-render after store update
     await waitFor(
@@ -283,7 +270,6 @@ describe.skip("UrlList Drag-and-Drop Diagnostic Tests", () => {
         const newOrder = newItems
           .map((item) => item.textContent?.trim())
           .filter(Boolean);
-        console.log("🔍 [TEST] DOM order after reorder:", newOrder);
 
         // Check if we have items
         if (newOrder.length >= 3) {
@@ -301,21 +287,10 @@ describe.skip("UrlList Drag-and-Drop Diagnostic Tests", () => {
       .filter(Boolean);
     const finalStoreOrder = currentList.get().urls?.map((u: any) => u.id);
 
-    console.log("🔍 [TEST] Final DOM order:", finalOrder);
-    console.log("🔍 [TEST] Final store order:", finalStoreOrder);
 
     // Check localStorage for preserved order
     const storageKey = "drag-order:test-list";
-    const stored = localStorage.getItem(storageKey);
-    console.log(
-      "🔍 [TEST] localStorage:",
-      stored ? JSON.parse(stored).map((u: any) => u.id) : "null"
-    );
-    console.log(
-      "🔍 [TEST] globalCache:",
-      (window as any).__dragOrderCache?.[storageKey]?.map((u: any) => u.id) ||
-        "null"
-    );
+    const _stored = localStorage.getItem(storageKey);
 
     // DIAGNOSIS: Check if order changed
     const orderChanged =
@@ -324,44 +299,18 @@ describe.skip("UrlList Drag-and-Drop Diagnostic Tests", () => {
     const storeOrderCorrect =
       JSON.stringify(finalStoreOrder) === JSON.stringify(expectedStoreOrder);
 
-    console.log("🔍 [TEST DIAGNOSIS]");
-    console.log("  - Initial DOM order:", initialOrder);
-    console.log("  - Final DOM order:", finalOrder);
-    console.log("  - DOM order changed:", orderChanged);
-    console.log("  - Store order:", finalStoreOrder);
-    console.log("  - Expected store order:", expectedStoreOrder);
-    console.log("  - Store order correct:", storeOrderCorrect);
 
     if (!orderChanged && storeOrderCorrect) {
-      console.error(
-        "❌ [DIAGNOSIS] Store order is correct but DOM order did not update!"
-      );
-      console.error(
-        "   ROOT CAUSE: Component is not re-rendering after store update"
-      );
-      console.error("   Possible issues:");
-      console.error("   1. urlsToUse memo is not recalculating");
-      console.error("   2. SortableContext is not remounting with new items");
-      console.error("   3. React is not detecting store change");
-      console.error("   4. filteredAndSortedUrls memo is using stale data");
     } else if (orderChanged && !storeOrderCorrect) {
-      console.error(
-        "❌ [DIAGNOSIS] DOM order changed but store order is wrong!"
-      );
-      console.error("   ROOT CAUSE: Store update failed");
     } else if (!orderChanged && !storeOrderCorrect) {
-      console.error("❌ [DIAGNOSIS] Both DOM and store order did not change!");
-      console.error("   ROOT CAUSE: Store update is not persisting");
     } else {
-      console.log("✅ [DIAGNOSIS] Both DOM and store order updated correctly!");
     }
 
     // Check if positions were updated correctly
-    const positions = finalStoreOrder?.map((id, idx) => {
+    const _positions = finalStoreOrder?.map((id, idx) => {
       const url = currentList.get().urls?.find((u: any) => u.id === id);
       return { id, position: url?.position, expectedPosition: idx };
     });
-    console.log("🔍 [TEST] Position mapping:", positions);
 
     // At minimum, verify store has correct order
     // If DOM doesn't update, that's the issue we're diagnosing
@@ -382,11 +331,6 @@ describe.skip("UrlList Drag-and-Drop Diagnostic Tests", () => {
     // Check if component structure supports drag
     // dnd-kit renders items within SortableContext, which may not have explicit data-id
     const items = screen.getAllByText(/Example \d/);
-    console.log("🔍 [TEST] Items found:", items.length);
-    console.log(
-      "🔍 [TEST] Item order:",
-      items.map((item) => item.textContent)
-    );
 
     // Verify items are rendered (component structure supports drag)
     expect(items.length).toBeGreaterThanOrEqual(3);
@@ -404,23 +348,14 @@ describe.skip("UrlList Drag-and-Drop Diagnostic Tests", () => {
     });
 
     // Check initial state
-    const storeUrls = currentList.get().urls;
-    console.log(
-      "🔍 [TEST] Store URLs:",
-      storeUrls?.map((u: any) => ({ id: u.id, position: u.position }))
-    );
+    const _storeUrls = currentList.get().urls;
 
     // Check localStorage
     const storageKey = "drag-order:test-list";
-    const stored = localStorage.getItem(storageKey);
-    console.log("🔍 [TEST] localStorage state:", stored ? "has data" : "empty");
+    const _stored = localStorage.getItem(storageKey);
 
     // Check global cache
-    const globalCache = (window as any).__dragOrderCache;
-    console.log(
-      "🔍 [TEST] globalCache state:",
-      globalCache?.[storageKey] ? "has data" : "empty"
-    );
+    const _globalCache = (window as any).__dragOrderCache;
 
     // The urlsToUse memo should prefer:
     // 1. finalDragOrderRef.current

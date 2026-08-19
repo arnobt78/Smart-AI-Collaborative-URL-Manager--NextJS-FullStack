@@ -1,5 +1,25 @@
 # CHANGELOG.md
 
+## CR-0001 — C2 Homepage hero mount stagger
+
+- **Cycle:** C2
+- **Affected requirement:** REQ-0024 (new)
+- **Change:** Reuse the login form's existing five-step `auth-reveal` mount stagger for the authenticated homepage hero only.
+- **Rationale:** User-requested visual consistency; the current hero uses viewport-driven `ScrollReveal`, which differs from login's initial mount sequence.
+- **Impact:** `HomePage`, focused homepage test, Jest setup debug cleanup, and C2 traceability; no API, data, cache, auth, SSR, or schema impact.
+- **Requested by:** User
+- **Approval:** Approved by explicit implementation request on 2026-08-19 (GATE-0015).
+
+## CR-0002 — C3 Validation, session hardening, and cache integrity
+
+- **Cycle:** C3
+- **Affected requirement:** REQ-0025 (new)
+- **Change:** Add shared Zod mutation parsing, digest-only persistence for new opaque session tokens with transparent legacy rotation, and complete mutation impact coverage through the existing React Query gateway.
+- **Rationale:** User-approved remediation of incomplete input validation, plaintext session-token storage, and uncovered mutation cache effects.
+- **Impact:** Mutating route handlers, `lib/auth.ts`, validation and query-invalidation utilities, focused tests, and C3 traceability. Prisma 6, cookie-session semantics, SSR, Redis/SSE, and pending C1/C2 Gate 2 evidence remain unchanged.
+- **Requested by:** User
+- **Approval:** Approved by explicit implementation request on 2026-08-19 (GATE-0016).
+
 ## 2026-08-14 C1
 
 - AI free-tier model chains + shared client

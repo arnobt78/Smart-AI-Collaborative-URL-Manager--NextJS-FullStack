@@ -28,7 +28,6 @@ function getBaseUrl(): string {
  */
 export async function scheduleUrlHealthCheck(listId: string): Promise<void> {
   if (!qstashClient) {
-    console.warn("⚠️ [QSTASH] QStash client not configured, skipping health check scheduling");
     return;
   }
 
@@ -43,9 +42,7 @@ export async function scheduleUrlHealthCheck(listId: string): Promise<void> {
       },
       body: JSON.stringify({ listId }),
     });
-    console.log(`✅ [QSTASH] Scheduled health check for list ${listId}`);
   } catch (error) {
-    console.error("❌ [QSTASH] Failed to schedule health check:", error);
     throw error;
   }
 }
@@ -55,7 +52,6 @@ export async function scheduleUrlHealthCheck(listId: string): Promise<void> {
  */
 export async function scheduleMetadataRefresh(listId: string): Promise<void> {
   if (!qstashClient) {
-    console.warn("⚠️ [QSTASH] QStash client not configured, skipping metadata refresh scheduling");
     return;
   }
 
@@ -70,9 +66,7 @@ export async function scheduleMetadataRefresh(listId: string): Promise<void> {
       },
       body: JSON.stringify({ listId }),
     });
-    console.log(`✅ [QSTASH] Scheduled metadata refresh for list ${listId}`);
   } catch (error) {
-    console.error("❌ [QSTASH] Failed to schedule metadata refresh:", error);
     throw error;
   }
 }
@@ -83,7 +77,6 @@ export async function scheduleMetadataRefresh(listId: string): Promise<void> {
  */
 export async function scheduleDailyHealthChecks(): Promise<void> {
   if (!qstashClient) {
-    console.warn("⚠️ [QSTASH] QStash client not configured");
     return;
   }
 
@@ -99,9 +92,7 @@ export async function scheduleDailyHealthChecks(): Promise<void> {
       },
       cron: "0 2 * * *", // Daily at 2 AM UTC
     });
-    console.log("✅ [QSTASH] Scheduled daily health checks (cron: 0 2 * * *)");
   } catch (error) {
-    console.error("❌ [QSTASH] Failed to schedule daily health checks:", error);
     throw error;
   }
 }
@@ -111,7 +102,6 @@ export async function scheduleDailyHealthChecks(): Promise<void> {
  */
 export async function scheduleWeeklyMetadataRefresh(): Promise<void> {
   if (!qstashClient) {
-    console.warn("⚠️ [QSTASH] QStash client not configured");
     return;
   }
 
@@ -127,9 +117,7 @@ export async function scheduleWeeklyMetadataRefresh(): Promise<void> {
       },
       cron: "0 3 * * 0", // Weekly on Sunday at 3 AM UTC
     });
-    console.log("✅ [QSTASH] Scheduled weekly metadata refresh (cron: 0 3 * * 0)");
   } catch (error) {
-    console.error("❌ [QSTASH] Failed to schedule weekly metadata refresh:", error);
     throw error;
   }
 }

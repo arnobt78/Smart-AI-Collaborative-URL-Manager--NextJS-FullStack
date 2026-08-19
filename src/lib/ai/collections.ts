@@ -64,9 +64,7 @@ class SmartCollectionsService {
     if (clearCache && redis) {
       try {
         await redis.del(cacheKey);
-        console.log(`🗑️ [COLLECTIONS] Cache cleared for list ${listId}`);
-      } catch (error) {
-        console.warn("Failed to clear cache:", error);
+      } catch (_error) {
       }
     }
 
@@ -80,17 +78,14 @@ class SmartCollectionsService {
             const parsed = JSON.parse(cached) as CollectionSuggestion[];
             // Validate parsed data
             if (Array.isArray(parsed) && parsed.length > 0) {
-              console.log(`✅ [COLLECTIONS] Cache hit for list ${listId}`);
               return parsed;
             }
-          } catch (parseError) {
+          } catch (_parseError) {
             // Invalid JSON in cache, delete it and continue
-            console.warn("Invalid cache data, deleting:", parseError);
             await redis.del(cacheKey).catch(() => {});
           }
         }
-      } catch (error) {
-        console.warn("Failed to read from cache:", error);
+      } catch (_error) {
       }
     }
 
@@ -172,9 +167,8 @@ class SmartCollectionsService {
                   groupedUrls.get(groupKey)!.push(url);
                   processed.add(url.id);
                 }
-              } catch (error) {
+              } catch (_error) {
                 // Vector search failed for this URL, add to uncategorized
-                console.warn(`Vector search failed for URL ${url.id}:`, error);
                 const groupKey = url.category || "Uncategorized";
                 if (!groupedUrls.has(groupKey)) {
                   groupedUrls.set(groupKey, []);
@@ -210,8 +204,7 @@ class SmartCollectionsService {
                     15 // Get more results for better grouping
                   );
                   return { url, similar };
-                } catch (error) {
-                  console.warn(`Vector search failed for URL ${url.id}:`, error);
+                } catch (_error) {
                   return { url, similar: [] };
                 }
               });
@@ -278,9 +271,8 @@ class SmartCollectionsService {
               }
             });
           }
-        } catch (error) {
+        } catch (_error) {
           // Vector search completely failed, fall back to category grouping
-          console.warn("Vector search failed, using category grouping:", error);
           urls.forEach((url) => {
             const key = url.category || "Uncategorized";
             if (!groupedUrls.has(key)) {
@@ -377,14 +369,12 @@ class SmartCollectionsService {
       if (redis && sorted.length > 0) {
         try {
           await redis.setex(cacheKey, 3600, JSON.stringify(sorted));
-        } catch (error) {
-          console.warn("Failed to cache collection suggestions:", error);
+        } catch (_error) {
         }
       }
 
       return sorted;
-    } catch (error) {
-      console.error("❌ [COLLECTIONS] Failed to suggest collections:", error);
+    } catch (_error) {
       return [];
     }
   }
@@ -603,12 +593,10 @@ Respond ONLY with valid JSON, no additional text.`;
             reason: parsed.reason || "Grouped by similarity",
           };
         } catch {
-          console.warn(`${providerConfig.displayName} failed, trying next...`);
           continue;
         }
       }
-    } catch (error) {
-      console.error("AI metadata generation failed:", error);
+    } catch (_error) {
     }
 
     // Fallback
@@ -652,8 +640,7 @@ Respond ONLY with valid JSON, no additional text.`;
       if (jsonMatch) {
         return JSON.parse(jsonMatch[0]);
       }
-    } catch (error) {
-      console.warn("Failed to parse AI response:", error);
+    } catch (_error) {
     }
 
     return {};

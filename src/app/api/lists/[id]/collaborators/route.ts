@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import {
+  collaboratorCreateSchema,
+  collaboratorDeleteSchema,
+  collaboratorUpdateSchema,
+  parseJsonBody,
+  parseRouteParams,
+} from "@/lib/api-validation";
+import {
   addCollaborator,
   updateCollaboratorRole,
   removeCollaborator,
@@ -82,24 +89,15 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const parsed = await parseJsonBody(req, collaboratorCreateSchema);
+    if (!parsed.success) return parsed.response;
+    const { email, role } = parsed.data;
     const user = await getCurrentUser();
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { email, role = "editor" } = await req.json();
     const { id } = await params;
-
-    if (!email) {
-      return NextResponse.json({ error: "Email is required" }, { status: 400 });
-    }
-
-    if (role !== "editor" && role !== "viewer") {
-      return NextResponse.json(
-        { error: "Role must be 'editor' or 'viewer'" },
-        { status: 400 }
-      );
-    }
 
     // Support both slug and ID
     const list = await getListBySlugOrId(id);
@@ -177,24 +175,15 @@ export async function POST(
       if (result.success) {
         emailSent = true;
         if (process.env.NODE_ENV === "development") {
-          console.log(
-            `✅ Collaborator invite email sent to ${email}:`,
-            result.messageId
-          );
         }
       } else {
         emailError = result.error || "Failed to send email";
         if (process.env.NODE_ENV === "development") {
-          console.error(`❌ Failed to send email to ${email}:`, emailError);
         }
       }
     } catch (emailErr: unknown) {
       emailError =
         emailErr instanceof Error ? emailErr.message : "Unknown error";
-      console.error(
-        `❌ Failed to send collaborator invite email to ${email}:`,
-        emailErr
-      );
     }
 
     return NextResponse.json({
@@ -218,27 +207,15 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const parsed = await parseJsonBody(req, collaboratorUpdateSchema);
+    if (!parsed.success) return parsed.response;
+    const { email, role } = parsed.data;
     const user = await getCurrentUser();
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { email, role } = await req.json();
     const { id } = await params;
-
-    if (!email || !role) {
-      return NextResponse.json(
-        { error: "Email and role are required" },
-        { status: 400 }
-      );
-    }
-
-    if (role !== "editor" && role !== "viewer") {
-      return NextResponse.json(
-        { error: "Role must be 'editor' or 'viewer'" },
-        { status: 400 }
-      );
-    }
 
     // Support both slug and ID
     const list = await getListBySlugOrId(id);
@@ -318,21 +295,18 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const query = parseRouteParams(
+      { email: req.nextUrl.searchParams.get("email") },
+      collaboratorDeleteSchema,
+    );
+    if (!query.success) return query.response;
+    const { email } = query.data;
     const user = await getCurrentUser();
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const { id } = await params;
-    const searchParams = req.nextUrl.searchParams;
-    const email = searchParams.get("email");
-
-    if (!email) {
-      return NextResponse.json(
-        { error: "Email query parameter is required" },
-        { status: 400 }
-      );
-    }
 
     // Support both slug and ID
     const list = await getListBySlugOrId(id);

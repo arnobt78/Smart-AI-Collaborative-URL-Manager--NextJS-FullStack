@@ -464,23 +464,15 @@ export default function ListPageClient() {
 
     // DEBUG: Log localStorage and sessionStorage check for vector sync debugging
     if (process.env.NODE_ENV === "development") {
-      const isSynced = hasListSyncedVectors(listId);
-      const localSyncedLists =
+      const _isSynced = hasListSyncedVectors(listId);
+      const _localSyncedLists =
         typeof window !== "undefined"
           ? JSON.parse(localStorage.getItem("vector-synced-lists") || "[]")
           : [];
-      const sessionSyncedLists =
+      const _sessionSyncedLists =
         typeof window !== "undefined"
           ? JSON.parse(sessionStorage.getItem("vector-synced-lists") || "[]")
           : [];
-      console.log(`🔍 [VECTOR DEBUG] List ${listId}:`, {
-        isSynced,
-        localSyncedLists,
-        sessionSyncedLists,
-        hasInMemoryRef: hasSyncedVectors.current === listId,
-        inMemoryRef: hasSyncedVectors.current,
-        syncInProgress: syncInProgress.current === listId,
-      });
     }
 
     // CRITICAL: Check localStorage IMMEDIATELY when component mounts (not after delay)
@@ -488,9 +480,6 @@ export default function ListPageClient() {
     if (hasListSyncedVectors(listId)) {
       hasSyncedVectors.current = listId; // Update ref for in-memory check
       if (process.env.NODE_ENV === "development") {
-        console.log(
-          `⏭️ [VECTOR] ✅ SKIPPING sync for list ${listId} - already synced (localStorage check passed)`,
-        );
       }
       return; // Already synced - skip entirely
     }
@@ -498,9 +487,6 @@ export default function ListPageClient() {
     // Also check in-memory ref (for same session)
     if (hasSyncedVectors.current === listId) {
       if (process.env.NODE_ENV === "development") {
-        console.log(
-          `⏭️ [VECTOR] ✅ SKIPPING sync for list ${listId} - already synced (in-memory check passed)`,
-        );
       }
       return; // Already synced in this session
     }
@@ -508,17 +494,11 @@ export default function ListPageClient() {
     // Check if sync is already in progress for this list
     if (syncInProgress.current === listId) {
       if (process.env.NODE_ENV === "development") {
-        console.log(
-          `⏭️ [VECTOR] ✅ SKIPPING sync for list ${listId} - sync already in progress`,
-        );
       }
       return; // Sync already in progress
     }
 
     if (process.env.NODE_ENV === "development") {
-      console.log(
-        `🔄 [VECTOR] Will sync list ${listId} - not found in localStorage or in-memory ref`,
-      );
     }
 
     async function syncVectors() {
@@ -538,40 +518,27 @@ export default function ListPageClient() {
       // This prevents duplicate syncs on second visit even if user navigates away quickly
       // The localStorage is set synchronously and persists across page visits
       if (process.env.NODE_ENV === "development") {
-        console.log(
-          `📝 [VECTOR] Marking list ${listId} as synced in localStorage (optimistic, before API call)`,
-        );
       }
       markListVectorSynced(listId);
 
       // DEBUG: Verify localStorage was set correctly
       if (process.env.NODE_ENV === "development") {
-        const verifySynced = hasListSyncedVectors(listId);
-        const syncedLists =
+        const _verifySynced = hasListSyncedVectors(listId);
+        const _syncedLists =
           typeof window !== "undefined"
             ? JSON.parse(localStorage.getItem("vector-synced-lists") || "[]")
             : [];
-        console.log(`📝 [VECTOR DEBUG] Marked list ${listId} as synced:`, {
-          verifySynced,
-          syncedLists,
-        });
       }
 
       // Double-check localStorage was set correctly (defensive check)
       if (!hasListSyncedVectors(listId)) {
         if (process.env.NODE_ENV === "development") {
-          console.warn(
-            `⚠️ [VECTOR] Failed to persist sync status for list ${listId}`,
-          );
         }
         // If localStorage failed, we'll still try to sync, but mark again after success
       }
 
       // Sync vectors in background (don't block UI)
       if (process.env.NODE_ENV === "development") {
-        console.log(
-          `🚀 [VECTOR] Starting API call to sync vectors for list ${listId}`,
-        );
       }
       fetch(`/api/lists/${listId}/sync-vectors`, {
         method: "POST",
@@ -581,24 +548,18 @@ export default function ListPageClient() {
           // Double-check it's still marked (defensive)
           if (!hasListSyncedVectors(listId)) {
             if (process.env.NODE_ENV === "development") {
-              console.warn(
-                `⚠️ [VECTOR] localStorage was cleared, re-marking list ${listId}`,
-              );
             }
             markListVectorSynced(listId);
           }
 
           if (process.env.NODE_ENV === "development") {
-            const finalCheck = hasListSyncedVectors(listId);
-            console.log(
-              `✅ [VECTOR] Synced list ${listId} - localStorage check: ${finalCheck} - will not sync again`,
-            );
+            const _finalCheck = hasListSyncedVectors(listId);
           }
 
           // Clear sync in progress flag
           syncInProgress.current = null;
         })
-        .catch((error) => {
+        .catch(() => {
           // On failure, clear localStorage flag to allow retry on next visit
           if (typeof window !== "undefined") {
             const syncedLists = JSON.parse(
@@ -617,7 +578,6 @@ export default function ListPageClient() {
 
           // Silently fail - vector sync is optional enhancement
           if (process.env.NODE_ENV === "development") {
-            console.warn("Vector sync failed (non-critical):", error);
           }
         });
     }
@@ -845,10 +805,6 @@ export default function ListPageClient() {
                         variant: "info",
                       });
                       if (process.env.NODE_ENV === "development") {
-                        console.log(
-                          "📋 Manual Setup Instructions:",
-                          data.instructions,
-                        );
                       }
                     } else {
                       toast({

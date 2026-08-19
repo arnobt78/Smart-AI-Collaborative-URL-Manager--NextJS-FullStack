@@ -4,6 +4,7 @@ import type { UrlItem } from "@/stores/urlListStore";
 import type { UrlMetadata } from "@/utils/urlMetadata";
 import { fetchUrlMetadata } from "@/utils/urlMetadata";
 import { resolveAuthorizedList } from "@/lib/list-route-access";
+import { metadataRefreshSchema, parseJsonBody } from "@/lib/api-validation";
 
 type RouteContext = { params: Promise<{ id: string }> };
 type AuthorizedListAccess = Extract<
@@ -39,9 +40,6 @@ export async function GET(
     const cacheKey = `list-metadata:${listId}`;
     const uniqueUrls = Array.from(new Set(urls.map((u) => u.url)));
 
-    console.log(
-      `🔍 [SERVER] Checking Redis cache for list ${listId} (${uniqueUrls.length} unique URLs)`
-    );
 
     if (redis) {
       try {
@@ -52,41 +50,22 @@ export async function GET(
 
           if (allCached) {
             // Cache is valid, return instantly
-            console.log(
-              `⚡ [SERVER CACHE HIT] All ${uniqueUrls.length} URLs found in Redis cache, returning instantly`
-            );
             return NextResponse.json({
               metadata: cached,
               cached: true,
             });
           } else {
-            const cachedUrls = Object.keys(cached);
-            const missingUrls = uniqueUrls.filter((url) => !cached[url]);
-            console.log(
-              `⚠️ [SERVER CACHE PARTIAL] Only ${cachedUrls.length}/${uniqueUrls.length} URLs cached, missing: ${missingUrls.length} URLs`
-            );
+            const _cachedUrls = Object.keys(cached);
+            const _missingUrls = uniqueUrls.filter((url) => !cached[url]);
           }
         } else {
-          console.log(
-            `❌ [SERVER CACHE MISS] No cache found in Redis for list ${listId}`
-          );
         }
-      } catch (error) {
-        console.warn(
-          `⚠️ [SERVER] Redis cache read failed (non-critical):`,
-          error
-        );
+      } catch (_error) {
       }
     } else {
-      console.log(
-        `⚠️ [SERVER] Redis not available, fetching all metadata from web`
-      );
     }
 
     // If not in cache or cache invalid, fetch all metadata
-    console.log(
-      `🔄 [SERVER] Fetching metadata for ${uniqueUrls.length} URLs from web...`
-    );
     const metadataMap: Record<string, UrlMetadata> = {};
 
     // Wrap the entire fetch operation in a timeout to prevent hanging
@@ -108,9 +87,6 @@ export async function GET(
                 const urlCacheKey = `url-metadata:${url}`;
                 const cached = await redis.get<UrlMetadata>(urlCacheKey);
                 if (cached) {
-                  console.log(
-                    `  ✅ [SERVER] URL cache HIT: ${url.slice(0, 40)}...`
-                  );
                   metadataMap[url] = cached;
                   return;
                 }
@@ -120,14 +96,8 @@ export async function GET(
             }
 
             // Fetch metadata
-            console.log(`  🔄 [SERVER] Fetching: ${url.slice(0, 40)}...`);
             const metadata = await fetchUrlMetadata(url);
             metadataMap[url] = metadata;
-            console.log(
-              `  ✅ [SERVER] Fetched: ${url.slice(0, 40)}... (title: ${
-                metadata.title?.slice(0, 30) || "N/A"
-              })`
-            );
 
             // Cache individual URL in Redis (for future use)
             if (redis) {
@@ -138,8 +108,7 @@ export async function GET(
                 // Ignore Redis errors
               }
             }
-          } catch (error) {
-            console.warn(`Failed to fetch metadata for ${url}:`, error);
+          } catch (_error) {
             // Set empty metadata on error
             metadataMap[url] = {
               title: new URL(url).hostname.replace(/^www\./, ""),
@@ -168,11 +137,6 @@ export async function GET(
       ]);
     } catch (error) {
       if (error instanceof Error && error.message.includes("timeout")) {
-        console.warn(
-          `⚠️ [SERVER] Metadata fetch timed out after 5s, returning partial results (${
-            Object.keys(metadataMap).length
-          }/${uniqueUrls.length} URLs)`
-        );
         // Fill in fallback metadata for missing URLs
         uniqueUrls.forEach((url) => {
           if (!metadataMap[url]) {
@@ -192,27 +156,15 @@ export async function GET(
     if (redis) {
       try {
         await redis.set(cacheKey, metadataMap, { ex: 86400 }); // 24 hours TTL
-        console.log(
-          `💾 [SERVER] Cached all ${
-            Object.keys(metadataMap).length
-          } metadata entries in Redis (24h TTL)`
-        );
-      } catch (error) {
-        console.warn(`⚠️ [SERVER] Failed to cache metadata in Redis:`, error);
+      } catch (_error) {
       }
     }
 
-    console.log(
-      `✅ [SERVER] Returning ${
-        Object.keys(metadataMap).length
-      } metadata entries (cached: false)`
-    );
     return NextResponse.json({
       metadata: metadataMap,
       cached: false,
     });
   } catch (error) {
-    console.error("Error fetching list metadata:", error);
     const message =
       error instanceof Error ? error.message : "Failed to fetch metadata";
     return NextResponse.json({ error: message }, { status: 500 });
@@ -226,6 +178,8 @@ export async function GET(
  */
 export async function POST(req: NextRequest, context: RouteContext) {
   try {
+    const parsed = await parseJsonBody(req, metadataRefreshSchema);
+    if (!parsed.success) return parsed.response;
     const params = await context.params;
     const access = await resolveAuthorizedList(params.id, "edit");
     if (!access.ok) {
@@ -238,14 +192,12 @@ export async function POST(req: NextRequest, context: RouteContext) {
     if (redis) {
       try {
         await redis.del(cacheKey);
-      } catch (error) {
-        console.warn("Failed to invalidate cache:", error);
+      } catch (_error) {
       }
     }
 
     // Optionally refresh metadata immediately
-    const body = await req.json().catch(() => ({}));
-    if (body.refresh) {
+    if (parsed.data.refresh) {
       // Reuse the verified edit access rather than resolving the same list twice.
       const response = await GET(req, context, access);
       return response;
@@ -256,7 +208,6 @@ export async function POST(req: NextRequest, context: RouteContext) {
       message: "Cache invalidated",
     });
   } catch (error) {
-    console.error("Error invalidating metadata cache:", error);
     const message =
       error instanceof Error ? error.message : "Failed to invalidate cache";
     return NextResponse.json({ error: message }, { status: 500 });

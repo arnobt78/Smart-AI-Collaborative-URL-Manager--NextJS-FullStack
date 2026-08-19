@@ -8,6 +8,7 @@ import { requirePermission } from "@/lib/collaboration/permissions";
 import { redis, cacheKeys } from "@/lib/redis";
 import type { UrlItem } from "@/stores/urlListStore";
 import { devLog } from "@/lib/dev-log";
+import { bulkImportSchema, parseJsonBody } from "@/lib/api-validation";
 
 type RouteContext = { params: Promise<{ id: string }> };
 
@@ -32,6 +33,8 @@ interface BulkImportUrl {
  */
 export async function POST(req: NextRequest, context: RouteContext) {
   try {
+    const parsed = await parseJsonBody(req, bulkImportSchema);
+    if (!parsed.success) return parsed.response;
     const user = await getCurrentUser();
     if (!user) {
       return NextResponse.json(
@@ -42,15 +45,7 @@ export async function POST(req: NextRequest, context: RouteContext) {
 
     const params = await context.params;
     const listId = params.id;
-    const body = await req.json();
-    const { urls }: { urls: BulkImportUrl[] } = body;
-
-    if (!urls || !Array.isArray(urls) || urls.length === 0) {
-      return NextResponse.json(
-        { error: "URLs array is required" },
-        { status: 400 }
-      );
-    }
+    const { urls } = parsed.data as { urls: BulkImportUrl[] };
 
     // Get current list
     const currentList = await getListById(listId);
@@ -138,8 +133,7 @@ export async function POST(req: NextRequest, context: RouteContext) {
 
     // Single vector sync for all URLs
     if (vectorIndex) {
-      upsertUrlVectors(newUrls, listId).catch((error) => {
-        console.error("Vector sync error:", error);
+      upsertUrlVectors(newUrls, listId).catch(() => {
       });
     }
 
@@ -163,7 +157,6 @@ export async function POST(req: NextRequest, context: RouteContext) {
       },
     });
   } catch (error) {
-    console.error("❌ [BULK IMPORT] Error:", error);
     const message =
       error instanceof Error ? error.message : "Failed to bulk import URLs";
     return NextResponse.json({ error: message }, { status: 500 });

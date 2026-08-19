@@ -147,9 +147,6 @@ export async function GET(request: Request) {
       // This allows import to continue with imported data
       if (response.status === 429) {
         if (process.env.NODE_ENV === "development") {
-          console.warn(
-            `⚠️ [METADATA] Rate limited (429) for ${url} - using imported data`
-          );
         }
         return NextResponse.json({
           title: new URL(url).hostname.replace(/^www\./, ""),
@@ -778,13 +775,11 @@ export async function GET(request: Request) {
           }),
           new Promise<null>((resolve) =>
             setTimeout(() => {
-              console.warn(`Favicon upload timeout for ${faviconUrl}`);
               resolve(null);
             }, 15000)
           ),
         ]);
-      } catch (error) {
-        console.warn(`Error optimizing favicon ${faviconUrl}:`, error);
+      } catch (_error) {
         optimizedFavicon = null;
       }
     }
@@ -807,7 +802,6 @@ export async function GET(request: Request) {
 
     return NextResponse.json(metadata);
   } catch (error: unknown) {
-    console.error("Error fetching metadata:", error);
     const errorMessage =
       process.env.NODE_ENV === "development"
         ? `Failed to fetch metadata: ${

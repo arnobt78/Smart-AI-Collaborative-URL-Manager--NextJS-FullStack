@@ -3,39 +3,13 @@ import { updateList, deleteList, type UrlItem } from "@/lib/db";
 import { createActivity } from "@/lib/db/activities";
 import { publishMessage, CHANNELS } from "@/lib/realtime/redis";
 import { resolveAuthorizedList } from "@/lib/list-route-access";
+import { listPatchSchema, parseJsonBody } from "@/lib/api-validation";
 
 type RouteContext = { params: Promise<{ id: string }> };
-type ListPatch = {
-  title?: string;
-  description?: string | null;
-  isPublic?: boolean;
-};
+type ListPatch = import("zod").z.output<typeof listPatchSchema>;
 
 function routeError(error: { status: number; error: string }) {
   return NextResponse.json({ error: error.error }, { status: error.status });
-}
-
-function parseListPatch(value: unknown): ListPatch | null {
-  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
-  const body = value as Record<string, unknown>;
-  const allowedFields = new Set(["title", "description", "isPublic"]);
-  if (Object.keys(body).some((field) => !allowedFields.has(field))) return null;
-  const updates: ListPatch = {};
-
-  if ("title" in body) {
-    if (typeof body.title !== "string") return null;
-    updates.title = body.title;
-  }
-  if ("description" in body) {
-    if (body.description !== null && typeof body.description !== "string") return null;
-    updates.description = body.description;
-  }
-  if ("isPublic" in body) {
-    if (typeof body.isPublic !== "boolean") return null;
-    updates.isPublic = body.isPublic;
-  }
-
-  return Object.keys(updates).length > 0 ? updates : null;
 }
 
 export async function GET(_req: NextRequest, context: RouteContext) {
@@ -85,10 +59,9 @@ export async function DELETE(_req: NextRequest, context: RouteContext) {
 
 export async function PATCH(req: NextRequest, context: RouteContext) {
   try {
-    const updates = parseListPatch(await req.json());
-    if (!updates) {
-      return NextResponse.json({ error: "Invalid list update" }, { status: 400 });
-    }
+    const parsed = await parseJsonBody(req, listPatchSchema);
+    if (!parsed.success) return parsed.response;
+    const updates: ListPatch = parsed.data;
 
     const { id } = await context.params;
     const permission = updates.isPublic === undefined ? "edit" : "visibility";

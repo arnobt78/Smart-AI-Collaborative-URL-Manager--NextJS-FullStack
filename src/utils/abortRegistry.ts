@@ -35,9 +35,6 @@ class AbortRegistry {
       typeof window !== "undefined" &&
       process.env.NODE_ENV === "development"
     ) {
-      console.debug(
-        "💾 [ABORT_REGISTRY] Captured native fetch backup at construction"
-      );
     }
   }
 
@@ -93,16 +90,10 @@ class AbortRegistry {
         if (this.permanentOriginalFetch) {
           this.originalFetch = this.permanentOriginalFetch;
           if (process.env.NODE_ENV === "development") {
-            console.debug(
-              "🔁 [ABORT_REGISTRY] Detected recursive wrapper; using permanentOriginalFetch"
-            );
           }
         } else if (this.nativeFetchBackup) {
           this.originalFetch = this.nativeFetchBackup;
           if (process.env.NODE_ENV === "development") {
-            console.debug(
-              "🔁 [ABORT_REGISTRY] Detected recursive wrapper; using nativeFetchBackup"
-            );
           }
         }
       }
@@ -112,9 +103,6 @@ class AbortRegistry {
     if (!this.permanentOriginalFetch) {
       this.permanentOriginalFetch = window.fetch;
       if (process.env.NODE_ENV === "development") {
-        console.debug(
-          `🔒 [ABORT_REGISTRY] Stored permanent backup of original fetch`
-        );
       }
     }
 
@@ -198,7 +186,6 @@ class AbortRegistry {
     this.isIntercepting = true;
 
     if (process.env.NODE_ENV === "development") {
-      console.debug(`🔍 [ABORT_REGISTRY] Started global fetch interception`);
     }
   }
 
@@ -224,9 +211,6 @@ class AbortRegistry {
       restored = true;
 
       if (process.env.NODE_ENV === "development") {
-        console.debug(
-          `🔍 [ABORT_REGISTRY] Restored original window.fetch from primary reference`
-        );
       }
     } else if (this.permanentOriginalFetch) {
       // Fallback to permanent backup
@@ -235,20 +219,11 @@ class AbortRegistry {
       restored = true;
 
       if (process.env.NODE_ENV === "development") {
-        console.debug(
-          `🔍 [ABORT_REGISTRY] Restored original window.fetch from PERMANENT BACKUP`
-        );
       }
     } else if (isCurrentlyWrapped) {
       // CRITICAL: If fetch is wrapped but we don't have ANY reference,
       // this is a critical bug
       if (process.env.NODE_ENV === "development") {
-        console.error(
-          "❌ [ABORT_REGISTRY] CRITICAL: window.fetch is wrapped but NO originalFetch reference exists!"
-        );
-        console.error(
-          "❌ [ABORT_REGISTRY] Fetch interception will remain active - navigation will be blocked"
-        );
       }
     }
 
@@ -262,9 +237,6 @@ class AbortRegistry {
         newFetchStr.includes("globalFetchControllers");
 
       if (stillWrapped) {
-        console.error(
-          "❌ [ABORT_REGISTRY] CRITICAL: window.fetch is STILL wrapped after restoration attempt!"
-        );
         // NUCLEAR FALLBACK: Force native restoration if we still have a backup
         if (this.nativeFetchBackup) {
           window.fetch = this.nativeFetchBackup;
@@ -275,20 +247,11 @@ class AbortRegistry {
               nativeStr.includes("__bulkImportActive") ||
               nativeStr.includes("globalFetchControllers");
             if (!nativeWrapped) {
-              console.debug(
-                "✅ [ABORT_REGISTRY] Nuclear native fetch restoration applied successfully"
-              );
             } else {
-              console.error(
-                "❌ [ABORT_REGISTRY] Nuclear native restoration failed – fetch still appears wrapped"
-              );
             }
           }
         }
       } else {
-        console.debug(
-          `✅ [ABORT_REGISTRY] Verified window.fetch is restored (no wrapper detected)`
-        );
       }
     }
   }
@@ -300,7 +263,6 @@ class AbortRegistry {
       window.fetch = this.nativeFetchBackup;
       this.originalFetch = this.nativeFetchBackup;
       if (process.env.NODE_ENV === "development") {
-        console.debug("🚨 [ABORT_REGISTRY] forceRestoreNativeFetch() applied");
       }
     }
   }
@@ -315,9 +277,6 @@ class AbortRegistry {
     const totalCount = registeredCount + interceptedCount;
 
     if (process.env.NODE_ENV === "development" && totalCount > 0) {
-      console.debug(
-        `🛑 [ABORT_REGISTRY] Aborting ${totalCount} active request(s) (${registeredCount} registered, ${interceptedCount} intercepted) to allow navigation`
-      );
     }
 
     // Abort all registered controllers
@@ -413,14 +372,10 @@ class AbortRegistry {
       }
 
       if (process.env.NODE_ENV === "development") {
-        console.debug(
-          `🛑 [ABORT_REGISTRY] Force aborted ALL global requests including Next.js internal`
-        );
       }
-    } catch (e) {
+    } catch (_e) {
       // Ignore errors - internal APIs might not exist
       if (process.env.NODE_ENV === "development") {
-        console.warn(`⚠️ [ABORT_REGISTRY] Error in force abort:`, e);
       }
     }
   }

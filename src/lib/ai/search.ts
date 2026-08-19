@@ -73,15 +73,13 @@ class SemanticSearchService {
 
         try {
           return await this.callProviderForSearch(providerName, prompt, urls, limit, minRelevanceScore);
-        } catch (error) {
-          console.warn(`${providerConfig.displayName} failed, trying next...`, error);
+        } catch (_error) {
           continue; // Try next provider
         }
       }
 
       throw new Error("All AI providers failed or are unavailable");
-    } catch (error) {
-      console.error("Semantic search error:", error);
+    } catch (_error) {
       // Fallback to keyword-based search
       return this.fallbackKeywordSearch(query, urls, limit);
     }
@@ -176,8 +174,7 @@ Only include URLs with relevance score >= 0.3. Return empty array if no relevant
           relevanceScore: Math.min(Math.max(item.score, 0), 1), // Clamp between 0-1
           matchReason: item.reason || "Relevant to search query",
         }));
-    } catch (error) {
-      console.error("Failed to parse AI response:", error);
+    } catch (_error) {
       return [];
     }
   }

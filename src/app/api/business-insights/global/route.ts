@@ -91,36 +91,7 @@ export async function GET(_: NextRequest) {
 
     // Debug logging (only in development)
     if (process.env.NODE_ENV === "development") {
-      const now = new Date();
-      console.log("🔍 [LIVE USERS] Active sessions:", {
-        totalSessionsFound: activeSessions.length,
-        trulyActiveSessions: trulyActiveSessions.length,
-        uniqueUsers: liveUsersNow,
-        timeWindow: "15 minutes",
-        cutoffTime: fifteenMinutesAgo.toISOString(),
-        sessions: trulyActiveSessions.map((s) => {
-          const createdAt = new Date(s.createdAt).getTime();
-          const lastActivityAt = new Date(s.lastActivityAt).getTime();
-          const timeDiff = lastActivityAt - createdAt;
-          return {
-            userId: s.userId,
-            email: s.user?.email,
-            lastActivityAt: s.lastActivityAt,
-            createdAt: s.createdAt,
-            expiresAt: s.expiresAt,
-            minutesAgo: Math.round(
-              (now.getTime() - lastActivityAt) / 60000
-            ),
-            sessionAgeInDays: Math.round(
-              (now.getTime() - createdAt) / (1000 * 60 * 60 * 24)
-            ),
-            timeSinceCreation: Math.round(timeDiff / 60000) + " minutes",
-            isRecentlyCreated:
-              Date.now() - createdAt < 24 * 60 * 60 * 1000 ? "Yes" : "No",
-          };
-        }),
-        filteredOut: activeSessions.length - trulyActiveSessions.length,
-      });
+      const _now = new Date();
     }
 
     // Calculate public vs private lists
