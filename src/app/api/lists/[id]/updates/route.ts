@@ -29,7 +29,7 @@ export async function GET(
     const user = await getCurrentUser();
     const hasAccess = await hasListAccess(list, user);
 
-    if (!hasAccess || !user) {
+    if (!hasAccess) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -57,10 +57,11 @@ export async function GET(
     // OPTIMIZATION: Run position initialization (if needed), activities, and collaborators queries in PARALLEL
     // Determine if user can access collaborators first (synchronous check, no DB query)
     // CRITICAL: Email matching must be case-insensitive to handle email casing differences
-    const userEmailLower = user.email.toLowerCase();
-    const canViewCollaborators = 
-      list.userId === user.id || // Owner can always view
-      (list.collaboratorRoles && typeof list.collaboratorRoles === "object" && 
+    const userEmailLower = user?.email.toLowerCase();
+    const canViewCollaborators =
+      list.isPublic || // Public shared URLs keep their existing read contract.
+      (user && list.userId === user.id) || // Owner can always view
+      (userEmailLower && list.collaboratorRoles && typeof list.collaboratorRoles === "object" &&
        (() => {
          const roles = list.collaboratorRoles as Record<string, string>;
          const matchingKey = Object.keys(roles).find(
@@ -68,9 +69,9 @@ export async function GET(
          );
          return matchingKey && (roles[matchingKey] === "editor" || roles[matchingKey] === "viewer");
        })()) || // Collaborator can view (case-insensitive)
-      (list.collaborators && Array.isArray(list.collaborators) && 
+      (userEmailLower && list.collaborators && Array.isArray(list.collaborators) &&
        list.collaborators.some((email) => email.toLowerCase() === userEmailLower)) || // Legacy check (case-insensitive)
-      list.isPublic; // Public list
+      false;
 
     // Run ALL queries in parallel (much faster than sequential)
     // Position init is non-blocking - response returns immediately, position save happens in background

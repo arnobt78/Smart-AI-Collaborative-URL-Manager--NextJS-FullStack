@@ -238,3 +238,11 @@ Gate 2: BLOCKED — RISK-0016 is accepted; `EVAL_RESULTS.md` PASS/WAIVED evidenc
 | Delete-list impact | `useListQueries.mutations.test.tsx` | PASS | Delete removes the cached card immediately and reconciles through the typed list impact map. |
 | Full validation | `npx tsc --noEmit`; `npm run lint`; `npm test -- --runInBand`; `npm run build` | PASS | 65 passed, 5 skipped; strict TypeScript, zero-warning lint, and optimized production build pass. |
 | Hygiene | parser/direct-console/empty-debug scans; `git diff --check` | PASS | No direct mutating-route JSON parsing, no application console calls outside `dev-log`, no empty debug branches, and no whitespace errors. |
+
+## 2026-08-19 — REQ-0027 C5 public read-contract audit correction
+
+| Scope | Command / evidence | Result | Notes |
+|---|---|---|---|
+| Public read authorization | `public-read-access.test.ts` | PASS | Anonymous public detail/collaborator reads succeed; private unified reads stop before activity, collaborator, and comment-count side effects. |
+| Full validation | `npx tsc --noEmit`; `npm run lint`; `npm test -- --runInBand`; `npm run build` | PASS | 68 passed, 5 skipped; strict TypeScript, zero-warning lint, and optimized production build pass. |
+| Hygiene | parser/direct-console scans; `git diff --check` | PASS | No direct mutating-route JSON parsing, no application console calls outside `dev-log`, and no whitespace errors. |

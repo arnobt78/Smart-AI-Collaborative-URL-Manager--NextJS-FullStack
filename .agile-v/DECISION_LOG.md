@@ -350,6 +350,19 @@ Append-only. Newest entries at bottom.
 
 ---
 
+## DEC-0030 — Preserve public viewer reads at the unified route boundary
+
+| Field | Value |
+|---|---|
+| Timestamp | 2026-08-19 |
+| Agent | Agile V C5 audit correction |
+| Decision | Let the existing anonymous public-viewer role read public unified-list and collaborator payloads; keep private reads denied before activity, collaborator, and comment-count work. |
+| Rationale | `hasListAccess` already defines public lists as viewer-accessible. The two route-level session checks contradicted that policy and prevented shared public URLs from rendering. |
+| Linked REQs | REQ-0027 |
+| Status | Implemented and locally validated. |
+
+---
+
 ## DEC-0025 — Defer interactive acceptance to user browser testing
 
 | Field | Value |

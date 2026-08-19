@@ -172,3 +172,9 @@ RSC shells · densify/Zod/SHA/Next16
 1. Remove the process-wide session authorization cache and cover immediate revocation paths.
 2. Add server-only shared loaders and React Query hydration for Lists, list detail, Browse, and Business Insights without an initial duplicate request.
 3. Route delete-list and all remaining UI-visible writes through one snapshot/impact transaction, then validate and record C5 evidence.
+
+### TASK-0033 — C5 public read-contract audit correction — DONE
+
+1. Reconcile the unified list-detail and collaborator read routes with the existing anonymous public-viewer authorization contract.
+2. Retain denial before list-data side effects for private anonymous reads.
+3. Add direct route regression coverage and re-run the full validation suite.

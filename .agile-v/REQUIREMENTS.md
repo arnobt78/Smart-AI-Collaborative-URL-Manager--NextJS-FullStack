@@ -540,7 +540,7 @@ These describe the current product as verified in code. They are **Accepted as b
 - [x] Session lookup verifies persisted state on every request; sign-out, expiry, legacy rotation, and logout-all cannot reuse a stale in-memory authorization result.
 - [x] Core data pages hydrate matching query keys from server-only loaders while preserving private-data authorization and cache-first navigation.
 - [x] Delete-list and remaining UI-visible actions use the typed mutation-impact gateway with exact rollback and no duplicate success invalidation.
-- [x] Focused security, hydration, request-count, mutation-boundary, type, lint, Jest, production-build, and hygiene evidence is recorded.
+- [x] Focused security, hydration, request-count, mutation-boundary, public-view authorization, type, lint, Jest, production-build, and hygiene evidence is recorded.
 
-**Trace:** TASK-0032, DEC-0029, ART-0027.1, C5 checkpoint.
+**Trace:** TASK-0032, TASK-0033, DEC-0029, DEC-0030, ART-0027.1, C5 checkpoint.
 **Status:** Completed and locally validated [C5] on 2026-08-19.

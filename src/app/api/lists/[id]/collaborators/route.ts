@@ -17,18 +17,13 @@ import {
 import { sendCollaboratorInviteEmail } from "@/lib/email";
 import { createActivity } from "@/lib/db/activities";
 import { publishMessage, CHANNELS } from "@/lib/realtime/redis";
-import { requirePermission } from "@/lib/collaboration/permissions";
+import { hasListAccess, requirePermission } from "@/lib/collaboration/permissions";
 
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const user = await getCurrentUser();
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
     const { id } = await params;
 
     // Check if user has access to view collaborators
@@ -39,41 +34,16 @@ export async function GET(
       return NextResponse.json({ error: "List not found" }, { status: 404 });
     }
 
-    // Use list.id for all operations (ensures we use UUID)
-    const listId = list.id;
-
-    // Owner can always view
-    if (list.userId === user.id) {
-      const collaborators = await getCollaboratorsWithRoles(listId);
-      return NextResponse.json({ collaborators });
+    const user = await getCurrentUser();
+    if (!await hasListAccess(list, user)) {
+      return NextResponse.json(
+        { error: "You don't have permission to view collaborators" },
+        { status: 403 }
+      );
     }
 
-    // Check if user is a collaborator (from new role-based system)
-    if (list.collaboratorRoles && typeof list.collaboratorRoles === "object") {
-      const roles = list.collaboratorRoles as Record<string, string>;
-      if (roles[user.email] === "editor" || roles[user.email] === "viewer") {
-        const collaborators = await getCollaboratorsWithRoles(listId);
-        return NextResponse.json({ collaborators });
-      }
-    }
-
-    // Fallback: Check legacy collaborators array
-    if (list.collaborators && Array.isArray(list.collaborators) && list.collaborators.includes(user.email)) {
-      const collaborators = await getCollaboratorsWithRoles(listId);
-      return NextResponse.json({ collaborators });
-    }
-
-    // Public list - allow viewing collaborators
-    if (list.isPublic) {
-      const collaborators = await getCollaboratorsWithRoles(listId);
-      return NextResponse.json({ collaborators });
-    }
-
-    // No access
-    return NextResponse.json(
-      { error: "You don't have permission to view collaborators" },
-      { status: 403 }
-    );
+    const collaborators = await getCollaboratorsWithRoles(list.id);
+    return NextResponse.json({ collaborators });
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Failed to fetch collaborators";
