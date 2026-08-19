@@ -246,3 +246,12 @@ Gate 2: BLOCKED — RISK-0016 is accepted; `EVAL_RESULTS.md` PASS/WAIVED evidenc
 | Public read authorization | `public-read-access.test.ts` | PASS | Anonymous public detail/collaborator reads succeed; private unified reads stop before activity, collaborator, and comment-count side effects. |
 | Full validation | `npx tsc --noEmit`; `npm run lint`; `npm test -- --runInBand`; `npm run build` | PASS | 68 passed, 5 skipped; strict TypeScript, zero-warning lint, and optimized production build pass. |
 | Hygiene | parser/direct-console scans; `git diff --check` | PASS | No direct mutating-route JSON parsing, no application console calls outside `dev-log`, and no whitespace errors. |
+
+## 2026-08-19 — REQ-0028 C6 stable data-surface & compact analytics polish
+
+| Scope | Command / evidence | Result | Notes |
+|---|---|---|---|
+| Activity & cache regression | `ActivityFeed.test.tsx`; `urlListStore.mutations.test.ts` | PASS | Activity is collapsed by default; URL mutation completion updates the cached list-card summary timestamp. |
+| Protected SSR & hydration | Dynamic protected page build output; server-page guards and status hydration | PASS | Lists, Insights, API Docs, API Status, and write deep links verify session before painting; public Browse/shared detail contracts remain unchanged. |
+| Full validation | `npx tsc --noEmit`; `npm run lint`; `npm test -- --runInBand`; `npm run build` | PASS | 70 passed, 5 skipped; strict TypeScript, zero-warning lint, and optimized production build pass. |
+| Hygiene | parser/direct-console scans; `git diff --check` | PASS | No direct mutating-route JSON parsing, no application console calls outside `dev-log`, and no whitespace errors. |

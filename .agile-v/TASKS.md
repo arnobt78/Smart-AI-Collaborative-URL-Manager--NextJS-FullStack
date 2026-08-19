@@ -178,3 +178,9 @@ RSC shells · densify/Zod/SHA/Next16
 1. Reconcile the unified list-detail and collaborator read routes with the existing anonymous public-viewer authorization contract.
 2. Retain denial before list-data side effects for private anonymous reads.
 3. Add direct route regression coverage and re-run the full validation suite.
+
+### TASK-0034 — C6 stable data-surface & compact analytics polish — DONE
+
+1. Add the shared disclosure, server page-auth, and data-slot primitives; hydrate the remaining requested cold surface.
+2. Commit list-summary mutation state synchronously and align list-card controls/badges.
+3. Compact Insights KPI/tab layout, remove the duplicate activity tab, add focused regressions, validate, document, and commit.

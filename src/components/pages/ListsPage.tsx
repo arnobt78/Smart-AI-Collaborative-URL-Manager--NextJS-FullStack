@@ -7,7 +7,7 @@ import { CreateNewListButton } from "@/components/ui/CreateNewListButton";
 import { Badge } from "@/components/ui/Badge";
 import { AlertDialog } from "@/components/ui/AlertDialog";
 import { LinkIcon, PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
-import { Globe, Lock, Calendar, Clock, Users } from "lucide-react";
+import { Globe, Lock, Calendar, Clock, Eye, Users } from "lucide-react";
 import {
   useAllListsQuery,
   useDeleteList,
@@ -24,6 +24,7 @@ import {
 import { Dialog } from "@/components/ui/Dialog";
 import NewListPageClient from "@/components/pages/NewListPage";
 import EditListPageClient from "@/components/pages/EditListPage";
+import { DataSurfaceSlot } from "@/components/ui/DataSurfaceSlot";
 
 // Keep type alias for backward compatibility
 type List = UserList;
@@ -153,13 +154,7 @@ export default function ListsPageClient() {
 
       <div className={LIST_STACK}>
         {isColdLoading ? (
-          <div
-            aria-busy="true"
-            aria-live="polite"
-            className="rounded-xl border border-white/20 bg-white/5 p-2 text-sm text-white/60 animate-pulse sm:p-4"
-          >
-            Loading your lists…
-          </div>
+          <DataSurfaceSlot label="Preparing your lists" description="Loading your latest collections…" />
         ) : lists.length > 0 ? (
           lists.map((list) => {
             const createdDate = getDate(list, "created");
@@ -178,14 +173,14 @@ export default function ListsPageClient() {
 
                 <div className="relative z-10">
                   {/* Header Row */}
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 ">
+                  <div className="flex flex-col items-start justify-between gap-2 sm:flex-row sm:items-center sm:gap-4">
                     <div className="flex-1 min-w-0">
                       {/* Title with badges */}
-                      <div className="flex items-start gap-2 sm:gap-2 flex-wrap ">
+                      <div className="flex flex-wrap items-center gap-2">
                         <button
                           type="button"
                           onClick={() => router.push(`/list/${list.slug}`)}
-                          className="text-left text-base sm:text-lg lg:text-xl xl:text-2xl font-medium text-white group-hover:text-blue-300 transition-colors truncate max-w-full hover:underline underline-offset-2"
+                          className="max-w-full min-w-0 truncate text-left text-sm font-medium text-white transition-colors hover:underline underline-offset-2 group-hover:text-blue-300 sm:text-base"
                         >
                           {list.title || `List: ${list.slug}`}
                         </button>
@@ -193,7 +188,7 @@ export default function ListsPageClient() {
                         {list.isPublic !== undefined && (
                           <Badge
                             variant={list.isPublic ? "success" : "secondary"}
-                            className="text-xs sm:text-sm flex items-center gap-1 shrink-0"
+                            className="shrink-0 gap-1 px-2 py-0.5 text-xs leading-5"
                           >
                             {list.isPublic ? (
                               <>
@@ -220,9 +215,9 @@ export default function ListsPageClient() {
                       )}
 
                       {/* Stats Row */}
-                      <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm">
+                      <div className="flex flex-wrap items-center gap-2 text-xs sm:text-sm">
                         {/* URL Count */}
-                        <span className="flex items-center gap-1 text-white/80 bg-white/5 px-2 py-1 rounded-lg border border-white/10">
+                        <span className="flex items-center gap-1 rounded-lg border border-white/10 bg-white/5 px-2 py-0.5 leading-5 text-white/80">
                           <LinkIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-400" />
                           <span className="font-medium">{urlCount}</span>
                           <span className="text-white/60 hidden sm:inline">
@@ -232,7 +227,7 @@ export default function ListsPageClient() {
 
                         {/* Collaborators Count */}
                         {collaboratorCount > 0 && (
-                          <span className="flex items-center gap-1 text-white/80 bg-white/5 px-2 py-1 rounded-lg border border-white/10">
+                          <span className="flex items-center gap-1 rounded-lg border border-white/10 bg-white/5 px-2 py-0.5 leading-5 text-white/80">
                             <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-purple-400" />
                             <span className="font-medium">
                               {collaboratorCount}
@@ -277,11 +272,14 @@ export default function ListsPageClient() {
                     </div>
 
                     {/* Action Buttons */}
-                    <div className="flex flex-row gap-2 w-full sm:w-auto shrink-0">
+                    <div className="flex w-full shrink-0 items-center justify-end gap-1 sm:w-auto">
+                      <Button onClick={() => router.push(`/list/${list.slug}`)} variant="ghost" className="p-2 text-white/80 transition-colors hover:border-blue-400/30 hover:bg-blue-500/20 hover:text-blue-400" title="View List" aria-label={`View ${list.title || list.slug}`}>
+                        <Eye className="size-4" aria-hidden />
+                      </Button>
                       <Button
                         onClick={() => handleEditClick(list)}
                         variant="ghost"
-                        className="text-white/80 hover:text-blue-400 hover:bg-blue-500/20 transition-all duration-200 border border-transparent hover:border-blue-400/30 p-2 sm:p-2.5"
+                        className="border border-transparent p-2 text-white/80 transition-colors hover:border-blue-400/30 hover:bg-blue-500/20 hover:text-blue-400"
                         title="Edit List"
                       >
                         <PencilIcon className="h-4 w-4 " />
@@ -289,7 +287,7 @@ export default function ListsPageClient() {
                       <Button
                         onClick={() => handleDeleteClick(list)}
                         variant="ghost"
-                        className="text-white/80 hover:text-red-400 hover:bg-red-500/20 transition-all duration-200 border border-transparent hover:border-red-400/30 p-2 sm:p-2.5"
+                        className="border border-transparent p-2 text-white/80 transition-colors hover:border-red-400/30 hover:bg-red-500/20 hover:text-red-400"
                         disabled={
                           deleteListMutation.isPending &&
                           listToDelete?.id === list.id

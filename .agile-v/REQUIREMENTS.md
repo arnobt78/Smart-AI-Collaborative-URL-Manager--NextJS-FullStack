@@ -99,7 +99,7 @@ These describe the current product as verified in code. They are **Accepted as b
 
 ### REQ-0004 — Dependency and auth documentation hygiene
 
-**Priority:** P1  
+**Priority:** P1
 **Type:** Maintainability  
 **Statement:** Remove or justify unused dependencies (`next-auth`, `@hello-pangea/dnd` if still unused) and align README auth env docs with custom session auth.  
 **Acceptance:**
@@ -544,3 +544,22 @@ These describe the current product as verified in code. They are **Accepted as b
 
 **Trace:** TASK-0032, TASK-0033, DEC-0029, DEC-0030, ART-0027.1, C5 checkpoint.
 **Status:** Completed and locally validated [C5] on 2026-08-19.
+
+---
+
+### REQ-0028 — C6 stable data-surface & compact analytics polish (approved 2026-08-19)
+
+**Priority:** P1
+**Type:** UX / performance / access consistency
+
+**Acceptance criteria:**
+
+- [x] Activity Feed is an accessible, default-collapsed disclosure that keeps list detail height stable while preserving its live cached content.
+- [x] Protected application pages redirect server-side to the sign-in home after session-cookie removal; public Browse and public shared lists remain accessible.
+- [x] Lists, Browse, Insights, and API Status hydrate data on the server and render stable, compact data-shaped cold slots only when data is genuinely unavailable.
+- [x] Every URL/list write immediately commits the affected list summary (including `updatedAt`) to current detail and all-lists cache before one typed reconciliation.
+- [x] List cards use compact responsive title, view/edit/delete controls, and independently sized visibility/count badges.
+- [x] Insights uses aligned icon-label tabs, compact KPI cards, and one Overview activity visualization with no duplicate Activity tab.
+
+**Trace:** TASK-0034, ART-0028.1, C6 checkpoint.
+**Status:** Completed and locally validated [C6] on 2026-08-19.

@@ -3,8 +3,11 @@ import {
   currentList,
   removeUrlFromList,
   restoreArchivedUrl,
+  patchListSummaryCache,
   type UrlList,
 } from "@/stores/urlListStore";
+import { queryClient } from "@/lib/react-query";
+import { listQueryKeys } from "@/lib/query-keys";
 
 const list: UrlList = {
   id: "list-1",
@@ -26,6 +29,7 @@ const list: UrlList = {
 describe("REQ-0023 URL mutation cache safety", () => {
   beforeEach(() => {
     currentList.set(list);
+    queryClient.setQueryData(listQueryKeys.allLists(), { lists: [list] });
     Object.defineProperty(global, "fetch", {
       configurable: true,
       value: jest.fn(),
@@ -66,5 +70,14 @@ describe("REQ-0023 URL mutation cache safety", () => {
     await restoreArchivedUrl("url-1");
 
     expect(currentList.get()).toEqual(archivedList);
+  });
+
+  it("commits a completed URL mutation timestamp to the list-summary cache", () => {
+    const updatedAt = "2026-08-19T12:00:00.000Z";
+    patchListSummaryCache({ ...list, updatedAt });
+
+    expect(
+      queryClient.getQueryData<{ lists: UrlList[] }>(listQueryKeys.allLists())?.lists[0]?.updatedAt,
+    ).toBe(updatedAt);
   });
 });

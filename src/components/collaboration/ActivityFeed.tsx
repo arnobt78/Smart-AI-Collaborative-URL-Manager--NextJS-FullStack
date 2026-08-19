@@ -17,6 +17,7 @@ import {
   UserPlus,
   Globe,
   Lock,
+  ChevronDown,
 } from "lucide-react";
 import { UserAvatar } from "@/components/ui/UserAvatar";
 
@@ -38,6 +39,7 @@ interface ActivityFeedProps {
 
 export function ActivityFeed({ listId, limit = 50 }: ActivityFeedProps) {
   const [activities, setActivities] = useState<ActivityItem[]>([]);
+  const [isExpanded, setIsExpanded] = useState(false);
   const isLoading = false;
   const queryClient = useQueryClient();
   const params = useParams();
@@ -362,16 +364,20 @@ export function ActivityFeed({ listId, limit = 50 }: ActivityFeedProps) {
 
   return (
     <div className="space-y-2 sm:space-y-3">
-      {/* Header */}
-      <div className="flex items-center gap-2">
-        <Activity className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white/70" />
-        <h3 className="text-xs sm:text-sm font-medium text-white/90">
-          Activity Feed ({activities.length})
-        </h3>
-      </div>
+      <button
+        type="button"
+        onClick={() => setIsExpanded((expanded) => !expanded)}
+        aria-expanded={isExpanded}
+        className="flex w-full items-center justify-between rounded-lg text-left transition-colors hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+      >
+        <span className="flex items-center gap-2">
+          <Activity className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white/70" aria-hidden />
+          <span className="text-xs sm:text-sm font-medium text-white/90">Activity Feed ({activities.length})</span>
+        </span>
+        <ChevronDown className={`size-4 text-white/60 transition-transform ${isExpanded ? "rotate-180" : ""}`} aria-hidden />
+      </button>
 
-      {/* Activities List */}
-      <div className="space-y-2 sm:space-y-2 max-h-[400px] sm:max-h-[500px] overflow-y-auto custom-scrollbar">
+      {isExpanded ? <div className="space-y-2 sm:space-y-2 max-h-[400px] sm:max-h-[500px] overflow-y-auto custom-scrollbar">
         {isLoading ? (
           <div className="text-xs sm:text-sm text-white/50 text-center py-3 sm:py-4">
             Loading activities...
@@ -414,7 +420,7 @@ export function ActivityFeed({ listId, limit = 50 }: ActivityFeedProps) {
             </div>
           ))
         )}
-      </div>
+      </div> : null}
     </div>
   );
 }

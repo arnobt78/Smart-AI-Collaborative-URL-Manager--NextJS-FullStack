@@ -363,6 +363,19 @@ Append-only. Newest entries at bottom.
 
 ---
 
+## DEC-0031 — Hydrate dynamic protected data surfaces and reserve cold slots
+
+| Field | Value |
+|---|---|
+| Timestamp | 2026-08-19 |
+| Agent | Agile V C6 implementation |
+| Decision | Enforce protected page access server-side, explicitly render data pages dynamically, and retain only compact local cold slots; commit URL mutation summaries to all-list cache before reconciliation. |
+| Rationale | Static page optimization and query-only invalidation allowed an unauthenticated shell and stale summary timestamp to paint before client data caught up. |
+| Linked REQs | REQ-0028 |
+| Status | Implemented and locally validated. |
+
+---
+
 ## DEC-0025 — Defer interactive acceptance to user browser testing
 
 | Field | Value |

@@ -114,14 +114,14 @@ export function GlobalStats({ data, isLoading }: GlobalStatsProps) {
     <div className="space-y-6">
       {/* Main Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <Card className="p-2 sm:p-4">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 p-0 pb-1">
             <CardTitle className="text-xs sm:text-sm font-medium text-white/70">
               Total Users
             </CardTitle>
             <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-400" />
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-0">
             <div className="text-xl sm:text-2xl font-medium text-white">
               {data.totalUsers.toLocaleString()}
             </div>
@@ -132,14 +132,14 @@ export function GlobalStats({ data, isLoading }: GlobalStatsProps) {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <Card className="p-2 sm:p-4">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 p-0 pb-1">
             <CardTitle className="text-xs sm:text-sm font-medium text-white/70">
               Live Users Now
             </CardTitle>
             <Activity className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-green-400" />
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-0">
             <div className="text-xl sm:text-2xl font-medium text-white">
               {data.liveUsersNow}
             </div>
@@ -149,14 +149,14 @@ export function GlobalStats({ data, isLoading }: GlobalStatsProps) {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <Card className="p-2 sm:p-4">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 p-0 pb-1">
             <CardTitle className="text-xs sm:text-sm font-medium text-white/70">
               Total Lists
             </CardTitle>
             <List className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-purple-400" />
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-0">
             <div className="text-xl sm:text-2xl font-medium text-white">
               {data.totalLists.toLocaleString()}
             </div>
@@ -167,14 +167,14 @@ export function GlobalStats({ data, isLoading }: GlobalStatsProps) {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <Card className="p-2 sm:p-4">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 p-0 pb-1">
             <CardTitle className="text-xs sm:text-sm font-medium text-white/70">
               Total URLs
             </CardTitle>
             <Link2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-green-400" />
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-0">
             <div className="text-xl sm:text-2xl font-medium text-white">
               {data.totalUrls.toLocaleString()}
             </div>
@@ -188,22 +188,22 @@ export function GlobalStats({ data, isLoading }: GlobalStatsProps) {
 
       {/* Secondary Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <Card className="p-2 sm:p-4">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 p-0 pb-1">
             <CardTitle className="text-xs sm:text-sm font-medium text-white/70">
               Avg URLs per List
             </CardTitle>
             <TrendingUp className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-400" />
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-0">
             <div className="text-xl sm:text-2xl font-medium text-white">
               {data.avgUrlsPerList}
             </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <Card className="p-2 sm:p-4">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 p-0 pb-1">
             <CardTitle className="text-xs sm:text-sm font-medium text-white/70">
               List Distribution
             </CardTitle>
@@ -212,7 +212,7 @@ export function GlobalStats({ data, isLoading }: GlobalStatsProps) {
               <Lock className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-yellow-400" />
             </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-0">
             <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
               <div className="flex items-center gap-2">
                 <Badge variant="success" className="text-xs">

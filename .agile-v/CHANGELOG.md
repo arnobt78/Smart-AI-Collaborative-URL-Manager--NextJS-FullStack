@@ -50,6 +50,15 @@
 - **Change:** Remove process-wide session authorization caching, dehydrate core data-page query keys on the server, and reconcile delete-list through the typed impact gateway.
 - **Rationale:** Eliminate the revocation window and initial client data fetch while preserving existing route authorization, cache keys, and SSE reconciliation.
 
+## CR-0007 — C6 stable data-surface & compact analytics polish
+
+- **Cycle:** C6
+- **Affected requirement:** REQ-0028 (new)
+- **Change:** Add compact collapsible activity, server page guards/hydration, immediate list-summary commits, and responsive List/Insights UI polish.
+- **Rationale:** Remove cold-load flashes, stale list-card timestamps, post-cookie-clear protected shells, duplicate analytics content, and unstable expanding detail chrome.
+- **Impact:** Server pages/loaders, React Query/store reconciliation, List/Insights/Activity UI, focused tests, and C6 traceability; no schema, session-cookie, API payload, Redis, or SSE contract changes.
+- **Requested by / approval:** User explicitly requested implementation on 2026-08-19.
+
 ## 2026-08-14 C1
 
 - AI free-tier model chains + shared client

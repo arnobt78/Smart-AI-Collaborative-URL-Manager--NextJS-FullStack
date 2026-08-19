@@ -1,6 +1,6 @@
 # STATE.md
 
-**C5** | 2026-08-19
+**C6** | 2026-08-19
 
 ## Done
 
@@ -45,7 +45,7 @@
 
 ## Current checkpoint
 
-- **Stage:** Stage 4 implementation and local verification complete for REQ-0027 (C5); final validation evidence is recorded in `VALIDATION_SUMMARY.md`.
+- **Stage:** Stage 4 implementation and local verification complete for REQ-0028 (C6); final validation evidence is recorded in `VALIDATION_SUMMARY.md`.
 - **Gate:** **GATE-0014 — APPROVED 2026-08-19** (`C1-HG1-SECURITY-CACHE-2026-08-19`). GATE-0002 remains pending and cannot be accepted while this critical authorization remediation is open; `EVAL_RESULTS.md` does not exist.
 - **Scope:** REQ-0027 completes immediate session revocation, core server query hydration, and delete-list impact reconciliation. Existing cookie sessions, Prisma 6, Redis, SSE, API contracts, and public UI remain the baseline.
 - **Reconciliation (2026-08-18):** the user-reconciled local baseline is `65d5806`; prior state incorrectly referenced `a69f0a7`. The original GATE-0001 remains historically unapproved/superseded; GATE-0011/0012/0013 supplied the applicable implementation authority.
@@ -71,6 +71,8 @@
 - **C3 completion (2026-08-19):** REQ-0025 / TASK-0027 through TASK-0030 complete under GATE-0016. Shared Zod parsing covers mutation bodies and identifier-only boundaries; signed jobs preserve the raw body for QStash verification; new session persistence is SHA-256 digest-only with safe legacy-rotation conflict recovery; active mutation paths use the typed impact gateway. Strict TypeScript, zero-warning lint, Jest (52 pass/5 skip), production build, direct-console, parser, secret, and diff scans pass.
 - **C4 completion (2026-08-19):** REQ-0026 / TASK-0031 complete. Collection refresh/creation, duplicate deletion, archive/restore, reorder, favorite/pin, click analytics, metadata refresh, and health actions use scoped cache/store commits or non-rendered background handling; Jest (57 pass/5 skip), strict TypeScript, lint, production build, and hygiene scans pass.
 - **C5 completion (2026-08-19):** REQ-0027 / TASK-0032 and TASK-0033 complete. Session authorization no longer uses a process-wide cache; server-prefetched query hydration covers Lists, list detail, Browse, and Insights; delete-list joins the typed impact contract; anonymous public detail/collaborator reads now match the shared viewer role. Jest (68 pass/5 skip), strict TypeScript, lint, production build, and hygiene scans pass.
+- **C6 scope (2026-08-19):** REQ-0028 / TASK-0034 is user-approved. Resume with server page guards/hydration, compact cold slots, synchronous list-summary updates, collapsible Activity Feed, and List/Insights layout polish.
+- **C6 completion (2026-08-19):** REQ-0028 / TASK-0034 complete. Protected data pages now render dynamically with persisted-session guards; requested data surfaces hydrate before client paint; list summaries receive completed URL mutation timestamps; Activity Feed is collapsed by default; Insights uses compact KPI cards and no duplicate activity tab. Jest (70 pass/5 skip), strict TypeScript, lint, production build, and hygiene scans pass.
 
 ## Next
 

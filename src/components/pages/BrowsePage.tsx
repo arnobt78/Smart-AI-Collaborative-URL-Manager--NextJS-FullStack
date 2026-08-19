@@ -11,6 +11,7 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { usePublicListsQuery } from "@/hooks/useBrowseQueries";
 import { cn } from "@/lib/utils";
 import { CARD_PAD, PAGE_STACK } from "@/lib/ui-spacing";
+import { DataSurfaceSlot } from "@/components/ui/DataSurfaceSlot";
 
 interface UrlItem {
   id: string;
@@ -113,13 +114,7 @@ export default function BrowsePage() {
 
       {/* Lists Grid */}
       {isColdLoading ? (
-        <div
-          aria-busy="true"
-          aria-live="polite"
-          className={cn("rounded-xl border border-white/10 bg-white/5 text-sm text-white/60 animate-pulse", CARD_PAD)}
-        >
-          Loading public lists…
-        </div>
+        <DataSurfaceSlot label="Preparing public lists" description="Finding shared collections…" className={CARD_PAD} />
       ) : lists.length === 0 ? (
         <div
           className={cn(

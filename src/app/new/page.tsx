@@ -1,5 +1,7 @@
 import { redirect } from "next/navigation";
+import { requirePageUser } from "@/lib/page-auth";
 
-export default function NewListPage() {
+export default async function NewListPage() {
+  await requirePageUser();
   redirect("/lists?dialog=create");
 }

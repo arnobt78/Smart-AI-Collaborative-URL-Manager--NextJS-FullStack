@@ -27,6 +27,7 @@
 | 2026-08-19 | C2 Gate 1 approved: implement REQ-0024 homepage hero mount stagger; preserve C1 Gate 2 and production browser acceptance as pending. |
 | 2026-08-19 | C5 / REQ-0027 implementation started under explicit user approval; resume with session-revocation, server-hydration, mutation-boundary tests, then validation evidence. |
 | 2026-08-19 | C5 / REQ-0027 complete: persisted session checks, core server hydration, delete-list impact reconciliation, focused regressions, and local validation complete. |
+| 2026-08-19 | C6 / REQ-0028 complete: guarded dynamic data pages, compact cold slots, summary-cache commits, collapsed Activity Feed, and Insights/list-card polish validated locally. |
 
 ## Durable Human Gate checkpoints
 
@@ -40,5 +41,6 @@
 | 2026-08-19 | GATE-0014 | Human-Decision | PENDING | `C1-HG1-SECURITY-CACHE-2026-08-19` | REQ-0022/REQ-0023 security authorization and cache-stability remediation. Resume synthesis only after a matching APPROVALS.md entry and STATE.md update. |
 | 2026-08-19 | GATE-0014 | Human-Decision | APPROVED | `C1-HG1-SECURITY-CACHE-2026-08-19` | User approved REQ-0022/REQ-0023. Stage 3 synthesis is authorized. |
 | 2026-08-19 | GATE-0015 | Human-Decision | APPROVED | `C2-HG1-HOME-HERO-2026-08-19` | User approved REQ-0024 homepage hero mount stagger. |
+| 2026-08-19 | GATE-0017 | Human-Decision | APPROVED | `C6-HG1-DATA-SURFACE-POLISH-2026-08-19` | User approved REQ-0028 data-surface and analytics polish. |
 | 2026-08-18 | GATE-0012 complete: responsive header/footer chrome alignment; zero lint, typecheck, Jest, and production build pass. Prisma CLI audit remains RISK-0016. |
 | 2026-08-18 | User accepted RISK-0016: retain Prisma 6.19.3; no forced downgrade or breaking upgrade. Gate 2 still needs EvalGate and human acceptance. |

@@ -33,6 +33,7 @@ import {
   removeUrlFromList,
   updateUrlInList,
   setDragInProgress,
+  patchListSummaryCache,
   type UrlItem,
 } from "@/stores/urlListStore";
 import {
@@ -1550,6 +1551,7 @@ export function UrlList() {
           // The key increment forces SortableContext to remount with new items array
           flushSync(() => {
             currentList.set(mergedList);
+            patchListSummaryCache(mergedList);
             // Force immediate re-render by incrementing key in same flushSync
             // This ensures SortableContext sees the new order immediately before any other render
             setSortableContextKey((prev) => prev + 1);
@@ -1767,6 +1769,7 @@ export function UrlList() {
           // This ensures SortableContext remounts immediately with new order
           flushSync(() => {
             currentList.set(mergedList);
+            patchListSummaryCache(mergedList);
             // Force immediate re-render by incrementing key in same flushSync
             // This ensures SortableContext sees the new order immediately before any other render
             setSortableContextKey((prev) => prev + 1);

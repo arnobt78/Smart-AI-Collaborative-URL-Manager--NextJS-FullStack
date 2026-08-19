@@ -60,6 +60,13 @@ export async function loadBusinessInsights() {
   return { overview, activity, popular, performance, global };
 }
 
+export async function loadApiStatus(origin: string) {
+  const { GET } = await import("@/app/api/business-insights/status/route");
+  return readResponse<unknown>(
+    await GET(new NextRequest(`${origin}/api/business-insights/status`)),
+  );
+}
+
 export const serverQueryKeys = {
   allLists: listQueryKeys.allLists,
   unified: listQueryKeys.unified,

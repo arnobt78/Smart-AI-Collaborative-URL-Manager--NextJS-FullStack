@@ -3,6 +3,8 @@ import ListPageClient from "@/components/pages/ListPage";
 import { createServerQueryClient, dehydrate } from "@/lib/server-query";
 import { loadUnifiedList, serverQueryKeys } from "@/lib/server-data";
 
+export const dynamic = "force-dynamic";
+
 export default async function ListPage({
   params,
 }: {
