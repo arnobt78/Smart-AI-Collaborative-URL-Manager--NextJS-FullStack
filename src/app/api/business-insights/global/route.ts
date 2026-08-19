@@ -89,11 +89,6 @@ export async function GET(_: NextRequest) {
     const uniqueUserIds = new Set(trulyActiveSessions.map((s) => s.userId));
     const liveUsersNow = uniqueUserIds.size;
 
-    // Debug logging (only in development)
-    if (process.env.NODE_ENV === "development") {
-      const _now = new Date();
-    }
-
     // Calculate public vs private lists
     const publicLists = allLists.filter((list) => list.isPublic).length;
     const privateLists = totalLists - publicLists;

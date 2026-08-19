@@ -17,5 +17,6 @@
 | ART-0023.2 | REQ-0023 | `src/lib/query-keys.ts`; `src/hooks/useListQueries.ts`; `src/utils/queryInvalidation.ts` | Hook-independent query-key contract prevents store/invalidation import cycles while preserving existing key values. |
 | ART-0024.1 | REQ-0024 | `src/components/HomePage.tsx`; `src/components/__tests__/HomePage.test.tsx`; `jest.setup.js` | Reuse existing login mount-stagger classes for five hero rows; preserve lower scroll reveals and remove test debug output. |
 | ART-0026.1 | REQ-0026 | `src/stores/urlListStore.ts`; `src/utils/queryInvalidation.ts`; collection/list URL components; focused tests | Store-owned optimistic rollback, typed scoped impacts including analytics, isolated vector indexing, and single-response collection refresh. |
+| ART-0027.1 | REQ-0027 | `src/lib/{auth,server-data,server-query}.ts`; core pages; query utilities; focused tests | Persisted session verification, shared server data loaders, dehydrated core-page query keys, and complete mutation-impact reconciliation. |
 
 Risk level: R2 (production UI and repository-wide behavior-sensitive lint remediation). No API, database, authorization, or session contract changes are authorized.

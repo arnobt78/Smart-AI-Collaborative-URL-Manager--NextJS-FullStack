@@ -1,33 +1,13 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { browseQueryKeys } from "@/lib/browse-query-keys";
+
+export { browseQueryKeys } from "@/lib/browse-query-keys";
 
 // ============================================
 // QUERY KEYS - Browse & Public Lists
 // ============================================
-export const browseQueryKeys = {
-  all: ["browse"] as const,
-  publicLists: (page: number, search?: string) =>
-    [...browseQueryKeys.all, "public", page, search || ""] as const,
-  businessInsights: {
-    all: ["business-insights"] as const,
-    overview: () =>
-      [...browseQueryKeys.businessInsights.all, "overview"] as const,
-    activity: (days?: number) =>
-      [
-        ...browseQueryKeys.businessInsights.all,
-        "activity",
-        days || 30,
-      ] as const,
-    popular: () =>
-      [...browseQueryKeys.businessInsights.all, "popular"] as const,
-    performance: () =>
-      [...browseQueryKeys.businessInsights.all, "performance"] as const,
-    global: () => [...browseQueryKeys.businessInsights.all, "global"] as const,
-    status: () => [...browseQueryKeys.businessInsights.all, "status"] as const,
-  },
-};
-
 // ============================================
 // PUBLIC LISTS QUERY
 // ============================================

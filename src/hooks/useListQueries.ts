@@ -5,8 +5,6 @@ import { currentList, type UrlList, type UrlItem } from "@/stores/urlListStore";
 import { queryClient } from "@/lib/react-query";
 import { useToast } from "@/components/ui/Toaster";
 import {
-  invalidateAllListsQueries,
-  invalidateBrowseQueries,
   invalidateMutationImpact,
 } from "@/utils/queryInvalidation";
 import { devLog, devWarn } from "@/lib/dev-log";
@@ -666,14 +664,18 @@ export function useDeleteList() {
     },
     onMutate: async (listId) => {
       // Optimistic update - remove from cache immediately
-      await queryClient.cancelQueries({ queryKey: listQueryKeys.allLists() });
-
       const previous = queryClient.getQueryData<{ lists: UserList[] }>(
-        listQueryKeys.allLists()
+        listQueryKeys.allLists(),
       );
+      const deletedList = previous?.lists?.find((list) => list.id === listId);
+      await Promise.all([
+        queryClient.cancelQueries({ queryKey: listQueryKeys.allLists() }),
+        ...(deletedList?.slug
+          ? [queryClient.cancelQueries({ queryKey: listQueryKeys.unified(deletedList.slug) })]
+          : []),
+      ]);
 
       // Get list details before removing from cache (needed for invalidation and toast)
-      const deletedList = previous?.lists?.find((l) => l.id === listId);
       const listTitle = deletedList?.title || deletedList?.slug || "List";
       const listSlug = deletedList?.slug;
 
@@ -693,22 +695,15 @@ export function useDeleteList() {
         deletedListSlug: listSlug,
       };
     },
-    onSuccess: (data, listId, context) => {
-      // CRITICAL: Invalidate all list-related queries to ensure consistency across all pages
-      // This includes user's lists page, browse/public lists page, and individual list pages
-      invalidateAllListsQueries(queryClient);
-
-      // CRITICAL: Also invalidate browse/public lists queries to remove deleted list from browse page
-      // When a list is deleted, it should disappear from both user's lists AND public browse page
-      invalidateBrowseQueries(queryClient);
-
-      // CRITICAL: Invalidate unified query for this specific list to ensure list page shows "not found"
-      // This ensures that if someone navigates to the deleted list's URL, they see proper 404/not found
-      if (context?.deletedListSlug) {
-        queryClient.invalidateQueries({
-          queryKey: listQueryKeys.unified(context.deletedListSlug),
-        });
-      }
+    onSuccess: (_data, listId, context) => {
+      // REQ-0027: A list deletion reconciles through the same typed impact map
+      // as create/update/visibility and never issues caller-specific duplicate invalidations.
+      invalidateMutationImpact(
+        queryClient,
+        "list",
+        context?.deletedListSlug || listId,
+        listId,
+      );
 
       // Use list title from context (captured before deletion)
       const listTitle = context?.deletedListTitle || "List";

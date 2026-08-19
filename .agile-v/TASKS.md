@@ -166,3 +166,9 @@ RSC shells · densify/Zod/SHA/Next16
 1. Route remaining collection, archive/restore, reorder, metadata, health, click-analytics, and duplicate-delete flows through the typed impact contract; keep non-rendered vector indexing isolated.
 2. Remove caller-level duplicate invalidations and preserve exact initiating snapshots for rollback.
 3. Add focused rollback/impact coverage and record strict type, lint, Jest, build, and diff evidence.
+
+### TASK-0032 — C5 secure revocation and server hydration — DONE
+
+1. Remove the process-wide session authorization cache and cover immediate revocation paths.
+2. Add server-only shared loaders and React Query hydration for Lists, list detail, Browse, and Business Insights without an initial duplicate request.
+3. Route delete-list and all remaining UI-visible writes through one snapshot/impact transaction, then validate and record C5 evidence.

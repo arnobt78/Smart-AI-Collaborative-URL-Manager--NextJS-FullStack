@@ -61,6 +61,31 @@ describe("REQ-0025 digest-backed cookie sessions", () => {
     expect(mockPrisma.session.findUnique).toHaveBeenCalledTimes(1);
   });
 
+  it("rechecks persisted session state after a prior successful lookup", async () => {
+    const token = "revoked-cookie-token";
+    const { getCurrentSession, hashSessionToken } = await import("@/lib/auth");
+    mockCookies.mockResolvedValue({ get: () => ({ value: token }) });
+    const active = {
+      id: "session-1",
+      token: hashSessionToken(token),
+      userId: "user-1",
+      expiresAt: new Date(Date.now() + 60_000),
+      user: { id: "user-1", email: "user@example.com" },
+    };
+    mockPrisma.session.findUnique
+      .mockResolvedValueOnce(active)
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce(null);
+
+    await expect(getCurrentSession()).resolves.toMatchObject({ id: active.id });
+    await expect(getCurrentSession()).resolves.toBeNull();
+
+    expect(mockPrisma.session.findUnique).toHaveBeenCalledTimes(3);
+    expect(mockPrisma.session.deleteMany).toHaveBeenCalledWith({
+      where: { token: { in: [token, hashSessionToken(token)] } },
+    });
+  });
+
   it("rotates a valid legacy plaintext record in place", async () => {
     const token = "legacy-plaintext-cookie-token";
     const { getCurrentSession, hashSessionToken } = await import("@/lib/auth");

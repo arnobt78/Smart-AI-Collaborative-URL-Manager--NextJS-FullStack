@@ -25,6 +25,8 @@
 | 2026-08-19 | Final local audit complete: typecheck, zero-warning lint, Jest, build, and diff pass. REQ-0017/0018 browser acceptance awaits user testing. |
 | 2026-08-19 | Production browser handoff: TASK-0025 awaits user test results for REQ-0017/0018. No application change is authorized until reproducible feedback is received. |
 | 2026-08-19 | C2 Gate 1 approved: implement REQ-0024 homepage hero mount stagger; preserve C1 Gate 2 and production browser acceptance as pending. |
+| 2026-08-19 | C5 / REQ-0027 implementation started under explicit user approval; resume with session-revocation, server-hydration, mutation-boundary tests, then validation evidence. |
+| 2026-08-19 | C5 / REQ-0027 complete: persisted session checks, core server hydration, delete-list impact reconciliation, focused regressions, and local validation complete. |
 
 ## Durable Human Gate checkpoints
 

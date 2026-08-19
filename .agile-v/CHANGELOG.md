@@ -43,6 +43,13 @@
 - **Change:** Complete store-owned rollback and typed impacts for collections, archive/restore, reorder, metadata refresh, health, click analytics, favorites, pins, and duplicate deletion; remove duplicate caller invalidations and collection refresh duplication.
 - **Rationale:** Guarantee immediate local state, exact failure recovery, and one reconciliation path per mutation family.
 
+## CR-0006 — C5 secure revocation and server hydration
+
+- **Cycle:** C5
+- **Affected requirement:** REQ-0027
+- **Change:** Remove process-wide session authorization caching, dehydrate core data-page query keys on the server, and reconcile delete-list through the typed impact gateway.
+- **Rationale:** Eliminate the revocation window and initial client data fetch while preserving existing route authorization, cache keys, and SSE reconciliation.
+
 ## 2026-08-14 C1
 
 - AI free-tier model chains + shared client

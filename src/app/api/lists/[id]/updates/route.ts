@@ -88,10 +88,8 @@ export async function GET(
       getCommentCountsForUrls(list.id, urlsWithPositions.map((url) => url.id)),
     ]);
 
-    // Extract results safely
-    // Note: Position init result is ignored - it's a background operation
-    if (positionInitResult.status === "rejected") {
-    }
+    // Position initialization is best-effort; the sorted response remains valid on failure.
+    void positionInitResult;
 
     const activities = activitiesResult.status === "fulfilled" ? activitiesResult.value : [];
     const collaborators: Array<{ email: string; role: "editor" | "viewer" }> = 

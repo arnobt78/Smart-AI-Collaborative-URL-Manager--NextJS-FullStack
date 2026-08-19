@@ -74,9 +74,6 @@ export async function GET(
       { error: "You don't have permission to view collaborators" },
       { status: 403 }
     );
-
-    const collaborators = await getCollaboratorsWithRoles(listId);
-    return NextResponse.json({ collaborators });
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Failed to fetch collaborators";

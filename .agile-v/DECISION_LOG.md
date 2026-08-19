@@ -337,6 +337,19 @@ Append-only. Newest entries at bottom.
 
 ---
 
+## DEC-0029 — Prefer persisted authorization and server-hydrated query keys
+
+| Field | Value |
+|---|---|
+| Timestamp | 2026-08-19 |
+| Agent | Agile V C5 implementation |
+| Decision | Remove the process-wide session cache; hydrate the existing core-page React Query keys from server-only data loaders. |
+| Rationale | A process-global cache can outlive sign-out or expiry. Server hydration removes the initial client fetch while preserving the established cache key and optimistic/SSE contracts. |
+| Linked REQs | REQ-0027 |
+| Status | Implemented and locally validated. |
+
+---
+
 ## DEC-0025 — Defer interactive acceptance to user browser testing
 
 | Field | Value |

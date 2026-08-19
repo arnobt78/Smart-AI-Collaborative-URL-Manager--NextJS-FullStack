@@ -228,3 +228,13 @@ Gate 2: BLOCKED — RISK-0016 is accepted; `EVAL_RESULTS.md` PASS/WAIVED evidenc
 | URL-click rollback | `UrlList.test.tsx` | PASS | Click analytics increments immediately and restores the initiating store snapshot when tracking is rejected. |
 | Full validation | `npx tsc --noEmit`; `npm run lint`; `npm test -- --runInBand`; `npm run build` | PASS | 59 passed, 5 skipped; strict TypeScript, zero-warning lint, and optimized production build pass. |
 | Hygiene | parser and direct-console scans; `git diff --check` | PASS | No direct mutating-route JSON parsing, no application direct console calls, and no whitespace errors. |
+
+## 2026-08-19 — REQ-0027 C5 secure revocation and server hydration
+
+| Scope | Command / evidence | Result | Notes |
+|---|---|---|---|
+| Session revocation | `auth-session-token.test.ts` | PASS | A second authenticated lookup rechecks persistence and rejects a session removed after the first lookup. |
+| Core hydration | `server-query.test.ts` | PASS | Lists, unified detail, Browse, and Insights query keys dehydrate/hydrate without an initial client query. |
+| Delete-list impact | `useListQueries.mutations.test.tsx` | PASS | Delete removes the cached card immediately and reconciles through the typed list impact map. |
+| Full validation | `npx tsc --noEmit`; `npm run lint`; `npm test -- --runInBand`; `npm run build` | PASS | 65 passed, 5 skipped; strict TypeScript, zero-warning lint, and optimized production build pass. |
+| Hygiene | parser/direct-console/empty-debug scans; `git diff --check` | PASS | No direct mutating-route JSON parsing, no application console calls outside `dev-log`, no empty debug branches, and no whitespace errors. |

@@ -175,29 +175,18 @@ export async function createSession(userId: string): Promise<string> {
   return token;
 }
 
-// Cache for session within the same request (Next.js request memoization)
-let sessionCache: { token: string; session: Session | null; timestamp: number } | null = null;
-const CACHE_TTL = 1000; // 1 second cache to prevent multiple DB calls in same request
-
 /**
  * Get the current session from cookies
- * Uses request-level caching to prevent multiple DB calls within the same request
+ *
+ * Authentication is intentionally resolved from persistence for every call. A module
+ * cache survives across requests in a long-lived server process and could otherwise
+ * authorize a just-revoked or expired cookie for a short window.
  */
 export async function getCurrentSession(): Promise<Session | null> {
   const cookieStore = await cookies();
   const token = cookieStore.get(SESSION_TOKEN_KEY)?.value;
 
   if (!token) return null;
-
-  // Check cache first (if same token and within cache TTL)
-  const now = Date.now();
-  if (
-    sessionCache &&
-    sessionCache.token === token &&
-    now - sessionCache.timestamp < CACHE_TTL
-  ) {
-    return sessionCache.session;
-  }
 
   const tokenDigest = hashSessionToken(token);
   let session = await prisma.session.findUnique({
@@ -234,7 +223,6 @@ export async function getCurrentSession(): Promise<Session | null> {
   if (!session || session.expiresAt < new Date()) {
     // Session expired or invalid
     await deleteSession(token);
-    sessionCache = { token, session: null, timestamp: now };
     return null;
   }
 
@@ -247,8 +235,6 @@ export async function getCurrentSession(): Promise<Session | null> {
     })
     .catch(() => undefined);
 
-  // Cache the result
-  sessionCache = { token, session, timestamp: now };
   return session;
 }
 

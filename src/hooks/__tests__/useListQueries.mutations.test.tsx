@@ -6,6 +6,7 @@ import {
   listQueryKeys,
   useUpdateList,
   useUpdateListVisibility,
+  useDeleteList,
 } from "@/hooks/useListQueries";
 import { currentList } from "@/stores/urlListStore";
 
@@ -47,6 +48,15 @@ function VisibilityHarness() {
       onClick={() => update.mutate({ id: list.id, slug: list.slug, isPublic: true })}
     >
       Publish
+    </button>
+  );
+}
+
+function DeleteHarness() {
+  const remove = useDeleteList();
+  return (
+    <button type="button" onClick={() => remove.mutate(list.id)}>
+      Delete
     </button>
   );
 }
@@ -138,5 +148,31 @@ describe("REQ-0021 list mutation surfaces", () => {
       expect(queryClient.getQueryData<{ lists: typeof list[] }>(listQueryKeys.allLists())?.lists[0].isPublic).toBe(false);
       expect(currentList.get().isPublic).toBe(false);
     });
+  });
+
+  it("removes a list optimistically and reconciles through the shared impact map", async () => {
+    const queryClient = makeClient();
+    queryClient.setQueryData(listQueryKeys.allLists(), { lists: [list] });
+    const invalidate = jest.spyOn(queryClient, "invalidateQueries");
+    let resolveRequest: (response: Response) => void = () => {};
+    (global.fetch as jest.Mock).mockReturnValue(
+      new Promise<Response>((resolve) => {
+        resolveRequest = resolve;
+      }),
+    );
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <DeleteHarness />
+      </QueryClientProvider>,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Delete" }));
+    await waitFor(() => {
+      expect(queryClient.getQueryData<{ lists: typeof list[] }>(listQueryKeys.allLists())?.lists).toEqual([]);
+    });
+
+    resolveRequest({ ok: true, json: async () => ({ success: true }) } as Response);
+    await waitFor(() => expect(invalidate).toHaveBeenCalled());
   });
 });
