@@ -14,6 +14,7 @@ import { abortRegistry } from "@/utils/abortRegistry";
 import { useSession } from "@/hooks/useSession";
 import { useWasAuthedHint } from "@/hooks/useWasAuthedHint";
 import { ProfileDropdown } from "@/components/layout/ProfileDropdown";
+import { WarmSoftNavLink } from "@/components/ui/WarmSoftNavLink";
 import { UI_CHROME_ROW } from "@/lib/ui/control-styles";
 
 export type NavbarProps = {
@@ -124,27 +125,27 @@ export default function Navbar({ initialWasAuthed = false }: NavbarProps) {
 
           {/* Desktop Navigation — nowrap so avatar never wraps/squeezes */}
           <div className="hidden sm:flex h-10 items-center gap-4 lg:gap-6 flex-nowrap">
-            <Link
+            <WarmSoftNavLink
               href="/browse"
               onClick={(e) => handleNavigation(e, "/browse")}
               className="text-white/80 hover:text-white font-medium transition-colors font-mono text-sm lg:text-base leading-none"
             >
               Public URL
-            </Link>
-            <Link
+            </WarmSoftNavLink>
+            <WarmSoftNavLink
               href="/business-insights"
               onClick={(e) => handleNavigation(e, "/business-insights")}
               className="text-white/80 hover:text-white font-medium transition-colors font-mono text-sm lg:text-base leading-none"
             >
               Analytics
-            </Link>
-            <Link
+            </WarmSoftNavLink>
+            <WarmSoftNavLink
               href="/lists"
               onClick={(e) => handleNavigation(e, "/lists")}
               className="text-white/80 hover:text-white font-medium transition-colors font-mono text-sm lg:text-base leading-none"
             >
               My Lists
-            </Link>
+            </WarmSoftNavLink>
 
             {/* Padding outside size-10 — padding+size on same node squashed the avatar */}
             <div className="pl-2 lg:pl-4 shrink-0 flex items-center">
@@ -174,7 +175,7 @@ export default function Navbar({ initialWasAuthed = false }: NavbarProps) {
         {isMobileMenuOpen && (
           <div className="sm:hidden pb-3 border-t border-white/10 pt-2">
             <div className="flex flex-col gap-2">
-              <Link
+              <WarmSoftNavLink
                 href="/browse"
                 onClick={(e) => {
                   handleNavigation(e, "/browse");
@@ -183,8 +184,8 @@ export default function Navbar({ initialWasAuthed = false }: NavbarProps) {
                 className="text-white/80 hover:text-white font-medium transition-colors font-mono text-sm py-2 px-2 rounded-lg hover:bg-white/5"
               >
                 Public URL
-              </Link>
-              <Link
+              </WarmSoftNavLink>
+              <WarmSoftNavLink
                 href="/business-insights"
                 onClick={(e) => {
                   handleNavigation(e, "/business-insights");
@@ -193,8 +194,8 @@ export default function Navbar({ initialWasAuthed = false }: NavbarProps) {
                 className="text-white/80 hover:text-white font-medium transition-colors font-mono text-sm py-2 px-2 rounded-lg hover:bg-white/5"
               >
                 Analytics
-              </Link>
-              <Link
+              </WarmSoftNavLink>
+              <WarmSoftNavLink
                 href="/lists"
                 onClick={(e) => {
                   handleNavigation(e, "/lists");
@@ -203,7 +204,7 @@ export default function Navbar({ initialWasAuthed = false }: NavbarProps) {
                 className="text-white/80 hover:text-white font-medium transition-colors font-mono text-sm py-2 px-2 rounded-lg hover:bg-white/5"
               >
                 My Lists
-              </Link>
+              </WarmSoftNavLink>
             </div>
           </div>
         )}

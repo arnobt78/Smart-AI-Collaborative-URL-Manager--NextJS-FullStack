@@ -19,7 +19,7 @@ Implementation is locally verified; C2 Gate 2 remains pending release evidence a
 Stage 1 Requirements → Stage 2 Validation → [Human Gate 1] → Stage 3 Synthesis → Stage 4 Verification → [Human Gate 2] → Stage 5 Acceptance
 ```
 
-Current: **C6.7 Stage 4 complete locally** for REQ-0037. GATE-0023 approved. GATE-0002 remains pending (`EVAL_RESULTS.md` absent).
+Current: **C6.8 Stage 4 complete locally** for REQ-0038. GATE-0024 approved. GATE-0002 remains pending (`EVAL_RESULTS.md` absent).
 
 Reconciliation note (2026-08-18): commits and prior validation records document C1 implementation activity, but `APPROVALS.md` has no matching approved record for the original GATE-0001 token. This is retained as historical evidence, not retroactively approved. It does not authorize further implementation.
 
@@ -201,6 +201,21 @@ Implementation is locally verified. Production soft-nav browser check remains wi
 | Scope | Restore SSR prefetch/dehydrate under existing loading.tsx; no densify/JWT/Next16; mutation impact unchanged. |
 
 Implementation is locally verified. Production Network check remains with TASK-0039. Gate 2 remains required before any release decision.
+
+---
+
+## GATE-0024 — Human Gate 1 (C6.8 warm soft-nav + lighter Insights)
+
+| Field | Value |
+|-------|-------|
+| Type | Human-Decision |
+| Status | **APPROVED 2026-08-20** |
+| Checkpoint | `C6.8-HG1-WARM-SOFT-NAV-2026-08-20` in `CHECKPOINTS.md` |
+| Evidence | REQ-0038; TASK-0043; DEC-0039; CR-0015 |
+| Required human action | Completed — user explicitly requested implementation of the attached C6.8 plan. |
+| Scope | Warm soft-nav skeleton skip, Insights overview+activity SSR, session.user auth reuse. Mutation impact unchanged. |
+
+Implementation is locally verified. Production warm-nav check remains with TASK-0039. Gate 2 remains required before any release decision.
 
 ---
 

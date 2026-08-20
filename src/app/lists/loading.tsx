@@ -1,6 +1,6 @@
-import { ListsRouteSkeleton } from "@/components/ui/RoutePageSkeleton";
+import { ListsSoftNavLoading } from "@/components/ui/SoftNavLoading";
 
-/** C6.6: Instant soft-nav shell while auth-gated lists RSC resolves. */
+/** C6.8: Instant soft-nav shell; skipped when destination RQ cache is warm. */
 export default function ListsLoading() {
-  return <ListsRouteSkeleton />;
+  return <ListsSoftNavLoading />;
 }

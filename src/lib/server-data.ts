@@ -61,6 +61,31 @@ export async function loadBusinessInsights() {
   return { overview, activity, popular, performance, global };
 }
 
+/** C6.8: Lighter Insights RSC — overview tab needs overview + activity only. */
+export async function loadBusinessInsightsOverview() {
+  const [overviewRoute, activityRoute] = await Promise.all([
+    import("@/app/api/business-insights/overview/route"),
+    import("@/app/api/business-insights/activity/route"),
+  ]);
+
+  const [overview, activity] = await Promise.all([
+    readResponse<unknown>(
+      await overviewRoute.GET(
+        new NextRequest(`${INTERNAL_ORIGIN}/api/business-insights/overview`),
+      ),
+    ),
+    readResponse<unknown>(
+      await activityRoute.GET(
+        new NextRequest(
+          `${INTERNAL_ORIGIN}/api/business-insights/activity?days=30`,
+        ),
+      ),
+    ),
+  ]);
+
+  return { overview, activity };
+}
+
 export async function loadApiStatus(origin: string) {
   const { GET } = await import("@/app/api/business-insights/status/route");
   return readResponse<unknown>(

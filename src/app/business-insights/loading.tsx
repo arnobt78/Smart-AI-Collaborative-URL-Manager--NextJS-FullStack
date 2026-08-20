@@ -1,6 +1,6 @@
-import { InsightsRouteSkeleton } from "@/components/ui/RoutePageSkeleton";
+import { InsightsSoftNavLoading } from "@/components/ui/SoftNavLoading";
 
-/** C6.6: Instant soft-nav shell while auth-gated insights RSC resolves. */
+/** C6.8: Instant soft-nav shell; skipped when destination RQ cache is warm. */
 export default function BusinessInsightsLoading() {
-  return <InsightsRouteSkeleton />;
+  return <InsightsSoftNavLoading />;
 }

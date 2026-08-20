@@ -2,12 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Badge } from "@/components/ui/Badge";
 import { Search, Globe, Eye, Users } from "lucide-react";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { WarmSoftNavLink } from "@/components/ui/WarmSoftNavLink";
 import { usePublicListsQuery } from "@/hooks/useBrowseQueries";
 import { cn } from "@/lib/utils";
 import { CARD_PAD, PAGE_STACK } from "@/lib/ui-spacing";
@@ -137,7 +137,7 @@ export default function BrowsePage() {
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {lists.map((list) => (
-              <Link
+              <WarmSoftNavLink
                 key={list.id}
                 href={`/list/${list.slug}`}
                 className={cn(
@@ -181,7 +181,7 @@ export default function BrowsePage() {
                     View List →
                   </span>
                 </div>
-              </Link>
+              </WarmSoftNavLink>
             ))}
           </div>
 

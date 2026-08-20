@@ -203,8 +203,9 @@ export function useBusinessActivityQuery(days: number = 30) {
 
 /**
  * Fetch popular content
+ * C6.8: `enabled` defers fetch until the Popular tab is selected.
  */
-export function useBusinessPopularQuery() {
+export function useBusinessPopularQuery(enabled = true) {
   return useQuery<{ popularUrls: PopularUrl[]; activeLists: ActiveList[] }>({
     queryKey: browseQueryKeys.businessInsights.popular(),
     queryFn: async () => {
@@ -214,6 +215,7 @@ export function useBusinessPopularQuery() {
       }
       return response.json();
     },
+    enabled,
     staleTime: Infinity, // Cache forever until invalidated
     gcTime: 1000 * 60 * 60 * 24 * 7, // 7 days - keep in cache after component unmounts
     refetchOnWindowFocus: false, // Don't refetch on tab switch
@@ -226,8 +228,9 @@ export function useBusinessPopularQuery() {
 
 /**
  * Fetch performance metrics
+ * C6.8: `enabled` defers fetch until the Performance tab is selected.
  */
-export function useBusinessPerformanceQuery() {
+export function useBusinessPerformanceQuery(enabled = true) {
   return useQuery<{ performance: PerformanceData }>({
     queryKey: browseQueryKeys.businessInsights.performance(),
     queryFn: async () => {
@@ -237,6 +240,7 @@ export function useBusinessPerformanceQuery() {
       }
       return response.json();
     },
+    enabled,
     staleTime: Infinity, // Cache forever until invalidated
     gcTime: 1000 * 60 * 60 * 24 * 7, // 7 days - keep in cache after component unmounts
     refetchOnWindowFocus: false, // Don't refetch on tab switch
@@ -249,8 +253,9 @@ export function useBusinessPerformanceQuery() {
 
 /**
  * Fetch global stats
+ * C6.8: `enabled` defers fetch until the Global tab is selected.
  */
-export function useBusinessGlobalQuery() {
+export function useBusinessGlobalQuery(enabled = true) {
   return useQuery<{ global: GlobalStatsData }>({
     queryKey: browseQueryKeys.businessInsights.global(),
     queryFn: async () => {
@@ -260,6 +265,7 @@ export function useBusinessGlobalQuery() {
       }
       return response.json();
     },
+    enabled,
     staleTime: Infinity, // Cache forever until invalidated
     gcTime: 1000 * 60 * 60 * 24 * 7, // 7 days - keep in cache after component unmounts
     refetchOnWindowFocus: false, // Don't refetch on tab switch

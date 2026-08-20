@@ -1,5 +1,14 @@
 # CHANGELOG.md
 
+## CR-0015 — C6.8 warm soft-nav + lighter Insights RSC
+
+- **Cycle:** C6.8
+- **Affected requirement:** REQ-0038
+- **Change:** Skip loading.tsx skeleton when RQ destination cache is warm; Insights SSR overview+activity only; getCurrentUser reuses session.user.
+- **Rationale:** Warm revisits still flashed RoutePageSkeleton for ~1–2s; Insights RSC pulled five APIs every nav.
+- **Impact:** soft-nav helpers, loading gates, Navbar/Home/Lists/Browse/Popular/SC, auth, Insights page/hooks, docs.
+- **Requested by / approval:** User approved the attached C6.8 plan on 2026-08-20 (GATE-0024).
+
 ## CR-0014 — C6.7 single soft-nav skeleton (SSR hydrate)
 
 - **Cycle:** C6.7

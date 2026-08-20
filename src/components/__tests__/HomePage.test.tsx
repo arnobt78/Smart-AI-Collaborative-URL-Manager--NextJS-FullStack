@@ -1,4 +1,5 @@
 import { fireEvent, render, screen } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import HomePage from "@/components/HomePage";
 import { useSession } from "@/hooks/useSession";
 import { useWasAuthedHint } from "@/hooks/useWasAuthedHint";
@@ -9,6 +10,14 @@ jest.mock("@/hooks/useSession", () => ({
 
 jest.mock("@/hooks/useWasAuthedHint", () => ({
   useWasAuthedHint: jest.fn(),
+}));
+
+jest.mock("@/hooks/useWarmSoftNav", () => ({
+  useWarmSoftNav: () => ({
+    prepare: jest.fn(),
+    prefetchIntent: jest.fn(),
+    warmRouterPush: jest.fn(),
+  }),
 }));
 
 jest.mock("@/components/ui/ScrollReveal", () => ({
@@ -22,6 +31,17 @@ jest.mock("@/components/lists/CreateListDialog", () => ({
 
 const mockedUseSession = jest.mocked(useSession);
 const mockedUseWasAuthedHint = jest.mocked(useWasAuthedHint);
+
+function renderHome() {
+  const client = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
+  return render(
+    <QueryClientProvider client={client}>
+      <HomePage />
+    </QueryClientProvider>,
+  );
+}
 
 describe("HomePage", () => {
   beforeEach(() => {
@@ -38,7 +58,7 @@ describe("HomePage", () => {
   });
 
   it("uses the login-form stagger and opens Create List locally", () => {
-    render(<HomePage />);
+    renderHome();
 
     expect(screen.getByAltText("Explore").closest(".auth-reveal-delay-0")).not.toBeNull();
     expect(screen.getByRole("heading", { name: "The Daily Urlist" }).closest(".auth-reveal-delay-1")).not.toBeNull();
@@ -46,12 +66,12 @@ describe("HomePage", () => {
     expect(screen.getByText("Perfect for sharing resources, bookmarks, and collections with others.").closest(".auth-reveal-delay-3")).not.toBeNull();
 
     const createButton = screen.getByRole("button", { name: /Create New List/i });
-    const listsLink = screen.getByRole("link", { name: /View My Lists/i });
+    const listsButton = screen.getByRole("button", { name: /View My Lists/i });
     const ctaRow = createButton.closest(".auth-reveal-delay-4");
 
-    expect(ctaRow).toContainElement(listsLink);
+    expect(ctaRow).toContainElement(listsButton);
     expect(createButton).not.toHaveAttribute("href");
-    expect(listsLink).toHaveAttribute("href", "/lists");
+    expect(listsButton).not.toHaveAttribute("href");
 
     fireEvent.click(createButton);
     expect(screen.getByRole("dialog")).toHaveTextContent("Create List Dialog");

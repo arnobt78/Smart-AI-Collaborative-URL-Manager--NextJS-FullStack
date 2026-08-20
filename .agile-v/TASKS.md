@@ -245,3 +245,12 @@ RSC shells · densify/Zod/SHA/Next16
 2. Keep segment `loading.tsx` and page cold slots; validate tsc/lint/Jest/build; sync agent docs.
 
 **Dependencies:** REQ-0037; GATE-0023 approved by user implementation request.
+
+### TASK-0043 — C6.8 warm soft-nav + lighter Insights — DONE
+
+1. Add soft-nav-cache, WarmSoftNavLink, warmRouterPush, and client loading gates.
+2. Wire Navbar/Home/Lists/Browse/PopularContent/SmartCollections.
+3. Insights overview+activity SSR; tab-enabled queries; getCurrentUser uses session.user.
+4. Validate tsc/lint/Jest/build; sync agent docs.
+
+**Dependencies:** REQ-0038; GATE-0024 approved by user implementation request.

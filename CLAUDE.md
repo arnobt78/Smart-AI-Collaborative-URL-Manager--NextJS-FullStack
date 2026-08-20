@@ -4,20 +4,16 @@
 **The Daily Urlist** (`urlist` v0.2.1) — AI collaborative URL lists.  
 Live: https://daily-urlist.vercel.app/ · Resume: `.agile-v/STATE.md`
 
-## Status (C6.7)
-Done: C6.5 dialogs · C6.6 soft-nav shells · C6.7 SSR hydrate under those shells (one continuous skeleton).
-Dialogs: `ui/Dialog.tsx` sole overlay; compact divider-free headers. `useListDialogRouteState` = React + `history.state` on same href (no `_rsc`); never strip `?dialog=` on close. Deep-link query is mount-only. Shared `CreateListDialog`. Mutating overlays stay pending until network + paint.
-Nav: Lists/Browse/Insights/detail = segment `loading.tsx` (`RoutePageSkeleton`) + `requirePageUser` + awaited RQ prefetch/dehydrate (no empty hydrate / no second cold client fetch). Cold slots `useDelayedPending` for hard refresh only. Per-request `React.cache` on session/user.
-Stable UI: Browse retains cached cards during refetch; `ui/PageHeader.tsx` standardizes icon/title/subtitle identity rows.
-Stable data: delayed cold placeholders only; Browse/Lists/Insights/API Status/detail keep their static shell. Unified list batches comment counts for card badges; bulk import never reloads. Metadata route is Node-only, public HTTP(S)-only, DNS/IP checked for documents/images/favicons, redirect-checked, timeout-bounded, and list-access guarded.
-Comment badge rule: create +1, delete -1, edit 0; failed mutations restore only their own optimistic delta.
-Auth menu: open guest credentials panel is opaque and stacked above reveal rows; trigger uses expanded/menu ARIA. Logout closes its menu immediately, shows a non-blocking status only after 1.2s, and clears cache only after secure server confirmation.
-Data: unified React Query + snapshot-first optimistic store updates + centralized invalidation + SSE; completed URL mutations patch list-card summaries before one reconciliation. Public lists are discoverable and viewable by authenticated Daily Urlist accounts only; protected pages verify persisted sessions before rendering. `lib/*-query-keys.ts` owns shared keys.
-Mutation UX: visibility updates all visible list surfaces optimistically; form/dialog submit controls guard duplicate requests without dialog-wide locks; collection/archive/reorder/metadata/action flows use one store or hook-owned snapshot commit/rollback and typed impact; primary and suggested URL visits are semantic safe new-tab links.
+## Status (C6.8)
+Done: C6.5–C6.7 nav/dialogs · C6.8 warm soft-nav + lighter Insights RSC.
+Dialogs: `ui/Dialog.tsx` sole overlay; `useListDialogRouteState` = React + `history.state` (no `_rsc`); never strip `?dialog=` on close. Mutating overlays pending until network + paint.
+Nav: `WarmSoftNavLink` / `warmRouterPush` + `soft-nav-cache` skip `loading.tsx` skeleton when RQ already has destination data; cold keeps `RoutePageSkeleton`. Pages = `requirePageUser` + SSR prefetch/dehydrate. Insights SSR seeds overview+activity only; other tabs `enabled` on select. `getCurrentUser` reuses `session.user`.
+Stable UI/data: delayed cold slots; Browse cached cards; metadata Node-only public HTTP(S)+DNS/IP; comment badges create+1/delete-1/edit0.
+Auth menu: opaque guest panel; logout menu-first then server-confirmed cache clear.
+Data: RQ Infinity + optimistic store + `invalidateMutationImpact` + SSE. Public lists auth-only. `lib/*-query-keys.ts` owns keys.
 Human: HA-0001; match Sentry org/token before upload.  
-Audit: Prisma CLI transitively pins `deepmerge-ts@7.1.5` (3 high findings); user accepted RISK-0016. Retain Prisma 6; do not force-downgrade or upgrade.
-Audit rerun: Zod · SHA-256 sessions · persistence-backed auth · `invalidateMutationImpact` · lint · tsc · Jest (91 pass/5 skip) · build pass.
-Manual: TASK-0039 dialogs + soft-nav one skeleton after C6.7 deploy.
+Audit: RISK-0016 Prisma CLI advisory accepted. Jest 94/5 · lint 0 · tsc · build pass.
+Manual: TASK-0039 + warm soft-nav (no skeleton on revisit) after deploy.
 Out of scope: densify/JWT SSR, Next 16, Prisma 7.
 
 ## Stack

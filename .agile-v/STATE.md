@@ -1,6 +1,6 @@
 # STATE.md
 
-**C6.7** | 2026-08-20
+**C6.8** | 2026-08-20
 
 ## Done
 
@@ -45,9 +45,9 @@
 
 ## Current checkpoint
 
-- **Stage:** C6.7 committed/deploying. Browser Network check after Vercel READY.
-- **Gate:** GATE-0023 APPROVED. GATE-0002 pending (`EVAL_RESULTS.md` absent).
-- **Scope:** `loading.tsx` + `requirePageUser` + awaited prefetch/dehydrate; no empty hydrate; `invalidateMutationImpact` unchanged.
+- **Stage:** C6.8 committed/deploying. Browser warm-nav check after Vercel READY.
+- **Gate:** GATE-0024 APPROVED. GATE-0002 pending (`EVAL_RESULTS.md` absent).
+- **Scope:** Warm soft-nav gate + overview/activity Insights SSR + session.user auth; hydrate/invalidation unchanged.
 - **Reconciliation (2026-08-18):** the user-reconciled local baseline is `65d5806`; prior state incorrectly referenced `a69f0a7`. The original GATE-0001 remains historically unapproved/superseded; GATE-0011/0012/0013 supplied the applicable implementation authority.
 - **Audit findings resolved:** shared control geometry, Smart Collections disclosure, URL toolbar/add-form semantics, global browser casts, and 235 lint warnings are remediated. Existing mutation/invalidation architecture was retained and bulk import no longer hard-reloads.
 - **Implementation:** REQ-0010 through REQ-0013 are implemented with shared control styles, Auth entrance motion, accessible Smart Collections disclosure, and URL toolbar/Add URL refinements. The URL workspace, bulk-import flow, real-time/query synchronization, drag-order cache, metadata helper, and auth helper received type-safe lint remediation without changing their behavior. Typecheck, Jest, and production build pass.
@@ -82,10 +82,11 @@
 - **C6.5 completion (2026-08-20):** REQ-0033/0034/0035 / TASK-0040 + Wave 4: no search-param RSC; never strip `?dialog=` on close; local Create List onClick; mutating overlays pending until network+paint. Jest 87/5 skip · tsc · lint 0.
 - **C6.6 completion (2026-08-20):** REQ-0036 / TASK-0041: segment `loading.tsx` + `RoutePageSkeleton`; auth-only Lists/Browse/Insights/detail RSC; delayed cold slots; per-request session cache. Jest 91/5 · tsc · lint 0 · build pass.
 - **C6.7 completion (2026-08-20):** REQ-0037 / TASK-0042: restore SSR prefetch/dehydrate under loading shells — one continuous soft-nav skeleton; no empty hydrate / no second cold client fetch. Jest 91/5 · tsc · lint 0 · build pass.
+- **C6.8 completion (2026-08-20):** REQ-0038 / TASK-0043: warm soft-nav skips skeleton when RQ warm; Insights overview+activity SSR; `getCurrentUser` uses `session.user`. Jest 94/5 · tsc · lint 0 · build pass.
 - **Docs:** CLAUDE.md · PROJECT_WALKTHROUGH · `.agile-v/*` synced for agent resume.
 
 ## Next
 
 ```text
-After Vercel READY: soft-nav My Lists = one skeleton; no /api/lists right after lists?_rsc on cold first visit. Same for Browse/Insights/detail. Also TASK-0039 dialogs.
+After Vercel READY: warm Navbar revisit Lists/Browse/Insights = no RoutePageSkeleton; cold = one skeleton; Insights RSC lighter. Also TASK-0039 dialogs.
 ```

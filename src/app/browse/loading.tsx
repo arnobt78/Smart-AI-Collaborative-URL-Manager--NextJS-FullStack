@@ -1,6 +1,6 @@
-import { BrowseRouteSkeleton } from "@/components/ui/RoutePageSkeleton";
+import { BrowseSoftNavLoading } from "@/components/ui/SoftNavLoading";
 
-/** C6.6: Instant soft-nav shell while auth-gated browse RSC resolves. */
+/** C6.8: Instant soft-nav shell; skipped when destination RQ cache is warm. */
 export default function BrowseLoading() {
-  return <BrowseRouteSkeleton />;
+  return <BrowseSoftNavLoading />;
 }

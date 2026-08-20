@@ -476,6 +476,19 @@ Append-only. Newest entries at bottom.
 | Linked REQs | REQ-0037 |
 | Status | Implemented and locally validated 2026-08-20. |
 
+---
+
+## DEC-0039 — Warm soft-nav loading gate
+
+| Field | Value |
+|---|---|
+| Timestamp | 2026-08-20 |
+| Agent | Agile V C6.8 |
+| Decision | Central warm flag + client loading.tsx gates skip RoutePageSkeleton when RQ has destination data. Insights SSR overview+activity only. getCurrentUser returns session.user. |
+| Rationale | Soft-nav always showed skeletons even with warm Infinity RQ; Insights five-way SSR was the slowest nav. |
+| Linked REQs | REQ-0038 |
+| Status | Implemented and locally validated 2026-08-20. |
+
 | Field | Value |
 |---|---|
 | Timestamp | 2026-08-19 |

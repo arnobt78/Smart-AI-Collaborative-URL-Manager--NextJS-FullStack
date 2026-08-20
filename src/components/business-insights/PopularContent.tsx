@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
-import Link from "next/link";
+import { WarmSoftNavLink } from "@/components/ui/WarmSoftNavLink";
 import {
   Star,
   Globe,
@@ -98,12 +98,12 @@ export function PopularContent({
                       {url.title || url.url}
                     </a>
                     <div className="flex items-center  mt-1 flex-wrap">
-                      <Link
+                      <WarmSoftNavLink
                         href={`/list/${url.listSlug}`}
                         className="text-white/60 hover:text-white/80 text-xs truncate"
                       >
                         From: {url.listTitle}
-                      </Link>
+                      </WarmSoftNavLink>
                       {url.clickCount !== undefined && url.clickCount > 0 && (
                         <span className="flex items-center gap-1 text-white/50 text-xs">
                           <MousePointerClick className="h-3 w-3" />
@@ -136,7 +136,7 @@ export function PopularContent({
               </p>
             ) : (
               activeLists.map((list) => (
-                <Link
+                <WarmSoftNavLink
                   key={list.id}
                   href={`/list/${list.slug}`}
                   className="flex items-center justify-between p-2 sm:p-3 rounded-lg bg-white/5 border border-white/10 hover:border-blue-400/30 transition-all group"
@@ -168,7 +168,7 @@ export function PopularContent({
                   <Badge variant="secondary" className="ml-2 text-xs">
                     {list.urlCount}
                   </Badge>
-                </Link>
+                </WarmSoftNavLink>
               ))
             )}
           </div>

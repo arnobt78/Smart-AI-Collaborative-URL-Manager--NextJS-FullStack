@@ -325,3 +325,10 @@ Gate 2: BLOCKED — RISK-0016 is accepted; `EVAL_RESULTS.md` PASS/WAIVED evidenc
 |---|---|---|---|
 | Page hydrate | lists/browse/insights/list `[slug]` `page.tsx` | PASS | Awaited prefetch/dehydrate restored; loading.tsx retained. |
 | Full validation | `npx tsc --noEmit`; `npm run lint`; `npm test -- --runInBand`; `npm run build` | PASS | Strict TypeScript, zero-warning lint, 91 passed / 5 skipped Jest tests, and optimized production build pass. |
+
+## 2026-08-20 — REQ-0038 C6.8 warm soft-nav + lighter Insights
+
+| Scope | Command / evidence | Result | Notes |
+|---|---|---|---|
+| Soft-nav cache | `soft-nav-cache.test.ts` | PASS | Warm predicates + consume-once flag. |
+| Full validation | `npx tsc --noEmit`; `npm run lint`; `npm test -- --runInBand`; `npm run build` | PASS | Strict TypeScript, zero-warning lint, 94 passed / 5 skipped Jest tests, and optimized production build pass. |

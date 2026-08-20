@@ -731,3 +731,24 @@ These describe the current product as verified in code. They are **Accepted as b
 **Affected:** `src/app/{lists,browse,business-insights,list/[slug]}/page.tsx`.
 **Trace:** TASK-0042, DEC-0038, CR-0014, GATE-0023.
 **Status:** Completed and locally validated [C6.7] on 2026-08-20.
+
+---
+
+### REQ-0038 — Warm soft-nav + lighter Insights RSC (approved 2026-08-20)
+
+**Priority:** P1
+**Type:** UX / performance
+
+**Statement:** When React Query already holds destination page data, soft-nav MUST NOT flash RoutePageSkeleton. Cold soft-nav keeps one skeleton. Insights SSR MUST seed overview+activity only; other tabs fetch when selected. `getCurrentUser` MUST reuse session.user from the persistence join.
+
+**Acceptance criteria:**
+
+- [x] Central `soft-nav-cache` + `WarmSoftNavLink` / `warmRouterPush` mark warm navigations; loading gates return null when warm.
+- [x] Navbar, Home View My Lists, Lists cards, Browse cards, PopularContent, SmartCollections wired.
+- [x] Insights page seeds overview+activity; popular/performance/global use `enabled` by tab.
+- [x] `getCurrentUser` returns `session.user` without a second Prisma user query.
+- [x] tsc, lint 0, Jest, and production build pass.
+
+**Affected:** soft-nav helpers, loading gates, Navbar/Home/Lists/Browse/Popular/SC, auth, Insights page/hooks.
+**Trace:** TASK-0043, DEC-0039, CR-0015, GATE-0024.
+**Status:** Completed and locally validated [C6.8] on 2026-08-20.

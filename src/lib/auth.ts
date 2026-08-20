@@ -466,12 +466,10 @@ export async function globalSessionCleanup(): Promise<{
 /**
  * Get the current user from session.
  * C6.6: React.cache dedupes persistence lookups within one RSC/request.
+ * C6.8: Reuse session.user from the join — no second Prisma user lookup.
  */
 export const getCurrentUser = requestCache(async (): Promise<User | null> => {
   const session = await getCurrentSession();
   if (!session) return null;
-
-  return prisma.user.findUnique({
-    where: { id: session.userId },
-  });
+  return session.user ?? null;
 });

@@ -26,3 +26,5 @@ Overview: REQ-0010 through REQ-0014. Tests are derived from approved requirement
 | TC-0043 [C6.6] | REQ-0036 | Route skeleton presets | Lists/Browse/Insights/detail shells expose header + local slot copy | unit |
 | TC-0044 [C6.6] | REQ-0036 | Production soft-nav | My Lists / Public URL / Analytics / list detail paint destination shell immediately | manual production |
 | TC-0045 [C6.7] | REQ-0037 | Cold soft-nav Network | One skeleton; no bootstrap `/api/lists` (etc.) immediately after hydrated RSC | manual production |
+| TC-0046 [C6.8] | REQ-0038 | Warm soft-nav | Revisit Lists/Browse/Insights with warm RQ shows no RoutePageSkeleton | manual production |
+| TC-0047 [C6.8] | REQ-0038 | Soft-nav cache unit | Warm predicates and consume-once flag | unit |

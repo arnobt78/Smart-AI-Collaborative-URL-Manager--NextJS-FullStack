@@ -18,6 +18,7 @@ import { ScrollReveal } from "@/components/ui/ScrollReveal";
 import { cn } from "@/lib/utils";
 import { CARD_PAD, HEADING_STACK, MARKETING_STACK } from "@/lib/ui-spacing";
 import { useListDialogRouteState } from "@/hooks/useListDialogRouteState";
+import { useWarmSoftNav } from "@/hooks/useWarmSoftNav";
 
 const features = [
   {
@@ -43,6 +44,7 @@ const features = [
 /** Static marketing home — no session wait / spinner. */
 function MarketingHome() {
   const { createDialogOpen, openCreateDialog, closeDialog } = useListDialogRouteState();
+  const { warmRouterPush, prefetchIntent } = useWarmSoftNav();
 
   return (
     <div className="min-h-screen w-full">
@@ -93,9 +95,12 @@ function MarketingHome() {
             </div>
             <div className="w-full sm:w-auto">
               <Button
-                href="/lists"
+                type="button"
                 variant="outline"
                 className="text-white border-white/30 hover:bg-white/10 text-sm px-6 sm:px-8 rounded-xl w-full sm:w-auto"
+                onClick={() => warmRouterPush("/lists")}
+                onMouseEnter={() => prefetchIntent("/lists")}
+                onFocus={() => prefetchIntent("/lists")}
               >
                 <LayoutList className="h-5 w-5 shrink-0" aria-hidden />
                 View My Lists

@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { CreateNewListButton } from "@/components/ui/CreateNewListButton";
 import { Badge } from "@/components/ui/Badge";
@@ -26,13 +25,14 @@ import { DataSurfaceSlot } from "@/components/ui/DataSurfaceSlot";
 import { Dialog } from "@/components/ui/Dialog";
 import { useListDialogRouteState } from "@/hooks/useListDialogRouteState";
 import { useDelayedPending } from "@/hooks/useDelayedPending";
+import { useWarmSoftNav } from "@/hooks/useWarmSoftNav";
 import { CreateListDialog } from "@/components/lists/CreateListDialog";
 
 // Keep type alias for backward compatibility
 type List = UserList;
 
 export default function ListsPageClient() {
-  const router = useRouter();
+  const { warmRouterPush } = useWarmSoftNav();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [listToDelete, setListToDelete] = useState<List | null>(null);
   const [editPending, setEditPending] = useState(false);
@@ -188,7 +188,7 @@ export default function ListsPageClient() {
                       <div className="flex flex-wrap items-center gap-2">
                         <button
                           type="button"
-                          onClick={() => router.push(`/list/${list.slug}`)}
+                          onClick={() => warmRouterPush(`/list/${list.slug}`)}
                           className="max-w-full min-w-0 truncate text-left text-sm font-medium text-white transition-colors hover:underline underline-offset-2 group-hover:text-blue-300 sm:text-base"
                         >
                           {list.title || `List: ${list.slug}`}
@@ -282,7 +282,7 @@ export default function ListsPageClient() {
 
                     {/* Action Buttons */}
                     <div className="flex w-full shrink-0 items-center justify-end gap-1 sm:w-auto">
-                      <Button onClick={() => router.push(`/list/${list.slug}`)} variant="ghost" className="p-2 text-white/80 transition-colors hover:border-blue-400/30 hover:bg-blue-500/20 hover:text-blue-400" title="View List" aria-label={`View ${list.title || list.slug}`}>
+                      <Button onClick={() => warmRouterPush(`/list/${list.slug}`)} variant="ghost" className="p-2 text-white/80 transition-colors hover:border-blue-400/30 hover:bg-blue-500/20 hover:text-blue-400" title="View List" aria-label={`View ${list.title || list.slug}`}>
                         <Eye className="size-4" aria-hidden />
                       </Button>
                       <Button

@@ -32,7 +32,7 @@ import {
   Trash2,
   Telescope,
 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useWarmSoftNav } from "@/hooks/useWarmSoftNav";
 import { AlertDialog } from "@/components/ui/AlertDialog";
 import { HEADING_STACK } from "@/lib/ui-spacing";
 import { invalidateMutationImpact } from "@/utils/queryInvalidation";
@@ -44,7 +44,7 @@ interface SmartCollectionsProps {
 
 export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
   const { toast } = useToast();
-  const router = useRouter();
+  const { warmRouterPush } = useWarmSoftNav();
   const list = useStore(currentList);
   const permissions = useListPermissions(); // Get permissions for role-based access control
   const queryClient = useQueryClient();
@@ -649,7 +649,7 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
                                       {d.listSlug ? (
                                         <button
                                           onClick={() => {
-                                            router.push(`/list/${d.listSlug}`);
+                                            warmRouterPush(`/list/${d.listSlug}`);
                                           }}
                                           className="underline hover:text-white transition-colors break-words"
                                           title={`Open ${d.listTitle || "list"}`}

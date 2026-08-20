@@ -96,16 +96,17 @@ export default function BusinessInsightsPage() {
   const [activeTab, setActiveTab] = useState("overview");
 
   // CRITICAL: Use React Query with Infinity cache - only refetches when invalidated
+  // C6.8: popular/performance/global fetch only when their tab is active
   const { data: overviewResult, isLoading: overviewLoading } =
     useBusinessOverviewQuery();
   const { data: activityResult, isLoading: activityLoading } =
     useBusinessActivityQuery(30);
   const { data: popularResult, isLoading: popularLoading } =
-    useBusinessPopularQuery();
+    useBusinessPopularQuery(activeTab === "popular");
   const { data: performanceResult, isLoading: performanceLoading } =
-    useBusinessPerformanceQuery();
+    useBusinessPerformanceQuery(activeTab === "performance");
   const { data: globalResult, isLoading: globalLoading } =
-    useBusinessGlobalQuery();
+    useBusinessGlobalQuery(activeTab === "global");
 
   // Extract data from query results
   const overviewData = overviewResult?.overview || null;

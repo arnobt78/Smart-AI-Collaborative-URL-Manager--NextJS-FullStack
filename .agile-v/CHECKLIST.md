@@ -25,8 +25,9 @@
 
 ## Remaining / human
 
-- [ ] **TASK-0039** production browser verification of dialogs + C6.7 one soft-nav skeleton after deploy
+- [ ] **TASK-0039** production browser verification of dialogs + C6.8 warm soft-nav after deploy
 - [x] REQ-0036 / TASK-0041 C6.6 instant soft-nav shells (local validation pass)
 - [x] REQ-0037 / TASK-0042 C6.7 SSR hydrate under loading shells (local validation pass)
+- [x] REQ-0038 / TASK-0043 C6.8 warm soft-nav + lighter Insights (local validation pass)
 - [ ] REQ-0001 leftover: human decision on `.cursorignore` secret allowlist
 - [ ] GATE-0002 / `EVAL_RESULTS.md` still required for release acceptance
