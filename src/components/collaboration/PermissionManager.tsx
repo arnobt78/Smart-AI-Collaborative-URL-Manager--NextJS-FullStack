@@ -417,7 +417,7 @@ export function PermissionManager({
       >
         <div className="space-y-3">
           <div>
-            <label className="block text-sm font-medium text-white ">
+            <label className="block text-sm font-medium text-white pb-2">
               Email Address
             </label>
             <Input
@@ -439,7 +439,7 @@ export function PermissionManager({
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-white ">
+            <label className="block text-sm font-medium text-white pb-2">
               Role
             </label>
             <div className="flex gap-2">
@@ -493,9 +493,9 @@ export function PermissionManager({
               type="button"
               onClick={handleAddCollaborator}
               disabled={addCollaboratorMutation.isPending || !newEmail.trim()}
-            isLoading={addCollaboratorMutation.isPending}
-            variant="glass"
-          >
+              isLoading={addCollaboratorMutation.isPending}
+              variant="glass"
+            >
               {!addCollaboratorMutation.isPending ? (
                 <Send className="h-4 w-4" aria-hidden />
               ) : null}

@@ -580,3 +580,20 @@ These describe the current product as verified in code. They are **Accepted as b
 
 **Trace:** TASK-0035, ART-0029.1, C6.1 checkpoint.
 **Status:** Completed and locally validated [C6.1] on 2026-08-19.
+
+---
+
+### REQ-0030 — C6.2 instant list dialogs & confirmed mutation completion (approved 2026-08-20)
+
+**Priority:** P1
+**Type:** UX / performance / cache integrity
+
+**Acceptance criteria:**
+
+- [x] List create/edit dialog open, close, Escape, backdrop, and browser history transitions update local state and the deep-link URL without Next router navigation or an RSC request.
+- [x] Create, edit, and delete keep their dialog visibly pending and non-dismissible through server success/error; failures retain usable forms or retryable confirmation state.
+- [x] Delete closes only after its optimistic cache removal is committed and painted; create retains its confirmed state until the detail transition owns the screen; edit closes after the returned cache state paints.
+- [x] Existing cache-first navigation, typed mutation impact, SSE, Zod/API/session behavior, and direct list-dialog deep links remain compatible.
+
+**Trace:** TASK-0036, DEC-0031, ART-0030.1, C6.2 checkpoint.
+**Status:** Completed and locally validated [C6.2] on 2026-08-20.

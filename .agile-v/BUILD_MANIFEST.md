@@ -19,5 +19,6 @@
 | ART-0026.1 | REQ-0026 | `src/stores/urlListStore.ts`; `src/utils/queryInvalidation.ts`; collection/list URL components; focused tests | Store-owned optimistic rollback, typed scoped impacts including analytics, isolated vector indexing, and single-response collection refresh. |
 | ART-0027.1 | REQ-0027 | `src/lib/{auth,server-data,server-query}.ts`; core pages; query utilities; focused tests | Persisted session verification, shared server data loaders, dehydrated core-page query keys, and complete mutation-impact reconciliation. |
 | ART-0028.1 | REQ-0028 | `src/lib/{page-auth,server-data}.ts`; requested server pages; List/Activity/Insights UI; store/query utilities; focused tests | Protected SSR page guards, request hydration, stable data slots, synchronous summary-cache commits, and compact responsive disclosures/cards. |
+| ART-0030.1 | REQ-0030 | `src/hooks/useListDialogRouteState.ts`; Lists/create/edit pages; shared CTA/confirmation dialog; focused tests | Native-history local list dialogs and parent-owned confirmed create/edit/delete pending lifecycle. |
 
 Risk level: R2 (production UI and repository-wide behavior-sensitive lint remediation). No API, database, authorization, or session contract changes are authorized.

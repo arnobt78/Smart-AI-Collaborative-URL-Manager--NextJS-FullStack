@@ -68,7 +68,7 @@ export function Dialog({
 
   return ReactDOM.createPortal(
     <div
-      className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/65 p-3 backdrop-blur-md sm:p-6"
+      className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/50  backdrop-blur-sm p-2 sm:p-4"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) requestClose();
       }}
@@ -109,7 +109,7 @@ export function Dialog({
               descriptionId={descriptionId}
               pending={pending}
               onClose={requestClose}
-              className="mb-4 border-b border-white/10 pb-4 sm:mb-6 sm:pb-6"
+              className="pb-2 sm:pb-4"
             />
           ) : null}
           {children}
@@ -140,12 +140,24 @@ function DialogHeader({
   className,
 }: DialogHeaderProps) {
   return (
-    <header className={cn("flex items-center justify-between gap-4", className)}>
+    <header
+      className={cn("flex items-center justify-between gap-4", className)}
+    >
       <div className={cn(HEADING_STACK, "min-w-0")}>
-        <h2 id={titleId} className="text-lg font-medium leading-tight text-white sm:text-xl">
+        <h2
+          id={titleId}
+          className="text-lg font-medium leading-tight text-white sm:text-xl"
+        >
           {title}
         </h2>
-        {description ? <p id={descriptionId} className="text-xs leading-snug text-white/60 sm:text-sm">{description}</p> : null}
+        {description ? (
+          <p
+            id={descriptionId}
+            className="text-xs leading-snug text-white/60 sm:text-sm"
+          >
+            {description}
+          </p>
+        ) : null}
       </div>
       <button
         type="button"

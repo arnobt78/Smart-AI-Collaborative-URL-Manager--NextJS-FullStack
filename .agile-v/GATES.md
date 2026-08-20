@@ -121,6 +121,18 @@ Implementation is authorized. Gate 2 remains required before any release decisio
 
 ---
 
+## GATE-0018 — Human Gate 1 (C6.2 instant list dialogs)
+
+| Field | Value |
+|-------|-------|
+| Type | Human-Decision |
+| Status | **APPROVED 2026-08-20** |
+| Evidence | REQ-0030; TASK-0036; DEC-0031; ART-0030.1 |
+| Required human action | Completed — user explicitly approved the C6.2 implementation plan. |
+| Scope | Native-history Lists create/edit dialogs and confirmed create/edit/delete dialog lifecycle only. |
+
+---
+
 ## GATE-0002 — Human Gate 2 (release / acceptance)
 
 | Field | Value |

@@ -1,5 +1,14 @@
 # CHANGELOG.md
 
+## CR-0009 — C6.2 instant list dialogs & confirmed mutation completion
+
+- **Cycle:** C6.2
+- **Affected requirement:** REQ-0030 (new)
+- **Change:** Keep list dialog state local with native history and retain create/edit/delete confirmation UI until confirmed cache commit or server failure.
+- **Rationale:** Query-only dialog transitions currently trigger slow RSC requests; destructive confirmation closes before server completion.
+- **Impact:** Lists page, shared list CTA/confirmation dialog, create/edit list forms, focused UI tests, and C6.2 traceability; no API/schema/session/Redis/SSE contract change.
+- **Requested by / approval:** User explicitly approved implementation on 2026-08-20.
+
 ## CR-0008 — C6.1 authenticated public discovery & hydration parity
 
 - **Cycle:** C6.1

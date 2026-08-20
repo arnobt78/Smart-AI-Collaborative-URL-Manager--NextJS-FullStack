@@ -1,7 +1,7 @@
 // REQ-0021: Cache-aware create-list form is rendered directly inside the shared dialog.
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ListPlus } from "lucide-react";
 import { Textarea } from "@/components/ui/Textarea";
@@ -16,13 +16,15 @@ import { UI_FORM_CONTROL } from "@/lib/ui/control-styles";
 
 interface NewListPageClientProps {
   onClose?: () => void;
+  onPendingChange?: (pending: boolean) => void;
 }
 
-export default function NewListPageClient({ onClose }: NewListPageClientProps) {
+export default function NewListPageClient({ onClose, onPendingChange }: NewListPageClientProps) {
   const router = useRouter();
   const { toast } = useToast();
   const createListMutation = useCreateList();
   const [error, setError] = useState("");
+  const [isNavigating, setIsNavigating] = useState(false);
   const [formData, setFormData] = useState({
     title: "",
     slug: "",
@@ -31,8 +33,14 @@ export default function NewListPageClient({ onClose }: NewListPageClientProps) {
     isPublic: false,
   });
 
+  const isPending = createListMutation.isPending || isNavigating;
+
+  useEffect(() => {
+    onPendingChange?.(isPending);
+  }, [isPending, onPendingChange]);
+
   const close = () => {
-    if (createListMutation.isPending) return;
+    if (isPending) return;
     if (onClose) {
       onClose();
       return;
@@ -73,8 +81,12 @@ export default function NewListPageClient({ onClose }: NewListPageClientProps) {
         description: "Your new list has been successfully created.",
         variant: "success",
       });
+      // Keep the confirmed state visible until the destination transition owns
+      // the screen, preventing the dialog from disappearing before it paints.
+      setIsNavigating(true);
       router.replace(`/list/${list.slug}`, { scroll: false });
     } catch (caughtError) {
+      setIsNavigating(false);
       const message = caughtError instanceof Error ? caughtError.message : "Failed to create list";
       setError(message);
       toast({ title: "Creation Failed", description: message, variant: "error" });
@@ -170,10 +182,10 @@ export default function NewListPageClient({ onClose }: NewListPageClientProps) {
         {error ? <p role="alert" className="rounded-xl border border-red-400/30 bg-red-500/10 p-3 text-xs text-red-300 sm:text-sm">{error}</p> : null}
 
         <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-          <CancelButton onClick={close} disabled={createListMutation.isPending}>Cancel</CancelButton>
-          <Button type="submit" variant="glassPurple" isLoading={createListMutation.isPending}>
+          <CancelButton onClick={close} disabled={isPending}>Cancel</CancelButton>
+          <Button type="submit" variant="glassPurple" isLoading={isPending}>
             <ListPlus className="h-4 w-4 shrink-0" aria-hidden />
-            {createListMutation.isPending ? "Creating..." : "Create List"}
+            {isPending ? "Creating..." : "Create List"}
           </Button>
         </div>
       </form>

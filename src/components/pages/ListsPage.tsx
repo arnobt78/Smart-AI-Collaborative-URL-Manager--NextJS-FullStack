@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { CreateNewListButton } from "@/components/ui/CreateNewListButton";
 import { Badge } from "@/components/ui/Badge";
@@ -25,17 +25,24 @@ import { Dialog } from "@/components/ui/Dialog";
 import NewListPageClient from "@/components/pages/NewListPage";
 import EditListPageClient from "@/components/pages/EditListPage";
 import { DataSurfaceSlot } from "@/components/ui/DataSurfaceSlot";
+import { useListDialogRouteState } from "@/hooks/useListDialogRouteState";
 
 // Keep type alias for backward compatibility
 type List = UserList;
 
 export default function ListsPageClient() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [listToDelete, setListToDelete] = useState<List | null>(null);
-  const createDialogOpen = searchParams.get("dialog") === "create";
-  const editDialogSlug = searchParams.get("dialog") === "edit" ? searchParams.get("list") : null;
+  const [createPending, setCreatePending] = useState(false);
+  const [editPending, setEditPending] = useState(false);
+  const {
+    createDialogOpen,
+    editDialogSlug,
+    openCreateDialog,
+    openEditDialog,
+    closeDialog,
+  } = useListDialogRouteState();
 
   // Setup SSE cache sync for React Query
   useEffect(() => {
@@ -59,15 +66,15 @@ export default function ListsPageClient() {
     if (!listToDelete) return;
 
     const id = listToDelete.id;
-    const _listTitle = listToDelete.title || listToDelete.slug;
-    void _listTitle;
-
     // Use React Query mutation (handles optimistic updates, rollback, and toasts automatically)
     // OPTIMIZATION: No need to call refetch() - mutation's onSuccess already invalidates and triggers refetch
     deleteListMutation.mutate(id, {
       onSuccess: () => {
-        setDeleteDialogOpen(false);
-        setListToDelete(null);
+        // Close after the optimistic card removal has had a chance to paint.
+        requestAnimationFrame(() => {
+          setDeleteDialogOpen(false);
+          setListToDelete(null);
+        });
         // No need to refetch - mutation's invalidateAllListsQueries already triggers refetch
       },
       onError: () => {
@@ -78,7 +85,7 @@ export default function ListsPageClient() {
   };
 
   const handleEditClick = (list: List) => {
-    router.push(`/lists?dialog=edit&list=${encodeURIComponent(list.slug)}`, { scroll: false });
+    openEditDialog(list.slug);
   };
 
   const editList = editDialogSlug ? lists.find((list) => list.slug === editDialogSlug) : undefined;
@@ -149,7 +156,7 @@ export default function ListsPageClient() {
             Manage and organize your URL collections
           </p>
         </div>
-        <CreateNewListButton />
+        <CreateNewListButton onClick={openCreateDialog} />
       </div>
 
       <div className={LIST_STACK}>
@@ -316,7 +323,7 @@ export default function ListsPageClient() {
               </p>
             </div>
             <div className="mt-6 sm:mt-8">
-              <CreateNewListButton />
+              <CreateNewListButton onClick={openCreateDialog} />
             </div>
           </div>
         )}
@@ -325,7 +332,9 @@ export default function ListsPageClient() {
       {/* Delete Confirmation Dialog */}
       <AlertDialog
         open={deleteDialogOpen}
-        onOpenChange={setDeleteDialogOpen}
+        onOpenChange={(open) => {
+          if (!deleteListMutation.isPending) setDeleteDialogOpen(open);
+        }}
         title="Delete List"
         description={
           listToDelete
@@ -334,36 +343,43 @@ export default function ListsPageClient() {
               }"? This action cannot be undone.`
             : "Are you sure you want to delete this list? This action cannot be undone."
         }
-        confirmText={deleteListMutation.isPending ? "Deleting..." : "Delete"}
+        confirmText="Delete"
         cancelText="Cancel"
         onConfirm={handleDeleteConfirm}
         variant="destructive"
+        pending={deleteListMutation.isPending}
+        pendingText="Deleting…"
+        closeOnConfirm={false}
       />
       <Dialog
         open={createDialogOpen}
-        onOpenChange={(open) => !open && router.replace("/lists", { scroll: false })}
+        onOpenChange={(open) => !open && closeDialog()}
         title="Create a New List"
         description="Organize your favorite URLs into beautiful, shareable collections."
         size="wide"
         headerMode="scroll"
+        pending={createPending}
       >
         <NewListPageClient
-          onClose={() => router.replace("/lists", { scroll: false })}
+          onClose={closeDialog}
+          onPendingChange={setCreatePending}
         />
       </Dialog>
       {editList ? (
         <Dialog
           open
-          onOpenChange={(open) => !open && router.replace("/lists", { scroll: false })}
+          onOpenChange={(open) => !open && closeDialog()}
           title="Edit List"
           description="Update your list details and settings."
           size="wide"
           headerMode="scroll"
+          pending={editPending}
         >
           <EditListPageClient
             key={editList.id}
             list={editList}
-            onClose={() => router.replace("/lists", { scroll: false })}
+            onClose={closeDialog}
+            onPendingChange={setEditPending}
           />
         </Dialog>
       ) : null}

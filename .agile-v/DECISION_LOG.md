@@ -374,6 +374,19 @@ Append-only. Newest entries at bottom.
 
 ---
 
+## DEC-0031 — Treat list dialog query state as local history state
+
+| Field | Value |
+|---|---|
+| Timestamp | 2026-08-20 |
+| Agent | Agile V C6.2 implementation |
+| Decision | Use a reusable browser-native history hook for Lists create/edit dialog state; keep Next router navigation only for real route transitions. Let parent-owned confirmation state close list destructive dialogs only after the mutation lifecycle confirms completion. |
+| Rationale | Opening or closing a local overlay must not wait on a server-component payload. Parent-owned pending state preserves retryable errors and prevents visual completion from racing the committed optimistic cache. |
+| Linked REQs | REQ-0030 |
+| Status | Implemented and locally validated 2026-08-20. |
+
+---
+
 ## DEC-0031 — Hydrate dynamic protected data surfaces and reserve cold slots
 
 | Field | Value |

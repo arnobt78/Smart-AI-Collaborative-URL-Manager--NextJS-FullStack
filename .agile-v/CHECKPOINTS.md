@@ -28,6 +28,7 @@
 | 2026-08-19 | C5 / REQ-0027 implementation started under explicit user approval; resume with session-revocation, server-hydration, mutation-boundary tests, then validation evidence. |
 | 2026-08-19 | C5 / REQ-0027 complete: persisted session checks, core server hydration, delete-list impact reconciliation, focused regressions, and local validation complete. |
 | 2026-08-19 | C6 / REQ-0028 complete: guarded dynamic data pages, compact cold slots, summary-cache commits, collapsed Activity Feed, and Insights/list-card polish validated locally. |
+| 2026-08-20 | C6.2 / REQ-0030 complete locally: Lists create/edit query state is native-history local; create/edit/delete dialogs stay pending through confirmation and committed paint. Commit/deploy next. |
 
 ## Durable Human Gate checkpoints
 

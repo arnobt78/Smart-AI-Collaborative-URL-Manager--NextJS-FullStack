@@ -15,6 +15,8 @@ interface AlertDialogProps {
   onConfirm: () => void | Promise<void>;
   variant?: "default" | "destructive";
   pending?: boolean;
+  closeOnConfirm?: boolean;
+  pendingText?: string;
 }
 
 export function AlertDialog({
@@ -27,14 +29,22 @@ export function AlertDialog({
   onConfirm,
   variant = "default",
   pending = false,
+  closeOnConfirm = true,
+  pendingText,
 }: AlertDialogProps) {
+  const handleConfirm = () => {
+    if (pending) return;
+    void onConfirm();
+    if (closeOnConfirm) onOpenChange(false);
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange} title={title} description={description} pending={pending}>
       <div className="flex justify-end gap-2">
         <CancelButton onClick={() => onOpenChange(false)} disabled={pending}>{cancelText}</CancelButton>
-        <Button type="button" variant={variant === "destructive" ? "destructive" : "primary"} onClick={() => { void onConfirm(); onOpenChange(false); }} isLoading={pending}>
+        <Button type="button" variant={variant === "destructive" ? "destructive" : "primary"} onClick={handleConfirm} isLoading={pending}>
           {variant === "destructive" ? <Trash2 className="h-4 w-4 shrink-0" aria-hidden /> : <Check className="h-4 w-4 shrink-0" aria-hidden />}
-          {pending ? `${confirmText}…` : confirmText}
+          {pending ? pendingText ?? `${confirmText}…` : confirmText}
         </Button>
       </div>
     </Dialog>

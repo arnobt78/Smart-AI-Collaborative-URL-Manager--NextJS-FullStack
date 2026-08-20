@@ -190,3 +190,9 @@ RSC shells · densify/Zod/SHA/Next16
 1. Require a persisted session for public discovery/detail/read APIs through canonical list access.
 2. Remove GET position persistence and share unified-response normalization across server/client hydration.
 3. Add access and hydration regressions; validate, document, and commit.
+
+### TASK-0036 — C6.2 instant list dialogs & confirmed mutation completion — DONE
+
+1. Replace Lists dialog router query navigation with a reusable local/native-history state hook while retaining direct-link parsing.
+2. Make create/edit/delete confirmation lifecycle parent-controlled through network result and one committed paint.
+3. Add focused URL-history and pending-dialog tests; run the complete validation/hygiene suite, update records, commit, and deploy.

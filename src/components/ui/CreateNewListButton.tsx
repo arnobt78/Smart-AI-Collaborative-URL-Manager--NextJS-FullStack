@@ -10,6 +10,7 @@ type CreateNewListButtonProps = {
   label?: string;
   size?: "sm" | "md" | "lg";
   icon?: LucideIcon;
+  onClick?: () => void;
 };
 
 export function CreateNewListButton({
@@ -17,10 +18,11 @@ export function CreateNewListButton({
   label = "Create New List",
   size = "md",
   icon: Icon = FolderPlus,
+  onClick,
 }: CreateNewListButtonProps) {
   return (
     <Button
-      href="/lists?dialog=create"
+      {...(onClick ? { type: "button", onClick } : { href: "/lists?dialog=create" })}
       variant="glassPurple"
       size={size}
       className={cn("w-full sm:w-auto", className)}

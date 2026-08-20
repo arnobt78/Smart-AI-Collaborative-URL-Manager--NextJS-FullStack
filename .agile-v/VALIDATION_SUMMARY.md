@@ -263,3 +263,12 @@ Gate 2: BLOCKED — RISK-0016 is accepted; `EVAL_RESULTS.md` PASS/WAIVED evidenc
 | Protected SSR & hydration | Dynamic protected page build output; server-page guards and status hydration | PASS | Lists, Insights, API Docs, API Status, and write deep links verify session before painting; public Browse/shared detail contracts remain unchanged. |
 | Full validation | `npx tsc --noEmit`; `npm run lint`; `npm test -- --runInBand`; `npm run build` | PASS | 70 passed, 5 skipped; strict TypeScript, zero-warning lint, and optimized production build pass. |
 | Hygiene | parser/direct-console scans; `git diff --check` | PASS | No direct mutating-route JSON parsing, no application console calls outside `dev-log`, and no whitespace errors. |
+
+## 2026-08-20 — REQ-0030 C6.2 instant list dialogs & confirmed mutation completion
+
+| Scope | Command / evidence | Result | Notes |
+|---|---|---|---|
+| Local dialog/history regression | `useListDialogRouteState.test.tsx` | PASS | Create/edit state initializes from deep links, mutates URL through native history, and synchronizes `popstate` without Next router navigation. |
+| Confirmed dialog lifecycle | `AlertDialog.test.tsx`; `ListDialogCompletion.test.tsx`; `useListQueries.mutations.test.tsx` | PASS | Parent-controlled destructive pending state locks dismissal; create/edit retain pending controls through completion; delete retains optimistic rollback/typed impact behavior. |
+| Full validation | `npx tsc --noEmit`; `npm run lint`; `npm test -- --runInBand`; `npm run build` | PASS | Strict TypeScript, zero-warning lint, 82 passed / 5 skipped Jest tests, and optimized production build pass. |
+| Hygiene | direct-console/parser/secret scans; `git diff --check` | PASS | Diagnostics remain limited to `dev-log`, mutation routes retain shared parsing, no tracked secrets or whitespace errors. |

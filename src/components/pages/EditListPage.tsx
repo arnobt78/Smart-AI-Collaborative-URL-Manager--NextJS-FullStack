@@ -1,7 +1,7 @@
 // REQ-0021: Cache-seeded editor avoids loading/remount chrome when a dialog opens.
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Save } from "lucide-react";
 import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
@@ -15,15 +15,22 @@ import { FORM_STACK } from "@/lib/ui-spacing";
 interface EditListPageClientProps {
   list: EditableList;
   onClose: () => void;
+  onPendingChange?: (pending: boolean) => void;
 }
 
-export default function EditListPageClient({ list, onClose }: EditListPageClientProps) {
+export default function EditListPageClient({ list, onClose, onPendingChange }: EditListPageClientProps) {
   const { toast } = useToast();
   const updateListMutation = useUpdateList();
   const [title, setTitle] = useState(list.title ?? "");
   const [description, setDescription] = useState(list.description ?? "");
   const [isPublic, setIsPublic] = useState(list.isPublic ?? false);
   const [error, setError] = useState("");
+  const [isCompleting, setIsCompleting] = useState(false);
+  const isPending = updateListMutation.isPending || isCompleting;
+
+  useEffect(() => {
+    onPendingChange?.(isPending);
+  }, [isPending, onPendingChange]);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -47,8 +54,12 @@ export default function EditListPageClient({ list, onClose }: EditListPageClient
         description: "Your list has been successfully updated.",
         variant: "success",
       });
-      onClose();
+      // Cache commits are synchronous; close on the next frame so the edited
+      // card/detail surface paints before this confirmed dialog disappears.
+      setIsCompleting(true);
+      requestAnimationFrame(onClose);
     } catch (caughtError) {
+      setIsCompleting(false);
       const message = caughtError instanceof Error ? caughtError.message : "Failed to update list";
       setError(message);
       toast({ title: "Update Failed", description: message, variant: "error" });
@@ -98,10 +109,10 @@ export default function EditListPageClient({ list, onClose }: EditListPageClient
         {error ? <p role="alert" className="rounded-xl border border-red-400/30 bg-red-500/10 p-3 text-xs text-red-300 sm:text-sm">{error}</p> : null}
 
         <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-          <CancelButton onClick={onClose} disabled={updateListMutation.isPending}>Cancel</CancelButton>
-          <Button type="submit" variant="primary" isLoading={updateListMutation.isPending}>
+          <CancelButton onClick={onClose} disabled={isPending}>Cancel</CancelButton>
+          <Button type="submit" variant="primary" isLoading={isPending}>
             <Save className="h-4 w-4 shrink-0" aria-hidden />
-            {updateListMutation.isPending ? "Saving..." : "Save Changes"}
+            {isPending ? "Saving..." : "Save Changes"}
           </Button>
         </div>
       </form>
