@@ -461,6 +461,19 @@ Append-only. Newest entries at bottom.
 | Decision | Standardize segment `loading.tsx` (page-children skeleton only). Protected pages auth-gate then return empty dehydrate; client RQ fills data. Per-request React.cache for session/user. |
 | Rationale | Soft-nav waited 2–4s on previous page while force-dynamic RSC awaited Prisma prefetch; skeletons never ran until after transition. |
 | Linked REQs | REQ-0036 |
+| Status | Implemented 2026-08-20; empty dehydrate superseded by DEC-0038 / REQ-0037. |
+
+---
+
+## DEC-0038 — SSR hydrate under soft-nav loading shells
+
+| Field | Value |
+|---|---|
+| Timestamp | 2026-08-20 |
+| Agent | Agile V C6.7 |
+| Decision | Keep segment `loading.tsx`. Restore awaited RQ prefetch/dehydrate on protected data pages so soft-nav shows one continuous skeleton and no post-RSC cold client fetch. |
+| Rationale | Empty dehydrate caused skeleton flash then DataSurfaceSlot + `/api/lists` after `lists?_rsc`. |
+| Linked REQs | REQ-0037 |
 | Status | Implemented and locally validated 2026-08-20. |
 
 | Field | Value |

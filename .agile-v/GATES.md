@@ -19,7 +19,7 @@ Implementation is locally verified; C2 Gate 2 remains pending release evidence a
 Stage 1 Requirements → Stage 2 Validation → [Human Gate 1] → Stage 3 Synthesis → Stage 4 Verification → [Human Gate 2] → Stage 5 Acceptance
 ```
 
-Current: **C6.6 Stage 4 complete locally** for REQ-0036. GATE-0022 approved. GATE-0002 remains pending (`EVAL_RESULTS.md` absent).
+Current: **C6.7 Stage 4 complete locally** for REQ-0037. GATE-0023 approved. GATE-0002 remains pending (`EVAL_RESULTS.md` absent).
 
 Reconciliation note (2026-08-18): commits and prior validation records document C1 implementation activity, but `APPROVALS.md` has no matching approved record for the original GATE-0001 token. This is retained as historical evidence, not retroactively approved. It does not authorize further implementation.
 
@@ -186,6 +186,21 @@ Implementation is locally verified. Browser acceptance of create/edit open-close
 | Scope | Segment loading shells + auth-only protected RSC + delayed cold slots + per-request session cache. No densify/JWT/Next16/Prisma7. Mutation impact contract unchanged. |
 
 Implementation is locally verified. Production soft-nav browser check remains with TASK-0039. Gate 2 remains required before any release decision.
+
+---
+
+## GATE-0023 — Human Gate 1 (C6.7 single soft-nav skeleton)
+
+| Field | Value |
+|-------|-------|
+| Type | Human-Decision |
+| Status | **APPROVED 2026-08-20** |
+| Checkpoint | `C6.7-HG1-SSR-HYDRATE-SHELL-2026-08-20` in `CHECKPOINTS.md` |
+| Evidence | REQ-0037; TASK-0042; DEC-0038; CR-0014 |
+| Required human action | Completed — user explicitly requested implementation of the attached C6.7 plan. |
+| Scope | Restore SSR prefetch/dehydrate under existing loading.tsx; no densify/JWT/Next16; mutation impact unchanged. |
+
+Implementation is locally verified. Production Network check remains with TASK-0039. Gate 2 remains required before any release decision.
 
 ---
 

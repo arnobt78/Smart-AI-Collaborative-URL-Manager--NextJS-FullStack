@@ -4,10 +4,10 @@
 **The Daily Urlist** (`urlist` v0.2.1) — AI collaborative URL lists.  
 Live: https://daily-urlist.vercel.app/ · Resume: `.agile-v/STATE.md`
 
-## Status (C6.6)
-Done: C6.5 dialogs · C6.6 instant soft-nav shells (segment `loading.tsx` + auth-only RSC).
+## Status (C6.7)
+Done: C6.5 dialogs · C6.6 soft-nav shells · C6.7 SSR hydrate under those shells (one continuous skeleton).
 Dialogs: `ui/Dialog.tsx` sole overlay; compact divider-free headers. `useListDialogRouteState` = React + `history.state` on same href (no `_rsc`); never strip `?dialog=` on close. Deep-link query is mount-only. Shared `CreateListDialog`. Mutating overlays stay pending until network + paint.
-Nav: Lists/Browse/Insights/detail use `RoutePageSkeleton` via segment `loading.tsx` (children only; Navbar stays). Protected `page.tsx` = `requirePageUser` + empty dehydrate; client RQ fills data. Cold slots use `useDelayedPending`. `getCurrentUser`/`getCurrentSession` use per-request `React.cache`.
+Nav: Lists/Browse/Insights/detail = segment `loading.tsx` (`RoutePageSkeleton`) + `requirePageUser` + awaited RQ prefetch/dehydrate (no empty hydrate / no second cold client fetch). Cold slots `useDelayedPending` for hard refresh only. Per-request `React.cache` on session/user.
 Stable UI: Browse retains cached cards during refetch; `ui/PageHeader.tsx` standardizes icon/title/subtitle identity rows.
 Stable data: delayed cold placeholders only; Browse/Lists/Insights/API Status/detail keep their static shell. Unified list batches comment counts for card badges; bulk import never reloads. Metadata route is Node-only, public HTTP(S)-only, DNS/IP checked for documents/images/favicons, redirect-checked, timeout-bounded, and list-access guarded.
 Comment badge rule: create +1, delete -1, edit 0; failed mutations restore only their own optimistic delta.
@@ -17,7 +17,7 @@ Mutation UX: visibility updates all visible list surfaces optimistically; form/d
 Human: HA-0001; match Sentry org/token before upload.  
 Audit: Prisma CLI transitively pins `deepmerge-ts@7.1.5` (3 high findings); user accepted RISK-0016. Retain Prisma 6; do not force-downgrade or upgrade.
 Audit rerun: Zod · SHA-256 sessions · persistence-backed auth · `invalidateMutationImpact` · lint · tsc · Jest (91 pass/5 skip) · build pass.
-Manual: TASK-0039 dialogs + C6.6 soft-nav shell after deploy.
+Manual: TASK-0039 dialogs + soft-nav one skeleton after C6.7 deploy.
 Out of scope: densify/JWT SSR, Next 16, Prisma 7.
 
 ## Stack

@@ -25,3 +25,4 @@ Overview: REQ-0010 through REQ-0014. Tests are derived from approved requirement
 | TC-0042 [C6.5] | REQ-0035 | Pending mutating overlays | Add-URL and shared Dialog/AlertDialog block close while pending | unit |
 | TC-0043 [C6.6] | REQ-0036 | Route skeleton presets | Lists/Browse/Insights/detail shells expose header + local slot copy | unit |
 | TC-0044 [C6.6] | REQ-0036 | Production soft-nav | My Lists / Public URL / Analytics / list detail paint destination shell immediately | manual production |
+| TC-0045 [C6.7] | REQ-0037 | Cold soft-nav Network | One skeleton; no bootstrap `/api/lists` (etc.) immediately after hydrated RSC | manual production |

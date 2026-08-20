@@ -1,5 +1,14 @@
 # CHANGELOG.md
 
+## CR-0014 — C6.7 single soft-nav skeleton (SSR hydrate)
+
+- **Cycle:** C6.7
+- **Affected requirement:** REQ-0037
+- **Change:** Restore awaited RQ prefetch/dehydrate on Lists/Browse/Insights/detail under existing segment `loading.tsx`.
+- **Rationale:** Auth-only empty dehydrate caused skeleton #1 (loading.tsx) then skeleton #2 (DataSurfaceSlot) plus client `/api/lists` after RSC.
+- **Impact:** Four protected `page.tsx` files and agent docs only; mutation invalidation unchanged.
+- **Requested by / approval:** User approved the attached C6.7 plan on 2026-08-20 (GATE-0023).
+
 ## CR-0013 — C6.6 instant soft-nav shells
 
 - **Cycle:** C6.6

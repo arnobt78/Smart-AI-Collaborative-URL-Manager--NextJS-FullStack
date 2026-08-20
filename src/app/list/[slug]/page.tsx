@@ -1,13 +1,15 @@
 import { HydrationBoundary } from "@tanstack/react-query";
 import ListPageClient from "@/components/pages/ListPage";
 import { createServerQueryClient, dehydrate } from "@/lib/server-query";
+import { loadUnifiedList, serverQueryKeys } from "@/lib/server-data";
+import { listQueryKeys } from "@/lib/query-keys";
 import { requirePageUser } from "@/lib/page-auth";
 
 export const dynamic = "force-dynamic";
 
 /**
- * C6.6: Auth-only RSC. Unified list loads via client RQ; slug-safe placeholder
- * rules stay in ListPageClient.
+ * C6.7: Auth + unified list hydrate under loading.tsx so detail soft-nav
+ * does not flash ListDetailRouteSkeleton a second time after RSC.
  */
 export default async function ListPage({
   params,
@@ -15,11 +17,24 @@ export default async function ListPage({
   params: Promise<{ slug: string }>;
 }) {
   await requirePageUser();
-  // Params are resolved so the segment is ready; data fetch is client-owned.
-  await params;
+  const { slug } = await params;
+  const queryClient = createServerQueryClient();
+  try {
+    const data = await queryClient.fetchQuery({
+      queryKey: serverQueryKeys.unified(slug),
+      queryFn: () => loadUnifiedList(slug),
+    });
+    if (data.list?.id) {
+      queryClient.setQueryData(listQueryKeys.collaborators(data.list.id), {
+        collaborators: data.collaborators || [],
+      });
+    }
+  } catch {
+    // The client retains the current unauthorized/not-found presentation contract.
+  }
 
   return (
-    <HydrationBoundary state={dehydrate(createServerQueryClient())}>
+    <HydrationBoundary state={dehydrate(queryClient)}>
       <ListPageClient />
     </HydrationBoundary>
   );

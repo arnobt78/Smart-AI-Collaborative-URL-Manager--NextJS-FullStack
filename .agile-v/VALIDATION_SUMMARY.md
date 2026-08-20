@@ -318,3 +318,10 @@ Gate 2: BLOCKED — RISK-0016 is accepted; `EVAL_RESULTS.md` PASS/WAIVED evidenc
 | Route skeletons | `RoutePageSkeleton.test.tsx` | PASS | Lists/Browse/Insights/detail presets expose header + local slot copy. |
 | Full validation | `npx tsc --noEmit`; `npm run lint`; `npm test -- --runInBand`; `npm run build` | PASS | Strict TypeScript, zero-warning lint, 91 passed / 5 skipped Jest tests, and optimized production build pass. |
 | Auth cache | `auth-session-token.test.ts` | PASS | Jest-safe `requestCache` fallback when `React.cache` is absent. |
+
+## 2026-08-20 — REQ-0037 C6.7 single soft-nav skeleton (SSR hydrate)
+
+| Scope | Command / evidence | Result | Notes |
+|---|---|---|---|
+| Page hydrate | lists/browse/insights/list `[slug]` `page.tsx` | PASS | Awaited prefetch/dehydrate restored; loading.tsx retained. |
+| Full validation | `npx tsc --noEmit`; `npm run lint`; `npm test -- --runInBand`; `npm run build` | PASS | Strict TypeScript, zero-warning lint, 91 passed / 5 skipped Jest tests, and optimized production build pass. |

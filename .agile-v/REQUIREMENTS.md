@@ -710,4 +710,24 @@ These describe the current product as verified in code. They are **Accepted as b
 
 **Affected:** `RoutePageSkeleton`, app loading/page files, Lists/Browse/Insights/ListPage clients, `lib/auth.ts`.
 **Trace:** TASK-0041, DEC-0037, CR-0013, GATE-0022.
-**Status:** Completed and locally validated [C6.6] on 2026-08-20.
+**Status:** Completed and locally validated [C6.6] on 2026-08-20. Empty-dehydrate criterion superseded by REQ-0037.
+
+---
+
+### REQ-0037 — Single soft-nav skeleton via SSR hydrate (approved 2026-08-20)
+
+**Priority:** P1
+**Type:** UX / App Router hydration
+
+**Statement:** Soft-nav destination shells MUST remain instant via segment `loading.tsx`, and protected pages MUST await SSR React Query prefetch/dehydrate so the client does not cold-fetch or show a second DataSurfaceSlot after RSC.
+
+**Acceptance criteria:**
+
+- [x] Lists/Browse/Insights/detail pages prefetch via `server-data` loaders and dehydrate real query data after `requirePageUser`.
+- [x] Segment `loading.tsx` / `RoutePageSkeleton` retained (one continuous skeleton covering auth + prefetch).
+- [x] Page cold slots remain for hard refresh / invalidated cold only.
+- [x] tsc, lint 0, Jest, and production build pass.
+
+**Affected:** `src/app/{lists,browse,business-insights,list/[slug]}/page.tsx`.
+**Trace:** TASK-0042, DEC-0038, CR-0014, GATE-0023.
+**Status:** Completed and locally validated [C6.7] on 2026-08-20.

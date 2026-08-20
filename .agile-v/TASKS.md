@@ -238,3 +238,10 @@ RSC shells · densify/Zod/SHA/Next16
 4. Per-request `React.cache` for session/user; validate tsc/lint/Jest/build; sync agent docs.
 
 **Dependencies:** REQ-0036; GATE-0022 approved by user implementation request.
+
+### TASK-0042 — C6.7 restore SSR hydrate under loading shells — DONE
+
+1. Restore awaited prefetch/dehydrate on Lists, Browse, Insights, and list detail pages.
+2. Keep segment `loading.tsx` and page cold slots; validate tsc/lint/Jest/build; sync agent docs.
+
+**Dependencies:** REQ-0037; GATE-0023 approved by user implementation request.

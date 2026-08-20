@@ -26,5 +26,6 @@
 | ART-0034.1 | REQ-0034 | `src/components/ui/CreateNewListButton.tsx`; Home tests | Shared launcher requires local onClick; no `/lists?dialog=create` href fallback. |
 | ART-0035.1 | REQ-0035 | URL/comment/collaborator/Smart Collections overlays; Dialog tests | Mutating overlays stay pending until network result plus committed paint. |
 | ART-0036.1 | REQ-0036 | `RoutePageSkeleton`; lists/browse/insights/detail `loading.tsx` + auth-only pages; delayed cold slots; `lib/auth.ts` requestCache | Instant soft-nav destination shells; client RQ fills data after auth-gated RSC. |
+| ART-0037.1 | REQ-0037 | lists/browse/insights/detail `page.tsx` prefetch + dehydrate | SSR hydrate under loading.tsx; one continuous soft-nav skeleton. |
 
 Risk level: R2 (production UI and repository-wide behavior-sensitive lint remediation). No API, database, authorization, or session contract changes are authorized.
