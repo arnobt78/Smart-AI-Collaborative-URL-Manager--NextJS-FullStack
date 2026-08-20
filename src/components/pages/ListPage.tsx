@@ -55,18 +55,22 @@ export default function ListPageClient() {
     return setupSSECacheSync();
   }, []);
 
-  // Use React Query for unified list data
+  // Use React Query for unified list data (C6.9: enable by slug so warm RQ paints before session settles)
   const {
     data: unifiedData,
     isLoading: isLoadingQuery,
     isPlaceholderData,
-  } = useUnifiedListQuery(listSlug, !!listSlug && !sessionLoading);
+  } = useUnifiedListQuery(listSlug, !!listSlug);
 
-  // Prefer RQ cache for the active slug — store alone lags on cache-hit navigations
+  // Prefer RQ cache for the active slug — include same-slug placeholder for warm soft-nav
+  const cachedUnified = listSlug
+    ? queryClient.getQueryData<{ list?: typeof storeList }>(
+        listQueryKeys.unified(listSlug),
+      )
+    : undefined;
   const list =
-    (unifiedData?.list?.slug === listSlug && !isPlaceholderData
-      ? unifiedData.list
-      : undefined) ??
+    (unifiedData?.list?.slug === listSlug ? unifiedData.list : undefined) ??
+    (cachedUnified?.list?.slug === listSlug ? cachedUnified.list : undefined) ??
     (storeList?.id && storeList.slug === listSlug ? storeList : undefined);
 
   // CRITICAL: Start with loading=false to show cached data immediately
@@ -512,13 +516,11 @@ export default function ListPageClient() {
   // Matched slug only — never treat another list's placeholder as "have data"
   const hasAnyData = !!(list && list.id && list.slug === listSlug);
 
-  // C6.6: shell + local slot while cold for this slug (warm matched cache → no flash).
-  // Immediate (not delayed) so we never fall through to "List not found" during mount.
+  // C6.9: paint immediately when RQ/store has this slug; skeleton only when cold
   const shouldShowLoading =
-    !mounted ||
-    sessionLoading ||
-    (!isAuthenticated && isLoadingQuery && !hasAnyData && Boolean(listSlug)) ||
-    (!hasAnyData && isLoadingQuery && Boolean(listSlug));
+    Boolean(listSlug) &&
+    !hasAnyData &&
+    (isLoadingQuery || sessionLoading);
 
   if (shouldShowLoading) {
     return <ListDetailRouteSkeleton />;

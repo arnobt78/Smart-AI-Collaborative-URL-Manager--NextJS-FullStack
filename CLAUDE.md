@@ -4,16 +4,16 @@
 **The Daily Urlist** (`urlist` v0.2.1) — AI collaborative URL lists.  
 Live: https://daily-urlist.vercel.app/ · Resume: `.agile-v/STATE.md`
 
-## Status (C6.8)
-Done: C6.5–C6.7 nav/dialogs · C6.8 warm soft-nav + lighter Insights RSC.
+## Status (C6.9)
+Done: C6.5–C6.8 nav/dialogs · C6.9 optimistic soft-nav (no empty hole).
 Dialogs: `ui/Dialog.tsx` sole overlay; `useListDialogRouteState` = React + `history.state` (no `_rsc`); never strip `?dialog=` on close. Mutating overlays pending until network + paint.
-Nav: `WarmSoftNavLink` / `warmRouterPush` + `soft-nav-cache` skip `loading.tsx` skeleton when RQ already has destination data; cold keeps `RoutePageSkeleton`. Pages = `requirePageUser` + SSR prefetch/dehydrate. Insights SSR seeds overview+activity only; other tabs `enabled` on select. `getCurrentUser` reuses `session.user`.
-Stable UI/data: delayed cold slots; Browse cached cards; metadata Node-only public HTTP(S)+DNS/IP; comment badges create+1/delete-1/edit0.
+Nav: `WarmSoftNavLink` / `warmRouterPush|Replace` + `soft-nav-cache`; warm → `OptimisticSoftNavSurface` from RQ in `loading.tsx`; cold → one `RoutePageSkeleton`. Never `null` empty content. Pages = `requirePageUser` + SSR prefetch/dehydrate. Insights SSR seeds overview+activity only; tabs never blank. List detail paints when unified cache hit (no `!mounted` skeleton). `getCurrentUser` reuses `session.user`.
+Stable UI/data: Lists/Browse immediate cold slot (no delayed null); Browse cached cards; metadata Node-only public HTTP(S)+DNS/IP; comment badges create+1/delete-1/edit0.
 Auth menu: opaque guest panel; logout menu-first then server-confirmed cache clear.
 Data: RQ Infinity + optimistic store + `invalidateMutationImpact` + SSE. Public lists auth-only. `lib/*-query-keys.ts` owns keys.
 Human: HA-0001; match Sentry org/token before upload.  
-Audit: RISK-0016 Prisma CLI advisory accepted. Jest 94/5 · lint 0 · tsc · build pass.
-Manual: TASK-0039 + warm soft-nav (no skeleton on revisit) after deploy.
+Audit: RISK-0016 Prisma CLI advisory accepted. Jest 97/5 · lint 0 · tsc · build pass.
+Manual: TASK-0039 + warm revisit paints destination UI (no empty/skeleton) after deploy.
 Out of scope: densify/JWT SSR, Next 16, Prisma 7.
 
 ## Stack

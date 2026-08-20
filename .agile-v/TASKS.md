@@ -254,3 +254,11 @@ RSC shells · densify/Zod/SHA/Next16
 4. Validate tsc/lint/Jest/build; sync agent docs.
 
 **Dependencies:** REQ-0038; GATE-0024 approved by user implementation request.
+
+### TASK-0044 — C6.9 optimistic soft-nav (no empty hole) — DONE
+
+1. Extend soft-nav-cache browse page/search warm; add OptimisticSoftNavSurface; SoftNavLoading never null.
+2. Fix Lists/Browse/Insights delayed-null gaps; ListPage warm paint; slug prefetch + NewList warm replace.
+3. Validate tsc/lint/Jest/build; sync agent docs.
+
+**Dependencies:** REQ-0039; GATE-0025 approved by user implementation request.

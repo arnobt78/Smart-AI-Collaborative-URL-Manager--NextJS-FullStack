@@ -752,3 +752,23 @@ These describe the current product as verified in code. They are **Accepted as b
 **Affected:** soft-nav helpers, loading gates, Navbar/Home/Lists/Browse/Popular/SC, auth, Insights page/hooks.
 **Trace:** TASK-0043, DEC-0039, CR-0015, GATE-0024.
 **Status:** Completed and locally validated [C6.8] on 2026-08-20.
+
+---
+
+### REQ-0039 — Optimistic soft-nav surface (no empty hole) (approved 2026-08-20)
+
+**Priority:** P1
+**Type:** UX / performance
+
+**Statement:** Warm soft-nav MUST paint destination chrome/cards from React Query inside segment `loading.tsx` (never `null` empty content). Cold soft-nav keeps one continuous `RoutePageSkeleton`. Page clients MUST NOT render delayed `null` while waiting for cold data. List detail MUST paint immediately when unified cache matches the slug. Densify rewrite remains out of scope.
+
+**Acceptance criteria:**
+
+- [x] `OptimisticSoftNavSurface` for lists/browse/insights/list-detail; SoftNavLoading never returns null.
+- [x] Browse warm check includes page/search keys; slug intent prefetch; create→detail `warmRouterReplace`.
+- [x] Lists/Browse immediate cold slot; Insights tabs never blank; ListPage skeleton only when cold for slug.
+- [x] tsc, lint 0, Jest, and production build pass.
+
+**Affected:** soft-nav-cache, SoftNavLoading, OptimisticSoftNavSurface, Lists/Browse/Insights/List/NewList pages, useWarmSoftNav, WarmSoftNavLink.
+**Trace:** TASK-0044, DEC-0040, CR-0016, GATE-0025.
+**Status:** Completed and locally validated [C6.9] on 2026-08-20.

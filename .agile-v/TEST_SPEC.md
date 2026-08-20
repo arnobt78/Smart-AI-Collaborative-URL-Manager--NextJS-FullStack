@@ -28,3 +28,5 @@ Overview: REQ-0010 through REQ-0014. Tests are derived from approved requirement
 | TC-0045 [C6.7] | REQ-0037 | Cold soft-nav Network | One skeleton; no bootstrap `/api/lists` (etc.) immediately after hydrated RSC | manual production |
 | TC-0046 [C6.8] | REQ-0038 | Warm soft-nav | Revisit Lists/Browse/Insights with warm RQ shows no RoutePageSkeleton | manual production |
 | TC-0047 [C6.8] | REQ-0038 | Soft-nav cache unit | Warm predicates and consume-once flag | unit |
+| TC-0048 [C6.9] | REQ-0039 | Optimistic soft-nav | Warm revisit paints destination UI from RQ; never empty hole; cold one skeleton | manual production |
+| TC-0049 [C6.9] | REQ-0039 | SoftNavLoading unit | Warm paints optimistic lists; cold/missing → skeleton | unit |

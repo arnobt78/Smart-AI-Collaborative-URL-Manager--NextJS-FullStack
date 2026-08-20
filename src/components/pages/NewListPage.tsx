@@ -11,6 +11,7 @@ import { UrlEnhancer } from "@/components/ai/UrlEnhancer";
 import { ListFormCard, ListVisibilityField } from "@/components/lists/ListFormPrimitives";
 import { useToast } from "@/components/ui/Toaster";
 import { useCreateList } from "@/hooks/useListQueries";
+import { useWarmSoftNav } from "@/hooks/useWarmSoftNav";
 import { FORM_STACK } from "@/lib/ui-spacing";
 import { UI_FORM_CONTROL } from "@/lib/ui/control-styles";
 
@@ -21,6 +22,7 @@ interface NewListPageClientProps {
 
 export default function NewListPageClient({ onClose, onPendingChange }: NewListPageClientProps) {
   const router = useRouter();
+  const { warmRouterReplace } = useWarmSoftNav();
   const { toast } = useToast();
   const createListMutation = useCreateList();
   const [error, setError] = useState("");
@@ -81,10 +83,9 @@ export default function NewListPageClient({ onClose, onPendingChange }: NewListP
         description: "Your new list has been successfully created.",
         variant: "success",
       });
-      // Keep the confirmed state visible until the destination transition owns
-      // the screen, preventing the dialog from disappearing before it paints.
+      // C6.9: warm replace so seeded unified cache paints OptimisticSoftNavSurface
       setIsNavigating(true);
-      router.replace(`/list/${list.slug}`, { scroll: false });
+      warmRouterReplace(`/list/${list.slug}`, { scroll: false });
     } catch (caughtError) {
       setIsNavigating(false);
       const message = caughtError instanceof Error ? caughtError.message : "Failed to create list";

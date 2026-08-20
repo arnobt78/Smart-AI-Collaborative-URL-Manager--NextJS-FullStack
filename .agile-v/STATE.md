@@ -1,6 +1,6 @@
 # STATE.md
 
-**C6.8** | 2026-08-20
+**C6.9** | 2026-08-20
 
 ## Done
 
@@ -24,14 +24,12 @@
 - Home wave refinement: Hero copy lines and CTAs reveal as independent timed units rather than grouped rows
 - Unified dialog foundation: responsive accessible local `Dialog`; URL add/edit and confirmations use it; `/new` and list edit deep links redirect to dialog-state hosts; Browse keeps cached cards through background refetch; shared page header adopted by Browse/Insights/API pages
 - Zero-gap heading contract: `HEADING_STACK` is used by PageHeader, Dialog, CardHeader, Auth, Smart Collections, feature cards, and legacy empty states; surrounding form, action, menu, and card-content spacing is retained.
-- Stable data surfaces: requested pages keep their static chrome, cold placeholders are delayed and local, comment badges use one grouped unified payload, import recovery has no hard reload, and metadata rejects private network targets for documents, images, favicons, and redirects.
-- Stable list-form dialogs: scroll-header Dialog mode yields one accessible heading/X; cache-seeded My Lists editing, shared compact form primitives, optimistic list hooks, and note-with-X/Eraser action conventions eliminate editor toasts, timers, and form-open/close skeletons.
-- Homepage hero: authenticated logo, title, two description rows, and CTA row reuse the login form's five-step initial-mount stagger; lower marketing scroll reveals are unchanged.
-- Logout UX: profile menu dismisses immediately; duplicate requests are ref-guarded, a non-blocking status appears only after 1.2s, and server-confirmed sign-out clears cached client state before history-safe replacement.
-- C4 mutation UX: visibility updates cache/store in the initiating render; dialog-wide pending locks are removed; primary and suggested visits use browser-owned safe new-tab links.
-- C4 reconciliation: collection, archive/restore, reorder, favorite, pin, metadata refresh, health, and duplicate-delete paths now use one owner for optimistic commit/rollback plus one typed impact; Smart Collections refresh uses one server response.
-- C4 final reconciliation: URL-click analytics snapshots and rolls back the unified cache/store on failure; background vector indexing and schedule setup remain deliberately cache-neutral because they do not change rendered list data.
-- C5: session authorization is persistence-backed per request; request-scoped server QueryClients hydrate Lists, detail, Browse, and Insights keys without a duplicate initial browser request; delete-list uses the typed impact map.
+- Stable data surfaces: requested pages keep their static chrome; C6.9 removes delayed-null empty holes on Lists/Browse/Insights tabs.
+- Stable list-form dialogs: scroll-header Dialog mode; cache-seeded My Lists editing; optimistic list hooks.
+- Homepage hero: authenticated logo, title, two description rows, and CTA row reuse the login form's five-step initial-mount stagger.
+- Logout UX: profile menu dismisses immediately; server-confirmed sign-out clears cached client state.
+- C4–C6.8: mutation UX, session auth, SSR hydrate, dialogs without RSC, soft-nav shells, warm soft-nav flag, Insights overview+activity SSR.
+- **C6.9:** Optimistic soft-nav — warm `loading.tsx` paints `OptimisticSoftNavSurface` from RQ (never null); cold one `RoutePageSkeleton`; Lists/Browse/Insights no delayed empty; ListPage paints on unified cache hit; browse page/search warm; slug intent prefetch; create→detail `warmRouterReplace`.
 
 ## Human
 
@@ -45,48 +43,15 @@
 
 ## Current checkpoint
 
-- **Stage:** C6.8 committed/deploying. Browser warm-nav check after Vercel READY.
-- **Gate:** GATE-0024 APPROVED. GATE-0002 pending (`EVAL_RESULTS.md` absent).
-- **Scope:** Warm soft-nav gate + overview/activity Insights SSR + session.user auth; hydrate/invalidation unchanged.
-- **Reconciliation (2026-08-18):** the user-reconciled local baseline is `65d5806`; prior state incorrectly referenced `a69f0a7`. The original GATE-0001 remains historically unapproved/superseded; GATE-0011/0012/0013 supplied the applicable implementation authority.
-- **Audit findings resolved:** shared control geometry, Smart Collections disclosure, URL toolbar/add-form semantics, global browser casts, and 235 lint warnings are remediated. Existing mutation/invalidation architecture was retained and bulk import no longer hard-reloads.
-- **Implementation:** REQ-0010 through REQ-0013 are implemented with shared control styles, Auth entrance motion, accessible Smart Collections disclosure, and URL toolbar/Add URL refinements. The URL workspace, bulk-import flow, real-time/query synchronization, drag-order cache, metadata helper, and auth helper received type-safe lint remediation without changing their behavior. Typecheck, Jest, and production build pass.
-- **Completion:** REQ-0014 is complete. `npm run lint` reports zero warnings/errors after type-safe remediation; no lint-rule suppression was used.
-- **Completion:** REQ-0015 is complete. Navbar/Footer use the shared responsive chrome row; their routes, session behavior, and import guard are unchanged. Lint, typecheck, Jest, and production build pass.
-- **Completion:** REQ-0016 is complete. The guest-account menu is opaque, above Auth reveal siblings, and exposes its expanded/menu relationship without changing session behavior.
-- **Completion:** REQ-0017 is complete. Shared control primitives use compact geometry; Home uses replayable CSS/observer motion with no auth or data-flow changes.
-- **Dependency audit:** RISK-0016 (three Prisma CLI transitive findings) is accepted by user. Retain Prisma 6.19.3; do not force a downgrade or breaking upgrade.
-- **Final audit:** lint, strict TypeScript, Jest (76 pass/5 skip), production build, mutation/invalidation scan, reload scan, and tracked-secret scan pass against committed `main` (`9088944`). Gate 2 still requires EvalGate/human acceptance evidence.
-- **Completion:** REQ-0018 / TASK-0019 complete. All approved form, confirmation, comment, similarity, and collaborator overlays use the shared dialog primitive; legacy form routes preserve deep links through dialog state.
-- **Completion:** REQ-0019 / TASK-0020 complete. Shared title/description stacks have no added gap; responsive line-height and non-heading spacing are unchanged.
-- **Completion:** REQ-0020 / TASK-0021 complete. Broad loading remounts were removed from the requested data pages; dialog comments no longer duplicate their title; comment counts are batched; metadata fetches are public HTTP(S)-only and redirect-checked.
-- **Completion:** REQ-0021 / TASK-0022 complete. Create/edit forms use one scrollable dialog header, cache-first editor fields, centralized optimistic list mutations, no opening toast/timer/router refresh, and delayed cold loading only when list cache data is unavailable.
-- **Correction:** Comment action badges now increment only for creates, decrement only for deletes, and restore their optimistic delta on mutation failure; edits leave the count unchanged (`43b663a`).
-- **Evidence:** planning traces in `REQUIREMENTS.md` (REQ-0010 to REQ-0014), `TASKS.md` (TASK-0011 to TASK-0015), `DECISION_LOG.md` (DEC-0012/0013), `RISKS.md` (RISK-0011 to RISK-0014), and `GATES.md`.
-- **Audit (2026-08-19):** verified critical missing authorization on `PATCH`/`DELETE /api/lists/[id]`; high-risk missing access checks on list metadata and vector-sync routes; duplicate URL mutation paths with incomplete delete rollback; Browse Suspense fallback and Lists/Insights/detail cold-state behavior can remount broad placeholders. These are tracked in REQ-0022/REQ-0023 and RISK-0017/RISK-0018.
-- **Completion (2026-08-19):** REQ-0022/REQ-0023 are implemented and locally verified. Canonical route access protects list mutations, metadata, and vector sync; URL mutations use one snapshot/commit/rollback path; query keys are hook-independent; requested data surfaces retain their static shells and cached data.
-- **Manual acceptance:** REQ-0017, REQ-0018, and REQ-0032 await user browser testing; implementation and automated validation are complete.
-- **Production test handoff (2026-08-19):** User will test the deployed Vercel application later; no browser action or defect report has been received yet. Resume from TASK-0025 when feedback arrives.
-- **C2 completion (2026-08-19):** REQ-0024 / TASK-0026 complete under GATE-0015. The homepage hero now reuses login's mount stagger; focused regression coverage, strict TypeScript, zero-warning lint, full Jest, and production build pass. C1/C2 Gate 2 release acceptance remains pending.
-- **C3 completion (2026-08-19):** REQ-0025 / TASK-0027 through TASK-0030 complete under GATE-0016. Shared Zod parsing covers mutation bodies and identifier-only boundaries; signed jobs preserve the raw body for QStash verification; new session persistence is SHA-256 digest-only with safe legacy-rotation conflict recovery; active mutation paths use the typed impact gateway. Strict TypeScript, zero-warning lint, Jest (52 pass/5 skip), production build, direct-console, parser, secret, and diff scans pass.
-- **C4 completion (2026-08-19):** REQ-0026 / TASK-0031 complete. Collection refresh/creation, duplicate deletion, archive/restore, reorder, favorite/pin, click analytics, metadata refresh, and health actions use scoped cache/store commits or non-rendered background handling; Jest (57 pass/5 skip), strict TypeScript, lint, production build, and hygiene scans pass.
-- **C5 completion (2026-08-19):** REQ-0027 / TASK-0032 and TASK-0033 complete. Session authorization no longer uses a process-wide cache; server-prefetched query hydration covers Lists, list detail, Browse, and Insights; delete-list joins the typed impact contract. The original anonymous public-read policy is superseded by C6.1. Jest (68 pass/5 skip), strict TypeScript, lint, production build, and hygiene scans pass.
-- **C6 scope (2026-08-19):** REQ-0028 / TASK-0034 is user-approved. Resume with server page guards/hydration, compact cold slots, synchronous list-summary updates, collapsible Activity Feed, and List/Insights layout polish.
-- **C6 completion (2026-08-19):** REQ-0028 / TASK-0034 complete. Protected data pages now render dynamically with persisted-session guards; requested data surfaces hydrate before client paint; list summaries receive completed URL mutation timestamps; Activity Feed is collapsed by default; Insights uses compact KPI cards and no duplicate activity tab. Jest (70 pass/5 skip), strict TypeScript, lint, production build, and hygiene scans pass.
-- **C6.1 completion (2026-08-19):** REQ-0029 / TASK-0035 supersedes the anonymous public-list viewer policy. Browse, shared detail, list discovery, collaborator reads, and view tracking require a persisted session; legacy position normalization is read-only; hydrated unified payloads retain URL comment counts and collaborator cache data. Jest (76 pass/5 skip), strict TypeScript, lint, production build, and hygiene scans pass.
-- **C6.2 completion (2026-08-20):** REQ-0030 / TASK-0036 localizes Lists create/edit dialog history, keeps deep links and browser back support, and keeps create/edit/delete dialogs pending until confirmed server completion plus committed paint. Jest (82 pass/5 skip), strict TypeScript, lint, production build, hygiene scans, and Vercel production deployment `dpl_DtLWyXz3HvVPi3gjyKS34e5qndPL` for commit `69530ad` pass.
-- **C6.3 completion (2026-08-20):** REQ-0031 / TASK-0037 makes fixed and scrollable dialog headers compact and divider-free through one shared component; unused `InputDialog` was removed. Jest (83 pass/5 skip), strict TypeScript, lint, production build, hygiene scans, and Vercel production deployment `dpl_86AUZkR9imabm8AQsfvbB7sPKrS7` for commit `5ea0448` pass.
-- **C6.4 finding (2026-08-20):** Production tracing showed authenticated Home Create List CTAs used `/lists?dialog=create` link navigation, so they waited for a 2.98s RSC payload before a static form rendered. REQ-0032 replaced those launchers with page-local state and one shared create-dialog lifecycle.
-- **C6.4 completion (2026-08-20):** REQ-0032 / TASK-0038 reuses `CreateListDialog` for hydrated Home and Lists CTAs. Home now opens locally with native history and no RSC navigation; nullable Next search params safely fall back to the browser URL. Focused regressions, strict TypeScript, lint, Jest (83 pass/5 skip), production build, and hygiene scans pass.
-- **C6.4 production (2026-08-20):** Commit `c675cf6` is on `main` and Vercel production `dpl_DB8BYHnrXN5LuwL5Yo5FNdtwFvXd` is READY. Browser verification of the Home Create List launcher is still pending (TASK-0039).
-- **C6.5 completion (2026-08-20):** REQ-0033/0034/0035 / TASK-0040 + Wave 4: no search-param RSC; never strip `?dialog=` on close; local Create List onClick; mutating overlays pending until network+paint. Jest 87/5 skip · tsc · lint 0.
-- **C6.6 completion (2026-08-20):** REQ-0036 / TASK-0041: segment `loading.tsx` + `RoutePageSkeleton`; auth-only Lists/Browse/Insights/detail RSC; delayed cold slots; per-request session cache. Jest 91/5 · tsc · lint 0 · build pass.
-- **C6.7 completion (2026-08-20):** REQ-0037 / TASK-0042: restore SSR prefetch/dehydrate under loading shells — one continuous soft-nav skeleton; no empty hydrate / no second cold client fetch. Jest 91/5 · tsc · lint 0 · build pass.
-- **C6.8 completion (2026-08-20):** REQ-0038 / TASK-0043: warm soft-nav skips skeleton when RQ warm; Insights overview+activity SSR; `getCurrentUser` uses `session.user`. Jest 94/5 · tsc · lint 0 · build pass.
-- **Docs:** CLAUDE.md · PROJECT_WALKTHROUGH · `.agile-v/*` synced for agent resume.
+- **Stage:** C6.9 complete locally + post-impl audit OK. Browser check after deploy: warm revisit paints destination UI; cold one skeleton; no empty hole.
+- **Gate:** GATE-0025 APPROVED (user implementation request). GATE-0002 pending (`EVAL_RESULTS.md` absent).
+- **Scope:** Optimistic RQ soft-nav surface + empty-flash fixes; hydrate/invalidation unchanged (no densify rewrite).
+- **Audit (2026-08-20):** C6.9 wired end-to-end; SoftNavLoading never null; Lists/Browse/Insights/List gaps closed; densify/JWT SSR still OOS; `invalidateMutationImpact` retained. Jest 97/5 · tsc · lint 0 · build pass.
+- **Completion:** REQ-0039 / TASK-0044 complete.
+- **Docs:** CLAUDE.md · `.agile-v/*` synced for agent resume.
 
 ## Next
 
 ```text
-After Vercel READY: warm Navbar revisit Lists/Browse/Insights = no RoutePageSkeleton; cold = one skeleton; Insights RSC lighter. Also TASK-0039 dialogs.
+After deploy: warm Navbar revisit Lists/Browse/Insights/detail = destination UI from RQ immediately (no empty, no skeleton); cold = one continuous skeleton. Also TASK-0039 dialogs.
 ```

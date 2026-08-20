@@ -30,8 +30,8 @@ Next 15 URL bookmark manager. Demo: https://daily-urlist.vercel.app/
 - UI controls: `lib/ui/control-styles.ts` provides shared 48px field/trigger geometry; Auth uses CSS reveal with reduced-motion support
 - Home motion: `ui/ScrollReveal.tsx` provides replayable CSS/observer reveal plus subtle parallax; shared controls use `h-10 min-h-10` and text-sm placeholders
 - Home wave: hero copy lines and CTAs are individual reveal units, staggered in order rather than animated as a grouped row
-- Data sync: protected pages auth-gate then SSR prefetch/dehydrate (C6.7) under segment `loading.tsx`; C6.8 warm soft-nav skips skeleton when RQ has destination data. Snapshot-first optimistic `currentList` + typed invalidation + SSE.
-- Soft-nav: `WarmSoftNavLink` / `warmRouterPush` + `lib/soft-nav-cache.ts`; cold = `RoutePageSkeleton`; warm = null loading gate. Insights SSR = overview+activity only.
+- Data sync: protected pages auth-gate then SSR prefetch/dehydrate (C6.7) under segment `loading.tsx`; C6.9 warm soft-nav paints `OptimisticSoftNavSurface` from RQ (never empty). Snapshot-first optimistic `currentList` + typed invalidation + SSE.
+- Soft-nav: `WarmSoftNavLink` / `warmRouterPush|Replace` + `lib/soft-nav-cache.ts`; cold = `RoutePageSkeleton`; warm = RQ destination chrome/cards. Insights SSR = overview+activity only.
 - Compact data UI: `DataSurfaceSlot` + `useDelayedPending`; Activity Feed default-collapsed; Insights aligned tabs.
 - Mutation UX: visibility, list, URL, collaborator, comment, collection, archive, import, metadata, and health actions retain optimistic cache/store data with one typed impact; collection refresh uses one response; dialogs keep only local submit guards; external visits use safe semantic new-tab links.
 - C3/C5 boundaries: `lib/api-validation.ts` owns strict Zod payload/identifier parsing; opaque session cookies persist as SHA-256 digests with legacy rotation and persistence-backed revocation; `invalidateMutationImpact` maps active mutation cache families once, including delete-list. Per-request `React.cache` on session/user lookup.
@@ -40,7 +40,7 @@ Next 15 URL bookmark manager. Demo: https://daily-urlist.vercel.app/
 - Stable data safety: Browse/Lists/Insights/API Status/detail keep static chrome with delayed local cold placeholders; unified list batches comment counts; bulk import reconciles without reload; metadata documents/images/favicons accept public HTTP(S) destinations only after DNS/IP and redirect checks.
 - List access: `lib/list-route-access.ts` verifies a persisted session before resolving list slug/ID; public lists are visible to every authenticated account, while private reads require ownership/collaboration; PATCH content is owner/editor, visibility and deletion owner-only, and vector sync/metadata refresh require edit permission. Unified GET normalization is response-only and shared with server hydration, preserving comment and collaborator cache data.
 - Comment badges: create increments, delete decrements, edit is count-neutral, and failed mutations restore only their own optimistic delta.
-- Manual: TASK-0039 + C6.8 warm soft-nav after deploy; code OK.
+- Manual: TASK-0039 + C6.9 warm revisit paints destination UI after deploy; code OK.
 - Audit: lint/tsc/Jest(94/5)/build pass; RISK-0016 accepted; Gate 2 needs EvalGate.
 
 ## Versions

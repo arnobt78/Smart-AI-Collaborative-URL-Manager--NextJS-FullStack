@@ -487,6 +487,19 @@ Append-only. Newest entries at bottom.
 | Decision | Central warm flag + client loading.tsx gates skip RoutePageSkeleton when RQ has destination data. Insights SSR overview+activity only. getCurrentUser returns session.user. |
 | Rationale | Soft-nav always showed skeletons even with warm Infinity RQ; Insights five-way SSR was the slowest nav. |
 | Linked REQs | REQ-0038 |
+| Status | Implemented and locally validated 2026-08-20. Superseded for warm path by DEC-0040 (C6.9 optimistic surface). |
+
+---
+
+## DEC-0040 — Optimistic soft-nav surface (never null)
+
+| Field | Value |
+|---|---|
+| Timestamp | 2026-08-20 |
+| Agent | Agile V C6.9 |
+| Decision | Warm soft-nav paints OptimisticSoftNavSurface from RQ in loading.tsx instead of returning null. Cold keeps one RoutePageSkeleton. Remove page-level delayed null. List detail paints on unified cache hit. Keep invalidateMutationImpact; no densify rewrite. |
+| Rationale | Warm→null left an empty content hole; Lists waitingForColdData and ListPage !mounted caused empty/double-skeleton flashes. |
+| Linked REQs | REQ-0039 |
 | Status | Implemented and locally validated 2026-08-20. |
 
 | Field | Value |

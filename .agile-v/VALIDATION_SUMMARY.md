@@ -332,3 +332,11 @@ Gate 2: BLOCKED — RISK-0016 is accepted; `EVAL_RESULTS.md` PASS/WAIVED evidenc
 |---|---|---|---|
 | Soft-nav cache | `soft-nav-cache.test.ts` | PASS | Warm predicates + consume-once flag. |
 | Full validation | `npx tsc --noEmit`; `npm run lint`; `npm test -- --runInBand`; `npm run build` | PASS | Strict TypeScript, zero-warning lint, 94 passed / 5 skipped Jest tests, and optimized production build pass. |
+
+## 2026-08-20 — REQ-0039 C6.9 optimistic soft-nav (no empty hole)
+
+| Scope | Command / evidence | Result | Notes |
+|---|---|---|---|
+| Soft-nav cache | `soft-nav-cache.test.ts` | PASS | Browse page/search warm + peek/consume. |
+| SoftNavLoading | `SoftNavLoading.test.tsx` | PASS | Warm paints optimistic lists; cold/missing → skeleton. |
+| Full validation | `npx tsc --noEmit`; `npm run lint`; `npm test`; `npm run build` | PASS | Strict TypeScript, zero-warning lint, 97 passed / 5 skipped Jest tests, and optimized production build pass. |

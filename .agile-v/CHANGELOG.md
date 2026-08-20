@@ -1,5 +1,14 @@
 # CHANGELOG.md
 
+## CR-0016 — C6.9 optimistic soft-nav (no empty hole)
+
+- **Cycle:** C6.9
+- **Affected requirement:** REQ-0039
+- **Change:** Warm loading.tsx paints OptimisticSoftNavSurface from RQ; never null; remove Lists/Browse/Insights delayed empty; ListPage paints on unified cache hit.
+- **Rationale:** Warm→null left empty content; delayed null and !mounted caused empty/double-skeleton flashes.
+- **Impact:** soft-nav-cache, SoftNavLoading, OptimisticSoftNavSurface, Lists/Browse/Insights/List/NewList, useWarmSoftNav, WarmSoftNavLink, docs.
+- **Requested by / approval:** User approved the attached C6.9 plan on 2026-08-20 (GATE-0025).
+
 ## CR-0015 — C6.8 warm soft-nav + lighter Insights RSC
 
 - **Cycle:** C6.8

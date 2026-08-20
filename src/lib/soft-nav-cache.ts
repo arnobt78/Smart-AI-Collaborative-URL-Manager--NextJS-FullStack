@@ -3,15 +3,18 @@ import { browseQueryKeys } from "@/lib/browse-query-keys";
 import { listQueryKeys } from "@/lib/query-keys";
 
 /**
- * C6.8: Soft-nav warm cache — skip loading.tsx skeleton when RQ already has
- * destination data. Warm = data present (not freshness) so invalidated-but-
- * present cache still skips the skeleton while refetch runs.
+ * C6.9: Soft-nav warm cache — when RQ already has destination data, segment
+ * loading.tsx paints OptimisticSoftNavSurface (never null / empty hole).
+ * Cold soft-nav keeps one RoutePageSkeleton.
+ *
+ * Warm = data present (not freshness) so invalidated-but-present cache still
+ * paints cached UI while refetch runs after invalidateMutationImpact.
  */
 
 let warmSoftNavPending = false;
 let warmSoftNavClearTimer: ReturnType<typeof setTimeout> | null = null;
 
-/** Mark the next soft-nav as warm so segment loading.tsx returns null once. */
+/** Mark the next soft-nav as warm so segment loading.tsx paints optimistic UI. */
 export function markWarmSoftNav(): void {
   warmSoftNavPending = true;
   if (warmSoftNavClearTimer) clearTimeout(warmSoftNavClearTimer);
@@ -29,6 +32,11 @@ export function clearWarmSoftNav(): void {
     clearTimeout(warmSoftNavClearTimer);
     warmSoftNavClearTimer = null;
   }
+}
+
+/** Read warm flag without consuming (tests / helpers). */
+export function peekWarmSoftNav(): boolean {
+  return warmSoftNavPending;
 }
 
 /** Consume-once for loading.tsx client gates. */
@@ -68,11 +76,11 @@ export function isDestinationCacheWarm(
     }
 
     if (path === "/browse") {
-      // Default browse only; query-param variants stay cold.
-      if (url.searchParams.get("page") || url.searchParams.get("search")) {
-        return false;
-      }
-      return hasQueryData(queryClient, browseQueryKeys.publicLists(1, ""));
+      // C6.9: warm when the exact page/search key is present (default 1, "").
+      const pageRaw = url.searchParams.get("page");
+      const page = pageRaw ? Math.max(1, Number.parseInt(pageRaw, 10) || 1) : 1;
+      const search = url.searchParams.get("search") || "";
+      return hasQueryData(queryClient, browseQueryKeys.publicLists(page, search));
     }
 
     if (path === "/business-insights") {

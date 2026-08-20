@@ -20,7 +20,6 @@ import { cn } from "@/lib/utils";
 import { PAGE_STACK } from "@/lib/ui-spacing";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { DataSurfaceSlot } from "@/components/ui/DataSurfaceSlot";
-import { useDelayedPending } from "@/hooks/useDelayedPending";
 
 // Type definitions for all data structures
 interface _OverviewData {
@@ -97,16 +96,13 @@ export default function BusinessInsightsPage() {
 
   // CRITICAL: Use React Query with Infinity cache - only refetches when invalidated
   // C6.8: popular/performance/global fetch only when their tab is active
-  const { data: overviewResult, isLoading: overviewLoading } =
-    useBusinessOverviewQuery();
-  const { data: activityResult, isLoading: activityLoading } =
-    useBusinessActivityQuery(30);
-  const { data: popularResult, isLoading: popularLoading } =
-    useBusinessPopularQuery(activeTab === "popular");
-  const { data: performanceResult, isLoading: performanceLoading } =
-    useBusinessPerformanceQuery(activeTab === "performance");
-  const { data: globalResult, isLoading: globalLoading } =
-    useBusinessGlobalQuery(activeTab === "global");
+  const { data: overviewResult } = useBusinessOverviewQuery();
+  const { data: activityResult } = useBusinessActivityQuery(30);
+  const { data: popularResult } = useBusinessPopularQuery(activeTab === "popular");
+  const { data: performanceResult } = useBusinessPerformanceQuery(
+    activeTab === "performance",
+  );
+  const { data: globalResult } = useBusinessGlobalQuery(activeTab === "global");
 
   // Extract data from query results
   const overviewData = overviewResult?.overview || null;
@@ -121,25 +117,7 @@ export default function BusinessInsightsPage() {
   const performanceData = performanceResult?.performance || null;
   const globalData = globalResult?.global || null;
 
-  // C6.6: delayed tab slots — avoid flash when RQ already has data
-  const showOverviewSlot = useDelayedPending(
-    overviewLoading,
-    Boolean(overviewData),
-  );
-  const showActivitySlot = useDelayedPending(
-    activityLoading,
-    Boolean(activityData),
-  );
-  const showPopularSlot = useDelayedPending(
-    popularLoading,
-    Boolean(popularData),
-  );
-  const showPerformanceSlot = useDelayedPending(
-    performanceLoading,
-    Boolean(performanceData),
-  );
-  const showGlobalSlot = useDelayedPending(globalLoading, Boolean(globalData));
-
+  // C6.9: never null on active tab — data or immediate slot (no delayed blank)
   const dataSlot = (label: string) => (
     <DataSurfaceSlot
       label={`Preparing ${label}`}
@@ -193,14 +171,14 @@ export default function BusinessInsightsPage() {
         <TabsContent value="overview" className="space-y-6">
           {overviewData ? (
             <OverviewCards data={overviewData} />
-          ) : showOverviewSlot ? (
+          ) : (
             dataSlot("overview")
-          ) : null}
+          )}
           {activityData ? (
             <ActivityChart initialData={activityData} />
-          ) : showActivitySlot ? (
+          ) : (
             dataSlot("activity")
-          ) : null}
+          )}
         </TabsContent>
 
         {/* Popular Tab */}
@@ -210,27 +188,27 @@ export default function BusinessInsightsPage() {
               popularUrls={popularData.popularUrls}
               activeLists={popularData.activeLists}
             />
-          ) : showPopularSlot ? (
+          ) : (
             dataSlot("popular URLs")
-          ) : null}
+          )}
         </TabsContent>
 
         {/* Performance Tab */}
         <TabsContent value="performance" className="space-y-6">
           {performanceData ? (
             <PerformanceMetrics data={performanceData} />
-          ) : showPerformanceSlot ? (
+          ) : (
             dataSlot("performance metrics")
-          ) : null}
+          )}
         </TabsContent>
 
         {/* Global Tab */}
         <TabsContent value="global" className="space-y-6">
           {globalData ? (
             <GlobalStats data={globalData} />
-          ) : showGlobalSlot ? (
+          ) : (
             dataSlot("global insights")
-          ) : null}
+          )}
         </TabsContent>
       </Tabs>
     </div>

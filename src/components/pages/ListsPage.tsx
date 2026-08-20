@@ -24,7 +24,6 @@ import EditListPageClient from "@/components/pages/EditListPage";
 import { DataSurfaceSlot } from "@/components/ui/DataSurfaceSlot";
 import { Dialog } from "@/components/ui/Dialog";
 import { useListDialogRouteState } from "@/hooks/useListDialogRouteState";
-import { useDelayedPending } from "@/hooks/useDelayedPending";
 import { useWarmSoftNav } from "@/hooks/useWarmSoftNav";
 import { CreateListDialog } from "@/components/lists/CreateListDialog";
 
@@ -52,9 +51,8 @@ export default function ListsPageClient() {
   // Use React Query for fetching lists with automatic refetching
   const { data: listsData, isLoading } = useAllListsQuery();
   const lists = listsData?.lists || [];
-  // C6.6: delayed local slot only — warm RQ cache paints without a flash
-  const isColdLoading = useDelayedPending(isLoading, Boolean(listsData));
-  const waitingForColdData = isLoading && !listsData;
+  // C6.9: never blank — cold without data shows slot immediately (no delayed null)
+  const isColdLoading = isLoading && !listsData;
 
   // Use React Query mutation for deleting lists
   const deleteListMutation = useDeleteList();
@@ -164,7 +162,7 @@ export default function ListsPageClient() {
       <div className={LIST_STACK}>
         {isColdLoading ? (
           <DataSurfaceSlot label="Preparing your lists" description="Loading your latest collections…" />
-        ) : waitingForColdData ? null : lists.length > 0 ? (
+        ) : lists.length > 0 ? (
           lists.map((list) => {
             const createdDate = getDate(list, "created");
             const updatedDate = getDate(list, "updated");

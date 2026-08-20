@@ -6,18 +6,21 @@ import {
   consumeWarmSoftNav,
   isDestinationCacheWarm,
   markWarmSoftNav,
+  peekWarmSoftNav,
   prepareWarmSoftNav,
   resetWarmSoftNavForTests,
 } from "@/lib/soft-nav-cache";
 
-describe("C6.8 soft-nav-cache", () => {
+describe("C6.9 soft-nav-cache", () => {
   beforeEach(() => {
     resetWarmSoftNavForTests();
   });
 
   it("marks and consumes warm soft-nav once", () => {
     markWarmSoftNav();
+    expect(peekWarmSoftNav()).toBe(true);
     expect(consumeWarmSoftNav()).toBe(true);
+    expect(peekWarmSoftNav()).toBe(false);
     expect(consumeWarmSoftNav()).toBe(false);
   });
 
@@ -30,7 +33,12 @@ describe("C6.8 soft-nav-cache", () => {
 
     client.setQueryData(browseQueryKeys.publicLists(1, ""), { lists: [] });
     expect(isDestinationCacheWarm(client, "/browse")).toBe(true);
+    // C6.9: search/page warm only when that exact key exists.
     expect(isDestinationCacheWarm(client, "/browse?search=x")).toBe(false);
+    client.setQueryData(browseQueryKeys.publicLists(1, "x"), { lists: [] });
+    expect(isDestinationCacheWarm(client, "/browse?search=x")).toBe(true);
+    client.setQueryData(browseQueryKeys.publicLists(2, ""), { lists: [] });
+    expect(isDestinationCacheWarm(client, "/browse?page=2")).toBe(true);
 
     client.setQueryData(browseQueryKeys.businessInsights.overview(), { overview: {} });
     client.setQueryData(browseQueryKeys.businessInsights.activity(30), { activity: [] });
