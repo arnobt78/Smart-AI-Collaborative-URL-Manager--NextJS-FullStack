@@ -32,9 +32,14 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   return (
     <ToastContext.Provider value={{ toast: addToast }}>
       {children}
-      <div className="fixed bottom-4 left-1/2 -translate-x-1/2 sm:left-auto sm:translate-x-0 sm:right-4 z-[9999] flex flex-col gap-2 max-w-md w-[calc(100%-2rem)] sm:w-full pointer-events-none">
+      {/* Bottom-right stack — enter via toast-slide-in (globals.css) */}
+      <div
+        className="fixed bottom-4 right-4 z-[9999] flex w-[min(100%-2rem,28rem)] max-w-md flex-col items-end gap-2 pointer-events-none"
+        aria-live="polite"
+        aria-relevant="additions"
+      >
         {toasts.map((toast) => (
-          <div key={toast.id} className="pointer-events-auto">
+          <div key={toast.id} className="pointer-events-auto w-full">
             <ToastComponent toast={toast} onClose={removeToast} />
           </div>
         ))}

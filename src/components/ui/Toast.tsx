@@ -36,8 +36,9 @@ export function ToastComponent({ toast, onClose }: ToastProps) {
 
   return (
     <div
+      role="status"
       className={cn(
-        "group relative w-full max-w-md bg-white/5 backdrop-blur-md border rounded-lg shadow-lg p-4 transition-all duration-300 animate-slide-up",
+        "toast-slide-in group relative w-full max-w-md rounded-lg border bg-white/5 p-4 shadow-lg backdrop-blur-md",
         variantStyles[toast.variant || "default"],
       )}
     >

@@ -18,7 +18,7 @@ Next 15 URL bookmark manager. Demo: https://daily-urlist.vercel.app/
 - BG: static `FloatingBackground` (no `animate-float`) · PostHog `PostHogPageview` Suspense island only
 - Spacing: `lib/ui-spacing.ts` PAGE/SECTION/MARKETING/FORM/LIST/HEADING_STACK/PAGE_HEADER/CARD_PAD; heading stacks have zero added title/subtitle gap only.
 - Layout main: `py-6 sm:py-10` · `html { scrollbar-gutter: stable }`
-- Auth toasts: `lib/auth-toast.ts` + `AuthToastBridge`
+- Auth toasts: `lib/auth-toast.ts` + `AuthToastBridge`; UI stack bottom-right + `toast-slide-in`
 - Logout: menu dismisses immediately; server-confirmed sign-out clears React Query and persisted query metadata before `location.replace("/")`; a non-blocking status appears only after 1.2s.
 - Logs: `lib/dev-log.ts` — SSE/AI/import quiet in prod
 - Deploy: Sentry upload only if `SENTRY_UPLOAD_SOURCEMAPS=1` · `prisma.config.ts` seed
@@ -41,7 +41,7 @@ Next 15 URL bookmark manager. Demo: https://daily-urlist.vercel.app/
 - List access: `lib/list-route-access.ts` verifies a persisted session before resolving list slug/ID; public lists are visible to every authenticated account, while private reads require ownership/collaboration; PATCH content is owner/editor, visibility and deletion owner-only, and vector sync/metadata refresh require edit permission. Unified GET normalization is response-only and shared with server hydration, preserving comment and collaborator cache data.
 - Comment badges: create increments, delete decrements, edit is count-neutral, and failed mutations restore only their own optimistic delta.
 - Manual: TASK-0039 + C6.9 warm revisit paints destination UI after deploy; code OK.
-- Audit: lint/tsc/Jest(94/5)/build pass; RISK-0016 accepted; Gate 2 needs EvalGate.
+- Audit: lint/tsc/Jest(97/5)/build pass; RISK-0016 accepted; Gate 2 needs EvalGate.
 
 ## Versions
 

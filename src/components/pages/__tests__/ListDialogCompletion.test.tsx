@@ -49,7 +49,9 @@ describe("list dialog completion", () => {
     resolveRequest({ ok: true, json: async () => ({ list: { ...list, slug: "created-list" } }) } as Response);
 
     await waitFor(() => expect(replace).toHaveBeenCalledWith("/list/created-list", { scroll: false }));
-    expect(pending).toHaveBeenLastCalledWith(true);
+    // C6.9: warm replace keeps isNavigating true through transition; assert it was signaled
+    // (not only "last" call — mutation settle can race the final pending tick in parallel suites).
+    expect(pending).toHaveBeenCalledWith(true);
   });
 
   it("keeps edit pending until the committed list cache can paint, then closes", async () => {

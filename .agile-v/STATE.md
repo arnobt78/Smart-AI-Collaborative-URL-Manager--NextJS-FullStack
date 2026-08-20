@@ -30,6 +30,7 @@
 - Logout UX: profile menu dismisses immediately; server-confirmed sign-out clears cached client state.
 - C4–C6.8: mutation UX, session auth, SSR hydrate, dialogs without RSC, soft-nav shells, warm soft-nav flag, Insights overview+activity SSR.
 - **C6.9:** Optimistic soft-nav — warm `loading.tsx` paints `OptimisticSoftNavSurface` from RQ (never null); cold one `RoutePageSkeleton`; Lists/Browse/Insights no delayed empty; ListPage paints on unified cache hit; browse page/search warm; slug intent prefetch; create→detail `warmRouterReplace`.
+- Toast: bottom-right stack + `toast-slide-in` (reduced-motion → fade).
 
 ## Human
 
@@ -46,7 +47,7 @@
 - **Stage:** C6.9 complete locally + post-impl audit OK. Browser check after deploy: warm revisit paints destination UI; cold one skeleton; no empty hole.
 - **Gate:** GATE-0025 APPROVED (user implementation request). GATE-0002 pending (`EVAL_RESULTS.md` absent).
 - **Scope:** Optimistic RQ soft-nav surface + empty-flash fixes; hydrate/invalidation unchanged (no densify rewrite).
-- **Audit (2026-08-20):** C6.9 wired end-to-end; SoftNavLoading never null; Lists/Browse/Insights/List gaps closed; densify/JWT SSR still OOS; `invalidateMutationImpact` retained. Jest 97/5 · tsc · lint 0 · build pass.
+- **Audit (2026-08-20):** C6.9 wired end-to-end; SoftNavLoading never null; Lists/Browse/Insights/List gaps closed; densify/JWT SSR still OOS; `invalidateMutationImpact` retained. Toast bottom-right OK. Jest 97/5 · tsc · lint 0 · build pass.
 - **Completion:** REQ-0039 / TASK-0044 complete.
 - **Docs:** CLAUDE.md · `.agile-v/*` synced for agent resume.
 

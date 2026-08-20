@@ -5,9 +5,10 @@
 Live: https://daily-urlist.vercel.app/ · Resume: `.agile-v/STATE.md`
 
 ## Status (C6.9)
-Done: C6.5–C6.8 nav/dialogs · C6.9 optimistic soft-nav (no empty hole).
+Done: C6.5–C6.8 nav/dialogs · C6.9 optimistic soft-nav · toast bottom-right.
 Dialogs: `ui/Dialog.tsx` sole overlay; `useListDialogRouteState` = React + `history.state` (no `_rsc`); never strip `?dialog=` on close. Mutating overlays pending until network + paint.
 Nav: `WarmSoftNavLink` / `warmRouterPush|Replace` + `soft-nav-cache`; warm → `OptimisticSoftNavSurface` from RQ in `loading.tsx`; cold → one `RoutePageSkeleton`. Never `null` empty content. Pages = `requirePageUser` + SSR prefetch/dehydrate. Insights SSR seeds overview+activity only; tabs never blank. List detail paints when unified cache hit (no `!mounted` skeleton). `getCurrentUser` reuses `session.user`.
+Toast: bottom-right stack + `toast-slide-in` (reduced-motion → fade).
 Stable UI/data: Lists/Browse immediate cold slot (no delayed null); Browse cached cards; metadata Node-only public HTTP(S)+DNS/IP; comment badges create+1/delete-1/edit0.
 Auth menu: opaque guest panel; logout menu-first then server-confirmed cache clear.
 Data: RQ Infinity + optimistic store + `invalidateMutationImpact` + SSE. Public lists auth-only. `lib/*-query-keys.ts` owns keys.

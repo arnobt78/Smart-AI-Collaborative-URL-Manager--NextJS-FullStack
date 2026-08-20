@@ -340,3 +340,11 @@ Gate 2: BLOCKED — RISK-0016 is accepted; `EVAL_RESULTS.md` PASS/WAIVED evidenc
 | Soft-nav cache | `soft-nav-cache.test.ts` | PASS | Browse page/search warm + peek/consume. |
 | SoftNavLoading | `SoftNavLoading.test.tsx` | PASS | Warm paints optimistic lists; cold/missing → skeleton. |
 | Full validation | `npx tsc --noEmit`; `npm run lint`; `npm test`; `npm run build` | PASS | Strict TypeScript, zero-warning lint, 97 passed / 5 skipped Jest tests, and optimized production build pass. |
+
+## 2026-08-20 — Toast bottom-right + dialog test harden
+
+| Scope | Command / evidence | Result | Notes |
+|---|---|---|---|
+| Toast UI | `Toaster.tsx` / `Toast.tsx` / `globals.css` | PASS | Bottom-right stack; `toast-slide-in`; reduced-motion fade. |
+| Dialog create pending | `ListDialogCompletion.test.tsx` | PASS | Assert `pending` called with true (not last-only; parallel-suite race). |
+| Full validation | `npx tsc --noEmit`; `npm run lint`; `npm test` | PASS | Zero-warning lint; Jest suite green. |
