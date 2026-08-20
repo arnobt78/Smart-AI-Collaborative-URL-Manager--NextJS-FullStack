@@ -12,6 +12,7 @@ import { usePublicListsQuery } from "@/hooks/useBrowseQueries";
 import { cn } from "@/lib/utils";
 import { CARD_PAD, PAGE_STACK } from "@/lib/ui-spacing";
 import { DataSurfaceSlot } from "@/components/ui/DataSurfaceSlot";
+import { useDelayedPending } from "@/hooks/useDelayedPending";
 
 interface UrlItem {
   id: string;
@@ -55,9 +56,9 @@ export default function BrowsePage() {
   const lists = data?.lists || [];
   const totalPages = data?.pagination?.totalPages || 1;
 
-  // Cached cards stay mounted during invalidation; only an unpopulated cold view
-  // reserves a small local data slot instead of replacing the page surface.
-  const isColdLoading = isLoading && !data;
+  // Cached cards stay mounted during invalidation; delayed local slot for cold only.
+  const isColdLoading = useDelayedPending(isLoading, Boolean(data));
+  const waitingForColdData = isLoading && !data;
 
   // Update URL query params when search or page changes (but only if different from current URL)
   useEffect(() => {
@@ -115,7 +116,7 @@ export default function BrowsePage() {
       {/* Lists Grid */}
       {isColdLoading ? (
         <DataSurfaceSlot label="Preparing public lists" description="Finding shared collections…" className={CARD_PAD} />
-      ) : lists.length === 0 ? (
+      ) : waitingForColdData ? null : lists.length === 0 ? (
         <div
           className={cn(
             "text-center py-8 sm:py-12 bg-white/5 border border-white/10 rounded-xl flex flex-col items-center gap-2",

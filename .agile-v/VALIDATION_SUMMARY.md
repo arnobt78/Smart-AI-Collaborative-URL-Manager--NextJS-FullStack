@@ -310,3 +310,11 @@ Gate 2: BLOCKED — RISK-0016 is accepted; `EVAL_RESULTS.md` PASS/WAIVED evidenc
 | Deep-link close | `useListDialogRouteState.test.tsx` | PASS | Close after `?dialog=edit&list=` leaves search unchanged; history.state owns closed UI. |
 | Full validation | `npx tsc --noEmit`; `npm run lint`; `npm test -- --runInBand` | PASS | Strict TypeScript, zero-warning lint, 87 passed / 5 skipped Jest tests. |
 | Hygiene | `git diff --check` | PASS | No whitespace errors. |
+
+## 2026-08-20 — REQ-0036 C6.6 instant soft-nav shells
+
+| Scope | Command / evidence | Result | Notes |
+|---|---|---|---|
+| Route skeletons | `RoutePageSkeleton.test.tsx` | PASS | Lists/Browse/Insights/detail presets expose header + local slot copy. |
+| Full validation | `npx tsc --noEmit`; `npm run lint`; `npm test -- --runInBand`; `npm run build` | PASS | Strict TypeScript, zero-warning lint, 91 passed / 5 skipped Jest tests, and optimized production build pass. |
+| Auth cache | `auth-session-token.test.ts` | PASS | Jest-safe `requestCache` fallback when `React.cache` is absent. |

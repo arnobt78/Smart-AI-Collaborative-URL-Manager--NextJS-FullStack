@@ -1,5 +1,14 @@
 # CHANGELOG.md
 
+## CR-0013 — C6.6 instant soft-nav shells
+
+- **Cycle:** C6.6
+- **Affected requirement:** REQ-0036
+- **Change:** Segment `loading.tsx` + shared `RoutePageSkeleton`; auth-only protected RSC; delayed cold slots; per-request session/user cache.
+- **Rationale:** Soft-nav stayed on the previous page 2–4s waiting for force-dynamic RSC + Prisma prefetch.
+- **Impact:** App route loading/pages, Lists/Browse/Insights/ListPage clients, `lib/auth.ts`, skeleton tests; mutation invalidation contract unchanged.
+- **Requested by / approval:** User approved the attached C6.6 plan on 2026-08-20 (GATE-0022).
+
 ## CR-0012 — C6.5 instant dialogs and confirmed overlays
 
 - **Cycle:** C6.5

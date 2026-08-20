@@ -23,3 +23,5 @@ Overview: REQ-0010 through REQ-0014. Tests are derived from approved requirement
 | TC-0040 [C6.5] | REQ-0033 | Open/close list create and detail edit | Hydrated transitions keep the same href; deep-link query still initializes; popstate closes | unit |
 | TC-0041 [C6.5] | REQ-0034 | Hydrated Create List button | Shared launcher has no implicit `/lists?dialog=create` href | unit |
 | TC-0042 [C6.5] | REQ-0035 | Pending mutating overlays | Add-URL and shared Dialog/AlertDialog block close while pending | unit |
+| TC-0043 [C6.6] | REQ-0036 | Route skeleton presets | Lists/Browse/Insights/detail shells expose header + local slot copy | unit |
+| TC-0044 [C6.6] | REQ-0036 | Production soft-nav | My Lists / Public URL / Analytics / list detail paint destination shell immediately | manual production |

@@ -51,5 +51,6 @@
 | 2026-08-19 | GATE-0017 | Human-Decision | APPROVED | `C6-HG1-DATA-SURFACE-POLISH-2026-08-19` | User approved REQ-0028 data-surface and analytics polish. |
 | 2026-08-20 | GATE-0021 | Human-Decision | PENDING | `C6.5-HG1-LIST-DETAIL-EDIT-2026-08-20` | REQ-0033/REQ-0034 plan only. Resume synthesis only after a matching APPROVALS.md entry and STATE.md update. |
 | 2026-08-20 | GATE-0021 | Human-Decision | APPROVED | `C6.5-HG1-LIST-DETAIL-EDIT-2026-08-20` | User approved the instant-dialog plan including REQ-0035 pending overlays. |
+| 2026-08-20 | GATE-0022 | Human-Decision | APPROVED | `C6.6-HG1-INSTANT-SOFT-NAV-2026-08-20` | User approved C6.6 instant soft-nav shells (REQ-0036). |
 | 2026-08-18 | GATE-0012 complete: responsive header/footer chrome alignment; zero lint, typecheck, Jest, and production build pass. Prisma CLI audit remains RISK-0016. |
 | 2026-08-18 | User accepted RISK-0016: retain Prisma 6.19.3; no forced downgrade or breaking upgrade. Gate 2 still needs EvalGate and human acceptance. |

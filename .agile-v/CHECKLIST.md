@@ -25,6 +25,7 @@
 
 ## Remaining / human
 
-- [ ] **TASK-0039** production browser verification of create/edit dialogs after C6.5 deploy
+- [ ] **TASK-0039** production browser verification of dialogs + C6.6 soft-nav shells after deploy
+- [x] REQ-0036 / TASK-0041 C6.6 instant soft-nav shells (local validation pass)
 - [ ] REQ-0001 leftover: human decision on `.cursorignore` secret allowlist
 - [ ] GATE-0002 / `EVAL_RESULTS.md` still required for release acceptance

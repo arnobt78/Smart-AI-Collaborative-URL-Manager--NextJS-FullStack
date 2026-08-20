@@ -2,10 +2,21 @@ import { prisma } from "./prisma";
 import bcrypt from "bcryptjs";
 import { cookies } from "next/headers";
 import { createHash, randomBytes } from "crypto";
+import { cache as reactCache } from "react";
 import type {
   User as PrismaUser,
   Session as PrismaSession,
 } from "@prisma/client";
+
+/**
+ * C6.6: Per-request dedupe in RSC. Jest/node without React.cache falls through.
+ */
+function requestCache<T extends (...args: never[]) => unknown>(fn: T): T {
+  if (typeof reactCache === "function") {
+    return reactCache(fn as Parameters<typeof reactCache>[0]) as T;
+  }
+  return fn;
+}
 
 const SESSION_TOKEN_KEY = "session_token";
 
@@ -178,11 +189,12 @@ export async function createSession(userId: string): Promise<string> {
 /**
  * Get the current session from cookies
  *
- * Authentication is intentionally resolved from persistence for every call. A module
- * cache survives across requests in a long-lived server process and could otherwise
- * authorize a just-revoked or expired cookie for a short window.
+ * Authentication is intentionally resolved from persistence for every request.
+ * A module-level cache survives across requests in a long-lived server process
+ * and could otherwise authorize a just-revoked or expired cookie. React.cache
+ * (C6.6) only dedupes within a single RSC/request — not across requests.
  */
-export async function getCurrentSession(): Promise<Session | null> {
+export const getCurrentSession = requestCache(async (): Promise<Session | null> => {
   const cookieStore = await cookies();
   const token = cookieStore.get(SESSION_TOKEN_KEY)?.value;
 
@@ -236,7 +248,7 @@ export async function getCurrentSession(): Promise<Session | null> {
     .catch(() => undefined);
 
   return session;
-}
+});
 
 /**
  * Delete a session
@@ -452,13 +464,14 @@ export async function globalSessionCleanup(): Promise<{
 }
 
 /**
- * Get the current user from session
+ * Get the current user from session.
+ * C6.6: React.cache dedupes persistence lookups within one RSC/request.
  */
-export async function getCurrentUser(): Promise<User | null> {
+export const getCurrentUser = requestCache(async (): Promise<User | null> => {
   const session = await getCurrentSession();
   if (!session) return null;
 
   return prisma.user.findUnique({
     where: { id: session.userId },
   });
-}
+});

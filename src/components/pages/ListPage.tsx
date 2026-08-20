@@ -26,6 +26,7 @@ import {
 import { useQueryClient } from "@tanstack/react-query";
 import { Dialog } from "@/components/ui/Dialog";
 import EditListPageClient from "@/components/pages/EditListPage";
+import { ListDetailRouteSkeleton } from "@/components/ui/RoutePageSkeleton";
 import { HEADING_STACK } from "@/lib/ui-spacing";
 import { invalidateMutationImpact } from "@/utils/queryInvalidation";
 import { useListDialogRouteState } from "@/hooks/useListDialogRouteState";
@@ -511,24 +512,16 @@ export default function ListPageClient() {
   // Matched slug only — never treat another list's placeholder as "have data"
   const hasAnyData = !!(list && list.id && list.slug === listSlug);
 
-  // Full-page skeleton only when no matched-slug data (warm cache → no flash)
+  // C6.6: shell + local slot while cold for this slug (warm matched cache → no flash).
+  // Immediate (not delayed) so we never fall through to "List not found" during mount.
   const shouldShowLoading =
     !mounted ||
     sessionLoading ||
-    (!isAuthenticated && isLoadingQuery && !hasAnyData && listSlug) ||
-    (!hasAnyData && isLoadingQuery && listSlug);
+    (!isAuthenticated && isLoadingQuery && !hasAnyData && Boolean(listSlug)) ||
+    (!hasAnyData && isLoadingQuery && Boolean(listSlug));
+
   if (shouldShowLoading) {
-    return (
-      <div className="min-h-screen w-full">
-        <div
-          aria-busy="true"
-          aria-live="polite"
-          className="rounded-xl border border-white/10 bg-white/5 p-2 text-sm text-white/60 animate-pulse sm:p-4"
-        >
-          Loading list…
-        </div>
-      </div>
-    );
+    return <ListDetailRouteSkeleton />;
   }
 
   if (!list?.id) {

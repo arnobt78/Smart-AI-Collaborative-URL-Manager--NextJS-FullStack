@@ -690,3 +690,24 @@ These describe the current product as verified in code. They are **Accepted as b
 **Affected:** UrlAddForm, UrlEditModal, UrlCard, Comments, PermissionManager, SmartCollections, Dialog tests.
 **Trace:** TASK-0040, DEC-0035, CR-0012, GATE-0021.
 **Status:** Completed and locally validated [C6.5] on 2026-08-20.
+
+---
+
+### REQ-0036 — Instant soft-nav destination shells (approved 2026-08-20)
+
+**Priority:** P1
+**Type:** UX / App Router navigation
+
+**Statement:** Soft-nav from Home/Navbar to Lists, Browse, Insights, and list detail MUST paint the destination page shell immediately. Protected RSC MAY await session auth only; heavy SSR prefetch MUST NOT block the soft-nav critical path. Cold data uses delayed local `DataSurfaceSlot`; warm client RQ paints immediately.
+
+**Acceptance criteria:**
+
+- [x] Segment `loading.tsx` for lists/browse/business-insights/list/[slug] uses shared `RoutePageSkeleton` (children only; layout chrome stays).
+- [x] Protected pages call `requirePageUser` then return empty dehydrate + client page without awaiting list/insights/unified prefetch.
+- [x] Lists/Browse/Insights use `useDelayedPending` for cold slots; List detail uses `ListDetailRouteSkeleton` when cold for the matched slug.
+- [x] Per-request `React.cache` dedupes session/user lookup; Jest-safe fallback when `cache` is absent.
+- [x] tsc, lint 0, Jest, and production build pass.
+
+**Affected:** `RoutePageSkeleton`, app loading/page files, Lists/Browse/Insights/ListPage clients, `lib/auth.ts`.
+**Trace:** TASK-0041, DEC-0037, CR-0013, GATE-0022.
+**Status:** Completed and locally validated [C6.6] on 2026-08-20.

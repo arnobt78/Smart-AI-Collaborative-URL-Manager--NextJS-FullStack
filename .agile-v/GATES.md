@@ -19,7 +19,7 @@ Implementation is locally verified; C2 Gate 2 remains pending release evidence a
 Stage 1 Requirements → Stage 2 Validation → [Human Gate 1] → Stage 3 Synthesis → Stage 4 Verification → [Human Gate 2] → Stage 5 Acceptance
 ```
 
-Current: **C6.5 Stage 4 complete locally** for REQ-0033/0034/0035. GATE-0021 approved. GATE-0002 remains pending (`EVAL_RESULTS.md` absent).
+Current: **C6.6 Stage 4 complete locally** for REQ-0036. GATE-0022 approved. GATE-0002 remains pending (`EVAL_RESULTS.md` absent).
 
 Reconciliation note (2026-08-18): commits and prior validation records document C1 implementation activity, but `APPROVALS.md` has no matching approved record for the original GATE-0001 token. This is retained as historical evidence, not retroactively approved. It does not authorize further implementation.
 
@@ -171,6 +171,21 @@ Implementation is complete in production (`c675cf6` / `dpl_DB8BYHnrXN5LuwL5Yo5FN
 | Scope | History-state dialog open/close without Next search-param RSC, CreateNewListButton local onClick only, and mutating overlays pending until network plus paint. No API, schema, session, Redis, SSE, or mutation-contract change. |
 
 Implementation is locally verified. Browser acceptance of create/edit open-close remains TASK-0039. Gate 2 remains required before any release decision.
+
+---
+
+## GATE-0022 — Human Gate 1 (C6.6 instant soft-nav shells)
+
+| Field | Value |
+|-------|-------|
+| Type | Human-Decision |
+| Status | **APPROVED 2026-08-20** |
+| Checkpoint | `C6.6-HG1-INSTANT-SOFT-NAV-2026-08-20` in `CHECKPOINTS.md` |
+| Evidence | REQ-0036; TASK-0041; DEC-0037; CR-0013 |
+| Required human action | Completed — user explicitly requested implementation of the attached instant soft-nav plan. |
+| Scope | Segment loading shells + auth-only protected RSC + delayed cold slots + per-request session cache. No densify/JWT/Next16/Prisma7. Mutation impact contract unchanged. |
+
+Implementation is locally verified. Production soft-nav browser check remains with TASK-0039. Gate 2 remains required before any release decision.
 
 ---
 

@@ -30,17 +30,18 @@ Next 15 URL bookmark manager. Demo: https://daily-urlist.vercel.app/
 - UI controls: `lib/ui/control-styles.ts` provides shared 48px field/trigger geometry; Auth uses CSS reveal with reduced-motion support
 - Home motion: `ui/ScrollReveal.tsx` provides replayable CSS/observer reveal plus subtle parallax; shared controls use `h-10 min-h-10` and text-sm placeholders
 - Home wave: hero copy lines and CTAs are individual reveal units, staggered in order rather than animated as a grouped row
-- Data sync: request-scoped server QueryClients hydrate Lists/detail/Browse/Insights/API Status into the unified React Query cache; account pages, Browse, and shared detail verify persisted sessions before paint. Snapshot-first optimistic `currentList` patches completed URL mutation summaries into all-list cache before typed invalidation + SSE reconciliation.
-- Compact data UI: `DataSurfaceSlot` reserves a friendly local cold-data area; Activity Feed is a default-collapsed accessible disclosure; Insights has aligned icon-label tabs, compact KPIs, and activity only in Overview.
+- Data sync: protected pages auth-gate then empty dehydrate (C6.6); client RQ + Infinity staleTime fills Lists/detail/Browse/Insights; warm soft-nav paints from cache. Snapshot-first optimistic `currentList` + typed invalidation + SSE.
+- Soft-nav: segment `loading.tsx` uses `RoutePageSkeleton` (PageHeader/lists chrome + local `DataSurfaceSlot`); Navbar/Footer stay mounted.
+- Compact data UI: `DataSurfaceSlot` + `useDelayedPending`; Activity Feed default-collapsed; Insights aligned tabs.
 - Mutation UX: visibility, list, URL, collaborator, comment, collection, archive, import, metadata, and health actions retain optimistic cache/store data with one typed impact; collection refresh uses one response; dialogs keep only local submit guards; external visits use safe semantic new-tab links.
-- C3/C5 boundaries: `lib/api-validation.ts` owns strict Zod payload/identifier parsing; opaque session cookies persist as SHA-256 digests with legacy rotation and persistence-backed revocation; `invalidateMutationImpact` maps active mutation cache families once, including delete-list.
+- C3/C5 boundaries: `lib/api-validation.ts` owns strict Zod payload/identifier parsing; opaque session cookies persist as SHA-256 digests with legacy rotation and persistence-backed revocation; `invalidateMutationImpact` maps active mutation cache families once, including delete-list. Per-request `React.cache` on session/user lookup.
 - Dialogs: `ui/Dialog.tsx` sole overlay; compact headers. Create/edit = `history.state` on same href (no `_rsc`); never strip `?dialog=` on close; deep-link mount-only. Mutating overlays pending until network + paint.
 - Stable data UI: Browse keeps cached cards visible on background refetch; `ui/PageHeader.tsx` provides the shared glass icon/title/subtitle row.
 - Stable data safety: Browse/Lists/Insights/API Status/detail keep static chrome with delayed local cold placeholders; unified list batches comment counts; bulk import reconciles without reload; metadata documents/images/favicons accept public HTTP(S) destinations only after DNS/IP and redirect checks.
 - List access: `lib/list-route-access.ts` verifies a persisted session before resolving list slug/ID; public lists are visible to every authenticated account, while private reads require ownership/collaboration; PATCH content is owner/editor, visibility and deletion owner-only, and vector sync/metadata refresh require edit permission. Unified GET normalization is response-only and shared with server hydration, preserving comment and collaborator cache data.
 - Comment badges: create increments, delete decrements, edit is count-neutral, and failed mutations restore only their own optimistic delta.
-- Manual: REQ-0017/0018 + C6.5 dialogs after deploy; code OK.
-- Audit: lint/tsc/Jest(87/5)/build pass; RISK-0016 accepted; Gate 2 needs EvalGate.
+- Manual: TASK-0039 dialogs + C6.6 soft-nav after deploy; code OK.
+- Audit: lint/tsc/Jest(91/5)/build pass; RISK-0016 accepted; Gate 2 needs EvalGate.
 
 ## Versions
 

@@ -229,3 +229,12 @@ RSC shells · densify/Zod/SHA/Next16
 4. Add focused regressions; run typecheck, lint, Jest, and production build.
 
 **Dependencies:** REQ-0033, REQ-0034, REQ-0035; GATE-0021 approved by user implementation request.
+
+### TASK-0041 — C6.6 instant soft-nav shells — DONE
+
+1. Add shared `RoutePageSkeleton` presets and segment `loading.tsx` for lists/browse/business-insights/list/[slug].
+2. Make protected page RSC auth-only (empty dehydrate); keep server-data loaders for other callers.
+3. Adopt delayed cold slots on Lists/Browse/Insights; List detail uses shell + local slot.
+4. Per-request `React.cache` for session/user; validate tsc/lint/Jest/build; sync agent docs.
+
+**Dependencies:** REQ-0036; GATE-0022 approved by user implementation request.

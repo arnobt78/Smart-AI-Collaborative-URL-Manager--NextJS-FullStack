@@ -1,6 +1,6 @@
 # STATE.md
 
-**C6.5** | 2026-08-20
+**C6.6** | 2026-08-20
 
 ## Done
 
@@ -45,9 +45,9 @@
 
 ## Current checkpoint
 
-- **Stage:** C6.5 Waves 1–4 complete locally (REQ-0033/0034/0035 + deep-link close residual DEC-0036). Awaiting commit/deploy.
-- **Gate:** GATE-0021 APPROVED. GATE-0002 pending (`EVAL_RESULTS.md` absent).
-- **Scope:** Dialog open/close = `history.state` on same href (never strip `?dialog=`). Mutating overlays pending until network + paint. Cache via `invalidateMutationImpact` unchanged.
+- **Stage:** C6.6 complete; committing/deploying. Browser soft-nav check after Vercel READY.
+- **Gate:** GATE-0022 APPROVED. GATE-0002 pending (`EVAL_RESULTS.md` absent).
+- **Scope:** Segment `loading.tsx` + auth-only protected RSC; client RQ fills data; `React.cache` session/user; `invalidateMutationImpact` unchanged.
 - **Reconciliation (2026-08-18):** the user-reconciled local baseline is `65d5806`; prior state incorrectly referenced `a69f0a7`. The original GATE-0001 remains historically unapproved/superseded; GATE-0011/0012/0013 supplied the applicable implementation authority.
 - **Audit findings resolved:** shared control geometry, Smart Collections disclosure, URL toolbar/add-form semantics, global browser casts, and 235 lint warnings are remediated. Existing mutation/invalidation architecture was retained and bulk import no longer hard-reloads.
 - **Implementation:** REQ-0010 through REQ-0013 are implemented with shared control styles, Auth entrance motion, accessible Smart Collections disclosure, and URL toolbar/Add URL refinements. The URL workspace, bulk-import flow, real-time/query synchronization, drag-order cache, metadata helper, and auth helper received type-safe lint remediation without changing their behavior. Typecheck, Jest, and production build pass.
@@ -80,10 +80,11 @@
 - **C6.4 completion (2026-08-20):** REQ-0032 / TASK-0038 reuses `CreateListDialog` for hydrated Home and Lists CTAs. Home now opens locally with native history and no RSC navigation; nullable Next search params safely fall back to the browser URL. Focused regressions, strict TypeScript, lint, Jest (83 pass/5 skip), production build, and hygiene scans pass.
 - **C6.4 production (2026-08-20):** Commit `c675cf6` is on `main` and Vercel production `dpl_DB8BYHnrXN5LuwL5Yo5FNdtwFvXd` is READY. Browser verification of the Home Create List launcher is still pending (TASK-0039).
 - **C6.5 completion (2026-08-20):** REQ-0033/0034/0035 / TASK-0040 + Wave 4: no search-param RSC; never strip `?dialog=` on close; local Create List onClick; mutating overlays pending until network+paint. Jest 87/5 skip · tsc · lint 0.
+- **C6.6 completion (2026-08-20):** REQ-0036 / TASK-0041: segment `loading.tsx` + `RoutePageSkeleton`; auth-only Lists/Browse/Insights/detail RSC; delayed cold slots; per-request session cache. Jest 91/5 · tsc · lint 0 · build pass.
 - **Docs:** CLAUDE.md · PROJECT_WALKTHROUGH · `.agile-v/*` synced for agent resume.
 
 ## Next
 
 ```text
-Deploy C6.5, then production Network check: create/edit open+close (incl. deep-link) = no lists?_rsc; mutating overlays stay pending until success/error (TASK-0039).
+After Vercel READY: soft-nav My Lists / Public URL / Analytics / list detail → destination shell immediate; warm RQ paints; cold delayed slot. Also TASK-0039 dialog open/close.
 ```

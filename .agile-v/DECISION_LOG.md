@@ -450,6 +450,19 @@ Append-only. Newest entries at bottom.
 | Linked REQs | REQ-0033 |
 | Status | Implemented and locally validated 2026-08-20. |
 
+---
+
+## DEC-0037 — Soft-nav shells over blocking SSR prefetch
+
+| Field | Value |
+|---|---|
+| Timestamp | 2026-08-20 |
+| Agent | Agile V C6.6 |
+| Decision | Standardize segment `loading.tsx` (page-children skeleton only). Protected pages auth-gate then return empty dehydrate; client RQ fills data. Per-request React.cache for session/user. |
+| Rationale | Soft-nav waited 2–4s on previous page while force-dynamic RSC awaited Prisma prefetch; skeletons never ran until after transition. |
+| Linked REQs | REQ-0036 |
+| Status | Implemented and locally validated 2026-08-20. |
+
 | Field | Value |
 |---|---|
 | Timestamp | 2026-08-19 |
