@@ -282,3 +282,4 @@ Gate 2: BLOCKED — RISK-0016 is accepted; `EVAL_RESULTS.md` PASS/WAIVED evidenc
 | Duplicate overlay audit | source scan | PASS | `InputDialog.tsx` was unreferenced and removed; active overlays are centralized in `Dialog`/`AlertDialog`. |
 | Full validation | `npx tsc --noEmit`; `npm run lint`; `npm test -- --runInBand`; `npm run build` | PASS | Strict TypeScript, zero-warning lint, 83 passed / 5 skipped Jest tests, and optimized production build pass. |
 | Hygiene | direct-console/secret scans; `git diff --check` | PASS | Diagnostics remain limited to `dev-log`; no tracked secrets or whitespace errors. |
+| Production deployment | Vercel `dpl_86AUZkR9imabm8AQsfvbB7sPKrS7` | PASS | Commit `5ea0448` deployed Ready to `daily-urlist.vercel.app` on 2026-08-20. |
