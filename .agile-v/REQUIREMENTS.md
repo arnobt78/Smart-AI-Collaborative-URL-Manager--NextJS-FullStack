@@ -597,3 +597,19 @@ These describe the current product as verified in code. They are **Accepted as b
 
 **Trace:** TASK-0036, DEC-0031, ART-0030.1, C6.2 checkpoint.
 **Status:** Completed and locally validated [C6.2] on 2026-08-20.
+
+---
+
+### REQ-0031 — C6.3 unified dialog visual contract (approved 2026-08-20)
+
+**Priority:** P2
+**Type:** UX / component consistency
+
+**Acceptance criteria:**
+
+- [x] Fixed and scrollable shared-dialog headers use the Create List compact `pb-2 sm:pb-4` rhythm with no header divider, `mb-6`, or `pb-6` treatment.
+- [x] Active confirmation and feature dialogs inherit the contract through `Dialog` or `AlertDialog` without altering their behavior.
+- [x] The verified-unused standalone `InputDialog` overlay is removed; no active duplicate dialog implementation remains.
+
+**Trace:** TASK-0037, DEC-0032, ART-0031.1, C6.3 checkpoint.
+**Status:** Completed and locally validated [C6.3] on 2026-08-20.

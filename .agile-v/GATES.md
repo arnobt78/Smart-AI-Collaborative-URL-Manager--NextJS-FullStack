@@ -133,6 +133,18 @@ Implementation is authorized. Gate 2 remains required before any release decisio
 
 ---
 
+## GATE-0019 — Human Gate 1 (C6.3 unified dialog visual contract)
+
+| Field | Value |
+|-------|-------|
+| Type | Human-Decision |
+| Status | **APPROVED 2026-08-20** |
+| Evidence | REQ-0031; TASK-0037; DEC-0032; ART-0031.1 |
+| Required human action | Completed — user explicitly approved the shared-dialog visual contract. |
+| Scope | Shared fixed/scroll header presentation and verified-unused overlay removal only. |
+
+---
+
 ## GATE-0002 — Human Gate 2 (release / acceptance)
 
 | Field | Value |

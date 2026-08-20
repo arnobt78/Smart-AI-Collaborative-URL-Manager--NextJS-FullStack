@@ -1,6 +1,6 @@
 # STATE.md
 
-**C6.2** | 2026-08-20
+**C6.3** | 2026-08-20
 
 ## Done
 
@@ -45,9 +45,9 @@
 
 ## Current checkpoint
 
-- **Stage:** Stage 4 implementation and local verification complete for REQ-0030 (C6.2); final validation evidence is recorded in `VALIDATION_SUMMARY.md`.
+- **Stage:** Stage 4 implementation and local verification complete for REQ-0031 (C6.3); final validation evidence is recorded in `VALIDATION_SUMMARY.md`.
 - **Gate:** **GATE-0014 — APPROVED 2026-08-19** (`C1-HG1-SECURITY-CACHE-2026-08-19`). GATE-0002 remains pending and cannot be accepted while this critical authorization remediation is open; `EVAL_RESULTS.md` does not exist.
-- **Scope:** REQ-0030 removes RSC waits from Lists create/edit dialog interactions and keeps create/edit/delete confirmations open through server completion and the committed UI paint. Existing cookie sessions, Prisma 6, Redis, SSE, query impact mapping, and direct dialog links remain the baseline.
+- **Scope:** REQ-0031 unifies active dialog presentation through the shared divider-free Create List header contract. Existing cookie sessions, Prisma 6, Redis, SSE, query impact mapping, and dialog behavior remain the baseline.
 - **Reconciliation (2026-08-18):** the user-reconciled local baseline is `65d5806`; prior state incorrectly referenced `a69f0a7`. The original GATE-0001 remains historically unapproved/superseded; GATE-0011/0012/0013 supplied the applicable implementation authority.
 - **Audit findings resolved:** shared control geometry, Smart Collections disclosure, URL toolbar/add-form semantics, global browser casts, and 235 lint warnings are remediated. Existing mutation/invalidation architecture was retained and bulk import no longer hard-reloads.
 - **Implementation:** REQ-0010 through REQ-0013 are implemented with shared control styles, Auth entrance motion, accessible Smart Collections disclosure, and URL toolbar/Add URL refinements. The URL workspace, bulk-import flow, real-time/query synchronization, drag-order cache, metadata helper, and auth helper received type-safe lint remediation without changing their behavior. Typecheck, Jest, and production build pass.
@@ -75,9 +75,10 @@
 - **C6 completion (2026-08-19):** REQ-0028 / TASK-0034 complete. Protected data pages now render dynamically with persisted-session guards; requested data surfaces hydrate before client paint; list summaries receive completed URL mutation timestamps; Activity Feed is collapsed by default; Insights uses compact KPI cards and no duplicate activity tab. Jest (70 pass/5 skip), strict TypeScript, lint, production build, and hygiene scans pass.
 - **C6.1 completion (2026-08-19):** REQ-0029 / TASK-0035 supersedes the anonymous public-list viewer policy. Browse, shared detail, list discovery, collaborator reads, and view tracking require a persisted session; legacy position normalization is read-only; hydrated unified payloads retain URL comment counts and collaborator cache data. Jest (76 pass/5 skip), strict TypeScript, lint, production build, and hygiene scans pass.
 - **C6.2 completion (2026-08-20):** REQ-0030 / TASK-0036 localizes Lists create/edit dialog history, keeps deep links and browser back support, and keeps create/edit/delete dialogs pending until confirmed server completion plus committed paint. Jest (82 pass/5 skip), strict TypeScript, lint, production build, hygiene scans, and Vercel production deployment `dpl_DtLWyXz3HvVPi3gjyKS34e5qndPL` for commit `69530ad` pass.
+- **C6.3 completion (2026-08-20):** REQ-0031 / TASK-0037 makes fixed and scrollable dialog headers compact and divider-free through one shared component; unused `InputDialog` was removed. Jest (83 pass/5 skip), strict TypeScript, lint, production build, and hygiene scans pass.
 
 ## Next
 
 ```text
-Collect live browser verification from the user for Create/Edit instant open/close and confirmed mutation pending behavior.
+Commit and deploy the validated shared-dialog visual contract, then collect user browser verification.
 ```

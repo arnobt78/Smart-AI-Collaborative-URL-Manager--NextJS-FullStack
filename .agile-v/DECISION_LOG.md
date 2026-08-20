@@ -387,6 +387,19 @@ Append-only. Newest entries at bottom.
 
 ---
 
+## DEC-0032 — Unify fixed and scrollable dialog header rhythm
+
+| Field | Value |
+|---|---|
+| Timestamp | 2026-08-20 |
+| Agent | Agile V C6.3 implementation |
+| Decision | Use the shared `Dialog` component as the sole active overlay primitive and give both header modes the compact Create List spacing with no header divider. |
+| Rationale | The feature dialogs already share behavior; their visible inconsistency came from the fixed-mode header classes. One component-level correction prevents future drift. |
+| Linked REQs | REQ-0031 |
+| Status | Implemented and locally validated 2026-08-20. |
+
+---
+
 ## DEC-0031 — Hydrate dynamic protected data surfaces and reserve cold slots
 
 | Field | Value |

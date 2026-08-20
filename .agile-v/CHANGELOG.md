@@ -1,5 +1,14 @@
 # CHANGELOG.md
 
+## CR-0010 — C6.3 unified dialog visual contract
+
+- **Cycle:** C6.3
+- **Affected requirement:** REQ-0031 (new)
+- **Change:** Apply the Create List compact divider-free header to all shared dialogs and remove the unreferenced standalone input overlay.
+- **Rationale:** Fixed-header dialogs retained older border/padding classes despite already using the shared primitive.
+- **Impact:** Shared dialog presentation, focused component tests, and C6.3 traceability only; no data, API, auth, cache, or mutation changes.
+- **Requested by / approval:** User explicitly approved implementation on 2026-08-20.
+
 ## CR-0009 — C6.2 instant list dialogs & confirmed mutation completion
 
 - **Cycle:** C6.2

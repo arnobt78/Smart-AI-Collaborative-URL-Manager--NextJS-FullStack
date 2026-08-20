@@ -273,3 +273,12 @@ Gate 2: BLOCKED — RISK-0016 is accepted; `EVAL_RESULTS.md` PASS/WAIVED evidenc
 | Full validation | `npx tsc --noEmit`; `npm run lint`; `npm test -- --runInBand`; `npm run build` | PASS | Strict TypeScript, zero-warning lint, 82 passed / 5 skipped Jest tests, and optimized production build pass. |
 | Hygiene | direct-console/parser/secret scans; `git diff --check` | PASS | Diagnostics remain limited to `dev-log`, mutation routes retain shared parsing, no tracked secrets or whitespace errors. |
 | Production deployment | Vercel `dpl_DtLWyXz3HvVPi3gjyKS34e5qndPL` | PASS | Commit `69530ad` deployed Ready to `daily-urlist.vercel.app` on 2026-08-20. |
+
+## 2026-08-20 — REQ-0031 C6.3 unified dialog visual contract
+
+| Scope | Command / evidence | Result | Notes |
+|---|---|---|---|
+| Shared dialog contract | `Dialog.test.tsx`; `AlertDialog.test.tsx` | PASS | Fixed and scroll headers use compact divider-free spacing; close and parent-owned pending behavior remain intact. |
+| Duplicate overlay audit | source scan | PASS | `InputDialog.tsx` was unreferenced and removed; active overlays are centralized in `Dialog`/`AlertDialog`. |
+| Full validation | `npx tsc --noEmit`; `npm run lint`; `npm test -- --runInBand`; `npm run build` | PASS | Strict TypeScript, zero-warning lint, 83 passed / 5 skipped Jest tests, and optimized production build pass. |
+| Hygiene | direct-console/secret scans; `git diff --check` | PASS | Diagnostics remain limited to `dev-log`; no tracked secrets or whitespace errors. |

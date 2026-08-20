@@ -196,3 +196,9 @@ RSC shells · densify/Zod/SHA/Next16
 1. Replace Lists dialog router query navigation with a reusable local/native-history state hook while retaining direct-link parsing.
 2. Make create/edit/delete confirmation lifecycle parent-controlled through network result and one committed paint.
 3. Add focused URL-history and pending-dialog tests; run the complete validation/hygiene suite, update records, commit, and deploy.
+
+### TASK-0037 — C6.3 unified dialog visual contract — DONE
+
+1. Apply the compact divider-free Create List header rhythm to every shared-dialog header mode.
+2. Remove the verified-unused standalone input-overlay implementation without touching active dialog behavior.
+3. Add focused component-contract coverage, validate, document, commit, and deploy.
