@@ -417,13 +417,17 @@ export function Comments({ listId, urlId, currentUserId }: CommentsProps) {
     setDeleteDialogOpen(true);
   };
 
-  // Confirm delete
+  // Confirm delete and keep the overlay pending until the mutation settles.
   const handleDeleteConfirm = () => {
-    if (commentToDelete) {
-      deleteMutation.mutate(commentToDelete);
-      setDeleteDialogOpen(false);
-      setCommentToDelete(null);
-    }
+    if (!commentToDelete) return;
+    deleteMutation.mutate(commentToDelete, {
+      onSuccess: () => {
+        requestAnimationFrame(() => {
+          setDeleteDialogOpen(false);
+          setCommentToDelete(null);
+        });
+      },
+    });
   };
 
   // Format date
@@ -559,13 +563,18 @@ export function Comments({ listId, urlId, currentUserId }: CommentsProps) {
       {/* Delete Confirmation Dialog */}
       <AlertDialog
         open={deleteDialogOpen}
-        onOpenChange={setDeleteDialogOpen}
+        onOpenChange={(open) => {
+          if (!deleteMutation.isPending) setDeleteDialogOpen(open);
+        }}
         title="Delete Comment"
         description="Are you sure you want to delete this comment? This action cannot be undone."
         confirmText="Delete"
         cancelText="Cancel"
         onConfirm={handleDeleteConfirm}
         variant="destructive"
+        pending={deleteMutation.isPending}
+        pendingText="Deleting…"
+        closeOnConfirm={false}
       />
     </div>
   );

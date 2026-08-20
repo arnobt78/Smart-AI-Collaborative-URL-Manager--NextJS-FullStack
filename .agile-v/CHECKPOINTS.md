@@ -32,6 +32,9 @@
 | 2026-08-20 | C6.3 / REQ-0031 complete locally: shared fixed/scroll headers use compact divider-free spacing; unused InputDialog removed. Commit/deploy next. |
 | 2026-08-20 | C6.4 / REQ-0032 planning: production trace confirms Home Create List uses a legacy RSC link; proposed local shared launcher awaits GATE-0020 approval. `resume_token=C6.4-HG1-INSTANT-CREATE-LAUNCHERS-2026-08-20` |
 | 2026-08-20 | C6.4 / REQ-0032 approved: implement the shared Home/List local Create List launcher under `C6.4-HG1-INSTANT-CREATE-LAUNCHERS-2026-08-20`. |
+| 2026-08-20 | C6.4 / REQ-0032 complete: commit `c675cf6` deployed as Vercel production `dpl_DB8BYHnrXN5LuwL5Yo5FNdtwFvXd` READY. Browser verification is TASK-0039. Proposed C6.5 awaits GATE-0021. `resume_token=C6.5-HG1-LIST-DETAIL-EDIT-2026-08-20` |
+| 2026-08-20 | C6.5 / REQ-0033–0035 complete locally: dialog history uses `history.state` without search-param RSC; mutating overlays stay pending until network plus paint. Commit/deploy next. |
+| 2026-08-20 | C6.5 Wave 4: deep-link close keeps `?dialog=` href; closed UI is history.state only (DEC-0036). |
 
 ## Durable Human Gate checkpoints
 
@@ -46,5 +49,7 @@
 | 2026-08-19 | GATE-0014 | Human-Decision | APPROVED | `C1-HG1-SECURITY-CACHE-2026-08-19` | User approved REQ-0022/REQ-0023. Stage 3 synthesis is authorized. |
 | 2026-08-19 | GATE-0015 | Human-Decision | APPROVED | `C2-HG1-HOME-HERO-2026-08-19` | User approved REQ-0024 homepage hero mount stagger. |
 | 2026-08-19 | GATE-0017 | Human-Decision | APPROVED | `C6-HG1-DATA-SURFACE-POLISH-2026-08-19` | User approved REQ-0028 data-surface and analytics polish. |
+| 2026-08-20 | GATE-0021 | Human-Decision | PENDING | `C6.5-HG1-LIST-DETAIL-EDIT-2026-08-20` | REQ-0033/REQ-0034 plan only. Resume synthesis only after a matching APPROVALS.md entry and STATE.md update. |
+| 2026-08-20 | GATE-0021 | Human-Decision | APPROVED | `C6.5-HG1-LIST-DETAIL-EDIT-2026-08-20` | User approved the instant-dialog plan including REQ-0035 pending overlays. |
 | 2026-08-18 | GATE-0012 complete: responsive header/footer chrome alignment; zero lint, typecheck, Jest, and production build pass. Prisma CLI audit remains RISK-0016. |
 | 2026-08-18 | User accepted RISK-0016: retain Prisma 6.19.3; no forced downgrade or breaking upgrade. Gate 2 still needs EvalGate and human acceptance. |

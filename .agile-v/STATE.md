@@ -1,6 +1,6 @@
 # STATE.md
 
-**C6.4** | 2026-08-20
+**C6.5** | 2026-08-20
 
 ## Done
 
@@ -45,9 +45,9 @@
 
 ## Current checkpoint
 
-- **Stage:** Stage 4 implementation and local verification complete for REQ-0031 (C6.3); final validation evidence is recorded in `VALIDATION_SUMMARY.md`.
-- **Gate:** **GATE-0014 — APPROVED 2026-08-19** (`C1-HG1-SECURITY-CACHE-2026-08-19`). GATE-0002 remains pending and cannot be accepted while this critical authorization remediation is open; `EVAL_RESULTS.md` does not exist.
-- **Scope:** REQ-0031 unifies active dialog presentation through the shared divider-free Create List header contract. Existing cookie sessions, Prisma 6, Redis, SSE, query impact mapping, and dialog behavior remain the baseline.
+- **Stage:** C6.5 Waves 1–4 complete locally (REQ-0033/0034/0035 + deep-link close residual DEC-0036). Awaiting commit/deploy.
+- **Gate:** GATE-0021 APPROVED. GATE-0002 pending (`EVAL_RESULTS.md` absent).
+- **Scope:** Dialog open/close = `history.state` on same href (never strip `?dialog=`). Mutating overlays pending until network + paint. Cache via `invalidateMutationImpact` unchanged.
 - **Reconciliation (2026-08-18):** the user-reconciled local baseline is `65d5806`; prior state incorrectly referenced `a69f0a7`. The original GATE-0001 remains historically unapproved/superseded; GATE-0011/0012/0013 supplied the applicable implementation authority.
 - **Audit findings resolved:** shared control geometry, Smart Collections disclosure, URL toolbar/add-form semantics, global browser casts, and 235 lint warnings are remediated. Existing mutation/invalidation architecture was retained and bulk import no longer hard-reloads.
 - **Implementation:** REQ-0010 through REQ-0013 are implemented with shared control styles, Auth entrance motion, accessible Smart Collections disclosure, and URL toolbar/Add URL refinements. The URL workspace, bulk-import flow, real-time/query synchronization, drag-order cache, metadata helper, and auth helper received type-safe lint remediation without changing their behavior. Typecheck, Jest, and production build pass.
@@ -65,7 +65,7 @@
 - **Evidence:** planning traces in `REQUIREMENTS.md` (REQ-0010 to REQ-0014), `TASKS.md` (TASK-0011 to TASK-0015), `DECISION_LOG.md` (DEC-0012/0013), `RISKS.md` (RISK-0011 to RISK-0014), and `GATES.md`.
 - **Audit (2026-08-19):** verified critical missing authorization on `PATCH`/`DELETE /api/lists/[id]`; high-risk missing access checks on list metadata and vector-sync routes; duplicate URL mutation paths with incomplete delete rollback; Browse Suspense fallback and Lists/Insights/detail cold-state behavior can remount broad placeholders. These are tracked in REQ-0022/REQ-0023 and RISK-0017/RISK-0018.
 - **Completion (2026-08-19):** REQ-0022/REQ-0023 are implemented and locally verified. Canonical route access protects list mutations, metadata, and vector sync; URL mutations use one snapshot/commit/rollback path; query keys are hook-independent; requested data surfaces retain their static shells and cached data.
-- **Manual acceptance:** REQ-0017 control/Home-motion and REQ-0018 metadata/action-badge flows await user browser testing; implementation and automated validation are complete.
+- **Manual acceptance:** REQ-0017, REQ-0018, and REQ-0032 await user browser testing; implementation and automated validation are complete.
 - **Production test handoff (2026-08-19):** User will test the deployed Vercel application later; no browser action or defect report has been received yet. Resume from TASK-0025 when feedback arrives.
 - **C2 completion (2026-08-19):** REQ-0024 / TASK-0026 complete under GATE-0015. The homepage hero now reuses login's mount stagger; focused regression coverage, strict TypeScript, zero-warning lint, full Jest, and production build pass. C1/C2 Gate 2 release acceptance remains pending.
 - **C3 completion (2026-08-19):** REQ-0025 / TASK-0027 through TASK-0030 complete under GATE-0016. Shared Zod parsing covers mutation bodies and identifier-only boundaries; signed jobs preserve the raw body for QStash verification; new session persistence is SHA-256 digest-only with safe legacy-rotation conflict recovery; active mutation paths use the typed impact gateway. Strict TypeScript, zero-warning lint, Jest (52 pass/5 skip), production build, direct-console, parser, secret, and diff scans pass.
@@ -78,9 +78,12 @@
 - **C6.3 completion (2026-08-20):** REQ-0031 / TASK-0037 makes fixed and scrollable dialog headers compact and divider-free through one shared component; unused `InputDialog` was removed. Jest (83 pass/5 skip), strict TypeScript, lint, production build, hygiene scans, and Vercel production deployment `dpl_86AUZkR9imabm8AQsfvbB7sPKrS7` for commit `5ea0448` pass.
 - **C6.4 finding (2026-08-20):** Production tracing showed authenticated Home Create List CTAs used `/lists?dialog=create` link navigation, so they waited for a 2.98s RSC payload before a static form rendered. REQ-0032 replaced those launchers with page-local state and one shared create-dialog lifecycle.
 - **C6.4 completion (2026-08-20):** REQ-0032 / TASK-0038 reuses `CreateListDialog` for hydrated Home and Lists CTAs. Home now opens locally with native history and no RSC navigation; nullable Next search params safely fall back to the browser URL. Focused regressions, strict TypeScript, lint, Jest (83 pass/5 skip), production build, and hygiene scans pass.
+- **C6.4 production (2026-08-20):** Commit `c675cf6` is on `main` and Vercel production `dpl_DB8BYHnrXN5LuwL5Yo5FNdtwFvXd` is READY. Browser verification of the Home Create List launcher is still pending (TASK-0039).
+- **C6.5 completion (2026-08-20):** REQ-0033/0034/0035 / TASK-0040 + Wave 4: no search-param RSC; never strip `?dialog=` on close; local Create List onClick; mutating overlays pending until network+paint. Jest 87/5 skip · tsc · lint 0.
+- **Docs:** CLAUDE.md · PROJECT_WALKTHROUGH · `.agile-v/*` synced for agent resume.
 
 ## Next
 
 ```text
-Commit, deploy, and collect user browser verification that Home Create List opens without an RSC request.
+Deploy C6.5, then production Network check: create/edit open+close (incl. deep-link) = no lists?_rsc; mutating overlays stay pending until success/error (TASK-0039).
 ```

@@ -413,7 +413,42 @@ Append-only. Newest entries at bottom.
 
 ---
 
-## DEC-0031 — Hydrate dynamic protected data surfaces and reserve cold slots
+## DEC-0034 — Pause implementation after C6.4 production; propose C6.5
+
+| Field | Value |
+|---|---|
+| Timestamp | 2026-08-20 |
+| Agent | Agile V Orchestrator (resume/reconcile) |
+| Decision | Treat C6.4 as committed and production READY. Do not start new implementation until GATE-0021. Recommended next human action is TASK-0039 browser verification. Proposed C6.5 is REQ-0033 plus REQ-0034 only. |
+| Rationale | The Home Create List RSC delay is fixed in production. The remaining same-class delay is list-detail edit close/open via Next search params. Gate 2 still lacks `EVAL_RESULTS.md`. |
+| Linked REQs | REQ-0032, REQ-0033, REQ-0034 |
+| Status | Superseded by GATE-0021 approval and DEC-0035 implementation. |
+
+---
+
+## DEC-0035 — Store overlay history in history.state, not search params
+
+| Field | Value |
+|---|---|
+| Timestamp | 2026-08-20 |
+| Agent | Agile V C6.5 implementation |
+| Decision | Remove `useSearchParams` from list dialog state. Hydrated open/close write `history.state` on the current href. Parse `?dialog=` only on mount for deep links. Keep mutating overlays pending until network result plus one committed paint. |
+| Rationale | Next 15 patches History API and refetches `force-dynamic` pages when search params change, which caused 1–3s create/edit open/close and double X clicks. |
+| Linked REQs | REQ-0033, REQ-0034, REQ-0035 |
+| Status | Implemented and locally validated 2026-08-20. |
+
+---
+
+## DEC-0036 — Never strip deep-link dialog query on close
+
+| Field | Value |
+|---|---|
+| Timestamp | 2026-08-20 |
+| Agent | Agile V C6.5 Wave 4 |
+| Decision | `writeListDialogHistory` always keeps `currentHref()`; remove `hrefWithoutDialogParams`. Closed overlay state is only React + `history.state`. |
+| Rationale | Stripping `?dialog=` after a deep-link open still changes the visible URL and can schedule a one-shot Next 15 `_rsc` flight. |
+| Linked REQs | REQ-0033 |
+| Status | Implemented and locally validated 2026-08-20. |
 
 | Field | Value |
 |---|---|

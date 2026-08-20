@@ -208,3 +208,24 @@ RSC shells · densify/Zod/SHA/Next16
 1. Extract the already-shared create-list dialog content/lifecycle so Home and Lists do not duplicate overlay or mutation behavior.
 2. Wire hydrated Home CTA clicks to native local dialog state and preserve page-local direct-link/history behavior without Next RSC navigation.
 3. Add focused Home/List open-close/history regressions; run the full validation/hygiene suite, update records, commit, and deploy.
+
+**Completion evidence:** commit `c675cf6`; Vercel production `dpl_DB8BYHnrXN5LuwL5Yo5FNdtwFvXd` READY.
+
+### TASK-0039 — C6.4 production browser verification — PENDING USER
+
+1. On https://daily-urlist.vercel.app/, sign in and click Home Create List, Lists Create, and list edit.
+2. Confirm the dialog opens immediately with no `lists?dialog=` / `_rsc` request; close, Escape, backdrop, and browser-back remain immediate while idle.
+3. Confirm mutating overlays stay pending until success or error, `/lists?dialog=create` and `/new` still open Create List, and a successful create still reaches the new list detail.
+4. Report only reproducible findings with route, action, expected, actual, and screenshot/video when available.
+
+**Dependencies:** REQ-0032; deployed commit `c675cf6`.
+**Resume condition:** User supplies production-test results; this task does not authorize application changes.
+
+### TASK-0040 — C6.5 instant dialogs and confirmed overlays — DONE
+
+1. Stop `useListDialogRouteState` from using `useSearchParams` or writing `?dialog=` search params; keep hydrated open/close in React state plus `history.state` on the same href.
+2. Localize ListPage edit open/close, wire edit pending, and remove the CreateNewListButton RSC href fallback.
+3. Keep URL add/edit/delete/archive, comments, invite/role/remove, and Smart Collections duplicate overlays pending until network result plus committed paint.
+4. Add focused regressions; run typecheck, lint, Jest, and production build.
+
+**Dependencies:** REQ-0033, REQ-0034, REQ-0035; GATE-0021 approved by user implementation request.

@@ -4,11 +4,11 @@
 **The Daily Urlist** (`urlist` v0.2.1) — AI collaborative URL lists.  
 Live: https://daily-urlist.vercel.app/ · Resume: `.agile-v/STATE.md`
 
-## Status (C6.3)
+## Status (C6.5)
 Done: shared compact controls · Auth row reveal · homepage hero mount stagger · accessible Smart Collections disclosure · responsive Add URL cancel · consistent CTA icons · responsive 56px chrome · type-safe cache/SSE/abort paths · zero lint.
 Controls: shared Button/glass/input contract is `h-10 min-h-10`; placeholders use `text-sm`. Marketing sections use CSS/observer reveal/parallax, no motion dependency.
 Home wave: Authenticated hero logo/title/copy/CTA rows reuse the login form's CSS mount stagger; feature, workflow, and final CTA sections retain `ScrollReveal`/parallax.
-Dialogs: `ui/Dialog.tsx` is the sole active accessible 92vw/85dvh overlay; fixed and scroll headers share the compact divider-free `pb-2 sm:pb-4` contract. `CreateListDialog` and `useListDialogRouteState` give hydrated Home and Lists CTAs native-history local opening with no RSC navigation while direct links remain valid; create/edit/delete remain visibly pending until server completion and committed UI paint. `ActionButtons` provides note-with-X Cancel and Eraser Clear conventions.
+Dialogs: `ui/Dialog.tsx` sole overlay; compact divider-free headers. `useListDialogRouteState` = React + `history.state` on same href (no `_rsc`); never strip `?dialog=` on close. Deep-link query is mount-only. Shared `CreateListDialog`. Mutating overlays stay pending until network + paint.
 Stable UI: Browse retains cached cards during refetch; `ui/PageHeader.tsx` standardizes icon/title/subtitle identity rows.
 Stable data: delayed cold placeholders only; Browse/Lists/Insights/API Status/detail keep their static shell. Unified list batches comment counts for card badges; bulk import never reloads. Metadata route is Node-only, public HTTP(S)-only, DNS/IP checked for documents/images/favicons, redirect-checked, timeout-bounded, and list-access guarded.
 Comment badge rule: create +1, delete -1, edit 0; failed mutations restore only their own optimistic delta.
@@ -17,8 +17,8 @@ Data: unified React Query + snapshot-first optimistic store updates + centralize
 Mutation UX: visibility updates all visible list surfaces optimistically; form/dialog submit controls guard duplicate requests without dialog-wide locks; collection/archive/reorder/metadata/action flows use one store or hook-owned snapshot commit/rollback and typed impact; primary and suggested URL visits are semantic safe new-tab links.
 Human: HA-0001; match Sentry org/token before upload.  
 Audit: Prisma CLI transitively pins `deepmerge-ts@7.1.5` (3 high findings); user accepted RISK-0016. Retain Prisma 6; do not force-downgrade or upgrade.
-Audit rerun: shared Zod mutation parsing · SHA-256 digest sessions with legacy rotation · persistence-backed session verification · server query hydration · typed mutation-impact gateway · lint · strict TS · Jest (82 pass/5 skip) · production build pass. UI-affecting actions commit/rollback through the impact gateway; background-only indexing/scheduling requests intentionally do not invalidate rendered list caches.
-Manual browser acceptance: REQ-0017 control/Home-motion and REQ-0018 metadata/action-badge flows await user testing; code-level verification is complete.
+Audit rerun: Zod mutations · SHA-256 sessions · persistence-backed auth · server RQ hydration · `invalidateMutationImpact` · lint · tsc · Jest (87 pass/5 skip) · build pass.
+Manual: REQ-0017/0018 + C6.5 dialog open-close after deploy (TASK-0039). Code verified.
 Out of scope: densify/JWT SSR, Next 16, Prisma 7.
 
 ## Stack

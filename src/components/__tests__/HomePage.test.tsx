@@ -34,6 +34,7 @@ describe("HomePage", () => {
       refetch: jest.fn(),
     } as ReturnType<typeof useSession>);
     mockedUseWasAuthedHint.mockReturnValue(true);
+    window.history.replaceState({}, "", "/");
   });
 
   it("uses the login-form stagger and opens Create List locally", () => {
@@ -54,6 +55,6 @@ describe("HomePage", () => {
 
     fireEvent.click(createButton);
     expect(screen.getByRole("dialog")).toHaveTextContent("Create List Dialog");
-    expect(window.location.search).toBe("?dialog=create");
+    expect(window.location.search).not.toContain("dialog=");
   });
 });

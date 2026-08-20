@@ -1,5 +1,14 @@
 # CHANGELOG.md
 
+## CR-0012 — C6.5 instant dialogs and confirmed overlays
+
+- **Cycle:** C6.5
+- **Affected requirement:** REQ-0033, REQ-0034, REQ-0035
+- **Change:** Keep hydrated dialog open/close in React state plus `history.state` on the same href; require local Create List onClick; keep mutating overlays pending until network plus paint.
+- **Rationale:** Next 15 treats `?dialog=` History writes as App Router RSC navigations, so create/edit open and close waited 1–3s and often needed a second X click.
+- **Impact:** Dialog route-state hook, ListPage edit, shared Create List button, URL/comment/collaborator/Smart Collections overlays, and focused tests only; no API, schema, session, Redis, SSE, or mutation-contract change.
+- **Requested by / approval:** User approved the attached instant-dialog plan on 2026-08-20 (GATE-0021).
+
 ## CR-0011 — C6.4 instant create-list launchers
 
 - **Cycle:** C6.4

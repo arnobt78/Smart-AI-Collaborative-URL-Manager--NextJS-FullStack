@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import { flushSync } from "react-dom";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useStore } from "@nanostores/react";
 import { currentList } from "@/stores/urlListStore";
 import { UrlList } from "@/components/lists/UrlList";
@@ -28,11 +28,11 @@ import { Dialog } from "@/components/ui/Dialog";
 import EditListPageClient from "@/components/pages/EditListPage";
 import { HEADING_STACK } from "@/lib/ui-spacing";
 import { invalidateMutationImpact } from "@/utils/queryInvalidation";
+import { useListDialogRouteState } from "@/hooks/useListDialogRouteState";
 
 export default function ListPageClient() {
   const { toast } = useToast();
   const router = useRouter();
-  const searchParams = useSearchParams();
   const { slug } = useParams();
   const {
     user: sessionUser,
@@ -42,7 +42,11 @@ export default function ListPageClient() {
   const storeList = useStore(currentList);
   const permissions = useListPermissions(); // Get permissions for current list and user
   const listSlug = typeof slug === "string" ? slug : "";
-  const editDialogOpen = searchParams.get("dialog") === "edit";
+  const { editDialogSlug, closeDialog } = useListDialogRouteState({
+    defaultEditSlug: listSlug,
+  });
+  const editDialogOpen = Boolean(listSlug) && editDialogSlug === listSlug;
+  const [editPending, setEditPending] = useState(false);
   const queryClient = useQueryClient();
 
   // Setup SSE cache sync for React Query
@@ -939,11 +943,12 @@ export default function ListPageClient() {
       {list.id ? (
         <Dialog
           open={editDialogOpen}
-          onOpenChange={(open) => !open && router.replace(`/list/${listSlug}`, { scroll: false })}
+          onOpenChange={(open) => !open && closeDialog()}
           title="Edit List"
           description="Update your list details and settings."
           size="wide"
           headerMode="scroll"
+          pending={editPending}
         >
           <EditListPageClient
             key={list.id}
@@ -954,7 +959,8 @@ export default function ListPageClient() {
               description: list.description,
               isPublic: list.isPublic,
             }}
-            onClose={() => router.replace(`/list/${listSlug}`, { scroll: false })}
+            onClose={closeDialog}
+            onPendingChange={setEditPending}
           />
         </Dialog>
       ) : null}

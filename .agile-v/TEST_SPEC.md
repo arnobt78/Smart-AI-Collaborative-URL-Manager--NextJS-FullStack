@@ -16,5 +16,10 @@ Overview: REQ-0010 through REQ-0014. Tests are derived from approved requirement
 | TC-0019 | REQ-0016 | Open guest-account menu over later Auth rows | Accounts remain visible and clickable; trigger exposes expanded state and menu relationship | manual integration |
 | TC-0020 | REQ-0017 | Render shared controls and Home CTAs | Labeled controls retain `h-10 min-h-10`; CTA destinations/icons remain correct | unit/manual |
 | TC-0021 | REQ-0017 | Enter/leave marketing sections | Ordered transform/opacity reveal and parallax work; reduced-motion renders stable content | manual integration |
-| TC-0026 [C2] | REQ-0024 | Render authenticated homepage hero | Logo, title, two descriptions, and CTA row use `auth-reveal-delay-0` through `auth-reveal-delay-4`; links retain their internal destinations | unit |
+| TC-0026 [C2] | REQ-0024 | Render authenticated homepage hero | Logo, title, two descriptions, and CTA row use `auth-reveal-delay-0` through `auth-reveal-delay-4`; View My Lists remains an internal link | unit |
 | TC-0027 [C2] | REQ-0024 | Inspect homepage at 320px, 768px, and 1440px with normal and reduced motion | No clipping, overlap, layout shift, or interaction delay; lower sections retain viewport scroll reveal | manual responsive |
+| TC-0038 [C6.4] | REQ-0032 | Click hydrated Home Create List | Control is a button with no Lists href; local dialog opens without writing `?dialog=` | unit |
+| TC-0039 [C6.4] | REQ-0032 | Production Home Create List | Dialog opens without an RSC Lists payload; idle close/Escape/back remain immediate | manual production |
+| TC-0040 [C6.5] | REQ-0033 | Open/close list create and detail edit | Hydrated transitions keep the same href; deep-link query still initializes; popstate closes | unit |
+| TC-0041 [C6.5] | REQ-0034 | Hydrated Create List button | Shared launcher has no implicit `/lists?dialog=create` href | unit |
+| TC-0042 [C6.5] | REQ-0035 | Pending mutating overlays | Add-URL and shared Dialog/AlertDialog block close while pending | unit |

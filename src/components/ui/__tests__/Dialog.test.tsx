@@ -52,4 +52,23 @@ describe("Dialog", () => {
     expect(screen.getByRole("button", { name: /cancel/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /clear/i })).toBeInTheDocument();
   });
+
+  it("blocks close while pending", () => {
+    const onOpenChange = jest.fn();
+
+    render(
+      <Dialog
+        open
+        onOpenChange={onOpenChange}
+        title="Add URL"
+        description="Save a URL to this collection."
+        pending
+      >
+        <p>Form content</p>
+      </Dialog>,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Close dialog" }));
+    expect(onOpenChange).not.toHaveBeenCalled();
+  });
 });

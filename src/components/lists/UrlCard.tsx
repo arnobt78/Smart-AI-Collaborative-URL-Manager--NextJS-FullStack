@@ -40,12 +40,12 @@ interface UrlCardProps {
   metadata?: UrlMetadata;
   isLoadingMetadata?: boolean;
   onEdit: (url: UrlItem) => void;
-  onDelete: (id: string) => void;
+  onDelete: (id: string) => void | Promise<void>;
   onToggleFavorite: (id: string) => void;
   onShare: (url: { url: string; title?: string }) => void;
   onUrlClick?: (urlId: string) => void;
   onDuplicate?: (url: UrlItem) => void;
-  onArchive?: (id: string) => void;
+  onArchive?: (id: string) => void | Promise<void>;
   onPin?: (id: string) => void;
   shareTooltip: string | null;
   dragHandleProps?: React.HTMLAttributes<HTMLDivElement> | null;
@@ -106,6 +106,8 @@ export const UrlCard: React.FC<UrlCardProps> = ({
   const [toastMessage, setToastMessage] = React.useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
   const [archiveDialogOpen, setArchiveDialogOpen] = React.useState(false);
+  const [deletePending, setDeletePending] = React.useState(false);
+  const [archivePending, setArchivePending] = React.useState(false);
   const [similarUrlsOpen, setSimilarUrlsOpen] = React.useState(false);
   const [similarUrls, setSimilarUrls] = React.useState<SearchResult[]>([]);
   const [loadingSimilarUrls, setLoadingSimilarUrls] = React.useState(false);
@@ -168,20 +170,34 @@ export const UrlCard: React.FC<UrlCardProps> = ({
     }
   };
 
-  // Handle delete confirmation
-  const handleDeleteConfirm = () => {
-    onDelete(url.id);
-    toast({
-      title: "URL Deleted",
-      description: `"${url.title || url.url}" has been removed from the list.`,
-      variant: "success",
-    });
+  // Confirm delete only after the store mutation settles, then close on the next paint.
+  const handleDeleteConfirm = async () => {
+    setDeletePending(true);
+    try {
+      await onDelete(url.id);
+      toast({
+        title: "URL Deleted",
+        description: `"${url.title || url.url}" has been removed from the list.`,
+        variant: "success",
+      });
+      requestAnimationFrame(() => setDeleteDialogOpen(false));
+    } catch (caughtError) {
+      toast({
+        title: "Delete Failed",
+        description:
+          caughtError instanceof Error ? caughtError.message : "Please try again",
+        variant: "error",
+      });
+    } finally {
+      setDeletePending(false);
+    }
   };
 
-  // Handle archive confirmation
-  const handleArchiveConfirm = () => {
-    if (onArchive) {
-      onArchive(url.id);
+  const handleArchiveConfirm = async () => {
+    if (!onArchive) return;
+    setArchivePending(true);
+    try {
+      await onArchive(url.id);
       toast({
         title: "URL Archived",
         description: `"${
@@ -189,6 +205,11 @@ export const UrlCard: React.FC<UrlCardProps> = ({
         }" has been archived and removed from the list.`,
         variant: "success",
       });
+      requestAnimationFrame(() => setArchiveDialogOpen(false));
+    } catch {
+      // Store/query rollback and error toasts remain with the mutation owner.
+    } finally {
+      setArchivePending(false);
     }
   };
 
@@ -679,7 +700,9 @@ export const UrlCard: React.FC<UrlCardProps> = ({
       {/* Delete Confirmation Dialog */}
       <AlertDialog
         open={deleteDialogOpen}
-        onOpenChange={setDeleteDialogOpen}
+        onOpenChange={(open) => {
+          if (!deletePending) setDeleteDialogOpen(open);
+        }}
         title="Delete URL"
         description={`Are you sure you want to delete "${
           url.title || url.url
@@ -688,13 +711,17 @@ export const UrlCard: React.FC<UrlCardProps> = ({
         cancelText="Cancel"
         onConfirm={handleDeleteConfirm}
         variant="destructive"
+        pending={deletePending}
+        pendingText="Deleting…"
+        closeOnConfirm={false}
       />
 
-      {/* Archive Confirmation Dialog */}
       {onArchive && (
         <AlertDialog
           open={archiveDialogOpen}
-          onOpenChange={setArchiveDialogOpen}
+          onOpenChange={(open) => {
+            if (!archivePending) setArchiveDialogOpen(open);
+          }}
           title="Archive URL"
           description={`Are you sure you want to archive "${
             url.title || url.url
@@ -703,6 +730,9 @@ export const UrlCard: React.FC<UrlCardProps> = ({
           cancelText="Cancel"
           onConfirm={handleArchiveConfirm}
           variant="default"
+          pending={archivePending}
+          pendingText="Archiving…"
+          closeOnConfirm={false}
         />
       )}
 

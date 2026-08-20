@@ -79,12 +79,12 @@ function UrlCardWrapper({
 }: {
   url: UrlItem;
   onEdit: (url: UrlItem) => void;
-  onDelete: (id: string) => void;
+  onDelete: (id: string) => void | Promise<void>;
   onToggleFavorite: (id: string) => void;
   onShare: (url: { url: string; title?: string }) => void;
   onUrlClick?: (urlId: string) => void;
   onDuplicate?: (url: UrlItem) => void;
-  onArchive?: (id: string) => void;
+  onArchive?: (id: string) => void | Promise<void>;
   onPin?: (id: string) => void;
   shareTooltip: string | null;
   isMetadataReady: boolean;
@@ -1119,7 +1119,8 @@ export function UrlList() {
       setNewNote("");
       setNewTags("");
       setEnhancementResult(null);
-      setIsAddUrlFormExpanded(false); // Collapse form after successful add
+      // Keep the add overlay pending until the new card can paint.
+      requestAnimationFrame(() => setIsAddUrlFormExpanded(false));
     } catch {
       setError("Please enter a valid URL");
     } finally {
@@ -1139,13 +1140,13 @@ export function UrlList() {
     notes?: string,
     reminder?: string,
   ) => {
+    const current = currentList.get();
+    if (!current.urls || !current.id) return;
+
     setIsEditing(true);
     setError(undefined);
     // Set flag to prevent real-time refresh during edit operation
     isLocalOperationRef.current = true;
-
-    const current = currentList.get();
-    if (!current.urls || !current.id) return;
 
     try {
       // Get the current URL to check if it changed
@@ -1198,10 +1199,13 @@ export function UrlList() {
         variant: "success",
       });
 
-      setEditingUrl(null);
-      setEditingTags("");
-      setEditingNotes("");
-      setEditingReminder("");
+      // Keep the editor mounted until the updated card can paint.
+      requestAnimationFrame(() => {
+        setEditingUrl(null);
+        setEditingTags("");
+        setEditingNotes("");
+        setEditingReminder("");
+      });
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : "Failed to update URL";
@@ -2569,7 +2573,7 @@ export function UrlList() {
                       setEditingNotes(urlObj.notes || "");
                       setEditingReminder(urlObj.reminder || "");
                     }}
-                    onDelete={(urlId) => {
+                    onDelete={async (urlId) => {
                       // Set flag to prevent real-time refresh and metadata batch fetch during delete
                       isLocalOperationRef.current = true;
                       lastDeleteTimeRef.current = Date.now(); // Track delete time to prevent real-time refresh
@@ -2589,15 +2593,13 @@ export function UrlList() {
                         }
                       }
 
-                      // Perform delete (it does optimistic update internally)
-                      removeUrlFromList(urlId)
-                        .catch(() => undefined)
-                        .finally(() => {
-                          // Clear flag after operation completes
-                          setTimeout(() => {
-                            isLocalOperationRef.current = false;
-                          }, 2000);
-                        });
+                      try {
+                        await removeUrlFromList(urlId);
+                      } finally {
+                        setTimeout(() => {
+                          isLocalOperationRef.current = false;
+                        }, 2000);
+                      }
                     }}
                     onToggleFavorite={handleToggleFavorite}
                     onShare={handleShare}

@@ -11,6 +11,8 @@ Append-only record of Human Gate decisions.
 | 2026-08-20 | GATE-0018 | APPROVED | User | `C6-HG1-INSTANT-LIST-DIALOGS-2026-08-20` | User explicitly approved REQ-0030 C6.2 local dialog history and confirmed mutation lifecycle. |
 | 2026-08-20 | GATE-0019 | APPROVED | User | `C6-HG1-UNIFIED-DIALOG-CONTRACT-2026-08-20` | User explicitly approved REQ-0031 C6.3 shared dialog visual contract. |
 | 2026-08-20 | GATE-0020 | APPROVED | User | `C6.4-HG1-INSTANT-CREATE-LAUNCHERS-2026-08-20` | User explicitly approved REQ-0032 C6.4 local Home/List Create List launchers. |
+| 2026-08-20 | GATE-0021 | PENDING | — | `C6.5-HG1-LIST-DETAIL-EDIT-2026-08-20` | Scope: REQ-0033/REQ-0034 only; approval must cite this token. |
+| 2026-08-20 | GATE-0021 | APPROVED | User | `C6.5-HG1-LIST-DETAIL-EDIT-2026-08-20` | User explicitly approved the attached C6.5 instant-dialog plan (REQ-0033/0034/0035). |
 | 2026-08-18 | GATE-0012 | APPROVED | User | `C1-HG1-RESPONSIVE-CHROME-2026-08-18` | User authorized responsive Navbar/Footer alignment, browser type consolidation, and inclusion of their remaining local changes. |
 | 2026-08-18 | RISK-0016 | ACCEPTED | User | `C1-RISK-PRISMA-2026-08-18` | User accepted the Prisma CLI transitive advisory; no forced downgrade or breaking Prisma upgrade. |
 | 2026-08-18 | GATE-0013 | APPROVED | User | `C1-HG1-REQ-0021-2026-08-18` | User approved REQ-0021 Stable List Form Dialogs exactly as scoped. |

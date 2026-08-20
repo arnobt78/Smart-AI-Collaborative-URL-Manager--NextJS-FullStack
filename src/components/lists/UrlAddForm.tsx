@@ -208,9 +208,12 @@ export function UrlAddForm({
   return (
     <Dialog
       open={isExpanded}
-      onOpenChange={(open) => !open && onCancel()}
+      onOpenChange={(open) => {
+        if (!open && !isLoading) onCancel();
+      }}
       title="Add URL"
       description="Save a URL, tags, and an optional note to this collection."
+      pending={isLoading}
     >
       <form
         onSubmit={handleSubmit}
@@ -271,9 +274,9 @@ export function UrlAddForm({
 
         <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
           {newUrl && (
-            <ClearButton onClick={handleClear}>Clear</ClearButton>
+            <ClearButton onClick={handleClear} disabled={isLoading}>Clear</ClearButton>
           )}
-          <CancelButton onClick={onCancel}>Cancel</CancelButton>
+          <CancelButton onClick={onCancel} disabled={isLoading}>Cancel</CancelButton>
           <Button type="submit" isLoading={isLoading} variant="glassEmerald">
             <WandSparkles className="h-4 w-4  shrink-0" aria-hidden />
             Add URL

@@ -1,5 +1,6 @@
 /**
  * CreateNewListButton — glass-glow CTA with FolderPlus icon (Lists + Home).
+ * REQ-0034: hydrated launchers must supply a local onClick; never fall back to an RSC link.
  */
 import { FolderPlus, type LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/Button";
@@ -10,7 +11,7 @@ type CreateNewListButtonProps = {
   label?: string;
   size?: "sm" | "md" | "lg";
   icon?: LucideIcon;
-  onClick?: () => void;
+  onClick: () => void;
 };
 
 export function CreateNewListButton({
@@ -22,7 +23,8 @@ export function CreateNewListButton({
 }: CreateNewListButtonProps) {
   return (
     <Button
-      {...(onClick ? { type: "button", onClick } : { href: "/lists?dialog=create" })}
+      type="button"
+      onClick={onClick}
       variant="glassPurple"
       size={size}
       className={cn("w-full sm:w-auto", className)}

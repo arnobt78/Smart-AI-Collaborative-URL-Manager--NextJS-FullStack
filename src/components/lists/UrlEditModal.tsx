@@ -162,10 +162,13 @@ export function UrlEditModal({
   return (
     <Dialog
       open={Boolean(editingUrl)}
-      onOpenChange={(open) => !open && setEditingUrl(null)}
+      onOpenChange={(open) => {
+        if (!open && !isEditing) setEditingUrl(null);
+      }}
       title="Edit URL"
       description="Update this saved URL and its organization details."
       size="form"
+      pending={isEditing}
     >
       <form
         onSubmit={(e) => {
@@ -280,6 +283,7 @@ export function UrlEditModal({
         <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-2 mt-6 sm:mt-8">
           <CancelButton
             onClick={() => setEditingUrl(null)}
+            disabled={isEditing}
             className="w-full sm:w-auto"
           >
             Cancel

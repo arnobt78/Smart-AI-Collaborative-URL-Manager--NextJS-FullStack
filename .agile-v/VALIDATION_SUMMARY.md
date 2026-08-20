@@ -292,3 +292,21 @@ Gate 2: BLOCKED — RISK-0016 is accepted; `EVAL_RESULTS.md` PASS/WAIVED evidenc
 | Confirmed create lifecycle | `ListDialogCompletion.test.tsx` | PASS | Shared launcher preserves pending completion and detail-transition behavior. |
 | Full validation | `npx tsc --noEmit`; `npm run lint`; `npm test -- --runInBand`; `npm run build` | PASS | Strict TypeScript, zero-warning lint, 83 passed / 5 skipped Jest tests, and optimized production build pass. |
 | Hygiene | direct-console/parser/secret scans; `git diff --check` | PASS | Diagnostics remain limited to test mocks and `dev-log`; mutation routes retain shared parsing, no tracked secrets or whitespace errors. |
+| Production deployment | Vercel `dpl_DB8BYHnrXN5LuwL5Yo5FNdtwFvXd` | PASS | Commit `c675cf6` deployed READY to `daily-urlist.vercel.app` on 2026-08-20. Browser acceptance is TASK-0039. |
+
+## 2026-08-20 — REQ-0033/0034/0035 C6.5 instant dialogs and confirmed overlays
+
+| Scope | Command / evidence | Result | Notes |
+|---|---|---|---|
+| History-state dialogs | `useListDialogRouteState.test.tsx`; `HomePage.test.tsx` | PASS | Hydrated open/close does not write `?dialog=`; deep-link query still initializes; list-detail `?dialog=edit` uses the current slug. |
+| Pending overlays | `UrlAddForm.pending.test.tsx`; `Dialog.test.tsx`; `AlertDialog.test.tsx`; `ListDialogCompletion.test.tsx` | PASS | Add-URL and shared dialogs block close while pending; list create/edit keep confirmed completion. |
+| Full validation | `npx tsc --noEmit`; `npm run lint`; `npm test -- --runInBand`; `npm run build` | PASS | Strict TypeScript, zero-warning lint, 86 passed / 5 skipped Jest tests, and optimized production build pass. |
+| Hygiene | direct-console/parser scans; `git diff --check` | PASS | Diagnostics remain limited to `dev-log` and test mocks; no whitespace errors. |
+
+## 2026-08-20 — C6.5 Wave 4 deep-link close without RSC
+
+| Scope | Command / evidence | Result | Notes |
+|---|---|---|---|
+| Deep-link close | `useListDialogRouteState.test.tsx` | PASS | Close after `?dialog=edit&list=` leaves search unchanged; history.state owns closed UI. |
+| Full validation | `npx tsc --noEmit`; `npm run lint`; `npm test -- --runInBand` | PASS | Strict TypeScript, zero-warning lint, 87 passed / 5 skipped Jest tests. |
+| Hygiene | `git diff --check` | PASS | No whitespace errors. |

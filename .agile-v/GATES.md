@@ -19,7 +19,7 @@ Implementation is locally verified; C2 Gate 2 remains pending release evidence a
 Stage 1 Requirements → Stage 2 Validation → [Human Gate 1] → Stage 3 Synthesis → Stage 4 Verification → [Human Gate 2] → Stage 5 Acceptance
 ```
 
-Current: **Stage 4 verification complete** through REQ-0020; Gate 2 remains required before release acceptance.
+Current: **C6.5 Stage 4 complete locally** for REQ-0033/0034/0035. GATE-0021 approved. GATE-0002 remains pending (`EVAL_RESULTS.md` absent).
 
 Reconciliation note (2026-08-18): commits and prior validation records document C1 implementation activity, but `APPROVALS.md` has no matching approved record for the original GATE-0001 token. This is retained as historical evidence, not retroactively approved. It does not authorize further implementation.
 
@@ -154,6 +154,23 @@ Implementation is authorized. Gate 2 remains required before any release decisio
 | Evidence | REQ-0032; TASK-0038; DEC-0033; CR-0011 |
 | Required human action | Completed — user explicitly approved the C6.4 implementation plan. |
 | Scope | Hydrated Home/List Create List launchers, shared dialog lifecycle extraction, and focused tests only. |
+
+Implementation is complete in production (`c675cf6` / `dpl_DB8BYHnrXN5LuwL5Yo5FNdtwFvXd`). Browser acceptance is TASK-0039. Gate 2 remains required before any release decision.
+
+---
+
+## GATE-0021 — Human Gate 1 (C6.5 instant dialogs and confirmed overlays)
+
+| Field | Value |
+|-------|-------|
+| Type | Human-Decision |
+| Status | **APPROVED 2026-08-20** |
+| Checkpoint | `C6.5-HG1-LIST-DETAIL-EDIT-2026-08-20` in `CHECKPOINTS.md` |
+| Evidence | REQ-0033; REQ-0034; REQ-0035; TASK-0040; DEC-0035; CR-0012 |
+| Required human action | Completed — user explicitly requested implementation of the attached instant-dialog plan. |
+| Scope | History-state dialog open/close without Next search-param RSC, CreateNewListButton local onClick only, and mutating overlays pending until network plus paint. No API, schema, session, Redis, SSE, or mutation-contract change. |
+
+Implementation is locally verified. Browser acceptance of create/edit open-close remains TASK-0039. Gate 2 remains required before any release decision.
 
 ---
 

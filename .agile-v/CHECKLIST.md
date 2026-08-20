@@ -23,8 +23,8 @@
 - [ ] Human answered DB host question (or deferred REQ-0007)
 - [ ] Human decided `.cursorignore` secret policy
 
-## Remaining C1 tracks (optional)
+## Remaining / human
 
-- [ ] REQ-0001 `.env.example` / secret hygiene
-- [ ] REQ-0003 SafeImage
-- [ ] lint / full test / production build as needed
+- [ ] **TASK-0039** production browser verification of create/edit dialogs after C6.5 deploy
+- [ ] REQ-0001 leftover: human decision on `.cursorignore` secret allowlist
+- [ ] GATE-0002 / `EVAL_RESULTS.md` still required for release acceptance

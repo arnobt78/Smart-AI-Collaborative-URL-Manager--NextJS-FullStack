@@ -22,5 +22,8 @@
 | ART-0030.1 | REQ-0030 | `src/hooks/useListDialogRouteState.ts`; Lists/create/edit pages; shared CTA/confirmation dialog; focused tests | Native-history local list dialogs and parent-owned confirmed create/edit/delete pending lifecycle. |
 | ART-0031.1 | REQ-0031 | `src/components/ui/Dialog.tsx`; dialog tests | One divider-free compact header contract for every active dialog; unused duplicate input overlay removed. |
 | ART-0032.1 | REQ-0032 | `src/components/lists/CreateListDialog.tsx`; `HomePage.tsx`; `ListsPage.tsx`; focused tests | One local create-dialog lifecycle for hydrated Home and Lists CTAs; native history only, no RSC overlay navigation. |
+| ART-0033.1 | REQ-0033 | `src/hooks/useListDialogRouteState.ts`; `ListPage.tsx`; focused tests | Hydrated create/edit use history.state on the same href; search params are mount-only deep links. |
+| ART-0034.1 | REQ-0034 | `src/components/ui/CreateNewListButton.tsx`; Home tests | Shared launcher requires local onClick; no `/lists?dialog=create` href fallback. |
+| ART-0035.1 | REQ-0035 | URL/comment/collaborator/Smart Collections overlays; Dialog tests | Mutating overlays stay pending until network result plus committed paint. |
 
 Risk level: R2 (production UI and repository-wide behavior-sensitive lint remediation). No API, database, authorization, or session contract changes are authorized.

@@ -144,6 +144,7 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
   );
   const [isExpanded, setIsExpanded] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [duplicateDeletePending, setDuplicateDeletePending] = useState(false);
   const [pendingDeleteDuplicate, setPendingDeleteDuplicate] =
     useState<DuplicateDetection | null>(null);
 
@@ -809,7 +810,9 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
       {/* Delete Confirmation Dialog */}
       <AlertDialog
         open={deleteDialogOpen}
-        onOpenChange={setDeleteDialogOpen}
+        onOpenChange={(open) => {
+          if (!duplicateDeletePending) setDeleteDialogOpen(open);
+        }}
         title="Remove Duplicate URL"
         description={
           pendingDeleteDuplicate
@@ -822,11 +825,14 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
         confirmText="Remove"
         cancelText="Cancel"
         variant="destructive"
+        pending={duplicateDeletePending}
+        pendingText="Removing…"
+        closeOnConfirm={false}
         onConfirm={async () => {
           if (!pendingDeleteDuplicate) return;
 
           const dup = pendingDeleteDuplicate;
-          setDeleteDialogOpen(false);
+          setDuplicateDeletePending(true);
           setDeletingDuplicateIds((prev) => new Set(prev).add(dup.url.id));
 
           try {
@@ -866,7 +872,10 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
               variant: "success",
             });
 
-            setPendingDeleteDuplicate(null);
+            requestAnimationFrame(() => {
+              setDeleteDialogOpen(false);
+              setPendingDeleteDuplicate(null);
+            });
           } catch (_error) {
             toast({
               title: "Error",
@@ -876,6 +885,7 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
               variant: "error",
             });
           } finally {
+            setDuplicateDeletePending(false);
             setDeletingDuplicateIds((prev) => {
               const next = new Set(prev);
               next.delete(dup.url.id);

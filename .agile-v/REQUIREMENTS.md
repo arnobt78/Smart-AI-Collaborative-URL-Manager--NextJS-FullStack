@@ -616,18 +616,77 @@ These describe the current product as verified in code. They are **Accepted as b
 
 ---
 
-### REQ-0032 — C6.4 instant create-list launchers (proposed 2026-08-20)
+### REQ-0032 — C6.4 instant create-list launchers (approved 2026-08-20)
 
 **Priority:** P1
 **Type:** UX / client-navigation performance
 
 **Acceptance criteria:**
 
-- [ ] Every already-hydrated Create List CTA opens the shared Create List dialog synchronously on its current page without `router.push`, `router.replace`, or an RSC request.
-- [ ] Home and Lists reuse one Create List dialog launcher/content contract; direct `?dialog=create` deep links remain supported on their respective pages.
-- [ ] Close, Escape, backdrop, and browser-back transitions remain immediate when no mutation is pending.
-- [ ] Create retains the existing confirmed pending lifecycle, cache seeding, detail transition, API/session behavior, and typed cache reconciliation.
-- [ ] Focused regressions prove the Home CTA is a local button, no router navigation is used for hydrated opens, and deep-link behavior is preserved.
+- [x] Every already-hydrated Create List CTA opens the shared Create List dialog synchronously on its current page without `router.push`, `router.replace`, or an RSC request.
+- [x] Home and Lists reuse one Create List dialog launcher/content contract; direct `?dialog=create` deep links remain supported on their respective pages.
+- [x] Close, Escape, backdrop, and browser-back transitions remain immediate when no mutation is pending.
+- [x] Create retains the existing confirmed pending lifecycle, cache seeding, detail transition, API/session behavior, and typed cache reconciliation.
+- [x] Focused regressions prove the Home CTA is a local button, no router navigation is used for hydrated opens, and deep-link behavior is preserved.
 
 **Trace:** TASK-0038, DEC-0033, CR-0011, GATE-0020.
-**Status:** Completed and locally validated [C6.4] on 2026-08-20.
+**Status:** Completed, locally validated, and production-deployed [C6.4] on 2026-08-20 (`c675cf6` / `dpl_DB8BYHnrXN5LuwL5Yo5FNdtwFvXd`). Browser acceptance remains TASK-0039.
+
+---
+
+### REQ-0033 — C6.5 localize list-detail edit dialog (approved 2026-08-20)
+
+**Priority:** P1
+**Type:** UX / client-navigation performance
+
+**Statement:** Hydrated list create/edit overlays MUST keep React state plus `history.state` on the same href. They MUST NOT subscribe to Next `useSearchParams` or write `?dialog=` search params, because Next 15 treats those writes as App Router RSC navigations.
+
+**Acceptance criteria:**
+
+- [x] Opening, closing, Escape, backdrop, and browser-back on Lists and `/list/[slug]` do not write Next-visible search params or call `router.push`/`replace` for the overlay.
+- [x] Direct `/lists?dialog=create`, `/new`, `/list/[slug]/edit`, and `?dialog=edit` still open the shared dialog from a one-time mount parse.
+- [x] Edit retains the existing confirmed pending lifecycle, cache seeding, API/session behavior, and typed cache reconciliation.
+- [x] Focused regressions cover hydrated open/close without search-param writes, mount-from-query, and popstate.
+
+**Affected:** `src/hooks/useListDialogRouteState.ts`; `src/components/pages/ListPage.tsx`; focused tests.
+**Trace:** TASK-0040, DEC-0035, CR-0012, GATE-0021.
+**Status:** Completed and locally validated [C6.5] on 2026-08-20.
+
+---
+
+### REQ-0034 — Remove unused Create List RSC fallback (approved 2026-08-20)
+
+**Priority:** P2
+**Type:** Regression prevention
+
+**Statement:** `CreateNewListButton` MUST NOT fall back to `href="/lists?dialog=create"`. Hydrated callers supply a local `onClick`.
+
+**Acceptance criteria:**
+
+- [x] The shared button has no implicit Lists RSC navigation.
+- [x] Current Home and Lists callers continue to open the local Create List dialog.
+- [x] Home coverage asserts the hydrated Create List control is a button without a Lists deep-link href.
+
+**Affected:** `src/components/ui/CreateNewListButton.tsx`; Home tests.
+**Trace:** TASK-0040, DEC-0035, CR-0012, GATE-0021.
+**Status:** Completed and locally validated [C6.5] on 2026-08-20.
+
+---
+
+### REQ-0035 — Confirmed pending mutating overlays (approved 2026-08-20)
+
+**Priority:** P1
+**Type:** UX / mutation integrity
+
+**Statement:** Mutating create/edit/delete overlays MUST stay visible with a loading spinner until the server result is known and one committed paint can occur. Idle close remains immediate. Failures remain retryable in the open dialog.
+
+**Acceptance criteria:**
+
+- [x] URL add/edit dialogs use `Dialog pending` while the mutation is in flight.
+- [x] URL delete/archive, comment delete, collaborator remove, and Smart Collections duplicate-remove use `AlertDialog closeOnConfirm={false}` plus pending.
+- [x] Invite and role-change dialogs cannot be dismissed while their mutations are pending.
+- [x] Focused coverage blocks close while add-URL and shared Dialog pending flags are set.
+
+**Affected:** UrlAddForm, UrlEditModal, UrlCard, Comments, PermissionManager, SmartCollections, Dialog tests.
+**Trace:** TASK-0040, DEC-0035, CR-0012, GATE-0021.
+**Status:** Completed and locally validated [C6.5] on 2026-08-20.

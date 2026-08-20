@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
 
 type ListDialog = "create" | "edit" | null;
 
@@ -10,73 +9,123 @@ interface ListDialogState {
   listSlug: string | null;
 }
 
-type SearchParamsLike = Pick<URLSearchParams, "get"> | null;
+interface UseListDialogRouteStateOptions {
+  /** When `?dialog=edit` has no `list` param, treat the current list-detail slug as the target. */
+  defaultEditSlug?: string | null;
+}
 
-function parseListDialogState(searchParams: SearchParamsLike): ListDialogState {
-  // Next may expose nullable search params during an initial client render.
-  // Native history remains the canonical fallback for local dialog state.
-  const params = searchParams ?? new URLSearchParams(
-    typeof window === "undefined" ? "" : window.location.search,
-  );
-  const dialog = params.get("dialog");
-  const listSlug = params.get("list");
+const URLIST_DIALOG_HISTORY_KEY = "__urlistDialog";
 
-  if (dialog === "create") return { dialog, listSlug: null };
-  if (dialog === "edit" && listSlug) return { dialog, listSlug };
+type HistoryStateBag = Record<string, unknown> & {
+  [URLIST_DIALOG_HISTORY_KEY]?: ListDialogState;
+};
+
+function closedDialogState(): ListDialogState {
   return { dialog: null, listSlug: null };
 }
 
-function currentListDialogState(): ListDialogState {
-  return parseListDialogState(new URLSearchParams(window.location.search));
+function asHistoryBag(state: unknown): HistoryStateBag {
+  if (state && typeof state === "object" && !Array.isArray(state)) {
+    return state as HistoryStateBag;
+  }
+  return {};
 }
 
-function writeListDialogUrl(nextState: ListDialogState, mode: "push" | "replace"): void {
-  const url = new URL(window.location.href);
+function parseListDialogState(
+  search: string,
+  defaultEditSlug?: string | null,
+): ListDialogState {
+  const params = new URLSearchParams(
+    search.startsWith("?") ? search.slice(1) : search,
+  );
+  const dialog = params.get("dialog");
+  const listSlug =
+    params.get("list") ?? (dialog === "edit" ? defaultEditSlug ?? null : null);
 
-  if (nextState.dialog === "create") {
-    url.searchParams.set("dialog", "create");
-    url.searchParams.delete("list");
-  } else if (nextState.dialog === "edit" && nextState.listSlug) {
-    url.searchParams.set("dialog", "edit");
-    url.searchParams.set("list", nextState.listSlug);
-  } else {
-    url.searchParams.delete("dialog");
-    url.searchParams.delete("list");
+  if (dialog === "create") return { dialog, listSlug: null };
+  if (dialog === "edit" && listSlug) return { dialog, listSlug };
+  return closedDialogState();
+}
+
+function dialogStateFromHistory(historyState: unknown): ListDialogState | null {
+  const stored = asHistoryBag(historyState)[URLIST_DIALOG_HISTORY_KEY];
+  if (!stored || typeof stored !== "object") return null;
+  if (stored.dialog === "create") return { dialog: "create", listSlug: null };
+  if (stored.dialog === "edit" && stored.listSlug) {
+    return { dialog: "edit", listSlug: stored.listSlug };
   }
+  if (stored.dialog === null) return closedDialogState();
+  return null;
+}
 
-  window.history[`${mode}State`](window.history.state, "", url);
+function currentHref(): string {
+  return `${window.location.pathname}${window.location.search}${window.location.hash}`;
 }
 
 /**
- * REQ-0030: List dialogs are local UI state. Native history preserves direct
- * links and browser navigation without waiting for a Next RSC navigation.
+ * REQ-0033 / Wave 4: Never change the visible href for dialog open/close.
+ * Next 15 patches History API; stripping `?dialog=` on close still schedules RSC.
+ * Deep-link query is mount-only; closed state lives in history.state (preferred on read).
  */
-export function useListDialogRouteState() {
-  const searchParams = useSearchParams();
-  const [state, setState] = useState<ListDialogState>(() => parseListDialogState(searchParams));
+function writeListDialogHistory(
+  nextState: ListDialogState,
+  mode: "push" | "replace",
+): void {
+  const nextHistoryState: HistoryStateBag = {
+    ...asHistoryBag(window.history.state),
+    [URLIST_DIALOG_HISTORY_KEY]: nextState,
+  };
+  window.history[`${mode}State`](nextHistoryState, "", currentHref());
+}
+
+function readDialogState(defaultEditSlug?: string | null): ListDialogState {
+  return (
+    dialogStateFromHistory(window.history.state) ??
+    parseListDialogState(window.location.search, defaultEditSlug)
+  );
+}
+
+/**
+ * List create/edit overlays are local UI. Browser back uses history.state on the
+ * same href so Next does not schedule an `_rsc` flight.
+ */
+export function useListDialogRouteState(
+  options?: UseListDialogRouteStateOptions,
+) {
+  const defaultEditSlug = options?.defaultEditSlug ?? null;
+  const [state, setState] = useState<ListDialogState>(() =>
+    typeof window === "undefined"
+      ? closedDialogState()
+      : readDialogState(defaultEditSlug),
+  );
 
   useEffect(() => {
-    const syncFromHistory = () => setState(currentListDialogState());
+    const syncFromHistory = () => setState(readDialogState(defaultEditSlug));
     window.addEventListener("popstate", syncFromHistory);
     return () => window.removeEventListener("popstate", syncFromHistory);
-  }, []);
+  }, [defaultEditSlug]);
 
   const openCreateDialog = useCallback(() => {
     const nextState: ListDialogState = { dialog: "create", listSlug: null };
     setState(nextState);
-    writeListDialogUrl(nextState, "push");
+    writeListDialogHistory(nextState, "push");
   }, []);
 
-  const openEditDialog = useCallback((listSlug: string) => {
-    const nextState: ListDialogState = { dialog: "edit", listSlug };
-    setState(nextState);
-    writeListDialogUrl(nextState, "push");
-  }, []);
+  const openEditDialog = useCallback(
+    (listSlug?: string) => {
+      const slug = listSlug ?? defaultEditSlug;
+      if (!slug) return;
+      const nextState: ListDialogState = { dialog: "edit", listSlug: slug };
+      setState(nextState);
+      writeListDialogHistory(nextState, "push");
+    },
+    [defaultEditSlug],
+  );
 
   const closeDialog = useCallback(() => {
-    const nextState: ListDialogState = { dialog: null, listSlug: null };
+    const nextState = closedDialogState();
     setState(nextState);
-    writeListDialogUrl(nextState, "replace");
+    writeListDialogHistory(nextState, "replace");
   }, []);
 
   return {
