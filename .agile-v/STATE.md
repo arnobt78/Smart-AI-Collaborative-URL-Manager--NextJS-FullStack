@@ -74,10 +74,10 @@
 - **C6 scope (2026-08-19):** REQ-0028 / TASK-0034 is user-approved. Resume with server page guards/hydration, compact cold slots, synchronous list-summary updates, collapsible Activity Feed, and List/Insights layout polish.
 - **C6 completion (2026-08-19):** REQ-0028 / TASK-0034 complete. Protected data pages now render dynamically with persisted-session guards; requested data surfaces hydrate before client paint; list summaries receive completed URL mutation timestamps; Activity Feed is collapsed by default; Insights uses compact KPI cards and no duplicate activity tab. Jest (70 pass/5 skip), strict TypeScript, lint, production build, and hygiene scans pass.
 - **C6.1 completion (2026-08-19):** REQ-0029 / TASK-0035 supersedes the anonymous public-list viewer policy. Browse, shared detail, list discovery, collaborator reads, and view tracking require a persisted session; legacy position normalization is read-only; hydrated unified payloads retain URL comment counts and collaborator cache data. Jest (76 pass/5 skip), strict TypeScript, lint, production build, and hygiene scans pass.
-- **C6.2 completion (2026-08-20):** REQ-0030 / TASK-0036 localizes Lists create/edit dialog history, keeps deep links and browser back support, and keeps create/edit/delete dialogs pending until confirmed server completion plus committed paint. Jest (82 pass/5 skip), strict TypeScript, lint, production build, and hygiene scans pass.
+- **C6.2 completion (2026-08-20):** REQ-0030 / TASK-0036 localizes Lists create/edit dialog history, keeps deep links and browser back support, and keeps create/edit/delete dialogs pending until confirmed server completion plus committed paint. Jest (82 pass/5 skip), strict TypeScript, lint, production build, hygiene scans, and Vercel production deployment `dpl_DtLWyXz3HvVPi3gjyKS34e5qndPL` for commit `69530ad` pass.
 
 ## Next
 
 ```text
-Commit and deploy the validated REQ-0030 implementation, then collect live browser verification from the user.
+Collect live browser verification from the user for Create/Edit instant open/close and confirmed mutation pending behavior.
 ```

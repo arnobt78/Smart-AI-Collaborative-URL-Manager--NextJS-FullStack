@@ -272,3 +272,4 @@ Gate 2: BLOCKED — RISK-0016 is accepted; `EVAL_RESULTS.md` PASS/WAIVED evidenc
 | Confirmed dialog lifecycle | `AlertDialog.test.tsx`; `ListDialogCompletion.test.tsx`; `useListQueries.mutations.test.tsx` | PASS | Parent-controlled destructive pending state locks dismissal; create/edit retain pending controls through completion; delete retains optimistic rollback/typed impact behavior. |
 | Full validation | `npx tsc --noEmit`; `npm run lint`; `npm test -- --runInBand`; `npm run build` | PASS | Strict TypeScript, zero-warning lint, 82 passed / 5 skipped Jest tests, and optimized production build pass. |
 | Hygiene | direct-console/parser/secret scans; `git diff --check` | PASS | Diagnostics remain limited to `dev-log`, mutation routes retain shared parsing, no tracked secrets or whitespace errors. |
+| Production deployment | Vercel `dpl_DtLWyXz3HvVPi3gjyKS34e5qndPL` | PASS | Commit `69530ad` deployed Ready to `daily-urlist.vercel.app` on 2026-08-20. |
