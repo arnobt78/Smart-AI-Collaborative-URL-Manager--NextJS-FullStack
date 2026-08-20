@@ -30,6 +30,8 @@
 | 2026-08-19 | C6 / REQ-0028 complete: guarded dynamic data pages, compact cold slots, summary-cache commits, collapsed Activity Feed, and Insights/list-card polish validated locally. |
 | 2026-08-20 | C6.2 / REQ-0030 complete locally: Lists create/edit query state is native-history local; create/edit/delete dialogs stay pending through confirmation and committed paint. Commit/deploy next. |
 | 2026-08-20 | C6.3 / REQ-0031 complete locally: shared fixed/scroll headers use compact divider-free spacing; unused InputDialog removed. Commit/deploy next. |
+| 2026-08-20 | C6.4 / REQ-0032 planning: production trace confirms Home Create List uses a legacy RSC link; proposed local shared launcher awaits GATE-0020 approval. `resume_token=C6.4-HG1-INSTANT-CREATE-LAUNCHERS-2026-08-20` |
+| 2026-08-20 | C6.4 / REQ-0032 approved: implement the shared Home/List local Create List launcher under `C6.4-HG1-INSTANT-CREATE-LAUNCHERS-2026-08-20`. |
 
 ## Durable Human Gate checkpoints
 

@@ -10,9 +10,16 @@ interface ListDialogState {
   listSlug: string | null;
 }
 
-function parseListDialogState(searchParams: URLSearchParams): ListDialogState {
-  const dialog = searchParams.get("dialog");
-  const listSlug = searchParams.get("list");
+type SearchParamsLike = Pick<URLSearchParams, "get"> | null;
+
+function parseListDialogState(searchParams: SearchParamsLike): ListDialogState {
+  // Next may expose nullable search params during an initial client render.
+  // Native history remains the canonical fallback for local dialog state.
+  const params = searchParams ?? new URLSearchParams(
+    typeof window === "undefined" ? "" : window.location.search,
+  );
+  const dialog = params.get("dialog");
+  const listSlug = params.get("list");
 
   if (dialog === "create") return { dialog, listSlug: null };
   if (dialog === "edit" && listSlug) return { dialog, listSlug };

@@ -1,6 +1,6 @@
 # STATE.md
 
-**C6.3** | 2026-08-20
+**C6.4** | 2026-08-20
 
 ## Done
 
@@ -76,9 +76,11 @@
 - **C6.1 completion (2026-08-19):** REQ-0029 / TASK-0035 supersedes the anonymous public-list viewer policy. Browse, shared detail, list discovery, collaborator reads, and view tracking require a persisted session; legacy position normalization is read-only; hydrated unified payloads retain URL comment counts and collaborator cache data. Jest (76 pass/5 skip), strict TypeScript, lint, production build, and hygiene scans pass.
 - **C6.2 completion (2026-08-20):** REQ-0030 / TASK-0036 localizes Lists create/edit dialog history, keeps deep links and browser back support, and keeps create/edit/delete dialogs pending until confirmed server completion plus committed paint. Jest (82 pass/5 skip), strict TypeScript, lint, production build, hygiene scans, and Vercel production deployment `dpl_DtLWyXz3HvVPi3gjyKS34e5qndPL` for commit `69530ad` pass.
 - **C6.3 completion (2026-08-20):** REQ-0031 / TASK-0037 makes fixed and scrollable dialog headers compact and divider-free through one shared component; unused `InputDialog` was removed. Jest (83 pass/5 skip), strict TypeScript, lint, production build, hygiene scans, and Vercel production deployment `dpl_86AUZkR9imabm8AQsfvbB7sPKrS7` for commit `5ea0448` pass.
+- **C6.4 finding (2026-08-20):** Production tracing showed authenticated Home Create List CTAs used `/lists?dialog=create` link navigation, so they waited for a 2.98s RSC payload before a static form rendered. REQ-0032 replaced those launchers with page-local state and one shared create-dialog lifecycle.
+- **C6.4 completion (2026-08-20):** REQ-0032 / TASK-0038 reuses `CreateListDialog` for hydrated Home and Lists CTAs. Home now opens locally with native history and no RSC navigation; nullable Next search params safely fall back to the browser URL. Focused regressions, strict TypeScript, lint, Jest (83 pass/5 skip), production build, and hygiene scans pass.
 
 ## Next
 
 ```text
-Collect user browser verification for the shared fixed-header dialog visual contract.
+Commit, deploy, and collect user browser verification that Home Create List opens without an RSC request.
 ```

@@ -1,5 +1,14 @@
 # CHANGELOG.md
 
+## CR-0011 — C6.4 instant create-list launchers
+
+- **Cycle:** C6.4
+- **Affected requirement:** REQ-0032 (new)
+- **Change:** Replace remaining hydrated Home Create List link navigations with the existing local dialog-state approach and one reusable dialog lifecycle.
+- **Rationale:** Production trace shows the Home CTA waits on a 2.98s RSC payload for a static form.
+- **Impact:** Home/List client launchers and focused tests only; no API, schema, session, Redis, SSE, or mutation-contract change.
+- **Requested by / approval:** User reported the production defect and approved implementation on 2026-08-20.
+
 ## CR-0010 — C6.3 unified dialog visual contract
 
 - **Cycle:** C6.3

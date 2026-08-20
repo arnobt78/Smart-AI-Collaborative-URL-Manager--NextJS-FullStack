@@ -283,3 +283,12 @@ Gate 2: BLOCKED — RISK-0016 is accepted; `EVAL_RESULTS.md` PASS/WAIVED evidenc
 | Full validation | `npx tsc --noEmit`; `npm run lint`; `npm test -- --runInBand`; `npm run build` | PASS | Strict TypeScript, zero-warning lint, 83 passed / 5 skipped Jest tests, and optimized production build pass. |
 | Hygiene | direct-console/secret scans; `git diff --check` | PASS | Diagnostics remain limited to `dev-log`; no tracked secrets or whitespace errors. |
 | Production deployment | Vercel `dpl_86AUZkR9imabm8AQsfvbB7sPKrS7` | PASS | Commit `5ea0448` deployed Ready to `daily-urlist.vercel.app` on 2026-08-20. |
+
+## 2026-08-20 — REQ-0032 C6.4 instant create-list launchers
+
+| Scope | Command / evidence | Result | Notes |
+|---|---|---|---|
+| Local launcher regression | `HomePage.test.tsx`; `useListDialogRouteState.test.tsx` | PASS | Hydrated Home Create List is a local button, opens the shared dialog through native history, and never supplies a list-route href. |
+| Confirmed create lifecycle | `ListDialogCompletion.test.tsx` | PASS | Shared launcher preserves pending completion and detail-transition behavior. |
+| Full validation | `npx tsc --noEmit`; `npm run lint`; `npm test -- --runInBand`; `npm run build` | PASS | Strict TypeScript, zero-warning lint, 83 passed / 5 skipped Jest tests, and optimized production build pass. |
+| Hygiene | direct-console/parser/secret scans; `git diff --check` | PASS | Diagnostics remain limited to test mocks and `dev-log`; mutation routes retain shared parsing, no tracked secrets or whitespace errors. |

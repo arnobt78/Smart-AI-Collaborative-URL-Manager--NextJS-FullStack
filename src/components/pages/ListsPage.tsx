@@ -21,11 +21,11 @@ import {
   PAGE_HEADER,
   PAGE_STACK,
 } from "@/lib/ui-spacing";
-import { Dialog } from "@/components/ui/Dialog";
-import NewListPageClient from "@/components/pages/NewListPage";
 import EditListPageClient from "@/components/pages/EditListPage";
 import { DataSurfaceSlot } from "@/components/ui/DataSurfaceSlot";
+import { Dialog } from "@/components/ui/Dialog";
 import { useListDialogRouteState } from "@/hooks/useListDialogRouteState";
+import { CreateListDialog } from "@/components/lists/CreateListDialog";
 
 // Keep type alias for backward compatibility
 type List = UserList;
@@ -34,7 +34,6 @@ export default function ListsPageClient() {
   const router = useRouter();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [listToDelete, setListToDelete] = useState<List | null>(null);
-  const [createPending, setCreatePending] = useState(false);
   const [editPending, setEditPending] = useState(false);
   const {
     createDialogOpen,
@@ -351,20 +350,10 @@ export default function ListsPageClient() {
         pendingText="Deleting…"
         closeOnConfirm={false}
       />
-      <Dialog
+      <CreateListDialog
         open={createDialogOpen}
         onOpenChange={(open) => !open && closeDialog()}
-        title="Create a New List"
-        description="Organize your favorite URLs into beautiful, shareable collections."
-        size="wide"
-        headerMode="scroll"
-        pending={createPending}
-      >
-        <NewListPageClient
-          onClose={closeDialog}
-          onPendingChange={setCreatePending}
-        />
-      </Dialog>
+      />
       {editList ? (
         <Dialog
           open

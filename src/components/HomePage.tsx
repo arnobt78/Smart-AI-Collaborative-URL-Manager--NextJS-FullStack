@@ -12,10 +12,12 @@ import { LinkIcon, ShareIcon, PhotoIcon } from "@heroicons/react/24/outline";
 import { Bubbles, LayoutList, ListPlus } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { CreateNewListButton } from "@/components/ui/CreateNewListButton";
+import { CreateListDialog } from "@/components/lists/CreateListDialog";
 import { OptimizedImage } from "@/components/ui/OptimizedImage";
 import { ScrollReveal } from "@/components/ui/ScrollReveal";
 import { cn } from "@/lib/utils";
 import { CARD_PAD, HEADING_STACK, MARKETING_STACK } from "@/lib/ui-spacing";
+import { useListDialogRouteState } from "@/hooks/useListDialogRouteState";
 
 const features = [
   {
@@ -40,6 +42,8 @@ const features = [
 
 /** Static marketing home — no session wait / spinner. */
 function MarketingHome() {
+  const { createDialogOpen, openCreateDialog, closeDialog } = useListDialogRouteState();
+
   return (
     <div className="min-h-screen w-full">
       {/* Hero Section */}
@@ -84,6 +88,7 @@ function MarketingHome() {
               <CreateNewListButton
                 icon={ListPlus}
                 className="text-sm px-6 sm:px-8"
+                onClick={openCreateDialog}
               />
             </div>
             <div className="w-full sm:w-auto">
@@ -222,10 +227,15 @@ function MarketingHome() {
               label="Get Started Now With Your Daily URL List"
               icon={Bubbles}
               className="text-sm px-6 sm:px-8"
+              onClick={openCreateDialog}
             />
           </ScrollReveal>
         </div>
       </section>
+      <CreateListDialog
+        open={createDialogOpen}
+        onOpenChange={(open) => !open && closeDialog()}
+      />
     </div>
   );
 }

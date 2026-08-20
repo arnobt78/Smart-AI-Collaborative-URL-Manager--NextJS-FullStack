@@ -21,5 +21,6 @@
 | ART-0028.1 | REQ-0028 | `src/lib/{page-auth,server-data}.ts`; requested server pages; List/Activity/Insights UI; store/query utilities; focused tests | Protected SSR page guards, request hydration, stable data slots, synchronous summary-cache commits, and compact responsive disclosures/cards. |
 | ART-0030.1 | REQ-0030 | `src/hooks/useListDialogRouteState.ts`; Lists/create/edit pages; shared CTA/confirmation dialog; focused tests | Native-history local list dialogs and parent-owned confirmed create/edit/delete pending lifecycle. |
 | ART-0031.1 | REQ-0031 | `src/components/ui/Dialog.tsx`; dialog tests | One divider-free compact header contract for every active dialog; unused duplicate input overlay removed. |
+| ART-0032.1 | REQ-0032 | `src/components/lists/CreateListDialog.tsx`; `HomePage.tsx`; `ListsPage.tsx`; focused tests | One local create-dialog lifecycle for hydrated Home and Lists CTAs; native history only, no RSC overlay navigation. |
 
 Risk level: R2 (production UI and repository-wide behavior-sensitive lint remediation). No API, database, authorization, or session contract changes are authorized.

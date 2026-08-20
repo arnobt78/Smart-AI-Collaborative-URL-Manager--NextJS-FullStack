@@ -613,3 +613,21 @@ These describe the current product as verified in code. They are **Accepted as b
 
 **Trace:** TASK-0037, DEC-0032, ART-0031.1, C6.3 checkpoint.
 **Status:** Completed and locally validated [C6.3] on 2026-08-20.
+
+---
+
+### REQ-0032 — C6.4 instant create-list launchers (proposed 2026-08-20)
+
+**Priority:** P1
+**Type:** UX / client-navigation performance
+
+**Acceptance criteria:**
+
+- [ ] Every already-hydrated Create List CTA opens the shared Create List dialog synchronously on its current page without `router.push`, `router.replace`, or an RSC request.
+- [ ] Home and Lists reuse one Create List dialog launcher/content contract; direct `?dialog=create` deep links remain supported on their respective pages.
+- [ ] Close, Escape, backdrop, and browser-back transitions remain immediate when no mutation is pending.
+- [ ] Create retains the existing confirmed pending lifecycle, cache seeding, detail transition, API/session behavior, and typed cache reconciliation.
+- [ ] Focused regressions prove the Home CTA is a local button, no router navigation is used for hydrated opens, and deep-link behavior is preserved.
+
+**Trace:** TASK-0038, DEC-0033, CR-0011, GATE-0020.
+**Status:** Completed and locally validated [C6.4] on 2026-08-20.

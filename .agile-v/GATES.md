@@ -145,6 +145,18 @@ Implementation is authorized. Gate 2 remains required before any release decisio
 
 ---
 
+## GATE-0020 — Human Gate 1 (C6.4 instant create-list launchers)
+
+| Field | Value |
+|-------|-------|
+| Type | Human-Decision |
+| Status | **APPROVED 2026-08-20** |
+| Evidence | REQ-0032; TASK-0038; DEC-0033; CR-0011 |
+| Required human action | Completed — user explicitly approved the C6.4 implementation plan. |
+| Scope | Hydrated Home/List Create List launchers, shared dialog lifecycle extraction, and focused tests only. |
+
+---
+
 ## GATE-0002 — Human Gate 2 (release / acceptance)
 
 | Field | Value |

@@ -400,6 +400,19 @@ Append-only. Newest entries at bottom.
 
 ---
 
+## DEC-0033 — Localize hydrated create-list launchers
+
+| Field | Value |
+|---|---|
+| Timestamp | 2026-08-20 |
+| Agent | Agile V C6.4 planning |
+| Decision | Proposed: reuse the shared Create List dialog lifecycle on both Home and Lists, with native local history state for hydrated CTA opens. |
+| Rationale | Home CTAs still render the legacy `/lists?dialog=create` link, which triggers a slow RSC navigation before a static form can appear. A local overlay needs no server payload. |
+| Linked REQs | REQ-0032 |
+| Status | Implemented and locally validated 2026-08-20. |
+
+---
+
 ## DEC-0031 — Hydrate dynamic protected data surfaces and reserve cold slots
 
 | Field | Value |

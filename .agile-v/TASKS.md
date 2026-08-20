@@ -202,3 +202,9 @@ RSC shells · densify/Zod/SHA/Next16
 1. Apply the compact divider-free Create List header rhythm to every shared-dialog header mode.
 2. Remove the verified-unused standalone input-overlay implementation without touching active dialog behavior.
 3. Add focused component-contract coverage, validate, document, commit, and deploy.
+
+### TASK-0038 — C6.4 instant create-list launchers — DONE
+
+1. Extract the already-shared create-list dialog content/lifecycle so Home and Lists do not duplicate overlay or mutation behavior.
+2. Wire hydrated Home CTA clicks to native local dialog state and preserve page-local direct-link/history behavior without Next RSC navigation.
+3. Add focused Home/List open-close/history regressions; run the full validation/hygiene suite, update records, commit, and deploy.
