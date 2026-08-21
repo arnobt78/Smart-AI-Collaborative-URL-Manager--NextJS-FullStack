@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { isForceGuest } from "@/lib/logout-client";
 
 interface SessionUser {
   id: string;
@@ -14,8 +15,12 @@ interface SessionResponse {
 /**
  * Shared hook to get current session with caching
  * Uses React Query to cache the session and prevent duplicate fetches
+ * C7.7: while force-guest (optimistic logout), skip fetch — return null user
+ * so a still-valid cookie cannot flip UI back to Marketing mid-signout.
  */
 export function useSession() {
+  const forceGuest = isForceGuest();
+
   const { data, isLoading, isFetching, error, refetch } = useQuery<SessionResponse>({
     queryKey: ["session"],
     queryFn: async () => {
@@ -25,6 +30,7 @@ export function useSession() {
       }
       return response.json();
     },
+    enabled: !forceGuest,
     // CRITICAL: Cache forever until invalidated (after login/logout)
     // With staleTime: Infinity, data never becomes stale automatically
     // Only becomes stale when manually invalidated (login/logout), then refetches once
@@ -39,6 +45,17 @@ export function useSession() {
     // CRITICAL: Use stale data immediately if available, fetch fresh in background
     placeholderData: (previousData) => previousData, // Keep previous data visible while refetching
   });
+
+  if (forceGuest) {
+    return {
+      user: null,
+      isLoading: false,
+      isFetching: false,
+      isAuthenticated: false,
+      error: null,
+      refetch,
+    };
+  }
 
   return {
     user: data?.user || null,

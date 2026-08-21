@@ -4,12 +4,14 @@
  * useWasAuthedHint — SSR cookie/session seed + session sync.
  * initialWasAuthed from cookies() avoids Auth flash / empty profile on refresh.
  * C7.7: force-guest (optimistic logout) wins over SSR session_token seed.
+ * Keep forceGuest until login — clearing it when session briefly looks empty
+ * caused Auth → Marketing → Auth flicker.
  */
 import { useEffect, useState } from "react";
 import { useSession } from "@/hooks/useSession";
 import { WAS_AUTHED_KEY } from "@/constants/auth";
 import { setWasAuthedHintClient } from "@/lib/was-authed";
-import { clearForceGuest, isForceGuest } from "@/lib/logout-client";
+import { isForceGuest } from "@/lib/logout-client";
 
 /**
  * @param initialWasAuthed — from server cookies() (urlist_was_authed or session_token)
@@ -38,16 +40,11 @@ export function useWasAuthedHint(initialWasAuthed: boolean): boolean {
   useEffect(() => {
     if (isForceGuest()) {
       setHint(false);
-      // Signout landed — drop flag so normal guest flow resumes
-      if (!isLoading && !isAuthenticated) {
-        clearForceGuest();
-      }
       return;
     }
     if (isAuthenticated && user?.email) {
       setWasAuthedHintClient(true);
       setHint(true);
-      clearForceGuest();
     } else if (!isLoading && !isAuthenticated) {
       setWasAuthedHintClient(false);
       setHint(false);
