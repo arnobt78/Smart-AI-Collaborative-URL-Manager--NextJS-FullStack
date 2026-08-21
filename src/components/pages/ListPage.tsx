@@ -207,7 +207,7 @@ export default function ListPageClient() {
       });
 
       // Redirect to login page immediately (no delay to prevent flicker)
-      router.push("/");
+      router.push("/login");
     } else {
       // The authenticated session or loaded list remains available.
       hasCheckedAuthRef.current = true;

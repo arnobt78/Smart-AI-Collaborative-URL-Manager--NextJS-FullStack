@@ -670,3 +670,16 @@ Append-only. Newest entries at bottom.
 | Rationale | Caller-side optimistic patches and invalidations were duplicating requests and could snapshot already-mutated state. One owner preserves immediate UI while preventing stale cache flashes. |
 | Linked REQs | REQ-0026 |
 | Status | Implemented and locally validated. |
+
+---
+
+## DEC-0029 — Chrome-free `/login` route (C7.8)
+
+| Field | Value |
+|---|---|
+| Timestamp | 2026-08-21 |
+| Agent | Cursor |
+| Decision | Move Auth to `/login` with root layout skipping Navbar/Footer via middleware `x-pathname`; guests redirect from `/`; logout/401 → `/login`. Drop Auth fixed-overlay scrollport. |
+| Rationale | Overlay + `scrollbar-gutter: stable` caused double tracks and L↔R shift; a dedicated route gives one document scrollbar and no shell chrome. |
+| Linked REQs | C7.8 auth UX |
+| Status | Implemented and locally validated. |

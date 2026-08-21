@@ -334,5 +334,13 @@ RSC shells · densify/Zod/SHA/Next16
 
 **Dependencies:** REQ-0048; plan implement approval.
 
+### TASK-0054 — C7.8 `/login` chrome-free Auth — DONE
+
+1. `/login` page + middleware `x-pathname` + layout skip shell.
+2. Guests `/`→`/login`; logout/401→`/login`; Auth in-flow scroll.
+3. Validate + sync docs.
+
+**Dependencies:** User UX after C7.7; overlay scrollbar issues.
+
 
 

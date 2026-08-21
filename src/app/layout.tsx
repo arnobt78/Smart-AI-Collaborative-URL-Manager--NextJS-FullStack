@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Suspense } from "react";
 import { Inter, Roboto_Mono } from "next/font/google";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import "./globals.css";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
@@ -10,8 +10,9 @@ import { QueryProvider } from "@/components/providers/QueryProvider";
 import { PostHogPageview } from "@/components/providers/PostHogProvider";
 import { ToastProvider } from "@/components/ui/Toaster";
 import { AuthToastBridge } from "@/components/AuthToastBridge";
-import { WAS_AUTHED_COOKIE } from "@/constants/auth";
+import { WAS_AUTHED_COOKIE, FORCE_GUEST_COOKIE } from "@/constants/auth";
 import { isWasAuthedCookieValue } from "@/lib/was-authed";
+import { isForceGuestCookieValue } from "@/lib/logout-client";
 // DISABLED: UserDataPrefetcher causes duplicate API calls
 // import { UserDataPrefetcher } from "@/components/prefetch/UserDataPrefetcher";
 
@@ -167,10 +168,18 @@ export default async function RootLayout({
   children: React.ReactNode;
 }) {
   // SSR wasAuthed / session_token → Navbar profile skeleton on first paint
+  // C7.7: force-guest cookie → guest (no Marketing/avatar mismatch)
   const cookieStore = await cookies();
-  const initialWasAuthed =
-    isWasAuthedCookieValue(cookieStore.get(WAS_AUTHED_COOKIE)?.value) ||
-    Boolean(cookieStore.get("session_token")?.value);
+  const forceGuest = isForceGuestCookieValue(
+    cookieStore.get(FORCE_GUEST_COOKIE)?.value,
+  );
+  const initialWasAuthed = forceGuest
+    ? false
+    : isWasAuthedCookieValue(cookieStore.get(WAS_AUTHED_COOKIE)?.value) ||
+      Boolean(cookieStore.get("session_token")?.value);
+
+  const pathname = (await headers()).get("x-pathname") ?? "";
+  const isAuthRoute = pathname === "/login";
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -227,13 +236,20 @@ export default async function RootLayout({
             {/* <UserDataPrefetcher /> */}
             {/* Static BG outside Suspense — never remounts with searchParams */}
             <FloatingBackground />
-            <div className="flex flex-col min-h-screen bg-transparent">
-              <Navbar initialWasAuthed={initialWasAuthed} />
-              <main className="flex-grow mx-auto max-w-7xl w-full px-2 sm:px-4 py-6 sm:py-10">
-                {children}
-              </main>
-              <Footer />
-            </div>
+            {isAuthRoute ? (
+              <main className="min-h-dvh w-full">{children}</main>
+            ) : (
+              <div
+                data-app-shell
+                className="flex flex-col min-h-screen bg-transparent"
+              >
+                <Navbar initialWasAuthed={initialWasAuthed} />
+                <main className="flex-grow mx-auto max-w-7xl w-full px-2 sm:px-4 py-6 sm:py-10">
+                  {children}
+                </main>
+                <Footer />
+              </div>
+            )}
             {/* PostHog island only — useSearchParams must not blank chrome */}
             <Suspense fallback={null}>
               <PostHogPageview />

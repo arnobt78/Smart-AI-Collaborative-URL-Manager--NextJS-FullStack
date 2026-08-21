@@ -7,7 +7,7 @@
  * Kept as custom panel (not Radix) so sticky Navbar does not scroll-lock.
  * Order: name+email → separator → utility links → separator → Logout.
  * C7.7: Optimistic logout — queue goodbye, force-guest, clear caches, keepalive
- * signout in background, immediate replace("/") → Auth (no Marketing wait).
+ * signout in background, immediate replace("/login") → chrome-free Auth.
  */
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
@@ -72,7 +72,6 @@ export function ProfileDropdown({
 
     // Toast first — survives hard nav via sessionStorage + AuthToastBridge
     queueAuthToast({ kind: "goodbye", name });
-    markForceGuest();
     setWasAuthedHintClient(false);
 
     void queryClient.cancelQueries();
@@ -87,6 +86,9 @@ export function ProfileDropdown({
       }
     });
 
+    // Mark force-guest LAST so cookie is on the next document request
+    markForceGuest();
+
     // Background: clear httpOnly session_token + DB session (do not await)
     void fetch("/api/auth/signout", {
       method: "POST",
@@ -94,7 +96,8 @@ export function ProfileDropdown({
       keepalive: true,
     });
 
-    window.location.replace("/");
+    // Chrome-free Auth lives on /login (one document scrollbar; no overlay)
+    window.location.replace("/login");
   };
 
   return (

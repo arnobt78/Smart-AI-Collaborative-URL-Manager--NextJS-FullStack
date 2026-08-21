@@ -1,16 +1,30 @@
 import HomePage from "@/components/HomePage";
 import { cookies } from "next/headers";
-import { WAS_AUTHED_COOKIE } from "@/constants/auth";
+import { redirect } from "next/navigation";
+import { FORCE_GUEST_COOKIE, WAS_AUTHED_COOKIE } from "@/constants/auth";
 import { isWasAuthedCookieValue } from "@/lib/was-authed";
+import { isForceGuestCookieValue } from "@/lib/logout-client";
 
 /**
- * Home — pass SSR wasAuthed cookie (or session_token) so returning users paint
- * Marketing first (no Auth flash on hard refresh).
+ * Home — marketing for returning/authed users.
+ * Guests and force-guest → /login (chrome-free Auth, one document scrollbar).
  */
 export default async function Home() {
   const cookieStore = await cookies();
-  const initialWasAuthed =
-    isWasAuthedCookieValue(cookieStore.get(WAS_AUTHED_COOKIE)?.value) ||
-    Boolean(cookieStore.get("session_token")?.value);
+  const forceGuest = isForceGuestCookieValue(
+    cookieStore.get(FORCE_GUEST_COOKIE)?.value,
+  );
+  const hasWasAuthed = isWasAuthedCookieValue(
+    cookieStore.get(WAS_AUTHED_COOKIE)?.value,
+  );
+  const hasSessionToken = Boolean(cookieStore.get("session_token")?.value);
+  const initialWasAuthed = forceGuest
+    ? false
+    : hasWasAuthed || hasSessionToken;
+
+  if (!initialWasAuthed) {
+    redirect("/login");
+  }
+
   return <HomePage initialWasAuthed={initialWasAuthed} />;
 }

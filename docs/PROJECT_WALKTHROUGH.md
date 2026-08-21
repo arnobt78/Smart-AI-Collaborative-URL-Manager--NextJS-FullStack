@@ -9,9 +9,9 @@ Next 15 URL bookmark manager. Demo: https://daily-urlist.vercel.app/
 ## Layout
 
 - Pages → `components/pages/*` · `app/api/**` · SEO `layout.tsx` + sitemap
-- Auth: `Auth.tsx` · `ProfileDropdown` · `UserAvatar` · `lib/robohash.ts` · `constants/auth.ts`
-- Flash: SSR `WAS_AUTHED_COOKIE` / `session_token` → `useWasAuthedHint` · guests Auth · returning Marketing (no spinner)
-- Auth UI: split viewport inside `max-w-7xl` — left Welcome typewriter + about-process (no center divider / left logo); right labeled Sign In + Sign up row; no 8s overlay
+- Auth: `/login` → `Auth.tsx` (chrome-free) · `ProfileDropdown` · `UserAvatar` · `lib/robohash.ts` · `constants/auth.ts` · `middleware.ts` `x-pathname`
+- Flash: SSR `WAS_AUTHED_COOKIE` / `session_token` → Marketing on `/`; guests `redirect("/login")`
+- Auth UI: split viewport inside `max-w-7xl` — left Welcome typewriter + about-process; right Sign In + Sign up; sticky login when fits
 - Guest credentials: opaque dropdown is raised above staggered Auth rows; trigger exposes expanded/menu ARIA
 - CTAs: `src/lib/ui/glass-*` shadow-glow (stock recipe); Auth Sign In Sparkles
 - Chrome: shared `UI_CHROME_ROW`; Navbar stays centered in `h-14`; Footer centers at desktop and uses `min-h-14` when compact content stacks
@@ -19,7 +19,7 @@ Next 15 URL bookmark manager. Demo: https://daily-urlist.vercel.app/
 - Spacing: `lib/ui-spacing.ts` PAGE/SECTION/MARKETING/FORM/LIST/HEADING_STACK/PAGE_HEADER/CARD_PAD; heading stacks have zero added title/subtitle gap only.
 - Layout main: `py-6 sm:py-10` · `html { scrollbar-gutter: stable }`
 - Auth toasts: `lib/auth-toast.ts` + `AuthToastBridge`; UI stack bottom-right + `toast-slide-in`
-- Logout: menu dismisses immediately; server-confirmed sign-out clears React Query and persisted query metadata before `location.replace("/")`; a non-blocking status appears only after 1.2s.
+- Logout: menu dismisses immediately; force-guest + keepalive `/api/auth/signout`; navigate `/login`.
 - Logs: `lib/dev-log.ts` — SSE/AI/import quiet in prod
 - Deploy: Sentry upload only if `SENTRY_UPLOAD_SOURCEMAPS=1` · `prisma.config.ts` seed
 - Lists: slug-safe placeholder · ListPage `currentList` sync · My Lists title → `/list/[slug]` · SC create stays
@@ -33,8 +33,8 @@ Next 15 URL bookmark manager. Demo: https://daily-urlist.vercel.app/
 - Data sync: SSR prefetch/dehydrate (C6.7) + optimistic `currentList` + `invalidateMutationImpact` + C7.1 `densifyBrowsePublicLists` / `dropUnifiedListCache` + SSE.
 - Soft-nav: warm full-parity chrome (C7.0); cold `RoutePageSkeleton` (+ pulse C7.3); browse densify (C7.1); rare Links `prefetch={false}` (C7.2); api-docs spinner shell; api-status `ApiStatusChrome` + header Refresh/refreshing… (C7.5–C7.6).
 - Insights: overview+activity share one cached list scan; status route slim (no external metadata probe); status page client-fetches.
-- Logout: C7.7 optimistic — forceGuest until login; goodbye toast; clear RQ/wasAuthed; keepalive signout; skip session fetch while forceGuest (no Auth↔Marketing flicker). Instant `/` Auth; no `/login`.
-- Open later: further lists/browse cold API slim; status API speed OOS.
+- Logout: C7.8 — forceGuest cookie+SS; keepalive signout; clear RQ/`react-query:*`/session cookies; `replace("/login")` (no nav/footer; one html scrollbar). No Auth overlay on `/`.
+- Open later: optional `(auth)` route-group; lists/browse cold API slim; status API speed OOS.
 - Compact data UI: `DataSurfaceSlot` + `useDelayedPending`; Activity Feed default-collapsed; Insights aligned tabs.
 - Mutation UX: visibility, list, URL, collaborator, comment, collection, archive, import, metadata, and health actions retain optimistic cache/store data with one typed impact; collection refresh uses one response; dialogs keep only local submit guards; external visits use safe semantic new-tab links.
 - C3/C5 boundaries: `lib/api-validation.ts` owns strict Zod payload/identifier parsing; opaque session cookies persist as SHA-256 digests with legacy rotation and persistence-backed revocation; `invalidateMutationImpact` maps active mutation cache families once, including delete-list. Per-request `React.cache` on session/user lookup.

@@ -53,7 +53,9 @@ export const WAS_AUTHED_KEY = "urlist:wasAuthed";
 export const WAS_AUTHED_COOKIE = "urlist_was_authed";
 
 /**
- * C7.7: sessionStorage — force guest Auth on next `/` paint after optimistic logout
- * even if httpOnly session_token still present until background signout lands.
+ * C7.7: force guest after optimistic logout.
+ * sessionStorage for client; non-httpOnly cookie so SSR paints Auth
+ * (avoids #418 hydration when session_token still present).
  */
 export const FORCE_GUEST_KEY = "urlist:forceGuest";
+export const FORCE_GUEST_COOKIE = "urlist_force_guest";

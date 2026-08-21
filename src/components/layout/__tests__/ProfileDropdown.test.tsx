@@ -1,4 +1,4 @@
-/** C7.7: Optimistic logout — force-guest + keepalive signout + immediate `/`. */
+/** C7.7: Optimistic logout — force-guest + keepalive signout + /login. */
 import { fireEvent, render, screen } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ToastProvider } from "@/components/ui/Toaster";

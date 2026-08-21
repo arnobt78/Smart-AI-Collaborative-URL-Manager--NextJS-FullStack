@@ -404,3 +404,13 @@ Gate 2: BLOCKED — RISK-0016 is accepted; `EVAL_RESULTS.md` PASS/WAIVED evidenc
 | Logout | ProfileDropdown.test.tsx | PASS | toast + forceGuest + keepalive; no await. |
 | Full validation | `npx tsc --noEmit`; `npm run lint`; `npm test` | PASS | 104/5 Jest; lint 0. |
 | Flicker fix | useWasAuthedHint + useSession | PASS | forceGuest until login; session fetch disabled while forceGuest (`07418d8`). |
+
+## 2026-08-21 — C7.8 `/login` chrome-free Auth
+
+| Scope | Command / evidence | Result | Notes |
+|---|---|---|---|
+| `/login` | `src/app/login/page.tsx` + middleware + layout | PASS | No nav/footer; Auth in-flow. |
+| Logout | ProfileDropdown → `/login` | PASS | forceGuest + keepalive + RQ clear. |
+| Guests | `app/page.tsx` redirect | PASS | `/` → `/login` when not authed. |
+| Validation | `tsc`; `lint`; Jest related + full | PASS | 105/5 Jest; lint 0; tsc. |
+| OOS | densify/JWT-null SSR/Python/Vite | — | Unchanged. |

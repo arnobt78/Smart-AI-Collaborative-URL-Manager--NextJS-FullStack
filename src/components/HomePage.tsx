@@ -1,14 +1,13 @@
 "use client";
 
 /**
- * HomePage — authenticated marketing home vs Auth.
- * Flash fix: initialWasAuthed from SSR cookie so returning users never paint Auth
- * on hard refresh. Guests (no cookie) see Auth immediately — no spinner.
+ * HomePage — authenticated marketing home.
+ * Guests / force-guest → /login (server redirect in app/page.tsx; client fallback here).
  */
+import { useEffect } from "react";
 import { useSession } from "@/hooks/useSession";
 import { useWasAuthedHint } from "@/hooks/useWasAuthedHint";
 import { isForceGuest } from "@/lib/logout-client";
-import Auth from "./Auth";
 import { LinkIcon, ShareIcon, PhotoIcon } from "@heroicons/react/24/outline";
 import { Bubbles, LayoutList, ListPlus } from "lucide-react";
 import { Button } from "@/components/ui/Button";
@@ -254,12 +253,17 @@ export type HomePageProps = {
 export default function HomePage({ initialWasAuthed = false }: HomePageProps) {
   const { user: session, isLoading: sessionLoading } = useSession();
   const wasAuthedHint = useWasAuthedHint(initialWasAuthed);
-  // C7.7: optimistic logout — Auth even if RQ still has a stale session row
   const forceGuest = isForceGuest();
+  const goLogin = forceGuest || !wasAuthedHint;
 
-  // Guest / force-guest → Auth first (no Marketing + avatar)
-  if (forceGuest || !wasAuthedHint) {
-    return <Auth />;
+  useEffect(() => {
+    if (goLogin) {
+      window.location.replace("/login");
+    }
+  }, [goLogin]);
+
+  if (goLogin) {
+    return null;
   }
 
   // Confirmed session → marketing
@@ -273,5 +277,5 @@ export default function HomePage({ initialWasAuthed = false }: HomePageProps) {
   }
 
   // Hint stale / logged out after load
-  return <Auth />;
+  return null;
 }

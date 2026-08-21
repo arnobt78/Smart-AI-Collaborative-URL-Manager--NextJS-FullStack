@@ -256,7 +256,7 @@ export async function getList(
         
         // IMMEDIATELY redirect to login page - synchronous redirect
         // Use replace() to prevent back button issues and ensure immediate redirect
-        window.location.replace("/");
+        window.location.replace("/login");
         
         // Also throw error so component can handle it if redirect somehow fails
         throw createRequestError("Unauthorized - Please login to access this list", {

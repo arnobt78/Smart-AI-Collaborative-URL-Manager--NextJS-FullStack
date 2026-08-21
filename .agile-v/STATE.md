@@ -1,11 +1,11 @@
 # STATE.md
 
-**C7.7** | 2026-08-21
+**C7.8** | 2026-08-21
 
 ## Done
 
-- **C7.7:** Optimistic logout — forceGuest until login; skip session fetch; keepalive signout; Navbar gated on hint. Flicker fix: do not clear forceGuest on brief empty session.
-- Through C7.6 Refresh · C7.5 chrome loading · densify.
+- **C7.8:** `/login` chrome-free Auth; middleware `x-pathname`; layout skips nav/footer; `/` guests→`/login`; logout/401→`/login`; force-guest cookie; one html scrollbar (no Auth overlay).
+- C7.7 force-guest until login · C7.6 Refresh · densify.
 
 ## Human
 
@@ -14,17 +14,17 @@
 
 ## Remaining (user later)
 
-- Spacing/button polish; lists/browse cold API slim; status API speed OOS
+- Optional `(auth)` route-group; lists/browse cold API slim; status API speed OOS
 
 ## Current checkpoint
 
-- **Stage:** C7.7 + flicker fix on `main` (`07418d8`).
-- **Validation:** Jest 104/5 · lint 0 · tsc.
-- **Docs:** CLAUDE · walkthrough · `.agile-v` synced.
+- **Stage:** C7.8 `/login` on `main` (pending push).
+- **Validation:** Jest 105/5 · lint 0 · tsc.
+- **Docs:** CLAUDE · walkthrough · `.agile-v` synced this session.
 
 ## Next
 
 ```text
-Prod: Logout → Auth stays (no Marketing bounce); goodbye toast.
+Prod: Logout → /login (no nav/footer; one scrollbar). Sign-in → home.
 TASK-0039.
 ```

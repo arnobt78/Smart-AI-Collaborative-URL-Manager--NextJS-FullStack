@@ -1,10 +1,9 @@
 "use client";
 
 /**
- * Auth — split viewport (Stockly-style columns, Daily Urlist dark glass).
- * Left: Welcome typewriter + about-process (always visible).
- * Right: Sign In form with labels + guest dropdown (always interactive).
- * No 8s blocking overlay — form usable immediately on mobile + desktop.
+ * Auth — /login page body (chrome-free via root layout isAuthRoute).
+ * Document/html is the only scrollport (stable gutter). Both columns
+ * x/y-centered; sm+ login sticky when the form fits the viewport.
  */
 import { useState, useEffect, useRef } from "react";
 import { OptimizedImage } from "@/components/ui/OptimizedImage";
@@ -78,6 +77,9 @@ export default function Auth() {
   const [isGuestDropdownOpen, setIsGuestDropdownOpen] = useState(false);
   /** Selected demo account id — PORTABLE_AUTH_UI_GUIDE §2.1 */
   const [selectedGuestId, setSelectedGuestId] = useState<string | null>(null);
+  /** sm+: pin login when it fits the viewport; else scroll with overlay */
+  const [pinLogin, setPinLogin] = useState(true);
+  const loginColRef = useRef<HTMLElement>(null);
   const guestDropdownRef = useRef<HTMLDivElement>(null);
 
   // Get redirect URL from sessionStorage (set when user tries to access protected resource)
@@ -113,6 +115,34 @@ export default function Auth() {
       const img = new Image();
       img.src = robohashUrl(account.email, 72);
     });
+  }, []);
+
+  // sm+: sticky login only while the form fits the viewport
+  useEffect(() => {
+    const col = loginColRef.current;
+    if (!col) return;
+
+    const update = () => {
+      const card = col.querySelector("[data-auth-card]");
+      const contentH =
+        card instanceof HTMLElement ? card.offsetHeight : col.scrollHeight;
+      const style = getComputedStyle(col);
+      const padY =
+        (parseFloat(style.paddingTop) || 0) +
+        (parseFloat(style.paddingBottom) || 0);
+      setPinLogin(contentH + padY <= window.innerHeight);
+    };
+
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(col);
+    const card = col.querySelector("[data-auth-card]");
+    if (card) ro.observe(card);
+    window.addEventListener("resize", update);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", update);
+    };
   }, []);
 
   useEffect(() => {
@@ -340,9 +370,11 @@ export default function Auth() {
   const inputClass = `${UI_FORM_CONTROL} box-border placeholder:text-gray-400 focus:ring-[#00ff99] focus:border-transparent`;
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950 md:overflow-hidden">
-      {/* Background Image — full bleed */}
-      <div className="absolute inset-0 w-full h-full opacity-20 pointer-events-none">
+    <div
+      data-auth-page
+      className="relative min-h-dvh w-full bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950"
+    >
+      <div className="pointer-events-none absolute inset-0 min-h-full opacity-20">
         <OptimizedImage
           src="/global.svg"
           alt="Decorative background"
@@ -353,17 +385,15 @@ export default function Auth() {
         />
       </div>
 
-      {/* Content shell matches app max-w-7xl (Auth is fixed so layout main does not apply) */}
-      <div className="relative z-10 mx-auto flex min-h-full w-full max-w-7xl flex-col px-2 sm:px-4 md:h-full md:min-h-0">
-        <div className="grid min-h-full w-full flex-1 md:h-full md:grid-cols-2 md:min-h-0">
-          {/* LEFT — Welcome typewriter + about (no divider, no logo) */}
+      <div className="relative z-10 mx-auto grid min-h-dvh w-full max-w-7xl sm:grid-cols-2 sm:items-stretch px-2 sm:px-4">
+          {/* LEFT — x/y centered in column */}
           <aside
             className={cn(
-              "relative flex flex-col justify-center p-6 sm:p-8 lg:p-10 md:overflow-y-auto",
+              "relative flex min-h-dvh flex-col items-center justify-center p-6 sm:p-8 lg:p-10",
               MARKETING_STACK,
             )}
           >
-            <div className="flex max-w-lg flex-col items-start gap-4 sm:gap-6">
+            <div className="flex w-full max-w-lg flex-col items-start gap-4 sm:gap-6">
               <h1 className="text-lg sm:text-xl lg:text-5xl font-medium text-[#00ff99] drop-shadow-[0_0_15px_rgba(0,255,153,0.6)] animate-fade-in">
                 Welcome!
               </h1>
@@ -400,7 +430,7 @@ export default function Auth() {
             </div>
 
             {/* Title+blurb stay tight (gap-1.5); larger gap before feature cards */}
-            <div className="flex max-w-lg flex-col gap-4 sm:gap-6">
+            <div className="flex w-full max-w-lg flex-col gap-4 sm:gap-6">
               <div className="flex flex-col gap-1.5">
                 <div
                   className={cn(showAbout ? "animate-slide-up" : "opacity-0")}
@@ -480,9 +510,16 @@ export default function Auth() {
             </div>
           </aside>
 
-          {/* RIGHT — Sign In form (always interactive) */}
-          <section className="relative flex items-center justify-center p-4 sm:p-6 lg:p-10 md:overflow-y-auto">
+          {/* RIGHT — x/y centered; sticky when form fits, else scrolls with overlay */}
+          <section
+            ref={loginColRef}
+            className={cn(
+              "relative flex min-h-dvh flex-col items-center justify-center p-4 sm:p-6 lg:p-10",
+              pinLogin && "sm:sticky sm:top-0 sm:self-start",
+            )}
+          >
             <div
+              data-auth-card
               className={cn(
                 "w-full max-w-md bg-white/10 backdrop-blur-md border border-white/20 rounded-xl sm:rounded-2xl shadow-2xl",
                 CARD_PAD,
@@ -721,7 +758,6 @@ export default function Auth() {
               </form>
             </div>
           </section>
-        </div>
       </div>
     </div>
   );

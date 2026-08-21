@@ -1,5 +1,13 @@
 # CHANGELOG.md
 
+## CR-0026 — C7.8 `/login` chrome-free Auth
+
+- **Cycle:** C7.8
+- **Change:** `/login` route; middleware `x-pathname`; layout skips shell; guests `/`→`/login`; logout/401→`/login`; Auth page scroll (no overlay double-track).
+- **Rationale:** Overlay Auth fought stable scrollbar gutter (double track + resize shift).
+- **Impact:** login page, middleware, layout, page, Auth, HomePage, ProfileDropdown, ListPage, urlListStore, logout-client, docs.
+- **Requested by / approval:** User after C7.7 UX reports.
+
 ## CR-0025 — C7.7 optimistic logout instant Auth
 
 - **Cycle:** C7.7
