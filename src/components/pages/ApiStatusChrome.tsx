@@ -3,14 +3,24 @@
 /**
  * C7.5: Shared api-status chrome — used by page + loading.tsx so soft-nav
  * paints the same header/cards/labels instantly (no center DataSurfaceSlot).
+ * C7.6: header refresh control (spinner + refreshing… while fetching).
  */
 
+import type { ReactNode } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
-import { CheckCircle2, AlertCircle, Clock, Activity } from "lucide-react";
+import {
+  CheckCircle2,
+  AlertCircle,
+  Clock,
+  Activity,
+  Loader2,
+  RefreshCw,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PAGE_STACK, CARD_PAD } from "@/lib/ui-spacing";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { GLASS_GHOST_BUTTON, GLASS_BUTTON_ICON_HOVER } from "@/lib/ui/glass-button-styles";
 
 export const STATUS_ENDPOINT_SHELLS = [
   { name: "Lists API", endpoint: "/api/lists" },
@@ -74,10 +84,72 @@ function getStatusBadge(status: string) {
   );
 }
 
+type ApiStatusRefreshControlProps = {
+  isFetching: boolean;
+  onRefresh?: () => void;
+  /** Soft-nav / loading.tsx: non-interactive busy affordance. */
+  staticBusy?: boolean;
+};
+
+/**
+ * C7.6: Idle Refresh icon; while fetching → spinner + “refreshing…”.
+ */
+export function ApiStatusRefreshControl({
+  isFetching,
+  onRefresh,
+  staticBusy = false,
+}: ApiStatusRefreshControlProps) {
+  const busy = staticBusy || isFetching;
+  const className = cn(
+    GLASS_GHOST_BUTTON,
+    !busy && GLASS_BUTTON_ICON_HOVER,
+    "group px-3 text-sm",
+  );
+
+  if (staticBusy || !onRefresh) {
+    return (
+      <span
+        className={className}
+        aria-busy="true"
+        aria-live="polite"
+        role="status"
+      >
+        <Loader2 className="h-4 w-4 shrink-0 animate-spin" aria-hidden />
+        <span>refreshing…</span>
+      </span>
+    );
+  }
+
+  return (
+    <button
+      type="button"
+      className={className}
+      onClick={() => onRefresh()}
+      disabled={busy}
+      aria-busy={busy}
+      aria-label={busy ? "Refreshing status" : "Refresh status"}
+    >
+      {busy ? (
+        <>
+          <Loader2 className="h-4 w-4 shrink-0 animate-spin" aria-hidden />
+          <span>refreshing…</span>
+        </>
+      ) : (
+        <>
+          <RefreshCw className="h-4 w-4 shrink-0" aria-hidden />
+          <span className="hidden sm:inline">Refresh</span>
+        </>
+      )}
+    </button>
+  );
+}
+
 type ApiStatusChromeProps = {
   /** When true (or no data), pulse only live value slots. */
   valuesPending?: boolean;
   data?: ApiStatusChromeData | null;
+  /** Header right action (refresh control). */
+  headerAction?: ReactNode;
 };
 
 /**
@@ -87,6 +159,7 @@ type ApiStatusChromeProps = {
 export function ApiStatusChrome({
   valuesPending = true,
   data = null,
+  headerAction,
 }: ApiStatusChromeProps) {
   const pending = valuesPending || !data;
   const endpoints =
@@ -103,6 +176,7 @@ export function ApiStatusChrome({
         icon={Activity}
         title="API Status"
         description="Real-time monitoring of all API endpoints"
+        action={headerAction}
       />
 
       <Card className={CARD_PAD}>

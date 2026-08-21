@@ -1,5 +1,14 @@
 # CHANGELOG.md
 
+## CR-0023 — C7.6 api-status header refresh
+
+- **Cycle:** C7.6
+- **Affected requirement:** REQ-0046
+- **Change:** PageHeader action slot; Refresh → spinner + refreshing… while isFetching; SoftNav static busy.
+- **Rationale:** Clear in-shell update feedback without center spinner or full-page reload.
+- **Impact:** PageHeader, ApiStatusChrome, ApiStatusPage, SoftNavLoading, docs.
+- **Requested by / approval:** GATE-0032.
+
 ## CR-0022 — C7.5 api-status chrome loading shell
 
 - **Cycle:** C7.5

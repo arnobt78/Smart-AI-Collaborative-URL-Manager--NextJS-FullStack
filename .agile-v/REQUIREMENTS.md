@@ -887,3 +887,21 @@ These describe the current product as verified in code. They are **Accepted as b
 **Affected:** ApiStatusChrome.tsx, ApiStatusPage.tsx, api-status/loading.tsx, SoftNavLoading.tsx.
 **Trace:** TASK-0050, DEC-0046, GATE-0031.
 **Status:** Completed and locally validated [C7.5] on 2026-08-21.
+
+---
+
+### REQ-0046 — api-status header refresh control (C7.6) (approved 2026-08-21)
+
+**Priority:** P1
+**Type:** UX
+
+**Statement:** `/api-status` PageHeader MUST be justify-between with a Refresh control. While status `isFetching` (cold, poll, or click), the control MUST show spinner + “refreshing…”. Cold/no data MAY keep value pulses; warm refetch MUST keep last values. Soft-nav loading MUST show a static busy affordance matching the busy button.
+
+**Acceptance criteria:**
+
+- [x] PageHeader optional `action`; ApiStatusRefreshControl + refetch wiring.
+- [x] SoftNavLoading static busy; tsc/lint/Jest pass.
+
+**Affected:** PageHeader, ApiStatusChrome, ApiStatusPage, SoftNavLoading.
+**Trace:** TASK-0051, DEC-0047, GATE-0032.
+**Status:** Completed and locally validated [C7.6] on 2026-08-21.

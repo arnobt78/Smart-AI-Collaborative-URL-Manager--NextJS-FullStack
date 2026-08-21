@@ -582,6 +582,19 @@ Append-only. Newest entries at bottom.
 
 ---
 
+## DEC-0047 — C7.6 api-status header refresh control
+
+| Field | Value |
+|---|---|
+| Timestamp | 2026-08-21 |
+| Agent | Agile V C7.6 |
+| Decision | Header Refresh with spinner + refreshing… on isFetching; cold pulses kept; warm refetch keeps values. |
+| Rationale | Users need explicit update feedback while chrome shell stays visible. |
+| Linked REQs | REQ-0046 |
+| Status | Implemented and locally validated 2026-08-21. |
+
+---
+
 ## DEC-0025 — Defer interactive acceptance to user browser testing
 
 | Field | Value |

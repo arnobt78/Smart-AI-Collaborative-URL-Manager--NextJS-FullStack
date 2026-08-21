@@ -4,9 +4,9 @@
 **The Daily Urlist** (`urlist` v0.2.1) — AI collaborative URL lists.  
 Live: https://daily-urlist.vercel.app/ · Resume: `.agile-v/STATE.md`
 
-## Status (C7.5)
-Done: C7.4 chrome-first · **C7.5** api-status chrome `loading.tsx` (`ApiStatusChrome` shared; SoftNavLoading same shell).
-Nav: warm Lists/Browse/Insights; api-status leaves previous page instantly with matching chrome+pulses; api-docs spinner skeleton.
+## Status (C7.6)
+Done: C7.5 chrome loading · **C7.6** api-status header Refresh (`isFetching` → spinner + refreshing…).
+Nav: warm Lists/Browse/Insights; api-status chrome+pulses+refresh affordance; api-docs spinner skeleton.
 Data: densifyBrowse + invalidateMutationImpact + SSE. Full densify/JWT-null SSR OOS.
 Defer: further lists/browse cold API slim; status API speed OOS.
 Human: HA-0001; TASK-0039 after deploy.

@@ -29,3 +29,4 @@
 | RISK-0025 | api-docs/status soft-nav sticks on previous page; status SSR ~3s from external metadata; logout waits on signout before leave | Medium | Closed | C7.3 loading.tsx skeletons; slim status; optimistic logout keepalive | REQ-0043 |
 | RISK-0026 | api-status full-page loading hides unchanging chrome while status probe runs | Medium | Closed | C7.4 auth-only RSC + chrome-first inline value pulses | REQ-0044 |
 | RISK-0027 | Without api-status loading.tsx, soft-nav keeps previous page until auth RSC (~1.2s) | Medium | Closed | C7.5 chrome-matching loading.tsx + ApiStatusChrome shared shell | REQ-0045 |
+| RISK-0028 | Status fetch has no in-header feedback; users may think chrome is stuck | Low | Closed | C7.6 Refresh control with refreshing… on isFetching | REQ-0046 |

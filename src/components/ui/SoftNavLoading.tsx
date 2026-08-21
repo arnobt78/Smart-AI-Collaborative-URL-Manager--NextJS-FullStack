@@ -9,7 +9,10 @@ import {
   ListsRouteSkeleton,
 } from "@/components/ui/RoutePageSkeleton";
 import { OptimisticSoftNavSurface } from "@/components/ui/OptimisticSoftNavSurface";
-import { ApiStatusChrome } from "@/components/pages/ApiStatusChrome";
+import {
+  ApiStatusChrome,
+  ApiStatusRefreshControl,
+} from "@/components/pages/ApiStatusChrome";
 import { consumeWarmSoftNav } from "@/lib/soft-nav-cache";
 
 /**
@@ -55,7 +58,12 @@ export function ApiDocsSoftNavLoading() {
   return <ApiDocsRouteSkeleton />;
 }
 
-/** C7.5: Chrome shell (not RoutePageSkeleton center spinner). */
+/** C7.5/C7.6: Chrome shell + static refreshing… header affordance. */
 export function ApiStatusSoftNavLoading() {
-  return <ApiStatusChrome valuesPending />;
+  return (
+    <ApiStatusChrome
+      valuesPending
+      headerAction={<ApiStatusRefreshControl isFetching staticBusy />}
+    />
+  );
 }

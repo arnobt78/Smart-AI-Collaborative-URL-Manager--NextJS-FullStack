@@ -24,6 +24,7 @@ Append-only record of Human Gate decisions.
 | 2026-08-21 | GATE-0029 | APPROVED | User | `C7.3-HG1-API-DOCS-STATUS-LOGOUT-2026-08-21` | User approved C7.3 plan implement (REQ-0043). |
 | 2026-08-21 | GATE-0030 | APPROVED | User | `C7.4-HG1-API-STATUS-CHROME-FIRST-2026-08-21` | User approved C7.4 plan implement (REQ-0044). |
 | 2026-08-21 | GATE-0031 | APPROVED | User | `C7.5-HG1-API-STATUS-CHROME-LOADING-2026-08-21` | User approved C7.5 plan implement (REQ-0045). |
+| 2026-08-21 | GATE-0032 | APPROVED | User | `C7.6-HG1-API-STATUS-REFRESH-2026-08-21` | User approved C7.6 plan implement (REQ-0046). |
 | 2026-08-18 | GATE-0012 | APPROVED | User | `C1-HG1-RESPONSIVE-CHROME-2026-08-18` | User authorized responsive Navbar/Footer alignment, browser type consolidation, and inclusion of their remaining local changes. |
 | 2026-08-18 | RISK-0016 | ACCEPTED | User | `C1-RISK-PRISMA-2026-08-18` | User accepted the Prisma CLI transitive advisory; no forced downgrade or breaking Prisma upgrade. |
 | 2026-08-18 | GATE-0013 | APPROVED | User | `C1-HG1-REQ-0021-2026-08-18` | User approved REQ-0021 Stable List Form Dialogs exactly as scoped. |

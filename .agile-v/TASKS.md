@@ -311,5 +311,13 @@ RSC shells · densify/Zod/SHA/Next16
 
 **Dependencies:** REQ-0045; plan implement approval.
 
+### TASK-0051 — C7.6 api-status header refresh — DONE
+
+1. PageHeader action slot; ApiStatusRefreshControl.
+2. Wire isFetching/refetch; SoftNav static busy.
+3. Validate + sync docs.
+
+**Dependencies:** REQ-0046; plan implement approval.
+
 
 

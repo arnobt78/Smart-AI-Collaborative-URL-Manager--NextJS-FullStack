@@ -80,13 +80,14 @@ describe("C7.0 SoftNavLoading", () => {
   });
 });
 
-describe("C7.5 ApiStatusSoftNavLoading", () => {
-  it("paints chrome shell with value pulses (not center spinner)", () => {
+describe("C7.5/C7.6 ApiStatusSoftNavLoading", () => {
+  it("paints chrome shell with value pulses and refreshing header", () => {
     render(<ApiStatusSoftNavLoading />);
     expect(screen.getByText("API Status")).toBeInTheDocument();
     expect(screen.getByText("System Status")).toBeInTheDocument();
     expect(screen.getByText("Lists API")).toBeInTheDocument();
     expect(screen.getByLabelText("Loading status")).toBeInTheDocument();
+    expect(screen.getByText("refreshing…")).toBeInTheDocument();
     expect(screen.queryByText("Checking API status")).not.toBeInTheDocument();
   });
 });
