@@ -5,7 +5,7 @@
 Live: https://daily-urlist.vercel.app/ · Resume: `.agile-v/STATE.md`
 
 ## Status (C7.7)
-Done: C7.6 Refresh · **C7.7** optimistic logout (force-guest → instant `/` Auth; keepalive signout + RQ/cookie clear in background).
+Done: C7.6 Refresh · **C7.7** optimistic logout (force-guest until login; skip session fetch; keepalive signout; no Auth↔Marketing flicker).
 Nav: warm Lists/Browse/Insights; api-status chrome+refresh; api-docs skeleton.
 Data: densifyBrowse + invalidateMutationImpact + SSE. Full densify/JWT-null SSR OOS.
 Defer: further lists/browse cold API slim; status API speed OOS.

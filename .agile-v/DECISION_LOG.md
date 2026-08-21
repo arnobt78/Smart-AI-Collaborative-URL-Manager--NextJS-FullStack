@@ -614,10 +614,10 @@ Append-only. Newest entries at bottom.
 |---|---|
 | Timestamp | 2026-08-21 |
 | Agent | Agile V C7.7 |
-| Decision | forceGuest sessionStorage + immediate replace `/`; keepalive signout; goodbye toast at click. |
-| Rationale | Instant Auth UX without SSR Marketing race while httpOnly cookie clears. |
+| Decision | forceGuest until login; skip session fetch while forceGuest; keepalive signout; goodbye toast at click. |
+| Rationale | Instant Auth without SSR Marketing race; clearing forceGuest on empty session caused Auth↔Marketing flicker. |
 | Linked REQs | REQ-0048 |
-| Status | Implemented and locally validated 2026-08-21. |
+| Status | Implemented and locally validated 2026-08-21 (incl. flicker fix). |
 
 ---
 

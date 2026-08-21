@@ -32,3 +32,4 @@
 | RISK-0028 | Status fetch has no in-header feedback; users may think chrome is stuck | Low | Closed | C7.6 Refresh control with refreshing… on isFetching | REQ-0046 |
 | RISK-0029 | Keepalive logout + immediate replace races httpOnly session → Marketing+avatar flash | Medium | Closed | C7.7 forceGuest + instant Auth; await path superseded | REQ-0048 |
 | RISK-0030 | Await-signout logout feels slow (~500–600ms Marketing wait) | Medium | Closed | C7.7 optimistic Auth + background keepalive signout | REQ-0048 |
+| RISK-0031 | Clear forceGuest on brief empty session → Auth↔Marketing flicker | Medium | Closed | Keep forceGuest until login; disable session query while forceGuest | REQ-0048 |

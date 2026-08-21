@@ -931,13 +931,14 @@ These describe the current product as verified in code. They are **Accepted as b
 **Priority:** P1
 **Type:** Auth / UX
 
-**Statement:** Logout MUST immediately paint `/` Auth (no `/login`) via client `forceGuest` sessionStorage so SSR `session_token` cannot show Marketing+avatar. MUST queue goodbye toast at click. MUST clear RQ + wasAuthed + `react-query:*` localStorage, then fire `POST /api/auth/signout` with keepalive without awaiting before `replace("/")`. Login/signup MUST clear `forceGuest`.
+**Statement:** Logout MUST immediately paint `/` Auth (no `/login`) via client `forceGuest` sessionStorage so SSR `session_token` cannot show Marketing+avatar. MUST queue goodbye toast at click. MUST clear RQ + wasAuthed + `react-query:*` localStorage, then fire `POST /api/auth/signout` with keepalive without awaiting before `replace("/")`. `forceGuest` MUST remain until login/signup (MUST NOT clear on brief empty session). While forceGuest, session query MUST be disabled / return null user. Navbar profile MUST require wasAuthedHint.
 
 **Acceptance criteria:**
 
 - [x] `logout-client` helpers; useWasAuthedHint + HomePage respect forceGuest.
-- [x] ProfileDropdown optimistic path; tests; tsc/lint/Jest pass.
+- [x] ProfileDropdown optimistic path; useSession skip while forceGuest; no Auth↔Marketing flicker.
+- [x] Tests; tsc/lint/Jest pass.
 
-**Affected:** logout-client, ProfileDropdown, useWasAuthedHint, HomePage, Auth.
+**Affected:** logout-client, ProfileDropdown, useWasAuthedHint, useSession, HomePage, Navbar, Auth.
 **Trace:** TASK-0053, DEC-0049, GATE-0033.
-**Status:** Completed and locally validated [C7.7] on 2026-08-21.
+**Status:** Completed and locally validated [C7.7] on 2026-08-21 (flicker fix included).

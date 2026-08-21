@@ -403,3 +403,4 @@ Gate 2: BLOCKED — RISK-0016 is accepted; `EVAL_RESULTS.md` PASS/WAIVED evidenc
 | forceGuest | logout-client.test.ts | PASS | mark/clear sessionStorage. |
 | Logout | ProfileDropdown.test.tsx | PASS | toast + forceGuest + keepalive; no await. |
 | Full validation | `npx tsc --noEmit`; `npm run lint`; `npm test` | PASS | 104/5 Jest; lint 0. |
+| Flicker fix | useWasAuthedHint + useSession | PASS | forceGuest until login; session fetch disabled while forceGuest (`07418d8`). |

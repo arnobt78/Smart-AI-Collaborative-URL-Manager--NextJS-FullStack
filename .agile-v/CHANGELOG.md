@@ -4,9 +4,9 @@
 
 - **Cycle:** C7.7
 - **Affected requirement:** REQ-0048
-- **Change:** forceGuest + immediate `/` Auth; goodbye toast at click; keepalive signout + cache clear in background.
-- **Rationale:** Await-signout left Marketing+avatar ~500–600ms.
-- **Impact:** logout-client, ProfileDropdown, useWasAuthedHint, HomePage, Auth, docs.
+- **Change:** forceGuest + immediate `/` Auth; goodbye toast; keepalive signout; later: keep forceGuest until login + skip session fetch (flicker fix).
+- **Rationale:** Await-signout left Marketing ~500–600ms; early forceGuest clear caused Auth↔Marketing bounce.
+- **Impact:** logout-client, ProfileDropdown, useWasAuthedHint, useSession, Navbar, Auth, docs.
 - **Requested by / approval:** GATE-0033.
 
 ## CR-0024 — Logout await signout (no Marketing flash)

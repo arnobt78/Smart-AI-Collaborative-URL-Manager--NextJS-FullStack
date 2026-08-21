@@ -33,7 +33,7 @@ Next 15 URL bookmark manager. Demo: https://daily-urlist.vercel.app/
 - Data sync: SSR prefetch/dehydrate (C6.7) + optimistic `currentList` + `invalidateMutationImpact` + C7.1 `densifyBrowsePublicLists` / `dropUnifiedListCache` + SSE.
 - Soft-nav: warm full-parity chrome (C7.0); cold `RoutePageSkeleton` (+ pulse C7.3); browse densify (C7.1); rare Links `prefetch={false}` (C7.2); api-docs spinner shell; api-status `ApiStatusChrome` + header Refresh/refreshing… (C7.5–C7.6).
 - Insights: overview+activity share one cached list scan; status route slim (no external metadata probe); status page client-fetches.
-- Logout: C7.7 optimistic — force-guest + goodbye toast + clear RQ/wasAuthed; keepalive signout; immediate `/` Auth (no `/login`).
+- Logout: C7.7 optimistic — forceGuest until login; goodbye toast; clear RQ/wasAuthed; keepalive signout; skip session fetch while forceGuest (no Auth↔Marketing flicker). Instant `/` Auth; no `/login`.
 - Open later: further lists/browse cold API slim; status API speed OOS.
 - Compact data UI: `DataSurfaceSlot` + `useDelayedPending`; Activity Feed default-collapsed; Insights aligned tabs.
 - Mutation UX: visibility, list, URL, collaborator, comment, collection, archive, import, metadata, and health actions retain optimistic cache/store data with one typed impact; collection refresh uses one response; dialogs keep only local submit guards; external visits use safe semantic new-tab links.
