@@ -4,8 +4,9 @@
 
 ## Done
 
-- **C7.6:** api-status header Refresh — spinner + “refreshing…” while `isFetching`; cold pulses kept; warm refetch keeps last values.
-- Through C7.5 chrome loading · C7.4 auth-only RSC · C7.3 shells · densify.
+- **C7.6:** api-status header Refresh — spinner + “refreshing…” while `isFetching`.
+- **Logout fix:** await `/api/auth/signout` before `/` so SSR never paints Marketing+avatar with leftover `session_token`.
+- Through C7.5 chrome loading · C7.4 auth-only RSC · densify.
 
 ## Human
 

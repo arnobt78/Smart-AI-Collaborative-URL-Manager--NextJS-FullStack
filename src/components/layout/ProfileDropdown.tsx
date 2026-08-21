@@ -6,8 +6,8 @@
  * `top-full` + `right-0` under the trigger — no manual flow/mt hacks.
  * Kept as custom panel (not Radix) so sticky Navbar does not scroll-lock.
  * Order: name+email → separator → utility links → separator → Logout.
- * C7.3: Optimistic logout — clear client + navigate to `/` immediately;
- * signout POST runs with keepalive so cookie/session clear in background.
+ * Logout: clear client immediately; await signout so httpOnly session_token
+ * is gone before `/` (Auth) — no Marketing+avatar flash. No `/login` route.
  */
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
@@ -64,7 +64,7 @@ export function ProfileDropdown({
     };
   }, [open]);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     if (logoutInFlightRef.current) return;
     logoutInFlightRef.current = true;
     setOpen(false);
@@ -73,16 +73,25 @@ export function ProfileDropdown({
     void queryClient.cancelQueries();
     queryClient.clear();
     setWasAuthedHintClient(false);
-    if (typeof window !== "undefined") {
-      Object.keys(localStorage).forEach((key) => {
-        if (key.startsWith("react-query:")) {
-          localStorage.removeItem(key);
-        }
+    if (typeof window === "undefined") return;
+
+    Object.keys(localStorage).forEach((key) => {
+      if (key.startsWith("react-query:")) {
+        localStorage.removeItem(key);
+      }
+    });
+
+    // Must await: httpOnly session_token cannot be cleared client-side.
+    // Navigating before Set-Cookie lands → SSR paints Marketing + profile.
+    try {
+      await fetch("/api/auth/signout", {
+        method: "POST",
+        credentials: "same-origin",
       });
-      // Fire signout without blocking UI — keepalive survives navigation
-      void fetch("/api/auth/signout", { method: "POST", keepalive: true });
-      window.location.replace("/");
+    } catch {
+      // Still leave — cookie may linger until next request
     }
+    window.location.replace("/");
   };
 
   return (

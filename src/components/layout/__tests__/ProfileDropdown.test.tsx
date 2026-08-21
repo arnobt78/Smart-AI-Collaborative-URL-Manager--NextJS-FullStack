@@ -1,5 +1,5 @@
-/** C7.3: Optimistic logout — clear client + keepalive signout before home nav. */
-import { fireEvent, render, screen } from "@testing-library/react";
+/** Logout: clear client + await signout before `/` (Auth) — no Marketing flash. */
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ToastProvider } from "@/components/ui/Toaster";
 import { ProfileDropdown } from "@/components/layout/ProfileDropdown";
@@ -44,7 +44,15 @@ describe("ProfileDropdown logout", () => {
     queryClient.clear();
   });
 
-  it("closes immediately and fires keepalive signout with client clear", () => {
+  it("awaits signout with credentials then guards double-click", async () => {
+    let resolveSignout!: (value: { ok: boolean }) => void;
+    mockFetch.mockImplementation(
+      () =>
+        new Promise<{ ok: boolean }>((resolve) => {
+          resolveSignout = resolve;
+        }),
+    );
+
     renderDropdown();
 
     fireEvent.click(screen.getByRole("button", { name: "Open profile menu" }));
@@ -56,7 +64,11 @@ describe("ProfileDropdown logout", () => {
     expect(mockFetch).toHaveBeenCalledTimes(1);
     expect(mockFetch).toHaveBeenCalledWith("/api/auth/signout", {
       method: "POST",
-      keepalive: true,
+      credentials: "same-origin",
+    });
+
+    await act(async () => {
+      resolveSignout({ ok: true });
     });
 
     // In-flight guard: second logout click does not double-fetch

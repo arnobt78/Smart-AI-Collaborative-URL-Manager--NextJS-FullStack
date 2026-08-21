@@ -5,12 +5,12 @@
 Live: https://daily-urlist.vercel.app/ · Resume: `.agile-v/STATE.md`
 
 ## Status (C7.6)
-Done: C7.5 chrome loading · **C7.6** api-status header Refresh (`isFetching` → spinner + refreshing…).
-Nav: warm Lists/Browse/Insights; api-status chrome+pulses+refresh affordance; api-docs spinner skeleton.
+Done: C7.5 chrome loading · C7.6 header Refresh · **logout** awaits signout before `/` (fixes Marketing+avatar flash; no `/login`).
+Nav: warm Lists/Browse/Insights; api-status chrome+refresh; api-docs skeleton.
 Data: densifyBrowse + invalidateMutationImpact + SSE. Full densify/JWT-null SSR OOS.
 Defer: further lists/browse cold API slim; status API speed OOS.
 Human: HA-0001; TASK-0039 after deploy.
-Validate: Jest 103/5 · lint 0 · tsc · build.
+Validate: Jest · lint 0 · tsc.
 
 ## Stack
 Next 15.5.23 · React 18 · RQ · Prisma 6.19 · cookie auth · Upstash · Sentry tunnel · PostHog · Jest · Node 24.x (Vercel)
