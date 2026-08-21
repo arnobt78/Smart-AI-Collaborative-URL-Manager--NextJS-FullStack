@@ -18,7 +18,7 @@
 
 ## Current checkpoint
 
-- **Stage:** C7.8 `/login` on `main` (pending push).
+- **Stage:** C7.8 `/login` on `main` (`450c512`).
 - **Validation:** Jest 105/5 · lint 0 · tsc.
 - **Docs:** CLAUDE · walkthrough · `.agile-v` synced this session.
 
