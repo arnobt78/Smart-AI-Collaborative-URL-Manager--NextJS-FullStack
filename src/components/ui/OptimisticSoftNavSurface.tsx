@@ -1,11 +1,13 @@
 "use client";
 
+import { useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
-import { BarChart3, Eye, Globe, Link2, Lock, Users } from "lucide-react";
+import { BarChart3, Globe, Link2, Lock } from "lucide-react";
 import { Badge } from "@/components/ui/Badge";
 import { PageHeader } from "@/components/ui/PageHeader";
-import { WarmSoftNavLink } from "@/components/ui/WarmSoftNavLink";
+import { CreateNewListButton } from "@/components/ui/CreateNewListButton";
+import { Tabs } from "@/components/ui/Tabs";
 import {
   BrowseRouteSkeleton,
   InsightsRouteSkeleton,
@@ -13,16 +15,22 @@ import {
   ListsRouteSkeleton,
 } from "@/components/ui/RoutePageSkeleton";
 import { OverviewCards } from "@/components/business-insights/OverviewCards";
+import { ActivityChart } from "@/components/business-insights/ActivityChart";
+import { InsightsTabsList } from "@/components/business-insights/InsightsTabsList";
+import { ListsPageChrome } from "@/components/lists/ListsPageChrome";
+import { MyListsCard } from "@/components/lists/MyListsCard";
+import { BrowsePublicListCard } from "@/components/lists/BrowsePublicListCard";
+import { BrowseSearchField } from "@/components/lists/BrowseSearchField";
 import { browseQueryKeys } from "@/lib/browse-query-keys";
 import { listQueryKeys } from "@/lib/query-keys";
 import type { UserList } from "@/hooks/useListQueries";
-import { CARD_PAD, LIST_STACK, PAGE_HEADER, PAGE_STACK } from "@/lib/ui-spacing";
+import { useWarmSoftNav } from "@/hooks/useWarmSoftNav";
+import { LIST_STACK, PAGE_STACK } from "@/lib/ui-spacing";
 import { cn } from "@/lib/utils";
 
 /**
- * C6.9: While segment loading.tsx waits on RSC, paint destination chrome +
- * cards from the singleton RQ cache when soft-nav was marked warm.
- * Never return empty — fall back to matching RoutePageSkeleton on race miss.
+ * C7.0: Warm soft-nav paints full chrome + cards from RQ (parity with real pages).
+ * Create/edit/delete are visual-only while aria-busy; view navigates via warm push.
  */
 
 export type OptimisticSoftNavVariant =
@@ -41,7 +49,6 @@ type BrowseCache = {
     urls?: unknown[];
     user: { email: string };
   }>;
-  pagination?: { totalPages?: number };
 };
 type InsightsOverviewCache = {
   overview: {
@@ -54,6 +61,7 @@ type InsightsOverviewCache = {
     recentUrls: number;
   };
 };
+type ActivityCache = { activity?: Array<{ date: string; lists: number; urls: number }> };
 type UnifiedCache = {
   list?: {
     slug?: string;
@@ -66,6 +74,7 @@ type UnifiedCache = {
 
 function ListsOptimisticSurface() {
   const queryClient = useQueryClient();
+  const { warmRouterPush } = useWarmSoftNav();
   const data = queryClient.getQueryData<ListsCache>(listQueryKeys.allLists());
   const lists = data?.lists;
 
@@ -74,58 +83,30 @@ function ListsOptimisticSurface() {
   }
 
   return (
-    <div className={cn("min-h-screen w-full", PAGE_STACK)} aria-busy="true">
-      <div className={PAGE_HEADER}>
-        <h1 className="text-lg sm:text-xl font-medium bg-gradient-to-r from-blue-300 to-purple-300 bg-clip-text text-transparent leading-tight">
-          My Lists
-        </h1>
-        <p className="text-sm sm:text-base text-white/70 leading-snug">
-          Manage and organize your URL collections
-        </p>
-      </div>
-
+    <div className={cn("w-full", PAGE_STACK)} aria-busy="true">
+      <ListsPageChrome
+        createSlot={
+          <CreateNewListButton
+            onClick={() => {
+              /* C7.0: dialog opens on hydrated ListsPage after RSC */
+            }}
+          />
+        }
+      />
       <div className={LIST_STACK}>
         {lists.length === 0 ? (
           <div className="rounded-xl border-2 border-dashed border-white/30 p-2 sm:p-4 text-center bg-white/5 backdrop-blur-md">
             <p className="text-sm text-white/60">No Lists Yet</p>
           </div>
         ) : (
-          lists.map((list) => {
-            const urlCount = list.urls?.length || 0;
-            return (
-              <div
-                key={list.id}
-                className="group relative overflow-hidden rounded-xl border border-white/20 bg-gradient-to-br from-white/5 to-white/3 backdrop-blur-md p-2 sm:p-4 shadow-md"
-              >
-                <div className="relative z-10 flex flex-wrap items-center gap-2">
-                  <WarmSoftNavLink
-                    href={`/list/${list.slug}`}
-                    className="max-w-full min-w-0 truncate text-sm font-medium text-white sm:text-base"
-                  >
-                    {list.title || `List: ${list.slug}`}
-                  </WarmSoftNavLink>
-                  {list.isPublic !== undefined && (
-                    <Badge
-                      variant={list.isPublic ? "success" : "secondary"}
-                      className="shrink-0 gap-1 px-2 py-0.5 text-xs leading-5"
-                    >
-                      {list.isPublic ? (
-                        <Globe className="w-3 h-3" aria-hidden />
-                      ) : (
-                        <Lock className="w-3 h-3" aria-hidden />
-                      )}
-                      <span className="hidden sm:inline">
-                        {list.isPublic ? "Public" : "Private"}
-                      </span>
-                    </Badge>
-                  )}
-                  <span className="flex items-center gap-1 rounded-lg border border-white/10 bg-white/5 px-2 py-0.5 text-xs leading-5 text-white/80">
-                    {urlCount} {urlCount === 1 ? "URL" : "URLs"}
-                  </span>
-                </div>
-              </div>
-            );
-          })
+          lists.map((list) => (
+            <MyListsCard
+              key={list.id}
+              list={list}
+              onView={() => warmRouterPush(`/list/${list.slug}`)}
+              actionsDisabled
+            />
+          ))
         )}
       </div>
     </div>
@@ -135,63 +116,45 @@ function ListsOptimisticSurface() {
 function BrowseOptimisticSurface() {
   const queryClient = useQueryClient();
   const searchParams = useSearchParams();
-  const page = Math.max(1, Number.parseInt(searchParams.get("page") || "1", 10) || 1);
-  const search = searchParams.get("search") || "";
-  const data = queryClient.getQueryData<BrowseCache>(
-    browseQueryKeys.publicLists(page, search),
+  const page = Math.max(
+    1,
+    Number.parseInt(searchParams.get("page") || "1", 10) || 1,
   );
+  const [filter, setFilter] = useState(searchParams.get("search") || "");
+  // Warm check uses exact page key; paint from default page-1 cache when present
+  const data =
+    queryClient.getQueryData<BrowseCache>(
+      browseQueryKeys.publicLists(page, ""),
+    ) ??
+    queryClient.getQueryData<BrowseCache>(
+      browseQueryKeys.publicLists(1, ""),
+    );
   const lists = data?.lists;
 
   if (!data || !lists) {
     return <BrowseRouteSkeleton />;
   }
 
+  const q = filter.trim().toLowerCase();
+  const filtered = !q
+    ? lists
+    : lists.filter((list) => {
+        const title = (list.title || "").toLowerCase();
+        const description = (list.description || "").toLowerCase();
+        return title.includes(q) || description.includes(q);
+      });
+
   return (
-    <div className={cn("min-h-screen w-full", PAGE_STACK)} aria-busy="true">
+    <div className={cn("w-full", PAGE_STACK)} aria-busy="true">
       <PageHeader
         icon={Globe}
         title="Discover Public Lists"
         description="Browse and explore curated URL collections from the community"
       />
+      <BrowseSearchField value={filter} onChange={setFilter} />
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {lists.map((list) => (
-          <WarmSoftNavLink
-            key={list.id}
-            href={`/list/${list.slug}`}
-            className={cn(
-              "group bg-white/5 border border-white/10 rounded-xl flex flex-col gap-2",
-              CARD_PAD,
-            )}
-          >
-            <div className="flex items-start justify-between gap-2">
-              <h3 className="text-base sm:text-lg font-medium text-white line-clamp-2 flex-1">
-                {list.title}
-              </h3>
-              <Badge variant="success" className="flex-shrink-0 text-xs">
-                <Globe className="w-3 h-3 mr-1" aria-hidden />
-                <span className="hidden sm:inline">Public</span>
-              </Badge>
-            </div>
-            {list.description ? (
-              <p className="text-xs sm:text-sm text-white/60 line-clamp-2">
-                {list.description}
-              </p>
-            ) : null}
-            <div className="flex items-center gap-2 sm:gap-4 text-xs text-white/50 flex-wrap">
-              <div className="flex items-center gap-1">
-                <Users className="w-3 h-3" aria-hidden />
-                <span className="truncate max-w-[100px] sm:max-w-none">
-                  {list.user.email.split("@")[0]}
-                </span>
-              </div>
-              <div className="flex items-center gap-1">
-                <Eye className="w-3 h-3" aria-hidden />
-                <span>
-                  {Array.isArray(list.urls) ? list.urls.length : 0} URLs
-                </span>
-              </div>
-            </div>
-          </WarmSoftNavLink>
+        {filtered.map((list) => (
+          <BrowsePublicListCard key={list.id} list={list} />
         ))}
       </div>
     </div>
@@ -203,23 +166,30 @@ function InsightsOptimisticSurface() {
   const overviewResult = queryClient.getQueryData<InsightsOverviewCache>(
     browseQueryKeys.businessInsights.overview(),
   );
-  const activityPresent = queryClient.getQueryData(
+  const activityResult = queryClient.getQueryData<ActivityCache>(
     browseQueryKeys.businessInsights.activity(30),
   );
   const overview = overviewResult?.overview;
+  const activity = activityResult?.activity;
 
-  if (!overview || activityPresent == null) {
+  if (!overview || activityResult == null) {
     return <InsightsRouteSkeleton />;
   }
 
   return (
-    <div className={cn("min-h-screen w-full", PAGE_STACK)} aria-busy="true">
+    <div className={cn("w-full", PAGE_STACK)} aria-busy="true">
       <PageHeader
         icon={BarChart3}
         title="Business Insights"
         description="Track your URLs, lists, and engagement metrics"
       />
-      <OverviewCards data={overview} />
+      <Tabs value="overview" className="w-full">
+        <InsightsTabsList />
+        <div className="mt-2 space-y-6">
+          <OverviewCards data={overview} />
+          {activity ? <ActivityChart initialData={activity} /> : null}
+        </div>
+      </Tabs>
     </div>
   );
 }
@@ -251,7 +221,7 @@ function ListDetailOptimisticSurface() {
   const urlCount = Array.isArray(list.urls) ? list.urls.length : 0;
 
   return (
-    <div className={cn("min-h-screen w-full", PAGE_STACK)} aria-busy="true">
+    <div className={cn("w-full", PAGE_STACK)} aria-busy="true">
       <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-xl sm:rounded-2xl p-2 sm:p-4 shadow-xl">
         <div className="flex flex-col gap-2">
           <div className="flex items-center gap-2">

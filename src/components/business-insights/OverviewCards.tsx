@@ -2,6 +2,8 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { FileText, Link2, Users, Globe, Lock, TrendingUp } from "lucide-react";
+import { CARD_PAD } from "@/lib/ui-spacing";
+import { cn } from "@/lib/utils";
 
 interface OverviewData {
   totalLists: number;
@@ -23,8 +25,8 @@ export function OverviewCards({ data, isLoading }: OverviewCardsProps) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {[...Array(6)].map((_, i) => (
-          <Card key={i} className="animate-pulse">
-            <CardHeader>
+          <Card key={i} className={cn(CARD_PAD, "animate-pulse")}>
+            <CardHeader className="space-y-0 pb-1">
               <div className="h-4 bg-white/10 rounded w-1/2" />
             </CardHeader>
             <CardContent>
@@ -96,9 +98,12 @@ export function OverviewCards({ data, isLoading }: OverviewCardsProps) {
         return (
           <Card
             key={card.title}
-            className="p-2 transition-colors hover:border-blue-400/30 sm:p-4"
+            className={cn(
+              CARD_PAD,
+              "transition-colors hover:border-blue-400/30",
+            )}
           >
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 p-0 pb-1">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
               <CardTitle className="text-xs sm:text-sm font-medium text-white/70">
                 {card.title}
               </CardTitle>
@@ -106,7 +111,7 @@ export function OverviewCards({ data, isLoading }: OverviewCardsProps) {
                 <Icon className={`h-3.5 w-3.5 sm:h-4 sm:w-4 ${card.color}`} />
               </div>
             </CardHeader>
-            <CardContent className="p-0">
+            <CardContent>
               <div className="mb-1 text-xl font-medium text-white sm:text-2xl">
                 {card.value.toLocaleString()}
               </div>

@@ -30,7 +30,7 @@ export function RoutePageSkeleton({
   className,
 }: RoutePageSkeletonProps) {
   return (
-    <div className={cn("min-h-screen w-full", PAGE_STACK, className)}>
+    <div className={cn("w-full", PAGE_STACK, className)}>
       {variant === "lists" ? (
         <div className={PAGE_HEADER}>
           <h1 className="text-lg sm:text-xl font-medium bg-gradient-to-r from-blue-300 to-purple-300 bg-clip-text text-transparent leading-tight">
@@ -91,7 +91,7 @@ export function InsightsRouteSkeleton() {
 /** Soft-nav shell for `/list/[slug]` — title chrome + local slot. */
 export function ListDetailRouteSkeleton() {
   return (
-    <div className={cn("min-h-screen w-full", PAGE_STACK)}>
+    <div className={cn("w-full", PAGE_STACK)}>
       <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-xl sm:rounded-2xl p-2 sm:p-4 shadow-xl">
         <div className={HEADING_STACK}>
           <div className="flex items-center gap-2">

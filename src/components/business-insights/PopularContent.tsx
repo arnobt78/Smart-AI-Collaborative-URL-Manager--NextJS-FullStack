@@ -11,6 +11,7 @@ import {
   ExternalLink,
   MousePointerClick,
 } from "lucide-react";
+import { CARD_PAD } from "@/lib/ui-spacing";
 
 interface PopularUrl {
   id: string;
@@ -66,8 +67,8 @@ export function PopularContent({
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       {/* Popular URLs */}
-      <Card>
-        <CardHeader>
+      <Card className={CARD_PAD}>
+        <CardHeader className="pb-2">
           <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
             <Star className="h-4 w-4  text-yellow-400" />
             <span>Popular URLs</span>
@@ -121,8 +122,8 @@ export function PopularContent({
       </Card>
 
       {/* Active Lists */}
-      <Card>
-        <CardHeader>
+      <Card className={CARD_PAD}>
+        <CardHeader className="pb-2">
           <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
             <Users className="h-4 w-4  text-blue-400" />
             <span>Most Active Lists</span>

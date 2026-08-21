@@ -9,7 +9,9 @@ interface PageHeaderProps {
   className?: string;
 }
 
-/** Shared page identity row; pages own only their copy and meaningful icon. */
+/**
+ * C7.0: Shared page identity — title/subtitle match My Lists gradient contract.
+ */
 export function PageHeader({
   icon: Icon,
   title,
@@ -22,10 +24,10 @@ export function PageHeader({
         <Icon className="h-5 w-5 text-blue-300" aria-hidden />
       </span>
       <div className={cn(HEADING_STACK, "min-w-0")}>
-        <h1 className="text-2xl font-medium leading-tight text-white sm:text-3xl">
+        <h1 className="text-lg sm:text-xl font-medium bg-gradient-to-r from-blue-300 to-purple-300 bg-clip-text text-transparent leading-tight">
           {title}
         </h1>
-        <p className="text-sm leading-snug text-white/60 sm:text-base">
+        <p className="text-sm sm:text-base text-white/70 leading-snug">
           {description}
         </p>
       </div>

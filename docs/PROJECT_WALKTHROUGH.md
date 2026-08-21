@@ -26,12 +26,13 @@ Next 15 URL bookmark manager. Demo: https://daily-urlist.vercel.app/
 - Visit: `ensureAbsoluteHttpUrl` + semantic safe new-tab links; click analytics patches list/KPI caches optimistically.
 - Collaborators empty one-row · Card/SC `p-2 sm:p-4`
 - Local DB: `.env` / `.env.local` → remote `77.42.71.87:25432` (gitignored)
-- Out of scope: densify / JWT-null SSR / Next 16 / Prisma 7
+- Out of scope: full densify rewrite / JWT-null SSR / Next 16 / Prisma 7
 - UI controls: `lib/ui/control-styles.ts` provides shared 48px field/trigger geometry; Auth uses CSS reveal with reduced-motion support
 - Home motion: `ui/ScrollReveal.tsx` provides replayable CSS/observer reveal plus subtle parallax; shared controls use `h-10 min-h-10` and text-sm placeholders
 - Home wave: hero copy lines and CTAs are individual reveal units, staggered in order rather than animated as a grouped row
-- Data sync: protected pages auth-gate then SSR prefetch/dehydrate (C6.7) under segment `loading.tsx`; C6.9 warm soft-nav paints `OptimisticSoftNavSurface` from RQ (never empty). Snapshot-first optimistic `currentList` + typed invalidation + SSE.
-- Soft-nav: `WarmSoftNavLink` / `warmRouterPush|Replace` + `lib/soft-nav-cache.ts`; cold = `RoutePageSkeleton`; warm = RQ destination chrome/cards. Insights SSR = overview+activity only.
+- Data sync: SSR prefetch/dehydrate (C6.7) + optimistic `currentList` + `invalidateMutationImpact` + C7.1 `densifyBrowsePublicLists` / `dropUnifiedListCache` + SSE.
+- Soft-nav: warm full-parity chrome (C7.0); cold `RoutePageSkeleton`; browse densify keeps public rows truthful after visibility/delete.
+- Open later: api-docs / api-status / list-detail chrome; hydrate overwrite guard if flicker.
 - Compact data UI: `DataSurfaceSlot` + `useDelayedPending`; Activity Feed default-collapsed; Insights aligned tabs.
 - Mutation UX: visibility, list, URL, collaborator, comment, collection, archive, import, metadata, and health actions retain optimistic cache/store data with one typed impact; collection refresh uses one response; dialogs keep only local submit guards; external visits use safe semantic new-tab links.
 - C3/C5 boundaries: `lib/api-validation.ts` owns strict Zod payload/identifier parsing; opaque session cookies persist as SHA-256 digests with legacy rotation and persistence-backed revocation; `invalidateMutationImpact` maps active mutation cache families once, including delete-list. Per-request `React.cache` on session/user lookup.

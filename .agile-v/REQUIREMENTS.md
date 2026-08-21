@@ -772,3 +772,45 @@ These describe the current product as verified in code. They are **Accepted as b
 **Affected:** soft-nav-cache, SoftNavLoading, OptimisticSoftNavSurface, Lists/Browse/Insights/List/NewList pages, useWarmSoftNav, WarmSoftNavLink.
 **Trace:** TASK-0044, DEC-0040, CR-0016, GATE-0025.
 **Status:** Completed and locally validated [C6.9] on 2026-08-20.
+
+---
+
+### REQ-0040 — Instant static chrome + one cold paint (C7.0) (approved 2026-08-21)
+
+**Priority:** P1
+**Type:** UX / performance
+
+**Statement:** Page static chrome (title, subtitle, primary actions, tabs chrome, list cards) MUST paint immediately on warm soft-nav with full parity to the hydrated page. Cold soft-nav MUST show at most one continuous loading surface for the data region. Browse search MUST be instant client filter without a Search button. Densify rewrite and JWT-null SSR remain out of scope.
+
+**Acceptance criteria:**
+
+- [x] Per-page late-static map from human screenshots (Lists, Browse, Insights).
+- [x] Shared Lists/Browse/Insights chrome+cards used by page + OptimisticSoftNavSurface.
+- [x] Browse instant filter; title click; no View List row; PageHeader matches My Lists typography.
+- [x] Insights tabs always present and vertically centered; single outer CARD_PAD on insight cards.
+- [x] Remove page-level min-h-screen under layout main.
+- [x] tsc, lint 0, Jest, and production build pass.
+
+**Affected:** ListsPageChrome, MyListsCard, BrowsePublicListCard, BrowseSearchField, InsightsTabsList, OptimisticSoftNavSurface, PageHeader, Card, Tabs, Lists/Browse/Insights pages.
+**Trace:** TASK-0045, DEC-0041, CR-0017, GATE-0026.
+**Status:** Completed and locally validated [C7.0] on 2026-08-21.
+
+---
+
+### REQ-0041 — Targeted densify for browse + insights stale soft-nav (C7.1) (approved 2026-08-21)
+
+**Priority:** P1
+**Type:** Data / cache consistency
+
+**Statement:** After list create/update/visibility/delete, browse public caches MUST densify immediately (upsert public / remove private-deleted). Deleted list unified keys MUST be dropped so warm soft-nav cannot paint a ghost detail. Insights invalidation MUST include activity and popular tabs; URL/import mutations MUST mark all business-insights stale. Full densify rewrite and JWT-null SSR remain out of scope; `invalidateMutationImpact` stays the single impact gateway.
+
+**Acceptance criteria:**
+
+- [x] `densifyBrowsePublicLists` / `dropUnifiedListCache` wired on list CRUD + visibility.
+- [x] `invalidateBrowseQueries` + URL impact invalidate all `business-insights` keys.
+- [x] Optimistic browse rollback on visibility/delete failure.
+- [x] Unit coverage for densify + insights invalidation; tsc, lint 0, Jest pass.
+
+**Affected:** queryInvalidation.ts, useListQueries.ts.
+**Trace:** TASK-0046, DEC-0042, GATE-0027.
+**Status:** Completed and locally validated [C7.1] on 2026-08-21.

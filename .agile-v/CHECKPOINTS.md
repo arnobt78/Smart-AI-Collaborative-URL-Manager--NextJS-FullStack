@@ -55,5 +55,8 @@
 | 2026-08-20 | GATE-0023 | Human-Decision | APPROVED | `C6.7-HG1-SSR-HYDRATE-SHELL-2026-08-20` | User approved C6.7 SSR hydrate under loading shells (REQ-0037). |
 | 2026-08-20 | GATE-0024 | Human-Decision | APPROVED | `C6.8-HG1-WARM-SOFT-NAV-2026-08-20` | User approved C6.8 warm soft-nav + lighter Insights (REQ-0038). |
 | 2026-08-20 | GATE-0025 | Human-Decision | APPROVED | `C6.9-HG1-OPTIMISTIC-SOFT-NAV-2026-08-20` | User approved C6.9 optimistic soft-nav no empty hole (REQ-0039). |
+| 2026-08-21 | GATE-0026 | Human-Decision | PENDING | `C7.0-HG1-INSTANT-STATIC-CHROME-2026-08-21` | REQ-0040 plan; resume after screenshots + matching APPROVALS.md entry. |
+| 2026-08-21 | GATE-0026 | Human-Decision | APPROVED | `C7.0-HG1-INSTANT-STATIC-CHROME-2026-08-21` | User approved C7.0 screenshot-driven static chrome parity (REQ-0040). |
+| 2026-08-21 | GATE-0027 | Human-Decision | APPROVED | `C7.1-HG1-TARGETED-DENSIFY-2026-08-21` | User approved C7.1 targeted densify (REQ-0041). |
 | 2026-08-18 | GATE-0012 complete: responsive header/footer chrome alignment; zero lint, typecheck, Jest, and production build pass. Prisma CLI audit remains RISK-0016. |
 | 2026-08-18 | User accepted RISK-0016: retain Prisma 6.19.3; no forced downgrade or breaking upgrade. Gate 2 still needs EvalGate and human acceptance. |

@@ -5,7 +5,11 @@ import { currentList, type UrlList } from "@/stores/urlListStore";
 import { queryClient } from "@/lib/react-query";
 import { useToast } from "@/components/ui/Toaster";
 import {
+  densifyBrowsePublicLists,
+  dropUnifiedListCache,
   invalidateMutationImpact,
+  restoreBrowsePublicCaches,
+  snapshotBrowsePublicCaches,
 } from "@/utils/queryInvalidation";
 import { devLog, devWarn } from "@/lib/dev-log";
 import { listQueryKeys } from "@/lib/query-keys";
@@ -488,6 +492,7 @@ export function useCreateList() {
     onSuccess: (data, _input, context) => {
       patchAllListsCache(queryClient, data.list, context?.temporaryId);
       patchUnifiedListCache(queryClient, data.list);
+      densifyBrowsePublicLists(queryClient, data.list);
       invalidateMutationImpact(queryClient, "list", data.list.slug, data.list.id);
     },
     onError: (_error, _input, context) => {
@@ -531,6 +536,7 @@ export function useUpdateList() {
     onSuccess: (data) => {
       patchAllListsCache(queryClient, data.list);
       patchUnifiedListCache(queryClient, data.list);
+      densifyBrowsePublicLists(queryClient, data.list);
       invalidateMutationImpact(queryClient, "list", data.list.slug, data.list.id);
     },
     onError: (_error, input, context) => {
@@ -574,23 +580,36 @@ export function useUpdateListVisibility() {
       ]);
       const previousLists = queryClient.getQueryData<{ lists: UserList[] }>(listQueryKeys.allLists());
       const previousUnified = queryClient.getQueryData<UnifiedListData>(listQueryKeys.unified(slug));
+      const previousBrowse = snapshotBrowsePublicCaches(queryClient);
       const previousCurrent = currentList.get();
-      const optimistic = { id, slug, isPublic } as UrlList & UserList;
+      const fromLists = previousLists?.lists?.find((item) => item.id === id);
+      const optimistic = {
+        ...(fromLists || {}),
+        id,
+        slug,
+        isPublic,
+        title: fromLists?.title ?? previousUnified?.list?.title ?? slug,
+        description: fromLists?.description ?? previousUnified?.list?.description ?? null,
+        urls: fromLists?.urls ?? previousUnified?.list?.urls ?? [],
+      } as UrlList & UserList;
       patchAllListsCache(queryClient, optimistic);
       patchUnifiedListCache(queryClient, optimistic);
+      densifyBrowsePublicLists(queryClient, optimistic);
       if (previousCurrent.id === id) {
         currentList.set({ ...previousCurrent, isPublic });
       }
-      return { previousLists, previousUnified, previousCurrent };
+      return { previousLists, previousUnified, previousBrowse, previousCurrent };
     },
     onSuccess: (data) => {
       patchAllListsCache(queryClient, data.list);
       patchUnifiedListCache(queryClient, data.list);
+      densifyBrowsePublicLists(queryClient, data.list);
       invalidateMutationImpact(queryClient, "visibility", data.list.slug, data.list.id);
     },
     onError: (_error, input, context) => {
       if (context?.previousLists) queryClient.setQueryData(listQueryKeys.allLists(), context.previousLists);
       if (context?.previousUnified) queryClient.setQueryData(listQueryKeys.unified(input.slug), context.previousUnified);
+      if (context?.previousBrowse) restoreBrowsePublicCaches(queryClient, context.previousBrowse);
       if (context?.previousCurrent.id === input.id) currentList.set(context.previousCurrent);
     },
   });
@@ -661,6 +680,10 @@ export function useDeleteList() {
       // Get list details before removing from cache (needed for invalidation and toast)
       const listTitle = deletedList?.title || deletedList?.slug || "List";
       const listSlug = deletedList?.slug;
+      const previousBrowse = snapshotBrowsePublicCaches(queryClient);
+      const previousUnified = listSlug
+        ? queryClient.getQueryData<UnifiedListData>(listQueryKeys.unified(listSlug))
+        : undefined;
 
       queryClient.setQueryData<{ lists: UserList[] }>(
         listQueryKeys.allLists(),
@@ -672,8 +695,18 @@ export function useDeleteList() {
         }
       );
 
+      // C7.1: densify-empty browse + drop unified so warm soft-nav cannot paint a ghost
+      if (deletedList) {
+        densifyBrowsePublicLists(queryClient, deletedList, { remove: true });
+      }
+      if (listSlug) {
+        dropUnifiedListCache(queryClient, listSlug);
+      }
+
       return {
         previous,
+        previousBrowse,
+        previousUnified,
         deletedListTitle: listTitle,
         deletedListSlug: listSlug,
       };
@@ -681,6 +714,14 @@ export function useDeleteList() {
     onSuccess: (_data, listId, context) => {
       // REQ-0027: A list deletion reconciles through the same typed impact map
       // as create/update/visibility and never issues caller-specific duplicate invalidations.
+      if (context?.deletedListSlug) {
+        densifyBrowsePublicLists(
+          queryClient,
+          { id: listId, slug: context.deletedListSlug },
+          { remove: true },
+        );
+        dropUnifiedListCache(queryClient, context.deletedListSlug);
+      }
       invalidateMutationImpact(
         queryClient,
         "list",
@@ -697,10 +738,19 @@ export function useDeleteList() {
         variant: "success",
       });
     },
-    onError: (error, listId, context) => {
+    onError: (error, _listId, context) => {
       // Rollback optimistic update
       if (context?.previous) {
         queryClient.setQueryData(listQueryKeys.allLists(), context.previous);
+      }
+      if (context?.previousBrowse) {
+        restoreBrowsePublicCaches(queryClient, context.previousBrowse);
+      }
+      if (context?.deletedListSlug && context?.previousUnified) {
+        queryClient.setQueryData(
+          listQueryKeys.unified(context.deletedListSlug),
+          context.previousUnified,
+        );
       }
 
       toast({

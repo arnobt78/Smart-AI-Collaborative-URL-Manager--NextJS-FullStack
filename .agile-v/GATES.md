@@ -19,7 +19,7 @@ Implementation is locally verified; C2 Gate 2 remains pending release evidence a
 Stage 1 Requirements → Stage 2 Validation → [Human Gate 1] → Stage 3 Synthesis → Stage 4 Verification → [Human Gate 2] → Stage 5 Acceptance
 ```
 
-Current: **C6.9 Stage 4 complete locally** for REQ-0039. GATE-0025 approved. GATE-0002 remains pending (`EVAL_RESULTS.md` absent).
+Current: **C7.1 Stage 4 complete locally** for REQ-0040 + REQ-0041. GATE-0026/0027 approved. GATE-0002 remains pending (`EVAL_RESULTS.md` absent).
 
 Reconciliation note (2026-08-18): commits and prior validation records document C1 implementation activity, but `APPROVALS.md` has no matching approved record for the original GATE-0001 token. This is retained as historical evidence, not retroactively approved. It does not authorize further implementation.
 
@@ -231,6 +231,36 @@ Implementation is locally verified. Production warm-nav check remains with TASK-
 | Scope | Optimistic RQ soft-nav surface; never null loading; page empty-flash fixes. No densify rewrite. |
 
 Implementation is locally verified. Production warm-nav check remains with TASK-0039. Gate 2 remains required before any release decision.
+
+---
+
+## GATE-0026 — Human Gate 1 (C7.0 instant static chrome)
+
+| Field | Value |
+|-------|-------|
+| Type | Human-Decision |
+| Status | **APPROVED 2026-08-21** |
+| Checkpoint | `C7.0-HG1-INSTANT-STATIC-CHROME-2026-08-21` in `CHECKPOINTS.md` |
+| Evidence | REQ-0040; TASK-0045; DEC-0041; CR-0017 |
+| Required human action | Completed — screenshots + plan implement request. |
+| Scope | Full soft-nav chrome parity; Browse instant filter; Insights tabs/pad; footer scroll. No densify rewrite. |
+
+Implementation is locally verified. Production check remains with TASK-0039. Gate 2 remains required before any release decision.
+
+---
+
+## GATE-0027 — Human Gate 1 (C7.1 targeted densify)
+
+| Field | Value |
+|-------|-------|
+| Type | Human-Decision |
+| Status | **APPROVED 2026-08-21** |
+| Checkpoint | `C7.1-HG1-TARGETED-DENSIFY-2026-08-21` |
+| Evidence | REQ-0041; TASK-0046; DEC-0042 |
+| Required human action | Completed — user densify audit/fix request. |
+| Scope | Browse densify + drop unified on delete + full insights invalidate. No full densify rewrite / JWT-null SSR. |
+
+Implementation is locally verified. Production check remains with TASK-0039. Gate 2 remains required before any release decision.
 
 ---
 

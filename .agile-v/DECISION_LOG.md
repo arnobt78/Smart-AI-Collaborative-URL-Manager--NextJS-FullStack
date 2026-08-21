@@ -502,14 +502,31 @@ Append-only. Newest entries at bottom.
 | Linked REQs | REQ-0039 |
 | Status | Implemented and locally validated 2026-08-20. |
 
+---
+
+## DEC-0041 — C7.0 instant static chrome (full soft-nav parity)
+
 | Field | Value |
 |---|---|
-| Timestamp | 2026-08-19 |
-| Agent | Agile V C6 implementation |
-| Decision | Enforce protected page access server-side, explicitly render data pages dynamically, and retain only compact local cold slots; commit URL mutation summaries to all-list cache before reconciliation. |
-| Rationale | Static page optimization and query-only invalidation allowed an unauthenticated shell and stale summary timestamp to paint before client data caught up. |
-| Linked REQs | REQ-0028 |
-| Status | Implemented and locally validated. |
+| Timestamp | 2026-08-21 |
+| Agent | Agile V C7.0 |
+| Decision | Root cause of late static chrome was thin OptimisticSoftNavSurface. Extract shared presentational Lists/Browse/Insights chrome+cards; warm surface paints full parity. Browse client filter; Insights tabs centered; Card header/content p-0 with outer CARD_PAD; drop page min-h-screen. Densify still OOS. |
+| Rationale | Screenshots showed Create/search/tabs/actions catching up after warm soft-nav partial paint. |
+| Linked REQs | REQ-0040 |
+| Status | Implemented and locally validated 2026-08-21. |
+
+---
+
+## DEC-0042 — C7.1 targeted densify (browse + insights)
+
+| Field | Value |
+|---|---|
+| Timestamp | 2026-08-21 |
+| Agent | Agile V C7.1 |
+| Decision | Extend impact helpers with densifyBrowsePublicLists + dropUnifiedListCache; widen business-insights invalidation. Keep invalidateMutationImpact; no full densify rewrite / JWT-null SSR. |
+| Rationale | Audit: browse warm soft-nav showed stale public rows after visibility/delete; deleted unified kept ghost detail warm; activity/popular stayed Infinity-stale after list/URL CRUD. |
+| Linked REQs | REQ-0041 |
+| Status | Implemented and locally validated 2026-08-21. |
 
 ---
 

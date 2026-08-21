@@ -4,10 +4,9 @@
  * Centralized functions for invalidating React Query caches when data changes.
  * This ensures all related queries update immediately after mutations.
  *
- * Following the pattern from REACT_QUERY_SETUP_GUIDE.md:
- * - Cache forever until invalidated (staleTime: Infinity)
- * - Centralized invalidation ensures all related queries update together
- * - Single source of truth for cache invalidation logic
+ * C7.1 densify: list visibility/create/delete also patch browse public caches
+ * immediately so warm soft-nav never paints a stale public row. Invalidate still
+ * reconciles in background (Infinity staleTime).
  *
  * @module utils/queryInvalidation
  */
@@ -28,6 +27,108 @@ export type MutationImpact =
   | "metadata"
   | "action"
   | "analytics";
+
+/** Minimal list shape for densifying browse public grids. */
+export type BrowseDensifyList = {
+  id: string;
+  slug: string;
+  title?: string | null;
+  description?: string | null;
+  isPublic?: boolean;
+  urls?: unknown[];
+  user?: { email: string };
+};
+
+type BrowsePublicCache = {
+  lists: BrowseDensifyList[];
+  pagination?: unknown;
+};
+
+function isBrowsePublicQueryKey(queryKey: readonly unknown[]): boolean {
+  return (
+    Array.isArray(queryKey) &&
+    queryKey[0] === "browse" &&
+    queryKey[1] === "public"
+  );
+}
+
+/**
+ * C7.1: Densify all browse public list pages — upsert when public, remove when
+ * private/deleted — so OptimisticSoftNavSurface never shows a ghost row.
+ */
+export function densifyBrowsePublicLists(
+  queryClient: QueryClient,
+  list: BrowseDensifyList,
+  options?: { remove?: boolean },
+): void {
+  const shouldRemove = Boolean(options?.remove || list.isPublic === false);
+
+  queryClient.setQueriesData<BrowsePublicCache>(
+    {
+      predicate: (query) => isBrowsePublicQueryKey(query.queryKey),
+    },
+    (current) => {
+      if (!current?.lists) return current;
+
+      if (shouldRemove) {
+        const nextLists = current.lists.filter(
+          (item) => item.id !== list.id && item.slug !== list.slug,
+        );
+        if (nextLists.length === current.lists.length) return current;
+        return { ...current, lists: nextLists };
+      }
+
+      const row: BrowseDensifyList = {
+        id: list.id,
+        slug: list.slug,
+        title: list.title ?? list.slug,
+        description: list.description ?? undefined,
+        isPublic: true,
+        urls: list.urls ?? [],
+        user: list.user ?? { email: "you@local" },
+      };
+
+      const index = current.lists.findIndex(
+        (item) => item.id === list.id || item.slug === list.slug,
+      );
+      if (index === -1) {
+        return { ...current, lists: [row, ...current.lists] };
+      }
+
+      const nextLists = current.lists.slice();
+      nextLists[index] = { ...nextLists[index], ...row };
+      return { ...current, lists: nextLists };
+    },
+  );
+}
+
+/** C7.1: Drop unified cache so deleted slugs are not warm soft-nav destinations. */
+export function dropUnifiedListCache(
+  queryClient: QueryClient,
+  listSlug: string,
+): void {
+  if (!listSlug) return;
+  queryClient.removeQueries({ queryKey: listQueryKeys.unified(listSlug) });
+}
+
+/** Snapshot browse public caches for optimistic rollback. */
+export function snapshotBrowsePublicCaches(
+  queryClient: QueryClient,
+): Array<[readonly unknown[], BrowsePublicCache | undefined]> {
+  return queryClient.getQueriesData<BrowsePublicCache>({
+    predicate: (query) => isBrowsePublicQueryKey(query.queryKey),
+  });
+}
+
+/** Restore browse public caches after a failed mutation. */
+export function restoreBrowsePublicCaches(
+  queryClient: QueryClient,
+  snapshot: Array<[readonly unknown[], BrowsePublicCache | undefined]>,
+): void {
+  for (const [queryKey, data] of snapshot) {
+    queryClient.setQueryData(queryKey, data);
+  }
+}
 
 export function invalidateMutationImpact(
   queryClient: QueryClient,
@@ -75,9 +176,7 @@ function invalidateActionQueries(queryClient: QueryClient, listSlug: string): vo
 /** REQ-0026: Clicks affect the list card and cached business insight KPIs. */
 function invalidateAnalyticsQueries(queryClient: QueryClient, listSlug: string): void {
   invalidateActionQueries(queryClient, listSlug);
-  queryClient.invalidateQueries({
-    predicate: (query) => Array.isArray(query.queryKey) && query.queryKey[0] === "business-insights",
-  });
+  invalidateAllBusinessInsights(queryClient);
 }
 
 /** REQ-0025: Collection creation changes suggestions and activity, not URL metadata. */
@@ -91,39 +190,31 @@ function invalidateCollectionMutationQueries(
   queryClient.invalidateQueries({ queryKey: listQueryKeys.duplicates(listId) });
 }
 
+/** C7.1: Mark every insights tab stale (overview/activity/popular/performance/global). */
+function invalidateAllBusinessInsights(queryClient: QueryClient): void {
+  queryClient.invalidateQueries({
+    predicate: (query) =>
+      Array.isArray(query.queryKey) && query.queryKey[0] === "business-insights",
+  });
+}
+
 /**
  * Invalidate browse/public lists queries
- * 
+ *
  * Use this when:
  * - List visibility changes (public/private)
  * - Public list is created/deleted
- * 
+ *
  * @param queryClient - React Query client instance
  */
 export function invalidateBrowseQueries(queryClient: QueryClient): void {
   // Invalidate all browse/public lists queries (any page, any search)
   queryClient.invalidateQueries({
-    predicate: (query) => {
-      const key = query.queryKey;
-      return (
-        Array.isArray(key) &&
-        key[0] === "browse" &&
-        key[1] === "public"
-      );
-    },
+    predicate: (query) => isBrowsePublicQueryKey(query.queryKey),
   });
 
-  // Also invalidate business insights that show public list counts
-  queryClient.invalidateQueries({
-    predicate: (query) => {
-      const key = query.queryKey;
-      return (
-        Array.isArray(key) &&
-        key[0] === "business-insights" &&
-        (key[1] === "overview" || key[1] === "performance" || key[1] === "global")
-      );
-    },
-  });
+  // C7.1: include activity + popular (were previously skipped → Infinity-stale tabs)
+  invalidateAllBusinessInsights(queryClient);
 }
 
 /**
@@ -194,7 +285,7 @@ export function invalidateAllListsQueries(
       const key = query.queryKey;
       return (
         Array.isArray(key) &&
-        (key[0] === "lists" || 
+        (key[0] === "lists" ||
          (key.length > 1 && key[0] === "list" && key[1] === "all"))
       );
     },
@@ -273,7 +364,7 @@ export function invalidateCollaboratorQueries(
   queryClient.invalidateQueries({
     queryKey: listQueryKeys.allLists(),
   });
-  
+
   // CRITICAL: Also invalidate collaborators query if it exists
   // This ensures collaborator lists update immediately
   queryClient.invalidateQueries({
@@ -298,6 +389,7 @@ export function invalidateCollaboratorQueries(
  * - Collections (AI suggestions)
  * - Duplicates
  * - Metadata (optional)
+ * - Business insights KPIs (C7.1)
  *
  * @param queryClient - React Query client instance
  * @param listSlug - List slug (required)
@@ -334,6 +426,9 @@ export function invalidateUrlQueries(
   queryClient.invalidateQueries({
     queryKey: listQueryKeys.duplicates(listId),
   });
+
+  // C7.1: URL count KPIs / activity charts must not stay Infinity-stale
+  invalidateAllBusinessInsights(queryClient);
 
   // Optionally invalidate metadata (for batch metadata refetch)
   if (includeMetadata) {

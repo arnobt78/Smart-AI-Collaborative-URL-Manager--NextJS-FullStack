@@ -4,18 +4,13 @@
 **The Daily Urlist** (`urlist` v0.2.1) — AI collaborative URL lists.  
 Live: https://daily-urlist.vercel.app/ · Resume: `.agile-v/STATE.md`
 
-## Status (C6.9)
-Done: C6.5–C6.8 nav/dialogs · C6.9 optimistic soft-nav · toast bottom-right.
-Dialogs: `ui/Dialog.tsx` sole overlay; `useListDialogRouteState` = React + `history.state` (no `_rsc`); never strip `?dialog=` on close. Mutating overlays pending until network + paint.
-Nav: `WarmSoftNavLink` / `warmRouterPush|Replace` + `soft-nav-cache`; warm → `OptimisticSoftNavSurface` from RQ in `loading.tsx`; cold → one `RoutePageSkeleton`. Never `null` empty content. Pages = `requirePageUser` + SSR prefetch/dehydrate. Insights SSR seeds overview+activity only; tabs never blank. List detail paints when unified cache hit (no `!mounted` skeleton). `getCurrentUser` reuses `session.user`.
-Toast: bottom-right stack + `toast-slide-in` (reduced-motion → fade).
-Stable UI/data: Lists/Browse immediate cold slot (no delayed null); Browse cached cards; metadata Node-only public HTTP(S)+DNS/IP; comment badges create+1/delete-1/edit0.
-Auth menu: opaque guest panel; logout menu-first then server-confirmed cache clear.
-Data: RQ Infinity + optimistic store + `invalidateMutationImpact` + SSE. Public lists auth-only. `lib/*-query-keys.ts` owns keys.
-Human: HA-0001; match Sentry org/token before upload.  
-Audit: RISK-0016 Prisma CLI advisory accepted. Jest 97/5 · lint 0 · tsc · build pass.
-Manual: TASK-0039 + warm revisit paints destination UI (no empty/skeleton) after deploy.
-Out of scope: densify/JWT SSR, Next 16, Prisma 7.
+## Status (C7.1)
+Done: C6.5–C7.0 chrome parity · **C7.1** targeted densify (browse upsert/remove, drop unified on delete, insights activity/popular + URL impact).
+Nav: warm `OptimisticSoftNavSurface` = full Lists/Browse/Insights chrome+cards. Cold = one `RoutePageSkeleton`.
+Data: RQ Infinity + optimistic + `invalidateMutationImpact` + densifyBrowsePublicLists + SSE. Full densify rewrite / JWT-null SSR still OOS.
+Defer: api-docs, api-status, list-detail late chrome; hydrate overwrite guard if flicker reproduces.
+Human: HA-0001; TASK-0039 after deploy.
+Validate: Jest 101/5 · lint 0 · tsc · build.
 
 ## Stack
 Next 15.5.23 · React 18 · RQ · Prisma 6.19 · cookie auth · Upstash · Sentry tunnel · PostHog · Jest · Node 24.x (Vercel)

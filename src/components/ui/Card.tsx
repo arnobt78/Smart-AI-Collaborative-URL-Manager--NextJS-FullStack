@@ -17,14 +17,14 @@ const Card = React.forwardRef<
 ));
 Card.displayName = "Card";
 
-/** Card chrome: single pad scale (p-2 sm:p-4) — avoid lg:p-8 stacking with page wrappers. */
+/** Card chrome: single pad on Card shell — Header/Content/Footer default p-0 (C7.0). */
 const CardHeader = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn(HEADING_STACK, "p-2 sm:p-4", className)}
+    className={cn(HEADING_STACK, "p-0", className)}
     {...props}
   />
 ));
@@ -54,7 +54,7 @@ const CardContent = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
 >(({ className, ...props }, ref) => (
-  <div ref={ref} className={cn("p-2 sm:p-4 pt-0", className)} {...props} />
+  <div ref={ref} className={cn("p-0", className)} {...props} />
 ));
 CardContent.displayName = "CardContent";
 
@@ -64,7 +64,7 @@ const CardFooter = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn("flex items-center p-2 sm:p-4 pt-0", className)}
+    className={cn("flex items-center p-0", className)}
     {...props}
   />
 ));

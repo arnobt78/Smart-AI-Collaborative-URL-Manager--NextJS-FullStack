@@ -24,7 +24,7 @@
 | Auth UI polish                         | PASS | PASS                      | max-w-7xl; no divider/left logo; reserved typewriter; gaps; Sign up row; CTA pt |
 | Stock glass shadow-glow                | PASS | PASS (pre-existing WARN)  | glass-* tokens; Button; Auth Sparkles + 0_15px_35px glow verified in browser |
 
-Out of scope: densify/JWT SSR, Zod/SHA, Next 16, Prisma 7.
+Out of scope: full densify rewrite / JWT-null SSR, Zod/SHA, Next 16, Prisma 7.
 
 ## 2026-08-18 — GATE-0011 planning audit (no implementation run)
 
@@ -341,10 +341,16 @@ Gate 2: BLOCKED — RISK-0016 is accepted; `EVAL_RESULTS.md` PASS/WAIVED evidenc
 | SoftNavLoading | `SoftNavLoading.test.tsx` | PASS | Warm paints optimistic lists; cold/missing → skeleton. |
 | Full validation | `npx tsc --noEmit`; `npm run lint`; `npm test`; `npm run build` | PASS | Strict TypeScript, zero-warning lint, 97 passed / 5 skipped Jest tests, and optimized production build pass. |
 
-## 2026-08-20 — Toast bottom-right + dialog test harden
+## 2026-08-21 — REQ-0040 C7.0 instant static chrome parity
 
 | Scope | Command / evidence | Result | Notes |
 |---|---|---|---|
-| Toast UI | `Toaster.tsx` / `Toast.tsx` / `globals.css` | PASS | Bottom-right stack; `toast-slide-in`; reduced-motion fade. |
-| Dialog create pending | `ListDialogCompletion.test.tsx` | PASS | Assert `pending` called with true (not last-only; parallel-suite race). |
-| Full validation | `npx tsc --noEmit`; `npm run lint`; `npm test` | PASS | Zero-warning lint; Jest suite green. |
+| SoftNavLoading | `SoftNavLoading.test.tsx` | PASS | Warm paints Create + full card chrome. |
+| Full validation | `npx tsc --noEmit`; `npm run lint`; `npm test`; `npm run build` | PASS | Strict TypeScript, zero-warning lint, 97 passed / 5 skipped Jest tests, production build pass. |
+
+## 2026-08-21 — REQ-0041 C7.1 targeted densify
+
+| Scope | Command / evidence | Result | Notes |
+|---|---|---|---|
+| Densify helpers | `queryInvalidation.test.ts` | PASS | Upsert/remove browse; drop unified; insights predicates. |
+| Full validation | `npx tsc --noEmit`; `npm run lint`; `npm test`; `npm run build` | PASS | Strict TypeScript, zero-warning lint, 101 passed / 5 skipped Jest tests, production build pass. |

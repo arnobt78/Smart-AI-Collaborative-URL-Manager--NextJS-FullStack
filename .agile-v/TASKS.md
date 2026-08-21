@@ -262,3 +262,19 @@ RSC shells · densify/Zod/SHA/Next16
 3. Validate tsc/lint/Jest/build; sync agent docs.
 
 **Dependencies:** REQ-0039; GATE-0025 approved by user implementation request.
+
+### TASK-0045 — C7.0 instant static chrome + one cold paint — DONE
+
+1. Screenshot map → shared Lists/Browse/Insights presentational parity with OptimisticSoftNavSurface.
+2. Browse instant filter; Insights tabs center + CARD_PAD; remove page min-h-screen.
+3. Validate tsc/lint/Jest/build; sync agent docs.
+
+**Dependencies:** REQ-0040; GATE-0026 approved by user implementation request.
+
+### TASK-0046 — C7.1 targeted densify browse + insights — DONE
+
+1. densifyBrowsePublicLists + dropUnifiedListCache on list/visibility/delete.
+2. Widen insights invalidation (activity/popular + url/import).
+3. Validate tsc/lint/Jest; sync agent docs.
+
+**Dependencies:** REQ-0041; user densify audit/fix request.

@@ -17,12 +17,12 @@ jest.mock("next/navigation", () => ({
   useRouter: () => ({ push: jest.fn(), replace: jest.fn() }),
 }));
 
-describe("C6.9 SoftNavLoading", () => {
+describe("C7.0 SoftNavLoading", () => {
   beforeEach(() => {
     resetWarmSoftNavForTests();
   });
 
-  it("paints optimistic lists surface when warm and RQ has data", () => {
+  it("paints full lists chrome when warm and RQ has data", () => {
     const client = new QueryClient();
     client.setQueryData(listQueryKeys.allLists(), {
       lists: [
@@ -31,7 +31,9 @@ describe("C6.9 SoftNavLoading", () => {
           slug: "demo",
           title: "Demo List",
           isPublic: true,
+          description: "Demo description",
           urls: [],
+          createdAt: "2026-08-20T00:00:00.000Z",
         },
       ],
     });
@@ -44,6 +46,9 @@ describe("C6.9 SoftNavLoading", () => {
     );
 
     expect(screen.getByText("Demo List")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Create New List/i })).toBeInTheDocument();
+    expect(screen.getByLabelText(/View Demo List/i)).toBeInTheDocument();
+    expect(screen.getByText("Demo description")).toBeInTheDocument();
     expect(screen.queryByText("Preparing your lists")).not.toBeInTheDocument();
   });
 

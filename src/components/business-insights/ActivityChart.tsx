@@ -14,6 +14,8 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/Tabs";
 import { useBusinessActivityQuery } from "@/hooks/useBrowseQueries";
+import { CARD_PAD } from "@/lib/ui-spacing";
+import { cn } from "@/lib/utils";
 
 interface ActivityData {
   date: string;
@@ -85,8 +87,8 @@ export function ActivityChart({
 
   if (isLoading && data.length === 0) {
     return (
-      <Card className="animate-pulse">
-        <CardHeader>
+      <Card className={cn(CARD_PAD, "animate-pulse")}>
+        <CardHeader className="pb-2">
           <div className="h-6 bg-white/10 rounded w-1/3" />
         </CardHeader>
         <CardContent>
@@ -97,8 +99,8 @@ export function ActivityChart({
   }
 
   return (
-    <Card>
-      <CardHeader>
+    <Card className={CARD_PAD}>
+      <CardHeader className="pb-2">
         <CardTitle className="text-sm sm:text-base">
           Activity Timeline
         </CardTitle>

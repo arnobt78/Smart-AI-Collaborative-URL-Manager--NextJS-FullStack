@@ -1,5 +1,24 @@
 # CHANGELOG.md
 
+## CR-0018 — C7.1 targeted densify (browse + insights)
+
+- **Cycle:** C7.1
+- **Affected requirement:** REQ-0041
+- **Change:** densifyBrowsePublicLists + dropUnifiedListCache on list CRUD/visibility/delete; insights invalidate includes activity/popular; URL/import marks all business-insights stale.
+- **Rationale:** Warm soft-nav painted stale browse rows / ghost detail; Infinity-stale Insights tabs after mutations.
+- **Impact:** queryInvalidation.ts, useListQueries.ts, tests, docs.
+- **Requested by / approval:** GATE-0027 (`C7.1-HG1-TARGETED-DENSIFY-2026-08-21`).
+
+## CR-0017 — C7.0 instant static chrome (full soft-nav parity)
+
+
+- **Cycle:** C7.0
+- **Affected requirement:** REQ-0040
+- **Change:** Shared Lists/Browse/Insights presentational chrome+cards for page + OptimisticSoftNavSurface; Browse instant filter; Insights tabs center + CARD_PAD; remove page min-h-screen.
+- **Rationale:** Warm soft-nav thin shell caused late Create/search/tabs/actions (screenshots).
+- **Impact:** lists/*, SoftNavLoading path, PageHeader, Card, Tabs, Insights components, docs.
+- **Requested by / approval:** GATE-0026 (`C7.0-HG1-INSTANT-STATIC-CHROME-2026-08-21`).
+
 ## CR-0016 — C6.9 optimistic soft-nav (no empty hole)
 
 - **Cycle:** C6.9

@@ -15,6 +15,7 @@ import {
   CartesianGrid,
 } from "recharts";
 import { TrendingUp, Link2 } from "lucide-react";
+import { CARD_PAD } from "@/lib/ui-spacing";
 
 interface PerformanceData {
   totalUrls: number;
@@ -107,42 +108,42 @@ export function PerformanceMetrics({
     <div className="space-y-6">
       {/* Key Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="p-2 sm:p-4">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 p-0 pb-1">
+        <Card className={CARD_PAD}>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
             <CardTitle className="text-xs sm:text-sm font-medium text-white/70">
               Avg URLs per List
             </CardTitle>
             <TrendingUp className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-400" />
           </CardHeader>
-          <CardContent className="p-0">
+          <CardContent>
             <div className="text-xl sm:text-2xl font-medium text-white">
               {data.avgUrlsPerList}
             </div>
           </CardContent>
         </Card>
 
-        <Card className="p-2 sm:p-4">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 p-0 pb-1">
+        <Card className={CARD_PAD}>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
             <CardTitle className="text-xs sm:text-sm font-medium text-white/70">
               Lists with Collaborators
             </CardTitle>
             <Link2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-purple-400" />
           </CardHeader>
-          <CardContent className="p-0">
+          <CardContent>
             <div className="text-xl sm:text-2xl font-medium text-white">
               {data.listsWithCollaborators}
             </div>
           </CardContent>
         </Card>
 
-        <Card className="p-2 sm:p-4">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 p-0 pb-1">
+        <Card className={CARD_PAD}>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
             <CardTitle className="text-xs sm:text-sm font-medium text-white/70">
               Total URLs
             </CardTitle>
             <Link2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-green-400" />
           </CardHeader>
-          <CardContent className="p-0">
+          <CardContent>
             <div className="text-xl sm:text-2xl font-medium text-white">
               {data.totalUrls}
             </div>
@@ -153,8 +154,8 @@ export function PerformanceMetrics({
       {/* Charts Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Public vs Private Distribution */}
-        <Card>
-          <CardHeader>
+        <Card className={CARD_PAD}>
+          <CardHeader className="pb-2">
             <CardTitle className="text-sm sm:text-base">
               List Distribution
             </CardTitle>
@@ -195,8 +196,8 @@ export function PerformanceMetrics({
         </Card>
 
         {/* Top Lists by URL Count */}
-        <Card>
-          <CardHeader>
+        <Card className={CARD_PAD}>
+          <CardHeader className="pb-2">
             <CardTitle className="text-sm sm:text-base">
               Top Lists by URL Count
             </CardTitle>
