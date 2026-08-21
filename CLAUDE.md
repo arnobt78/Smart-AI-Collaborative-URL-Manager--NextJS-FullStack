@@ -4,11 +4,11 @@
 **The Daily Urlist** (`urlist` v0.2.1) — AI collaborative URL lists.  
 Live: https://daily-urlist.vercel.app/ · Resume: `.agile-v/STATE.md`
 
-## Status (C7.2)
-Done: C7.0 chrome · C7.1 densify · **C7.2** dark scrollbar · rare Link `prefetch={false}` · Insights one cached list scan (overview+activity).
-Nav: warm Lists/Browse/Insights only; footer/api-docs/status no hover `_rsc`.
-Data: RQ + densifyBrowse + invalidateMutationImpact + SSE. Full densify/JWT-null SSR OOS.
-Defer: api-docs/api-status/list-detail chrome; further lists/browse cold API slim.
+## Status (C7.3)
+Done: C7.2 prefetch/Insights · **C7.3** api-docs/status soft-nav + CARD_PAD · slim status · optimistic logout → `/`.
+Nav: warm Lists/Browse/Insights; cold pulse skeleton for api-docs/status.
+Data: densifyBrowse + invalidateMutationImpact + SSE. Full densify/JWT-null SSR OOS.
+Defer: further lists/browse cold API slim.
 Human: HA-0001; TASK-0039 after deploy.
 Validate: Jest 103/5 · lint 0 · tsc · build.
 

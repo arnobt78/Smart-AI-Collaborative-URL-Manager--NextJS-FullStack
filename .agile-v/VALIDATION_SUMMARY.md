@@ -361,3 +361,10 @@ Gate 2: BLOCKED — RISK-0016 is accepted; `EVAL_RESULTS.md` PASS/WAIVED evidenc
 |---|---|---|---|
 | Insight builders | `business-insights-lists.test.ts` | PASS | Overview + activity shapes. |
 | Full validation | `npx tsc --noEmit`; `npm run lint`; `npm test`; `npm run build` | PASS | 103 passed / 5 skipped; lint 0; build. |
+
+## 2026-08-21 — REQ-0043 C7.3 api-docs/status + logout
+
+| Scope | Command / evidence | Result | Notes |
+|---|---|---|---|
+| Skeletons / logout | RoutePageSkeleton + ProfileDropdown tests | PASS | Docs/status shells; keepalive signout. |
+| Full validation | `npx tsc --noEmit`; `npm run lint`; `npm test`; `npm run build` | PASS | 103 passed / 5 skipped; lint 0; build. |

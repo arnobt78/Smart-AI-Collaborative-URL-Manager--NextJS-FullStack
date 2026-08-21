@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/Badge";
 import { CheckCircle2, AlertCircle, Clock, Activity } from "lucide-react";
 import { useApiStatusQuery } from "@/hooks/useBrowseQueries";
 import { cn } from "@/lib/utils";
-import { PAGE_STACK } from "@/lib/ui-spacing";
+import { PAGE_STACK, CARD_PAD } from "@/lib/ui-spacing";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { useDelayedPending } from "@/hooks/useDelayedPending";
 
@@ -43,12 +43,12 @@ export default function ApiStatusPage() {
   };
 
   return (
-    <div className={cn("min-h-screen w-full", PAGE_STACK)}>
+    <div className={cn("w-full", PAGE_STACK)}>
       {/* Header */}
       <PageHeader icon={Activity} title="API Status" description="Real-time monitoring of all API endpoints" />
 
-      {/* Overall Status */}
-      <Card>
+      {/* Overall Status — C7.3 CARD_PAD matches Insights/Lists */}
+      <Card className={CARD_PAD}>
         <CardHeader>
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
             <CardTitle className="text-base sm:text-lg">
@@ -96,7 +96,7 @@ export default function ApiStatusPage() {
       </Card>
 
       {/* API Endpoints */}
-      <Card>
+      <Card className={CARD_PAD}>
         <CardHeader>
           <CardTitle>API Endpoints</CardTitle>
         </CardHeader>
@@ -105,7 +105,7 @@ export default function ApiStatusPage() {
             {statusData?.endpoints?.map((endpoint) => (
               <div
                 key={endpoint.endpoint}
-                className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0 p-3 sm:p-4 rounded-lg bg-white/5 border border-white/10"
+                className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0 p-2 sm:p-4 rounded-lg bg-white/5 border border-white/10"
               >
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 sm:gap-2 mb-1 flex-wrap">

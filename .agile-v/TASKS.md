@@ -287,3 +287,12 @@ RSC shells · densify/Zod/SHA/Next16
 
 **Dependencies:** REQ-0042; plan implement approval.
 
+### TASK-0048 — C7.3 api-docs/status soft-nav + logout — DONE
+
+1. CARD_PAD + loading shells + pulse skeletons.
+2. Slim status; optimistic logout keepalive.
+3. Validate tsc/lint/Jest/build; sync docs.
+
+**Dependencies:** REQ-0043; plan implement approval.
+
+

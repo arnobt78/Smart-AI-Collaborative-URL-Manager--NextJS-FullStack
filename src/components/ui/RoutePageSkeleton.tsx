@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { BarChart3, Globe, LayoutList, Link2 } from "lucide-react";
+import { Activity, BarChart3, BookOpen, Globe, LayoutList, Link2 } from "lucide-react";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { DataSurfaceSlot } from "@/components/ui/DataSurfaceSlot";
 import { HEADING_STACK, PAGE_HEADER, PAGE_STACK } from "@/lib/ui-spacing";
@@ -17,8 +17,8 @@ type RoutePageSkeletonProps = {
 };
 
 /**
- * C6.6: Segment `loading.tsx` paints only `{children}` (Navbar/Footer stay).
- * Matches page chrome + a local DataSurfaceSlot — not a full-layout remount.
+ * C6.6 / C7.3: Segment `loading.tsx` paints only `{children}` (Navbar/Footer stay).
+ * Title + subtitle pulse while DataSurfaceSlot spins — matches destination chrome.
  */
 export function RoutePageSkeleton({
   icon,
@@ -32,7 +32,7 @@ export function RoutePageSkeleton({
   return (
     <div className={cn("w-full", PAGE_STACK, className)}>
       {variant === "lists" ? (
-        <div className={PAGE_HEADER}>
+        <div className={cn(PAGE_HEADER, "animate-pulse")}>
           <h1 className="text-lg sm:text-xl font-medium bg-gradient-to-r from-blue-300 to-purple-300 bg-clip-text text-transparent leading-tight">
             {title}
           </h1>
@@ -41,7 +41,9 @@ export function RoutePageSkeleton({
           </p>
         </div>
       ) : (
-        <PageHeader icon={icon} title={title} description={description} />
+        <div className="animate-pulse">
+          <PageHeader icon={icon} title={title} description={description} />
+        </div>
       )}
       <DataSurfaceSlot label={slotLabel} description={slotDescription} />
     </div>
@@ -88,11 +90,37 @@ export function InsightsRouteSkeleton() {
   );
 }
 
+/** C7.3: Soft-nav shell for `/api-docs`. */
+export function ApiDocsRouteSkeleton() {
+  return (
+    <RoutePageSkeleton
+      icon={BookOpen}
+      title="API Documentation"
+      description="Complete API reference for The Daily Urlist"
+      slotLabel="Preparing API docs"
+      slotDescription="Loading endpoint reference…"
+    />
+  );
+}
+
+/** C7.3: Soft-nav shell for `/api-status`. */
+export function ApiStatusRouteSkeleton() {
+  return (
+    <RoutePageSkeleton
+      icon={Activity}
+      title="API Status"
+      description="Real-time monitoring of all API endpoints"
+      slotLabel="Preparing API status"
+      slotDescription="Checking system health…"
+    />
+  );
+}
+
 /** Soft-nav shell for `/list/[slug]` — title chrome + local slot. */
 export function ListDetailRouteSkeleton() {
   return (
     <div className={cn("w-full", PAGE_STACK)}>
-      <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-xl sm:rounded-2xl p-2 sm:p-4 shadow-xl">
+      <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-xl sm:rounded-2xl p-2 sm:p-4 shadow-xl animate-pulse">
         <div className={HEADING_STACK}>
           <div className="flex items-center gap-2">
             <Link2 className="h-5 w-5 text-blue-300 shrink-0" aria-hidden />

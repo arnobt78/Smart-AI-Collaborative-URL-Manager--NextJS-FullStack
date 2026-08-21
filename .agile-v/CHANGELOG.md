@@ -1,6 +1,16 @@
 # CHANGELOG.md
 
+## CR-0020 — C7.3 api-docs/status soft-nav + optimistic logout
+
+- **Cycle:** C7.3
+- **Affected requirement:** REQ-0043
+- **Change:** loading.tsx skeletons + CARD_PAD; slim status (no external metadata); optimistic logout to `/` with keepalive signout; pulse title/slot.
+- **Rationale:** Soft-nav stuck on previous page 1–3s; status ~3s; logout waited on signout before leave.
+- **Impact:** ApiDocs/ApiStatus pages, RoutePageSkeleton, SoftNavLoading, status route, ProfileDropdown, docs.
+- **Requested by / approval:** GATE-0029.
+
 ## CR-0019 — C7.2 rare prefetch + Insights list-scan dedupe
+
 
 - **Cycle:** C7.2
 - **Affected requirement:** REQ-0042

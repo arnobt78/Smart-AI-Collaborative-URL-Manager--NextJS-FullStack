@@ -2,6 +2,8 @@
 
 import { Suspense } from "react";
 import {
+  ApiDocsRouteSkeleton,
+  ApiStatusRouteSkeleton,
   BrowseRouteSkeleton,
   InsightsRouteSkeleton,
   ListDetailRouteSkeleton,
@@ -46,4 +48,13 @@ export function ListDetailSoftNavLoading() {
     return <OptimisticSoftNavSurface variant="list-detail" />;
   }
   return <ListDetailRouteSkeleton />;
+}
+
+/** C7.3: Rare utility routes — cold skeleton only (no warm RQ surface). */
+export function ApiDocsSoftNavLoading() {
+  return <ApiDocsRouteSkeleton />;
+}
+
+export function ApiStatusSoftNavLoading() {
+  return <ApiStatusRouteSkeleton />;
 }

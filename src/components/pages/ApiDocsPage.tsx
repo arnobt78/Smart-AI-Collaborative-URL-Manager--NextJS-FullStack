@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/Tabs";
 import { BookOpen, Code, Lock, Globe, Link2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { PAGE_STACK } from "@/lib/ui-spacing";
+import { PAGE_STACK, CARD_PAD } from "@/lib/ui-spacing";
 import { PageHeader } from "@/components/ui/PageHeader";
 
 interface ApiEndpoint {
@@ -357,12 +357,12 @@ const allEndpoints: Record<string, ApiEndpoint[]> = {
 
 export default function ApiDocsPage() {
   return (
-    <div className={cn("min-h-screen w-full", PAGE_STACK)}>
+    <div className={cn("w-full", PAGE_STACK)}>
       {/* Header */}
       <PageHeader icon={BookOpen} title="API Documentation" description="Complete API reference for The Daily Urlist" />
 
-      {/* Authentication Info */}
-      <Card className="border-blue-400/30">
+      {/* Authentication Info — C7.3 CARD_PAD */}
+      <Card className={cn(CARD_PAD, "border-blue-400/30")}>
         <CardHeader>
           <div className="flex items-center gap-2">
             <Lock className="h-5 w-5 text-blue-400" />
@@ -422,7 +422,7 @@ export default function ApiDocsPage() {
         {Object.entries(allEndpoints).map(([category, endpoints]) => (
           <TabsContent key={category} value={category} className="space-y-3">
             {endpoints.map((endpoint, index) => (
-              <Card key={index}>
+              <Card key={index} className={CARD_PAD}>
                 <CardHeader>
                   <div className="flex items-start justify-between gap-2 sm:gap-4">
                     <div className="flex-1 min-w-0">

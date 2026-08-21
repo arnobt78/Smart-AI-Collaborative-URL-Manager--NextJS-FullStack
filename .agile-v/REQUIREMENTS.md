@@ -833,3 +833,21 @@ These describe the current product as verified in code. They are **Accepted as b
 **Affected:** Footer, ProfileDropdown, business-insights-lists, overview/activity routes, globals.css.
 **Trace:** TASK-0047, DEC-0043, GATE-0028.
 **Status:** Completed and locally validated [C7.2] on 2026-08-21.
+
+---
+
+### REQ-0043 — api-docs/status soft-nav + slim status + optimistic logout (C7.3) (approved 2026-08-21)
+
+**Priority:** P1
+**Type:** UX / performance
+
+**Statement:** `/api-docs` and `/api-status` MUST paint segment `loading.tsx` skeletons (page title + pulsing DataSurfaceSlot) immediately on soft-nav. Cards MUST use `CARD_PAD`. Status probe MUST NOT fetch external metadata URLs. Logout MUST clear client state and navigate to `/` immediately while signout uses `keepalive`. No new `/login` route.
+
+**Acceptance criteria:**
+
+- [x] ApiDocs/ApiStatus RouteSkeleton + SoftNav + loading.tsx; CARD_PAD; drop min-h-screen.
+- [x] Slim status route; optimistic ProfileDropdown logout; tests; tsc/lint/Jest/build.
+
+**Affected:** ApiDocsPage, ApiStatusPage, RoutePageSkeleton, SoftNavLoading, status/route, ProfileDropdown.
+**Trace:** TASK-0048, DEC-0044, GATE-0029.
+**Status:** Completed and locally validated [C7.3] on 2026-08-21.

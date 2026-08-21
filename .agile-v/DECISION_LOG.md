@@ -543,6 +543,19 @@ Append-only. Newest entries at bottom.
 
 ---
 
+## DEC-0044 — C7.3 api-docs/status soft-nav + optimistic logout
+
+| Field | Value |
+|---|---|
+| Timestamp | 2026-08-21 |
+| Agent | Agile V C7.3 |
+| Decision | Add loading.tsx + skeletons; CARD_PAD; slim status probes; logout navigates to `/` before awaiting signout (keepalive). No `/login` route. |
+| Rationale | Screenshots: stuck previous page; status 2.8s; logout 600–800ms on protected UI. |
+| Linked REQs | REQ-0043 |
+| Status | Implemented and locally validated 2026-08-21. |
+
+---
+
 ## DEC-0025 — Defer interactive acceptance to user browser testing
 
 | Field | Value |

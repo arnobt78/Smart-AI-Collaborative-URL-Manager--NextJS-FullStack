@@ -6,15 +6,14 @@
  * `top-full` + `right-0` under the trigger — no manual flow/mt hacks.
  * Kept as custom panel (not Radix) so sticky Navbar does not scroll-lock.
  * Order: name+email → separator → utility links → separator → Logout.
- * REQ-BASE-001: Logout closes the menu immediately while server confirmation
- * remains authoritative before clearing authenticated client state.
+ * C7.3: Optimistic logout — clear client + navigate to `/` immediately;
+ * signout POST runs with keepalive so cookie/session clear in background.
  */
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useQueryClient } from "@tanstack/react-query";
 import { Activity, FileText, LogOut } from "lucide-react";
 import { UserAvatar } from "@/components/ui/UserAvatar";
-import { useToast } from "@/components/ui/Toaster";
 import { UTILITY_NAVIGATION_ITEMS } from "@/constants/auth";
 import { displayNameFromEmail } from "@/lib/robohash";
 import { queueAuthToast } from "@/lib/auth-toast";
@@ -39,14 +38,9 @@ export function ProfileDropdown({
   onNavigate,
 }: ProfileDropdownProps) {
   const [open, setOpen] = useState(false);
-  const [isLogoutSlow, setIsLogoutSlow] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const logoutInFlightRef = useRef(false);
-  const slowLogoutTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
-    null,
-  );
   const queryClient = useQueryClient();
-  const { toast } = useToast();
   const name = fullName || displayNameFromEmail(email);
 
   useEffect(() => {
@@ -70,63 +64,24 @@ export function ProfileDropdown({
     };
   }, [open]);
 
-  useEffect(() => {
-    return () => {
-      if (slowLogoutTimerRef.current) {
-        clearTimeout(slowLogoutTimerRef.current);
-      }
-    };
-  }, []);
-
-  const clearSlowLogoutTimer = () => {
-    if (slowLogoutTimerRef.current) {
-      clearTimeout(slowLogoutTimerRef.current);
-      slowLogoutTimerRef.current = null;
-    }
-  };
-
-  const handleLogout = async () => {
+  const handleLogout = () => {
     if (logoutInFlightRef.current) return;
     logoutInFlightRef.current = true;
     setOpen(false);
-    slowLogoutTimerRef.current = setTimeout(() => {
-      setIsLogoutSlow(true);
-    }, 1200);
 
-    try {
-      const response = await fetch("/api/auth/signout", {
-        method: "POST",
+    queueAuthToast({ kind: "goodbye", name });
+    void queryClient.cancelQueries();
+    queryClient.clear();
+    setWasAuthedHintClient(false);
+    if (typeof window !== "undefined") {
+      Object.keys(localStorage).forEach((key) => {
+        if (key.startsWith("react-query:")) {
+          localStorage.removeItem(key);
+        }
       });
-
-      if (!response.ok) {
-        throw new Error("Failed to sign out");
-      }
-
-      clearSlowLogoutTimer();
-      setIsLogoutSlow(false);
-      queueAuthToast({ kind: "goodbye", name });
-      await queryClient.cancelQueries();
-      queryClient.clear();
-      if (typeof window !== "undefined") {
-        setWasAuthedHintClient(false);
-        Object.keys(localStorage).forEach((key) => {
-          if (key.startsWith("react-query:")) {
-            localStorage.removeItem(key);
-          }
-        });
-        // A server-confirmed hard replacement prevents an authenticated RSC race
-        // and removes the previous protected page from browser history.
-        window.location.replace("/");
-      }
-    } catch {
-      clearSlowLogoutTimer();
-      setIsLogoutSlow(false);
-      logoutInFlightRef.current = false;
-      toast({
-        title: "Logout Failed",
-        description: "Please try again.",
-        variant: "error",
-      });
+      // Fire signout without blocking UI — keepalive survives navigation
+      void fetch("/api/auth/signout", { method: "POST", keepalive: true });
+      window.location.replace("/");
     }
   };
 
@@ -149,16 +104,6 @@ export function ProfileDropdown({
           className="border-0 bg-transparent size-full"
         />
       </button>
-
-      {isLogoutSlow && (
-        <div
-          role="status"
-          aria-live="polite"
-          className="fixed bottom-4 left-1/2 z-[100] -translate-x-1/2 rounded-lg border border-blue-500/30 bg-blue-500/20 px-4 py-3 text-sm text-blue-100 shadow-lg backdrop-blur-md sm:left-auto sm:right-4 sm:translate-x-0"
-        >
-          Signing out…
-        </div>
-      )}
 
       {open && (
         <div
