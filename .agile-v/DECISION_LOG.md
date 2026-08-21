@@ -549,7 +549,7 @@ Append-only. Newest entries at bottom.
 |---|---|
 | Timestamp | 2026-08-21 |
 | Agent | Agile V C7.3 |
-| Decision | Add loading.tsx + skeletons; CARD_PAD; slim status probes; logout navigates to `/` before awaiting signout (keepalive). No `/login` route. |
+| Decision | Add loading.tsx + skeletons; CARD_PAD; slim status probes; logout to `/` (no `/login`). Keepalive timing later superseded by DEC-0048. |
 | Rationale | Screenshots: stuck previous page; status 2.8s; logout 600–800ms on protected UI. |
 | Linked REQs | REQ-0043 |
 | Status | Implemented and locally validated 2026-08-21. |
@@ -591,6 +591,19 @@ Append-only. Newest entries at bottom.
 | Decision | Header Refresh with spinner + refreshing… on isFetching; cold pulses kept; warm refetch keeps values. |
 | Rationale | Users need explicit update feedback while chrome shell stays visible. |
 | Linked REQs | REQ-0046 |
+| Status | Implemented and locally validated 2026-08-21. |
+
+---
+
+## DEC-0048 — Logout await signout before `/` Auth
+
+| Field | Value |
+|---|---|
+| Timestamp | 2026-08-21 |
+| Agent | Agile V |
+| Decision | Await signout then replace `/`; drop keepalive+immediate navigate. |
+| Rationale | httpOnly session_token race painted Marketing+avatar after logout. |
+| Linked REQs | REQ-0047 |
 | Status | Implemented and locally validated 2026-08-21. |
 
 ---

@@ -388,3 +388,10 @@ Gate 2: BLOCKED — RISK-0016 is accepted; `EVAL_RESULTS.md` PASS/WAIVED evidenc
 |---|---|---|---|
 | SoftNav refreshing | SoftNavLoading.test.tsx | PASS | Header refreshing… + chrome pulses. |
 | Full validation | `npx tsc --noEmit`; `npm run lint`; `npm test` | PASS | 103/5 Jest; lint 0. |
+
+## 2026-08-21 — REQ-0047 logout await signout
+
+| Scope | Command / evidence | Result | Notes |
+|---|---|---|---|
+| Logout | ProfileDropdown.test.tsx | PASS | credentials signout; no keepalive race. |
+| Full validation | `npx tsc --noEmit`; `npm run lint`; `npm test` | PASS | 103/5. |

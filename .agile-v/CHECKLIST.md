@@ -44,5 +44,6 @@
 - [x] REQ-0044 / TASK-0049 C7.4 api-status chrome-first (local validation pass)
 - [x] REQ-0045 / TASK-0050 C7.5 api-status chrome loading shell (local validation pass)
 - [x] REQ-0046 / TASK-0051 C7.6 api-status header refresh (local validation pass)
+- [x] REQ-0047 / TASK-0052 logout await signout (local validation pass)
 - [ ] REQ-0001 leftover: human decision on `.cursorignore` secret allowlist
 - [ ] GATE-0002 / `EVAL_RESULTS.md` still required for release acceptance

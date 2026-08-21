@@ -1,5 +1,14 @@
 # CHANGELOG.md
 
+## CR-0024 — Logout await signout (no Marketing flash)
+
+- **Cycle:** post-C7.6
+- **Affected requirement:** REQ-0047
+- **Change:** Await `/api/auth/signout` before `replace("/")`; drop keepalive race.
+- **Rationale:** Leftover httpOnly session_token caused Marketing+avatar flash.
+- **Impact:** ProfileDropdown, tests, docs.
+- **Requested by / approval:** User report after C7.6 deploy.
+
 ## CR-0023 — C7.6 api-status header refresh
 
 - **Cycle:** C7.6

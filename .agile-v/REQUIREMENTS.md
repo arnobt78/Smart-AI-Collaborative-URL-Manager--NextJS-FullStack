@@ -841,16 +841,16 @@ These describe the current product as verified in code. They are **Accepted as b
 **Priority:** P1
 **Type:** UX / performance
 
-**Statement:** `/api-docs` and `/api-status` MUST paint segment `loading.tsx` skeletons (page title + pulsing DataSurfaceSlot) immediately on soft-nav. Cards MUST use `CARD_PAD`. Status probe MUST NOT fetch external metadata URLs. Logout MUST clear client state and navigate to `/` immediately while signout uses `keepalive`. No new `/login` route.
+**Statement:** `/api-docs` and `/api-status` MUST paint segment `loading.tsx` skeletons immediately on soft-nav. Cards MUST use `CARD_PAD`. Status probe MUST NOT fetch external metadata URLs. Logout MUST navigate to `/` (Auth; no `/login`). Logout timing superseded by REQ-0047.
 
 **Acceptance criteria:**
 
-- [x] ApiDocs/ApiStatus RouteSkeleton + SoftNav + loading.tsx; CARD_PAD; drop min-h-screen.
-- [x] Slim status route; optimistic ProfileDropdown logout; tests; tsc/lint/Jest/build.
+- [x] ApiDocs/ApiStatus RouteSkeleton + SoftNav + loading.tsx; CARD_PAD.
+- [x] Slim status route; ProfileDropdown logout to `/`; tests; tsc/lint/Jest/build.
 
 **Affected:** ApiDocsPage, ApiStatusPage, RoutePageSkeleton, SoftNavLoading, status/route, ProfileDropdown.
 **Trace:** TASK-0048, DEC-0044, GATE-0029.
-**Status:** Completed and locally validated [C7.3] on 2026-08-21.
+**Status:** Completed [C7.3]; logout timing superseded by REQ-0047.
 
 ---
 
@@ -905,3 +905,21 @@ These describe the current product as verified in code. They are **Accepted as b
 **Affected:** PageHeader, ApiStatusChrome, ApiStatusPage, SoftNavLoading.
 **Trace:** TASK-0051, DEC-0047, GATE-0032.
 **Status:** Completed and locally validated [C7.6] on 2026-08-21.
+
+---
+
+### REQ-0047 — logout await signout before home Auth (approved 2026-08-21)
+
+**Priority:** P1
+**Type:** Auth / UX
+
+**Statement:** Logout MUST await `POST /api/auth/signout` (clear httpOnly `session_token` + wasAuthed) before `location.replace("/")`. Destination MUST be `/` Auth UI — no `/login`. MUST NOT use keepalive+immediate navigate (races SSR into Marketing+avatar).
+
+**Acceptance criteria:**
+
+- [x] ProfileDropdown awaits signout with credentials then replace `/`.
+- [x] Unit test; tsc/lint/Jest pass.
+
+**Affected:** ProfileDropdown.tsx, ProfileDropdown.test.tsx.
+**Trace:** TASK-0052, DEC-0048.
+**Status:** Completed and locally validated on 2026-08-21.

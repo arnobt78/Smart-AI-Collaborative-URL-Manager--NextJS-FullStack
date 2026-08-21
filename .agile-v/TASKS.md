@@ -319,5 +319,12 @@ RSC shells · densify/Zod/SHA/Next16
 
 **Dependencies:** REQ-0046; plan implement approval.
 
+### TASK-0052 — Logout await signout — DONE
+
+1. Await signout + credentials; then replace `/`.
+2. Update ProfileDropdown test; sync docs.
+
+**Dependencies:** REQ-0047; user-reported flash.
+
 
 
