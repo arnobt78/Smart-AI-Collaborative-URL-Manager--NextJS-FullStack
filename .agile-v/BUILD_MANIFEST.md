@@ -33,6 +33,7 @@
 | ART-0041.1 | REQ-0041 | `queryInvalidation.ts` densify helpers; `useListQueries` list CRUD wiring; densify unit tests | Targeted browse densify + insights invalidate; no full densify rewrite. |
 | ART-0042.1 | REQ-0042 | Footer/ProfileDropdown prefetch; `business-insights-lists.ts`; overview/activity routes; globals.css | Rare _rsc off; one Insights list scan; dark scrollbar. |
 | ART-0043.1 | REQ-0043 | api-docs/status loading + skeletons; CARD_PAD; slim status; optimistic ProfileDropdown logout | Soft-nav shells; faster status; instant logout to `/`. |
-| ART-0044.1 | REQ-0044 | api-status auth-only page; ApiStatusPage inline value pulses | Chrome-first; no full-page loading.tsx. |
+| ART-0044.1 | REQ-0044 | api-status auth-only page; ApiStatusPage inline value pulses | Chrome-first; no full-page loading.tsx (superseded by ART-0045.1). |
+| ART-0045.1 | REQ-0045 | ApiStatusChrome; api-status/loading.tsx; SoftNavLoading chrome | Soft-nav leaves previous page with matching chrome+pulses. |
 
 Risk level: R2 (production UI and repository-wide behavior-sensitive lint remediation). No API, database, authorization, or session contract changes are authorized.

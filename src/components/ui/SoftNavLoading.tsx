@@ -3,13 +3,13 @@
 import { Suspense } from "react";
 import {
   ApiDocsRouteSkeleton,
-  ApiStatusRouteSkeleton,
   BrowseRouteSkeleton,
   InsightsRouteSkeleton,
   ListDetailRouteSkeleton,
   ListsRouteSkeleton,
 } from "@/components/ui/RoutePageSkeleton";
 import { OptimisticSoftNavSurface } from "@/components/ui/OptimisticSoftNavSurface";
+import { ApiStatusChrome } from "@/components/pages/ApiStatusChrome";
 import { consumeWarmSoftNav } from "@/lib/soft-nav-cache";
 
 /**
@@ -55,6 +55,7 @@ export function ApiDocsSoftNavLoading() {
   return <ApiDocsRouteSkeleton />;
 }
 
+/** C7.5: Chrome shell (not RoutePageSkeleton center spinner). */
 export function ApiStatusSoftNavLoading() {
-  return <ApiStatusRouteSkeleton />;
+  return <ApiStatusChrome valuesPending />;
 }

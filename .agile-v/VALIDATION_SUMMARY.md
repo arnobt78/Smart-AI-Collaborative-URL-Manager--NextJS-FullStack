@@ -374,3 +374,10 @@ Gate 2: BLOCKED — RISK-0016 is accepted; `EVAL_RESULTS.md` PASS/WAIVED evidenc
 | Scope | Command / evidence | Result | Notes |
 |---|---|---|---|
 | Full validation | `npx tsc --noEmit`; `npm run lint`; `npm test`; `npm run build` | PASS | Auth-only RSC; inline value pulses; 103/5 Jest. |
+
+## 2026-08-21 — REQ-0045 C7.5 api-status chrome loading shell
+
+| Scope | Command / evidence | Result | Notes |
+|---|---|---|---|
+| SoftNav chrome | SoftNavLoading.test.tsx | PASS | Chrome shell; no center spinner copy. |
+| Full validation | `npx tsc --noEmit`; `npm run lint`; `npm test`; `npm run build` | PASS | 103 passed / 5 skipped; lint 0; dead ApiStatusRouteSkeleton removed. |

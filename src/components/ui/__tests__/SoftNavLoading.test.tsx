@@ -9,7 +9,10 @@ import {
   markWarmSoftNav,
   resetWarmSoftNavForTests,
 } from "@/lib/soft-nav-cache";
-import { ListsSoftNavLoading } from "@/components/ui/SoftNavLoading";
+import {
+  ApiStatusSoftNavLoading,
+  ListsSoftNavLoading,
+} from "@/components/ui/SoftNavLoading";
 
 jest.mock("next/navigation", () => ({
   useParams: () => ({}),
@@ -74,5 +77,16 @@ describe("C7.0 SoftNavLoading", () => {
     );
 
     expect(screen.getByText("Preparing your lists")).toBeInTheDocument();
+  });
+});
+
+describe("C7.5 ApiStatusSoftNavLoading", () => {
+  it("paints chrome shell with value pulses (not center spinner)", () => {
+    render(<ApiStatusSoftNavLoading />);
+    expect(screen.getByText("API Status")).toBeInTheDocument();
+    expect(screen.getByText("System Status")).toBeInTheDocument();
+    expect(screen.getByText("Lists API")).toBeInTheDocument();
+    expect(screen.getByLabelText("Loading status")).toBeInTheDocument();
+    expect(screen.queryByText("Checking API status")).not.toBeInTheDocument();
   });
 });

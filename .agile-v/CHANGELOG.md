@@ -1,5 +1,14 @@
 # CHANGELOG.md
 
+## CR-0022 — C7.5 api-status chrome loading shell
+
+- **Cycle:** C7.5
+- **Affected requirement:** REQ-0045
+- **Change:** Shared ApiStatusChrome; restore chrome-matching loading.tsx; SoftNavLoading uses chrome (not center spinner).
+- **Rationale:** Without loading.tsx, soft-nav kept previous page until auth RSC (~1.2s).
+- **Impact:** ApiStatusChrome, ApiStatusPage, api-status/loading, SoftNavLoading, docs.
+- **Requested by / approval:** GATE-0031.
+
 ## CR-0021 — C7.4 api-status chrome-first
 
 - **Cycle:** C7.4

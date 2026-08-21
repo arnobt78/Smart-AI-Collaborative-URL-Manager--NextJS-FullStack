@@ -1,7 +1,6 @@
 import { render } from "@testing-library/react";
 import {
   ApiDocsRouteSkeleton,
-  ApiStatusRouteSkeleton,
   BrowseRouteSkeleton,
   InsightsRouteSkeleton,
   ListDetailRouteSkeleton,
@@ -37,11 +36,5 @@ describe("C6.6 / C7.3 RoutePageSkeleton presets", () => {
     const { container } = render(<ApiDocsRouteSkeleton />);
     expect(container.textContent).toMatch(/API Documentation/);
     expect(container.textContent).toMatch(/Preparing API docs/);
-  });
-
-  it("renders API status shell with local data slot", () => {
-    const { container } = render(<ApiStatusRouteSkeleton />);
-    expect(container.textContent).toMatch(/API Status/);
-    expect(container.textContent).toMatch(/Preparing API status/);
   });
 });

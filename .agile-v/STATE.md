@@ -1,11 +1,11 @@
 # STATE.md
 
-**C7.4** | 2026-08-21
+**C7.5** | 2026-08-21
 
 ## Done
 
-- **C7.4:** api-status chrome-first — auth-only RSC (no status prefetch); removed `loading.tsx`; inline size-matched value pulses for badges/DB/uptime/time/endpoints.
-- Through C7.3 soft-nav shells · C7.2 prefetch trim · C7.1 densify · C7.0 chrome.
+- **C7.5:** api-status chrome loading shell — shared `ApiStatusChrome`; restored `loading.tsx` + SoftNavLoading chrome (not center spinner); page fills live values via RQ.
+- Through C7.4 chrome-first · C7.3 shells · C7.2 prefetch · C7.1 densify · C7.0 chrome.
 
 ## Human
 
@@ -18,13 +18,13 @@
 
 ## Current checkpoint
 
-- **Stage:** C7.4 complete on `main`. GATE-0030 approved.
+- **Stage:** C7.5 complete locally. GATE-0031 approved (plan implement).
 - **Validation:** Jest 103/5 · lint 0 · tsc · build pass.
 - **Docs:** CLAUDE · `.agile-v/*` synced.
 
 ## Next
 
 ```text
-After deploy: soft-nav api-status → header+cards+labels immediately; values pulse until status returns.
+After deploy: soft-nav api-status → leave previous page instantly; chrome + pulses; auth RSC; values fill.
 TASK-0039 prod verify.
 ```

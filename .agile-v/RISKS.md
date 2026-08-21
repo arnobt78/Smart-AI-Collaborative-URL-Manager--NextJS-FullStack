@@ -28,3 +28,4 @@
 | RISK-0024 | Footer/utility Link prefetch burns free-tier `_rsc`; cold Insights double-scans lists; light scrollbar flash on soft-nav | Medium | Closed | C7.2 prefetch={false} rare Links; React.cache shared insight lists; dark scrollbar CSS | REQ-0042 |
 | RISK-0025 | api-docs/status soft-nav sticks on previous page; status SSR ~3s from external metadata; logout waits on signout before leave | Medium | Closed | C7.3 loading.tsx skeletons; slim status; optimistic logout keepalive | REQ-0043 |
 | RISK-0026 | api-status full-page loading hides unchanging chrome while status probe runs | Medium | Closed | C7.4 auth-only RSC + chrome-first inline value pulses | REQ-0044 |
+| RISK-0027 | Without api-status loading.tsx, soft-nav keeps previous page until auth RSC (~1.2s) | Medium | Closed | C7.5 chrome-matching loading.tsx + ApiStatusChrome shared shell | REQ-0045 |

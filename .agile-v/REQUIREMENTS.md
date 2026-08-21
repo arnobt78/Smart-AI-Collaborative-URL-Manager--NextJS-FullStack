@@ -868,4 +868,22 @@ These describe the current product as verified in code. They are **Accepted as b
 
 **Affected:** api-status/page.tsx, ApiStatusPage.tsx.
 **Trace:** TASK-0049, DEC-0045, GATE-0030.
-**Status:** Completed and locally validated [C7.4] on 2026-08-21.
+**Status:** Completed and locally validated [C7.4] on 2026-08-21. Superseded in part by REQ-0045 (chrome loading restored).
+
+---
+
+### REQ-0045 — api-status chrome-matching loading shell (C7.5) (approved 2026-08-21)
+
+**Priority:** P1
+**Type:** UX / performance
+
+**Statement:** Soft-nav to `/api-status` MUST leave the previous page immediately via segment `loading.tsx` that paints the same chrome as `ApiStatusPage` (PageHeader + System Status + API Endpoints rows with size-matched value pulses). MUST NOT use `ApiStatusRouteSkeleton` / center `DataSurfaceSlot` spinner. Auth-only RSC and client status probe from REQ-0044 remain.
+
+**Acceptance criteria:**
+
+- [x] Shared `ApiStatusChrome` used by page, `loading.tsx`, and `ApiStatusSoftNavLoading`.
+- [x] Soft-nav paints chrome+pulses instantly; tsc/lint/Jest/build pass.
+
+**Affected:** ApiStatusChrome.tsx, ApiStatusPage.tsx, api-status/loading.tsx, SoftNavLoading.tsx.
+**Trace:** TASK-0050, DEC-0046, GATE-0031.
+**Status:** Completed and locally validated [C7.5] on 2026-08-21.

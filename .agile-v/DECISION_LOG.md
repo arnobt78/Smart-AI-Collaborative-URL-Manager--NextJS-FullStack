@@ -565,6 +565,19 @@ Append-only. Newest entries at bottom.
 | Decision | Auth-only RSC + no loading.tsx; client status query; inline value skeletons for live fields only. |
 | Rationale | Layout never changes; blocking SSR + full-page spinner was unnecessary wait. |
 | Linked REQs | REQ-0044 |
+| Status | Implemented and locally validated 2026-08-21. Partially superseded by DEC-0046 (chrome loading restored). |
+
+---
+
+## DEC-0046 — C7.5 api-status chrome loading shell
+
+| Field | Value |
+|---|---|
+| Timestamp | 2026-08-21 |
+| Agent | Agile V C7.5 |
+| Decision | Restore thin chrome-matching loading.tsx via shared ApiStatusChrome; SoftNavLoading uses same shell. |
+| Rationale | Without segment loading, soft-nav stuck on previous page until auth RSC; center spinner was worse UX than chrome+pulse. |
+| Linked REQs | REQ-0045 |
 | Status | Implemented and locally validated 2026-08-21. |
 
 ---

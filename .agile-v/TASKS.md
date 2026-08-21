@@ -303,5 +303,13 @@ RSC shells · densify/Zod/SHA/Next16
 
 **Dependencies:** REQ-0044; plan implement approval.
 
+### TASK-0050 — C7.5 api-status chrome loading shell — DONE
+
+1. Extract shared ApiStatusChrome + ValuePulse.
+2. Restore loading.tsx + SoftNavLoading chrome shell.
+3. Validate tsc/lint/Jest/build; sync docs.
+
+**Dependencies:** REQ-0045; plan implement approval.
+
 
 

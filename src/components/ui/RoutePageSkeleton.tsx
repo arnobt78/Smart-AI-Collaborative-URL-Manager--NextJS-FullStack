@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { Activity, BarChart3, BookOpen, Globe, LayoutList, Link2 } from "lucide-react";
+import { BarChart3, BookOpen, Globe, LayoutList, Link2 } from "lucide-react";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { DataSurfaceSlot } from "@/components/ui/DataSurfaceSlot";
 import { HEADING_STACK, PAGE_HEADER, PAGE_STACK } from "@/lib/ui-spacing";
@@ -99,19 +99,6 @@ export function ApiDocsRouteSkeleton() {
       description="Complete API reference for The Daily Urlist"
       slotLabel="Preparing API docs"
       slotDescription="Loading endpoint reference…"
-    />
-  );
-}
-
-/** C7.3: Soft-nav shell for `/api-status`. */
-export function ApiStatusRouteSkeleton() {
-  return (
-    <RoutePageSkeleton
-      icon={Activity}
-      title="API Status"
-      description="Real-time monitoring of all API endpoints"
-      slotLabel="Preparing API status"
-      slotDescription="Checking system health…"
     />
   );
 }
