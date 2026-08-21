@@ -1,6 +1,16 @@
 # CHANGELOG.md
 
+## CR-0019 — C7.2 rare prefetch + Insights list-scan dedupe
+
+- **Cycle:** C7.2
+- **Affected requirement:** REQ-0042
+- **Change:** prefetch={false} on rare Links; shared React.cache list scan for overview+activity; dark scrollbar CSS.
+- **Rationale:** Unused footer/api `_rsc` burned free-tier; cold Insights double findMany; white scroll track flash.
+- **Impact:** Footer, ProfileDropdown, business-insights-lists, overview/activity routes, globals.css, docs.
+- **Requested by / approval:** GATE-0028.
+
 ## CR-0018 — C7.1 targeted densify (browse + insights)
+
 
 - **Cycle:** C7.1
 - **Affected requirement:** REQ-0041

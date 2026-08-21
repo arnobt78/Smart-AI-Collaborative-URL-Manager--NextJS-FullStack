@@ -1,13 +1,13 @@
 # STATE.md
 
-**C7.1** | 2026-08-21
+**C7.2** | 2026-08-21
 
 ## Done
 
-- Through **C7.0** soft-nav chrome parity (local; push with C7.1).
-- **C7.1 targeted densify:** browse public caches upsert/remove on list create/update/visibility/delete; drop unified on delete (no warm ghost detail); insights invalidation covers activity+popular; URL/import impact marks all business-insights stale.
-- Retained: `invalidateMutationImpact` gateway + optimistic store + SSE. Full densify rewrite / JWT-null SSR still OOS.
-- Defer: api-docs, api-status, list-detail chrome.
+- **C7.2:** Dark scrollbar (no gray-100 flash) · `prefetch={false}` footer About/Privacy/Terms + Profile api-docs/api-status · Insights overview+activity share one cached Prisma list scan.
+- Through C7.1 densify + C7.0 soft-nav chrome.
+- Keep Sentry monitoring; main Navbar warm prefetch unchanged.
+- Defer: api-docs/api-status/list-detail chrome; lists/browse further API slim (free-tier cold floor).
 
 ## Human
 
@@ -17,21 +17,18 @@
 
 ## Remaining (user later)
 
-- More spacing/gaps across pages
-- Button consistency
-- C7.2 api-docs / api-status / list-detail late chrome if needed
-- SSR hydrate overwrite guard only if soft-nav delete flicker still reproduces
+- More spacing/gaps; button consistency
+- Further lists/browse cold API trim if still needed after Insights win
 
 ## Current checkpoint
 
-- **Stage:** C7.1 complete locally. GATE-0027 via densify fix request.
-- **Scope:** Real densify gaps only (browse soft-nav, deleted unified, insights Infinity-stale).
-- **Validation:** Jest 101/5 · lint 0 · tsc · build pass.
+- **Stage:** C7.2 complete on `main`. GATE-0028 approved.
+- **Validation:** Jest 103/5 · lint 0 · tsc · build pass.
 - **Docs:** CLAUDE · `.agile-v/*` synced.
 
 ## Next
 
 ```text
-Commit + push C7.0+C7.1; after deploy verify: toggle visibility → Browse warm has no stale row;
-delete list → soft-nav detail not warm-ghost; Insights Popular/Activity refresh after URL CRUD.
+After deploy: soft-nav no white scrollbar; hover footer ≠ about?_rsc; cold Insights lighter (one list scan).
+TASK-0039 prod verify.
 ```

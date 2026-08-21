@@ -4,13 +4,13 @@
 **The Daily Urlist** (`urlist` v0.2.1) — AI collaborative URL lists.  
 Live: https://daily-urlist.vercel.app/ · Resume: `.agile-v/STATE.md`
 
-## Status (C7.1)
-Done: C6.5–C7.0 chrome parity · **C7.1** targeted densify (browse upsert/remove, drop unified on delete, insights activity/popular + URL impact).
-Nav: warm `OptimisticSoftNavSurface` = full Lists/Browse/Insights chrome+cards. Cold = one `RoutePageSkeleton`.
-Data: RQ Infinity + optimistic + `invalidateMutationImpact` + densifyBrowsePublicLists + SSE. Full densify rewrite / JWT-null SSR still OOS.
-Defer: api-docs, api-status, list-detail late chrome; hydrate overwrite guard if flicker reproduces.
+## Status (C7.2)
+Done: C7.0 chrome · C7.1 densify · **C7.2** dark scrollbar · rare Link `prefetch={false}` · Insights one cached list scan (overview+activity).
+Nav: warm Lists/Browse/Insights only; footer/api-docs/status no hover `_rsc`.
+Data: RQ + densifyBrowse + invalidateMutationImpact + SSE. Full densify/JWT-null SSR OOS.
+Defer: api-docs/api-status/list-detail chrome; further lists/browse cold API slim.
 Human: HA-0001; TASK-0039 after deploy.
-Validate: Jest 101/5 · lint 0 · tsc · build.
+Validate: Jest 103/5 · lint 0 · tsc · build.
 
 ## Stack
 Next 15.5.23 · React 18 · RQ · Prisma 6.19 · cookie auth · Upstash · Sentry tunnel · PostHog · Jest · Node 24.x (Vercel)

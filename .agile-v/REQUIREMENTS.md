@@ -814,3 +814,22 @@ These describe the current product as verified in code. They are **Accepted as b
 **Affected:** queryInvalidation.ts, useListQueries.ts.
 **Trace:** TASK-0046, DEC-0042, GATE-0027.
 **Status:** Completed and locally validated [C7.1] on 2026-08-21.
+
+---
+
+### REQ-0042 — Rare prefetch drop + cold Insights list-scan dedupe (C7.2) (approved 2026-08-21)
+
+**Priority:** P1
+**Type:** Performance / quota
+
+**Statement:** Footer About/Privacy/Terms and Profile api-docs/api-status Links MUST use `prefetch={false}` (no unused `_rsc`). Cold Insights overview+activity MUST share one request-cached Prisma list scan with slim select. Dark scrollbar (`color-scheme: dark`, no light track) MUST ship. Main Navbar warm soft-nav and Sentry monitoring MUST remain unchanged. Full densify rewrite remains OOS.
+
+**Acceptance criteria:**
+
+- [x] Footer + ProfileDropdown utility Links `prefetch={false}`.
+- [x] `loadUserInsightLists` + builders; overview/activity routes wired; response shapes unchanged.
+- [x] Dark scrollbar CSS; unit tests for builders; tsc/lint/Jest pass.
+
+**Affected:** Footer, ProfileDropdown, business-insights-lists, overview/activity routes, globals.css.
+**Trace:** TASK-0047, DEC-0043, GATE-0028.
+**Status:** Completed and locally validated [C7.2] on 2026-08-21.

@@ -20,6 +20,7 @@ Append-only record of Human Gate decisions.
 | 2026-08-21 | GATE-0026 | PENDING | — | `C7.0-HG1-INSTANT-STATIC-CHROME-2026-08-21` | Scope: REQ-0040 C7.0 instant static chrome + one cold paint; needs screenshots + plan approval before code. |
 | 2026-08-21 | GATE-0026 | APPROVED | User | `C7.0-HG1-INSTANT-STATIC-CHROME-2026-08-21` | User provided screenshots and approved C7.0 plan implementation (REQ-0040). |
 | 2026-08-21 | GATE-0027 | APPROVED | User | `C7.1-HG1-TARGETED-DENSIFY-2026-08-21` | User requested densify audit/fix for browse + insights stale soft-nav (REQ-0041). |
+| 2026-08-21 | GATE-0028 | APPROVED | User | `C7.2-HG1-RARE-PREFETCH-INSIGHTS-2026-08-21` | User approved C7.2 plan implement (REQ-0042). |
 | 2026-08-18 | GATE-0012 | APPROVED | User | `C1-HG1-RESPONSIVE-CHROME-2026-08-18` | User authorized responsive Navbar/Footer alignment, browser type consolidation, and inclusion of their remaining local changes. |
 | 2026-08-18 | RISK-0016 | ACCEPTED | User | `C1-RISK-PRISMA-2026-08-18` | User accepted the Prisma CLI transitive advisory; no forced downgrade or breaking Prisma upgrade. |
 | 2026-08-18 | GATE-0013 | APPROVED | User | `C1-HG1-REQ-0021-2026-08-18` | User approved REQ-0021 Stable List Form Dialogs exactly as scoped. |

@@ -17,20 +17,24 @@ export default function Footer() {
             </span>
           </div>
           <div className="flex items-center gap-4 sm:gap-6">
+            {/* C7.2: rare legal pages — no viewport/hover _rsc (free-tier quota) */}
             <Link
               href="/about"
+              prefetch={false}
               className="text-sm sm:text-base text-white/80 hover:text-white transition-colors font-mono"
             >
               About
             </Link>
             <Link
               href="/privacy"
+              prefetch={false}
               className="text-sm sm:text-base text-white/80 hover:text-white transition-colors font-mono"
             >
               Privacy
             </Link>
             <Link
               href="/terms"
+              prefetch={false}
               className="text-sm sm:text-base text-white/80 hover:text-white transition-colors font-mono"
             >
               Terms

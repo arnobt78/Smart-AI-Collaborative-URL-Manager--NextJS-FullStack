@@ -19,7 +19,7 @@ Implementation is locally verified; C2 Gate 2 remains pending release evidence a
 Stage 1 Requirements → Stage 2 Validation → [Human Gate 1] → Stage 3 Synthesis → Stage 4 Verification → [Human Gate 2] → Stage 5 Acceptance
 ```
 
-Current: **C7.1 Stage 4 complete locally** for REQ-0040 + REQ-0041. GATE-0026/0027 approved. GATE-0002 remains pending (`EVAL_RESULTS.md` absent).
+Current: **C7.2 Stage 4 complete locally** for REQ-0042. GATE-0028 approved. GATE-0002 remains pending (`EVAL_RESULTS.md` absent).
 
 Reconciliation note (2026-08-18): commits and prior validation records document C1 implementation activity, but `APPROVALS.md` has no matching approved record for the original GATE-0001 token. This is retained as historical evidence, not retroactively approved. It does not authorize further implementation.
 
@@ -259,6 +259,21 @@ Implementation is locally verified. Production check remains with TASK-0039. Gat
 | Evidence | REQ-0041; TASK-0046; DEC-0042 |
 | Required human action | Completed — user densify audit/fix request. |
 | Scope | Browse densify + drop unified on delete + full insights invalidate. No full densify rewrite / JWT-null SSR. |
+
+Implementation is locally verified. Production check remains with TASK-0039. Gate 2 remains required before any release decision.
+
+---
+
+## GATE-0028 — Human Gate 1 (C7.2 rare prefetch + Insights trim)
+
+| Field | Value |
+|-------|-------|
+| Type | Human-Decision |
+| Status | **APPROVED 2026-08-21** |
+| Checkpoint | `C7.2-HG1-RARE-PREFETCH-INSIGHTS-2026-08-21` |
+| Evidence | REQ-0042; TASK-0047; DEC-0043 |
+| Required human action | Completed — user approved attached C7.2 plan implement. |
+| Scope | Rare Link prefetch off; Insights one list scan; dark scrollbar. No densify rewrite. |
 
 Implementation is locally verified. Production check remains with TASK-0039. Gate 2 remains required before any release decision.
 

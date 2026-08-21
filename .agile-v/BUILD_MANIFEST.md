@@ -31,5 +31,6 @@
 | ART-0039.1 | REQ-0039 | `OptimisticSoftNavSurface`; SoftNavLoading never null; Lists/Browse/Insights/List empty-flash fixes; warm replace | Warm paints RQ destination UI; cold one skeleton. |
 | ART-0040.1 | REQ-0040 | Shared Lists/Browse/Insights chrome; OptimisticSoftNavSurface parity; Browse filter; Insights tabs/CARD_PAD; no page min-h-screen | Instant static chrome; no late catch-up on warm soft-nav. |
 | ART-0041.1 | REQ-0041 | `queryInvalidation.ts` densify helpers; `useListQueries` list CRUD wiring; densify unit tests | Targeted browse densify + insights invalidate; no full densify rewrite. |
+| ART-0042.1 | REQ-0042 | Footer/ProfileDropdown prefetch; `business-insights-lists.ts`; overview/activity routes; globals.css | Rare _rsc off; one Insights list scan; dark scrollbar. |
 
 Risk level: R2 (production UI and repository-wide behavior-sensitive lint remediation). No API, database, authorization, or session contract changes are authorized.

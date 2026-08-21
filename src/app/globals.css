@@ -3,8 +3,10 @@
 @tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* App is dark-first — light UA defaults caused white scrollbar flash on soft-nav */
+  --background: #0a0a0a;
+  --foreground: #ededed;
+  color-scheme: dark;
 }
 
 @theme inline {
@@ -16,9 +18,10 @@
   /* Reserve scrollbar track so refresh / content height changes never shift layout */
   html {
     @apply antialiased bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950;
+    color-scheme: dark;
     scrollbar-gutter: stable;
     scrollbar-width: thin;
-    scrollbar-color: rgba(255, 255, 255, 0.35) rgba(0, 0, 0, 0.15);
+    scrollbar-color: rgba(255, 255, 255, 0.35) rgba(9, 9, 11, 0.9);
   }
 
   html::-webkit-scrollbar {
@@ -26,7 +29,7 @@
   }
 
   html::-webkit-scrollbar-track {
-    background: rgba(0, 0, 0, 0.15);
+    background: rgba(9, 9, 11, 0.95);
   }
 
   html::-webkit-scrollbar-thumb {
@@ -76,7 +79,7 @@
   /* Custom scrollbar for modal content */
   .custom-scrollbar {
     scrollbar-width: thin;
-    scrollbar-color: rgba(255, 255, 255, 0.4) rgba(0, 0, 0, 0.1);
+    scrollbar-color: rgba(255, 255, 255, 0.4) rgba(9, 9, 11, 0.9);
   }
 
   .custom-scrollbar::-webkit-scrollbar {
@@ -84,8 +87,8 @@
     display: block;
   }
 
-.custom-scrollbar::-webkit-scrollbar-track {
-    background: rgba(0, 0, 0, 0.1);
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: rgba(9, 9, 11, 0.9);
     border-radius: 5px;
     margin: 4px;
   }
@@ -344,18 +347,26 @@
   @apply bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-indigo-400;
 }
 
-/* Custom Scrollbar */
+/* Global scrollbars match dark html — never light gray-100 (soft-nav flash) */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
 }
 
 ::-webkit-scrollbar-track {
-  @apply bg-gray-100 rounded-full;
+  background: rgba(9, 9, 11, 0.95);
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-gray-300 rounded-full hover:bg-gray-400 transition-colors;
+  background: rgba(255, 255, 255, 0.35);
+  border-radius: 5px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.55);
+  background-clip: padding-box;
 }
 
 /* Focus Styles — ring-offset can nudge sticky chrome; offset-0 keeps layout stable */
@@ -368,12 +379,7 @@
   @apply bg-blue-500 text-white;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+/* App is always dark; prefers-color-scheme light must not flip UA chrome */
 
 /* Interactive Elements */
 .button-hover {

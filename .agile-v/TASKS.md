@@ -278,3 +278,12 @@ RSC shells · densify/Zod/SHA/Next16
 3. Validate tsc/lint/Jest; sync agent docs.
 
 **Dependencies:** REQ-0041; user densify audit/fix request.
+
+### TASK-0047 — C7.2 rare prefetch + Insights scan dedupe — DONE
+
+1. prefetch={false} footer + profile utility; dark scrollbar.
+2. Shared cached insight lists + overview/activity builders.
+3. Validate tsc/lint/Jest; sync agent docs.
+
+**Dependencies:** REQ-0042; plan implement approval.
+

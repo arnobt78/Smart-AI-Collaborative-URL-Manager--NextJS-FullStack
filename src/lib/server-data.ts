@@ -61,7 +61,7 @@ export async function loadBusinessInsights() {
   return { overview, activity, popular, performance, global };
 }
 
-/** C6.8: Lighter Insights RSC — overview tab needs overview + activity only. */
+/** C6.8 / C7.2: Lighter Insights RSC — overview + activity only; one shared list scan. */
 export async function loadBusinessInsightsOverview() {
   const [overviewRoute, activityRoute] = await Promise.all([
     import("@/app/api/business-insights/overview/route"),

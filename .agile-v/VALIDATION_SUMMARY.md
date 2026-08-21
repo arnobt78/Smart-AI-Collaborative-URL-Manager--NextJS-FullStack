@@ -354,3 +354,10 @@ Gate 2: BLOCKED — RISK-0016 is accepted; `EVAL_RESULTS.md` PASS/WAIVED evidenc
 |---|---|---|---|
 | Densify helpers | `queryInvalidation.test.ts` | PASS | Upsert/remove browse; drop unified; insights predicates. |
 | Full validation | `npx tsc --noEmit`; `npm run lint`; `npm test`; `npm run build` | PASS | Strict TypeScript, zero-warning lint, 101 passed / 5 skipped Jest tests, production build pass. |
+
+## 2026-08-21 — REQ-0042 C7.2 rare prefetch + Insights trim
+
+| Scope | Command / evidence | Result | Notes |
+|---|---|---|---|
+| Insight builders | `business-insights-lists.test.ts` | PASS | Overview + activity shapes. |
+| Full validation | `npx tsc --noEmit`; `npm run lint`; `npm test`; `npm run build` | PASS | 103 passed / 5 skipped; lint 0; build. |

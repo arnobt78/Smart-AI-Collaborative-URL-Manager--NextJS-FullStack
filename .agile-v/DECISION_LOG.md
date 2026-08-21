@@ -530,6 +530,19 @@ Append-only. Newest entries at bottom.
 
 ---
 
+## DEC-0043 — C7.2 rare prefetch + Insights scan dedupe
+
+| Field | Value |
+|---|---|
+| Timestamp | 2026-08-21 |
+| Agent | Agile V C7.2 |
+| Decision | prefetch={false} on rare Links only; React.cache shared list scan for overview+activity; ship dark scrollbar. Keep main warm soft-nav + Sentry. No private API Cache-Control. |
+| Rationale | Quota noise from footer _rsc; cold Insights double Prisma; CSS track flash confirmed. |
+| Linked REQs | REQ-0042 |
+| Status | Implemented and locally validated 2026-08-21. |
+
+---
+
 ## DEC-0025 — Defer interactive acceptance to user browser testing
 
 | Field | Value |

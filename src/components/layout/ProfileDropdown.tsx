@@ -172,12 +172,14 @@ export function ProfileDropdown({
           </div>
           <div className="my-1 h-px bg-white/10" />
 
+          {/* C7.2: api-docs / api-status rarely visited — no Link _rsc prefetch */}
           {UTILITY_NAVIGATION_ITEMS.map((item) => {
             const Icon = item.icon === "activity" ? Activity : FileText;
             return (
               <Link
                 key={item.href}
                 href={item.href}
+                prefetch={false}
                 role="menuitem"
                 onClick={(e) => {
                   setOpen(false);
