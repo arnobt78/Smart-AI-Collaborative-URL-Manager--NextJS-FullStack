@@ -6,8 +6,8 @@
  * `top-full` + `right-0` under the trigger — no manual flow/mt hacks.
  * Kept as custom panel (not Radix) so sticky Navbar does not scroll-lock.
  * Order: name+email → separator → utility links → separator → Logout.
- * Logout: clear client immediately; await signout so httpOnly session_token
- * is gone before `/` (Auth) — no Marketing+avatar flash. No `/login` route.
+ * C7.7: Optimistic logout — queue goodbye, force-guest, clear caches, keepalive
+ * signout in background, immediate replace("/") → Auth (no Marketing wait).
  */
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
@@ -18,6 +18,7 @@ import { UTILITY_NAVIGATION_ITEMS } from "@/constants/auth";
 import { displayNameFromEmail } from "@/lib/robohash";
 import { queueAuthToast } from "@/lib/auth-toast";
 import { setWasAuthedHintClient } from "@/lib/was-authed";
+import { markForceGuest } from "@/lib/logout-client";
 
 export type ProfileDropdownProps = {
   email: string;
@@ -64,15 +65,20 @@ export function ProfileDropdown({
     };
   }, [open]);
 
-  const handleLogout = async () => {
+  const handleLogout = () => {
     if (logoutInFlightRef.current) return;
     logoutInFlightRef.current = true;
     setOpen(false);
 
+    // Toast first — survives hard nav via sessionStorage + AuthToastBridge
     queueAuthToast({ kind: "goodbye", name });
-    void queryClient.cancelQueries();
-    queryClient.clear();
+    markForceGuest();
     setWasAuthedHintClient(false);
+
+    void queryClient.cancelQueries();
+    queryClient.setQueryData(["session"], { user: null });
+    queryClient.clear();
+
     if (typeof window === "undefined") return;
 
     Object.keys(localStorage).forEach((key) => {
@@ -81,16 +87,13 @@ export function ProfileDropdown({
       }
     });
 
-    // Must await: httpOnly session_token cannot be cleared client-side.
-    // Navigating before Set-Cookie lands → SSR paints Marketing + profile.
-    try {
-      await fetch("/api/auth/signout", {
-        method: "POST",
-        credentials: "same-origin",
-      });
-    } catch {
-      // Still leave — cookie may linger until next request
-    }
+    // Background: clear httpOnly session_token + DB session (do not await)
+    void fetch("/api/auth/signout", {
+      method: "POST",
+      credentials: "same-origin",
+      keepalive: true,
+    });
+
     window.location.replace("/");
   };
 
@@ -153,7 +156,7 @@ export function ProfileDropdown({
             type="button"
             role="menuitem"
             onClick={() => {
-              void handleLogout();
+              handleLogout();
             }}
             className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-white/80 transition hover:bg-white/10 hover:text-white"
           >

@@ -324,7 +324,15 @@ RSC shells · densify/Zod/SHA/Next16
 1. Await signout + credentials; then replace `/`.
 2. Update ProfileDropdown test; sync docs.
 
-**Dependencies:** REQ-0047; user-reported flash.
+**Dependencies:** REQ-0047; user-reported flash. Superseded by TASK-0053.
+
+### TASK-0053 — C7.7 optimistic logout instant Auth — DONE
+
+1. forceGuest helpers + HomePage/hint wiring.
+2. ProfileDropdown: toast + clear + keepalive + immediate replace.
+3. Validate + sync docs.
+
+**Dependencies:** REQ-0048; plan implement approval.
 
 
 

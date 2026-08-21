@@ -1,12 +1,11 @@
 # STATE.md
 
-**C7.6 + logout fix** | 2026-08-21
+**C7.7** | 2026-08-21
 
 ## Done
 
-- **C7.6:** api-status header Refresh / refreshing…
-- **Logout:** await signout → `/` Auth (no Marketing+avatar flash; no `/login`)
-- Through C7.5 chrome loading · densify · soft-nav
+- **C7.7:** Optimistic logout — `forceGuest` → instant `/` Auth; goodbye toast at click; RQ/wasAuthed clear; keepalive signout clears httpOnly session in background.
+- Through C7.6 Refresh · C7.5 chrome loading · densify.
 
 ## Human
 
@@ -19,13 +18,13 @@
 
 ## Current checkpoint
 
-- **Stage:** C7.6 + REQ-0047 on `main`.
-- **Validation:** Jest 103/5 · lint 0 · tsc.
+- **Stage:** C7.7 complete locally.
+- **Validation:** Jest 104/5 · lint 0 · tsc.
 - **Docs:** CLAUDE · walkthrough · `.agile-v` synced.
 
 ## Next
 
 ```text
-Prod: logout → Auth on `/`; api-status soft-nav chrome + Refresh.
+Prod: Logout → Auth instantly + goodbye toast; session clears in background.
 TASK-0039.
 ```

@@ -27,6 +27,7 @@ import { TEST_ACCOUNTS } from "@/constants/auth";
 import { displayNameFromEmail, robohashUrl } from "@/lib/robohash";
 import { queueAuthToast } from "@/lib/auth-toast";
 import { setWasAuthedHintClient } from "@/lib/was-authed";
+import { clearForceGuest } from "@/lib/logout-client";
 import { cn } from "@/lib/utils";
 import {
   CARD_PAD,
@@ -195,6 +196,7 @@ export default function Auth() {
           window.dispatchEvent(new CustomEvent("session-updated"));
           // Guide §3 — LS + cookie so SSR paints Marketing / profile skeleton
           setWasAuthedHintClient(true);
+          clearForceGuest();
 
           // Wait a moment for the session cookie to be set on the server
           // Then invalidate and refetch the session to ensure it's properly loaded
@@ -285,6 +287,7 @@ export default function Auth() {
           window.dispatchEvent(new CustomEvent("session-updated"));
           // Guide §3 — LS + cookie so SSR paints Marketing / profile skeleton
           setWasAuthedHintClient(true);
+          clearForceGuest();
 
           // Wait a moment for the session cookie to be set on the server
           // Then invalidate and refetch the session to ensure it's properly loaded

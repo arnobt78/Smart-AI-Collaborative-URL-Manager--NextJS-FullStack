@@ -7,6 +7,7 @@
  */
 import { useSession } from "@/hooks/useSession";
 import { useWasAuthedHint } from "@/hooks/useWasAuthedHint";
+import { isForceGuest } from "@/lib/logout-client";
 import Auth from "./Auth";
 import { LinkIcon, ShareIcon, PhotoIcon } from "@heroicons/react/24/outline";
 import { Bubbles, LayoutList, ListPlus } from "lucide-react";
@@ -253,15 +254,17 @@ export type HomePageProps = {
 export default function HomePage({ initialWasAuthed = false }: HomePageProps) {
   const { user: session, isLoading: sessionLoading } = useSession();
   const wasAuthedHint = useWasAuthedHint(initialWasAuthed);
+  // C7.7: optimistic logout — Auth even if RQ still has a stale session row
+  const forceGuest = isForceGuest();
+
+  // Guest / force-guest → Auth first (no Marketing + avatar)
+  if (forceGuest || !wasAuthedHint) {
+    return <Auth />;
+  }
 
   // Confirmed session → marketing
   if (session) {
     return <MarketingHome />;
-  }
-
-  // Guest / cold visit → Auth immediately (no marketing flash, no spinner)
-  if (!wasAuthedHint) {
-    return <Auth />;
   }
 
   // Returning user hint while session RQ loads → static marketing (no spinner)

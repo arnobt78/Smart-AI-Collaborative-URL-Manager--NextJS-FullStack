@@ -922,4 +922,22 @@ These describe the current product as verified in code. They are **Accepted as b
 
 **Affected:** ProfileDropdown.tsx, ProfileDropdown.test.tsx.
 **Trace:** TASK-0052, DEC-0048.
-**Status:** Completed and locally validated on 2026-08-21.
+**Status:** Completed and locally validated on 2026-08-21. Superseded by REQ-0048 (optimistic Auth).
+
+---
+
+### REQ-0048 — optimistic logout instant Auth (C7.7) (approved 2026-08-21)
+
+**Priority:** P1
+**Type:** Auth / UX
+
+**Statement:** Logout MUST immediately paint `/` Auth (no `/login`) via client `forceGuest` sessionStorage so SSR `session_token` cannot show Marketing+avatar. MUST queue goodbye toast at click. MUST clear RQ + wasAuthed + `react-query:*` localStorage, then fire `POST /api/auth/signout` with keepalive without awaiting before `replace("/")`. Login/signup MUST clear `forceGuest`.
+
+**Acceptance criteria:**
+
+- [x] `logout-client` helpers; useWasAuthedHint + HomePage respect forceGuest.
+- [x] ProfileDropdown optimistic path; tests; tsc/lint/Jest pass.
+
+**Affected:** logout-client, ProfileDropdown, useWasAuthedHint, HomePage, Auth.
+**Trace:** TASK-0053, DEC-0049, GATE-0033.
+**Status:** Completed and locally validated [C7.7] on 2026-08-21.

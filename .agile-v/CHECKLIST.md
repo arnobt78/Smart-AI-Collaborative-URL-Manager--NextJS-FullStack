@@ -33,6 +33,7 @@
 - [x] **C7.4 / GATE-0030** REQ-0044 api-status chrome-first (local validation pass)
 - [x] **C7.5 / GATE-0031** REQ-0045 api-status chrome loading shell (local validation pass)
 - [x] **C7.6 / GATE-0032** REQ-0046 api-status header refresh (local validation pass)
+- [x] **C7.7 / GATE-0033** REQ-0048 optimistic logout instant Auth (local validation pass)
 - [x] REQ-0036 / TASK-0041 C6.6 instant soft-nav shells (local validation pass)
 - [x] REQ-0037 / TASK-0042 C6.7 SSR hydrate under loading shells (local validation pass)
 - [x] REQ-0038 / TASK-0043 C6.8 warm soft-nav + lighter Insights (local validation pass)
@@ -44,6 +45,7 @@
 - [x] REQ-0044 / TASK-0049 C7.4 api-status chrome-first (local validation pass)
 - [x] REQ-0045 / TASK-0050 C7.5 api-status chrome loading shell (local validation pass)
 - [x] REQ-0046 / TASK-0051 C7.6 api-status header refresh (local validation pass)
-- [x] REQ-0047 / TASK-0052 logout await signout (local validation pass)
+- [x] REQ-0047 / TASK-0052 logout await signout (local validation pass; superseded by REQ-0048)
+- [x] REQ-0048 / TASK-0053 C7.7 optimistic logout (local validation pass)
 - [ ] REQ-0001 leftover: human decision on `.cursorignore` secret allowlist
 - [ ] GATE-0002 / `EVAL_RESULTS.md` still required for release acceptance

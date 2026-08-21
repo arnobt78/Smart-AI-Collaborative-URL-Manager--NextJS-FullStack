@@ -4,13 +4,13 @@
 **The Daily Urlist** (`urlist` v0.2.1) — AI collaborative URL lists.  
 Live: https://daily-urlist.vercel.app/ · Resume: `.agile-v/STATE.md`
 
-## Status (C7.6)
-Done: C7.5 chrome loading · C7.6 header Refresh · **logout** awaits signout before `/` (fixes Marketing+avatar flash; no `/login`).
+## Status (C7.7)
+Done: C7.6 Refresh · **C7.7** optimistic logout (force-guest → instant `/` Auth; keepalive signout + RQ/cookie clear in background).
 Nav: warm Lists/Browse/Insights; api-status chrome+refresh; api-docs skeleton.
 Data: densifyBrowse + invalidateMutationImpact + SSE. Full densify/JWT-null SSR OOS.
 Defer: further lists/browse cold API slim; status API speed OOS.
 Human: HA-0001; TASK-0039 after deploy.
-Validate: Jest · lint 0 · tsc.
+Validate: Jest 104/5 · lint 0 · tsc.
 
 ## Stack
 Next 15.5.23 · React 18 · RQ · Prisma 6.19 · cookie auth · Upstash · Sentry tunnel · PostHog · Jest · Node 24.x (Vercel)

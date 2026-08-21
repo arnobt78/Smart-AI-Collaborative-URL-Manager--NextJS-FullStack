@@ -30,4 +30,5 @@
 | RISK-0026 | api-status full-page loading hides unchanging chrome while status probe runs | Medium | Closed | C7.4 auth-only RSC + chrome-first inline value pulses | REQ-0044 |
 | RISK-0027 | Without api-status loading.tsx, soft-nav keeps previous page until auth RSC (~1.2s) | Medium | Closed | C7.5 chrome-matching loading.tsx + ApiStatusChrome shared shell | REQ-0045 |
 | RISK-0028 | Status fetch has no in-header feedback; users may think chrome is stuck | Low | Closed | C7.6 Refresh control with refreshing… on isFetching | REQ-0046 |
-| RISK-0029 | Keepalive logout + immediate replace races httpOnly session → Marketing+avatar flash | Medium | Closed | Await signout then replace `/` Auth | REQ-0047 |
+| RISK-0029 | Keepalive logout + immediate replace races httpOnly session → Marketing+avatar flash | Medium | Closed | C7.7 forceGuest + instant Auth; await path superseded | REQ-0048 |
+| RISK-0030 | Await-signout logout feels slow (~500–600ms Marketing wait) | Medium | Closed | C7.7 optimistic Auth + background keepalive signout | REQ-0048 |

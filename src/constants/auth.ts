@@ -51,3 +51,9 @@ export const WAS_AUTHED_KEY = "urlist:wasAuthed";
  * See src/lib/was-authed.ts for set/clear helpers.
  */
 export const WAS_AUTHED_COOKIE = "urlist_was_authed";
+
+/**
+ * C7.7: sessionStorage — force guest Auth on next `/` paint after optimistic logout
+ * even if httpOnly session_token still present until background signout lands.
+ */
+export const FORCE_GUEST_KEY = "urlist:forceGuest";

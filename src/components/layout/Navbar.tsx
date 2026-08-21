@@ -27,8 +27,9 @@ export default function Navbar({ initialWasAuthed = false }: NavbarProps) {
   const { user, isLoading } = useSession();
   const wasAuthedHint = useWasAuthedHint(initialWasAuthed);
 
-  const showProfile = Boolean(user?.email);
+  const showProfile = Boolean(user?.email) && wasAuthedHint;
   // Skeleton as soon as SSR/client hint says returning user — never empty slot jump
+  // C7.7: force-guest keeps wasAuthedHint false → no avatar while signout lands
   const showProfileSkeleton =
     !showProfile && wasAuthedHint && (isLoading || !user);
 

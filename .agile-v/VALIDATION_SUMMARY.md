@@ -395,3 +395,11 @@ Gate 2: BLOCKED — RISK-0016 is accepted; `EVAL_RESULTS.md` PASS/WAIVED evidenc
 |---|---|---|---|
 | Logout | ProfileDropdown.test.tsx | PASS | credentials signout; no keepalive race. |
 | Full validation | `npx tsc --noEmit`; `npm run lint`; `npm test` | PASS | 103/5. |
+
+## 2026-08-21 — REQ-0048 C7.7 optimistic logout
+
+| Scope | Command / evidence | Result | Notes |
+|---|---|---|---|
+| forceGuest | logout-client.test.ts | PASS | mark/clear sessionStorage. |
+| Logout | ProfileDropdown.test.tsx | PASS | toast + forceGuest + keepalive; no await. |
+| Full validation | `npx tsc --noEmit`; `npm run lint`; `npm test` | PASS | 104/5 Jest; lint 0. |

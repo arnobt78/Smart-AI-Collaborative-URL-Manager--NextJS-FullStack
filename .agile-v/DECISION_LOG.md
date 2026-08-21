@@ -604,6 +604,19 @@ Append-only. Newest entries at bottom.
 | Decision | Await signout then replace `/`; drop keepalive+immediate navigate. |
 | Rationale | httpOnly session_token race painted Marketing+avatar after logout. |
 | Linked REQs | REQ-0047 |
+| Status | Superseded by DEC-0049 (optimistic forceGuest). |
+
+---
+
+## DEC-0049 — C7.7 optimistic logout instant Auth
+
+| Field | Value |
+|---|---|
+| Timestamp | 2026-08-21 |
+| Agent | Agile V C7.7 |
+| Decision | forceGuest sessionStorage + immediate replace `/`; keepalive signout; goodbye toast at click. |
+| Rationale | Instant Auth UX without SSR Marketing race while httpOnly cookie clears. |
+| Linked REQs | REQ-0048 |
 | Status | Implemented and locally validated 2026-08-21. |
 
 ---

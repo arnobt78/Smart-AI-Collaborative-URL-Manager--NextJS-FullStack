@@ -36,5 +36,6 @@
 | ART-0044.1 | REQ-0044 | api-status auth-only page; ApiStatusPage inline value pulses | Chrome-first; no full-page loading.tsx (superseded by ART-0045.1). |
 | ART-0045.1 | REQ-0045 | ApiStatusChrome; api-status/loading.tsx; SoftNavLoading chrome | Soft-nav leaves previous page with matching chrome+pulses. |
 | ART-0046.1 | REQ-0046 | PageHeader action; ApiStatusRefreshControl; SoftNav static busy | Header refresh feedback while chrome stays. |
+| ART-0048.1 | REQ-0048 | logout-client forceGuest; ProfileDropdown optimistic logout | Instant `/` Auth; background signout. |
 
 Risk level: R2 (production UI and repository-wide behavior-sensitive lint remediation). No API, database, authorization, or session contract changes are authorized.
