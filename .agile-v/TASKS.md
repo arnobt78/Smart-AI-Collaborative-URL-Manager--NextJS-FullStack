@@ -295,4 +295,13 @@ RSC shells · densify/Zod/SHA/Next16
 
 **Dependencies:** REQ-0043; plan implement approval.
 
+### TASK-0049 — C7.4 api-status chrome-first — DONE
+
+1. Auth-only RSC; delete loading.tsx.
+2. Inline value skeletons on ApiStatusPage.
+3. Validate + sync docs.
+
+**Dependencies:** REQ-0044; plan implement approval.
+
+
 

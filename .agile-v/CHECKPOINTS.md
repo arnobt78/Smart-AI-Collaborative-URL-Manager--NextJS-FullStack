@@ -60,5 +60,6 @@
 | 2026-08-21 | GATE-0027 | Human-Decision | APPROVED | `C7.1-HG1-TARGETED-DENSIFY-2026-08-21` | User approved C7.1 targeted densify (REQ-0041). |
 | 2026-08-21 | GATE-0028 | Human-Decision | APPROVED | `C7.2-HG1-RARE-PREFETCH-INSIGHTS-2026-08-21` | User approved C7.2 rare prefetch + Insights trim (REQ-0042). |
 | 2026-08-21 | GATE-0029 | Human-Decision | APPROVED | `C7.3-HG1-API-DOCS-STATUS-LOGOUT-2026-08-21` | User approved C7.3 api-docs/status soft-nav + logout (REQ-0043). |
+| 2026-08-21 | GATE-0030 | Human-Decision | APPROVED | `C7.4-HG1-API-STATUS-CHROME-FIRST-2026-08-21` | User approved C7.4 api-status chrome-first (REQ-0044). |
 | 2026-08-18 | GATE-0012 complete: responsive header/footer chrome alignment; zero lint, typecheck, Jest, and production build pass. Prisma CLI audit remains RISK-0016. |
 | 2026-08-18 | User accepted RISK-0016: retain Prisma 6.19.3; no forced downgrade or breaking upgrade. Gate 2 still needs EvalGate and human acceptance. |

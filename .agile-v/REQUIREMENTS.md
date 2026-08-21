@@ -851,3 +851,21 @@ These describe the current product as verified in code. They are **Accepted as b
 **Affected:** ApiDocsPage, ApiStatusPage, RoutePageSkeleton, SoftNavLoading, status/route, ProfileDropdown.
 **Trace:** TASK-0048, DEC-0044, GATE-0029.
 **Status:** Completed and locally validated [C7.3] on 2026-08-21.
+
+---
+
+### REQ-0044 — api-status chrome-first + inline value skeletons (C7.4) (approved 2026-08-21)
+
+**Priority:** P1
+**Type:** UX / performance
+
+**Statement:** `/api-status` MUST NOT use full-page `loading.tsx` or await status SSR prefetch. After auth RSC, PageHeader + cards + static labels/endpoint names MUST paint immediately. Only live values (badges, DB/uptime/time, response times) MAY pulse with size-matched placeholders until the client status query resolves.
+
+**Acceptance criteria:**
+
+- [x] Auth-only `api-status/page.tsx`; `loading.tsx` removed.
+- [x] ApiStatusPage chrome-first inline pulses; tsc/lint/Jest/build pass.
+
+**Affected:** api-status/page.tsx, ApiStatusPage.tsx.
+**Trace:** TASK-0049, DEC-0045, GATE-0030.
+**Status:** Completed and locally validated [C7.4] on 2026-08-21.

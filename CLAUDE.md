@@ -4,9 +4,9 @@
 **The Daily Urlist** (`urlist` v0.2.1) — AI collaborative URL lists.  
 Live: https://daily-urlist.vercel.app/ · Resume: `.agile-v/STATE.md`
 
-## Status (C7.3)
-Done: C7.2 prefetch/Insights · **C7.3** api-docs/status soft-nav + CARD_PAD · slim status · optimistic logout → `/`.
-Nav: warm Lists/Browse/Insights; cold pulse skeleton for api-docs/status.
+## Status (C7.4)
+Done: C7.3 docs/status shells · **C7.4** api-status chrome-first (no loading.tsx; auth-only RSC; inline value pulses).
+Nav: warm Lists/Browse/Insights; api-docs keeps loading skeleton; api-status paints cards then fills live data.
 Data: densifyBrowse + invalidateMutationImpact + SSE. Full densify/JWT-null SSR OOS.
 Defer: further lists/browse cold API slim.
 Human: HA-0001; TASK-0039 after deploy.

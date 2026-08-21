@@ -368,3 +368,9 @@ Gate 2: BLOCKED — RISK-0016 is accepted; `EVAL_RESULTS.md` PASS/WAIVED evidenc
 |---|---|---|---|
 | Skeletons / logout | RoutePageSkeleton + ProfileDropdown tests | PASS | Docs/status shells; keepalive signout. |
 | Full validation | `npx tsc --noEmit`; `npm run lint`; `npm test`; `npm run build` | PASS | 103 passed / 5 skipped; lint 0; build. |
+
+## 2026-08-21 — REQ-0044 C7.4 api-status chrome-first
+
+| Scope | Command / evidence | Result | Notes |
+|---|---|---|---|
+| Full validation | `npx tsc --noEmit`; `npm run lint`; `npm test`; `npm run build` | PASS | Auth-only RSC; inline value pulses; 103/5 Jest. |

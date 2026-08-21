@@ -1,6 +1,16 @@
 # CHANGELOG.md
 
+## CR-0021 — C7.4 api-status chrome-first
+
+- **Cycle:** C7.4
+- **Affected requirement:** REQ-0044
+- **Change:** Remove api-status loading.tsx; auth-only RSC; client status fetch; size-matched inline value pulses.
+- **Rationale:** Full-page spinner hid unchanging chrome while status probe ran 1.5–3s.
+- **Impact:** api-status/page.tsx, ApiStatusPage.tsx, docs.
+- **Requested by / approval:** GATE-0030.
+
 ## CR-0020 — C7.3 api-docs/status soft-nav + optimistic logout
+
 
 - **Cycle:** C7.3
 - **Affected requirement:** REQ-0043

@@ -30,6 +30,7 @@
 - [x] **C7.1 / GATE-0027** REQ-0041 targeted densify browse + insights (local validation pass)
 - [x] **C7.2 / GATE-0028** REQ-0042 rare prefetch + Insights scan dedupe (local validation pass)
 - [x] **C7.3 / GATE-0029** REQ-0043 api-docs/status soft-nav + logout (local validation pass)
+- [x] **C7.4 / GATE-0030** REQ-0044 api-status chrome-first (local validation pass)
 - [x] REQ-0036 / TASK-0041 C6.6 instant soft-nav shells (local validation pass)
 - [x] REQ-0037 / TASK-0042 C6.7 SSR hydrate under loading shells (local validation pass)
 - [x] REQ-0038 / TASK-0043 C6.8 warm soft-nav + lighter Insights (local validation pass)
@@ -38,5 +39,6 @@
 - [x] REQ-0041 / TASK-0046 C7.1 targeted densify (local validation pass)
 - [x] REQ-0042 / TASK-0047 C7.2 rare prefetch + Insights trim (local validation pass)
 - [x] REQ-0043 / TASK-0048 C7.3 api-docs/status soft-nav + logout (local validation pass)
+- [x] REQ-0044 / TASK-0049 C7.4 api-status chrome-first (local validation pass)
 - [ ] REQ-0001 leftover: human decision on `.cursorignore` secret allowlist
 - [ ] GATE-0002 / `EVAL_RESULTS.md` still required for release acceptance

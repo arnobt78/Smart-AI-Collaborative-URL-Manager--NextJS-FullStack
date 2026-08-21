@@ -31,8 +31,8 @@ Next 15 URL bookmark manager. Demo: https://daily-urlist.vercel.app/
 - Home motion: `ui/ScrollReveal.tsx` provides replayable CSS/observer reveal plus subtle parallax; shared controls use `h-10 min-h-10` and text-sm placeholders
 - Home wave: hero copy lines and CTAs are individual reveal units, staggered in order rather than animated as a grouped row
 - Data sync: SSR prefetch/dehydrate (C6.7) + optimistic `currentList` + `invalidateMutationImpact` + C7.1 `densifyBrowsePublicLists` / `dropUnifiedListCache` + SSE.
-- Soft-nav: warm full-parity chrome (C7.0); cold `RoutePageSkeleton` (+ pulse C7.3); browse densify (C7.1); rare Links `prefetch={false}` (C7.2); api-docs/status `loading.tsx` (C7.3).
-- Insights: overview+activity share one cached list scan; status route slim (no external metadata probe).
+- Soft-nav: warm full-parity chrome (C7.0); cold `RoutePageSkeleton` (+ pulse C7.3); browse densify (C7.1); rare Links `prefetch={false}` (C7.2); api-docs `loading.tsx`; api-status chrome-first inline values (C7.4).
+- Insights: overview+activity share one cached list scan; status route slim (no external metadata probe); status page client-fetches.
 - Logout: optimistic clear + `keepalive` signout → `/` Auth.
 - Open later: further lists/browse cold API slim.
 - Compact data UI: `DataSurfaceSlot` + `useDelayedPending`; Activity Feed default-collapsed; Insights aligned tabs.

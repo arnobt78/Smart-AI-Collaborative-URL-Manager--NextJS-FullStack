@@ -556,6 +556,19 @@ Append-only. Newest entries at bottom.
 
 ---
 
+## DEC-0045 — C7.4 api-status chrome-first
+
+| Field | Value |
+|---|---|
+| Timestamp | 2026-08-21 |
+| Agent | Agile V C7.4 |
+| Decision | Auth-only RSC + no loading.tsx; client status query; inline value skeletons for live fields only. |
+| Rationale | Layout never changes; blocking SSR + full-page spinner was unnecessary wait. |
+| Linked REQs | REQ-0044 |
+| Status | Implemented and locally validated 2026-08-21. |
+
+---
+
 ## DEC-0025 — Defer interactive acceptance to user browser testing
 
 | Field | Value |

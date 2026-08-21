@@ -19,7 +19,7 @@ Implementation is locally verified; C2 Gate 2 remains pending release evidence a
 Stage 1 Requirements → Stage 2 Validation → [Human Gate 1] → Stage 3 Synthesis → Stage 4 Verification → [Human Gate 2] → Stage 5 Acceptance
 ```
 
-Current: **C7.3 Stage 4 complete locally** for REQ-0043. GATE-0029 approved. GATE-0002 remains pending (`EVAL_RESULTS.md` absent).
+Current: **C7.4 Stage 4 complete locally** for REQ-0044. GATE-0030 approved. GATE-0002 remains pending (`EVAL_RESULTS.md` absent).
 
 Reconciliation note (2026-08-18): commits and prior validation records document C1 implementation activity, but `APPROVALS.md` has no matching approved record for the original GATE-0001 token. This is retained as historical evidence, not retroactively approved. It does not authorize further implementation.
 
@@ -289,6 +289,21 @@ Implementation is locally verified. Production check remains with TASK-0039. Gat
 | Evidence | REQ-0043; TASK-0048; DEC-0044 |
 | Required human action | Completed — user approved attached C7.3 plan implement. |
 | Scope | Soft-nav shells + CARD_PAD + slim status + optimistic logout to `/`. |
+
+Implementation is locally verified. Production check remains with TASK-0039. Gate 2 remains required before any release decision.
+
+---
+
+## GATE-0030 — Human Gate 1 (C7.4 api-status chrome-first)
+
+| Field | Value |
+|-------|-------|
+| Type | Human-Decision |
+| Status | **APPROVED 2026-08-21** |
+| Checkpoint | `C7.4-HG1-API-STATUS-CHROME-FIRST-2026-08-21` |
+| Evidence | REQ-0044; TASK-0049; DEC-0045 |
+| Required human action | Completed — user approved attached C7.4 plan implement. |
+| Scope | Auth-only RSC; no loading.tsx; inline value pulses. |
 
 Implementation is locally verified. Production check remains with TASK-0039. Gate 2 remains required before any release decision.
 
