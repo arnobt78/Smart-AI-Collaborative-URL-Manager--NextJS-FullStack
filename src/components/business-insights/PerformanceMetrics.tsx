@@ -127,7 +127,58 @@ export function PerformanceMetrics({
                     cx="50%"
                     cy="50%"
                     labelLine={false}
-                    label={false}
+                    label={(props) => {
+                      const {
+                        cx,
+                        cy,
+                        midAngle,
+                        outerRadius,
+                        fill,
+                        value,
+                        name,
+                        percent,
+                      } = props as {
+                        cx?: number;
+                        cy?: number;
+                        midAngle?: number;
+                        outerRadius?: number;
+                        fill?: string;
+                        value?: number;
+                        name?: string;
+                        percent?: number;
+                      };
+                      if (
+                        cx == null ||
+                        cy == null ||
+                        midAngle == null ||
+                        outerRadius == null ||
+                        !value
+                      ) {
+                        return null;
+                      }
+                      const RADIAN = Math.PI / 180;
+                      const r = outerRadius + 16;
+                      const x = cx + r * Math.cos(-midAngle * RADIAN);
+                      const y = cy + r * Math.sin(-midAngle * RADIAN);
+                      const pct =
+                        percent != null
+                          ? ` ${(percent * 100).toFixed(0)}%`
+                          : "";
+                      return (
+                        <text
+                          x={x}
+                          y={y}
+                          fill={fill || "#fff"}
+                          fontSize={11}
+                          fontWeight={500}
+                          textAnchor={x > cx ? "start" : "end"}
+                          dominantBaseline="central"
+                        >
+                          {name}
+                          {pct}
+                        </text>
+                      );
+                    }}
                     outerRadius={80}
                     fill="#8884d8"
                     dataKey="value"

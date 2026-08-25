@@ -2390,7 +2390,7 @@ export function UrlList() {
   return (
     <div className={LIST_STACK}>
       {/* Tabs for Active/Archived and Add URL Button */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4 border-b border-white/10">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4">
         <div className="flex items-center gap-2 sm:gap-3 flex-1 sm:flex-none">
           <Button
             type="button"

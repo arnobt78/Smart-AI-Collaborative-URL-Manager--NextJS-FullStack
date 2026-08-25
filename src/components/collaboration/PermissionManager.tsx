@@ -294,7 +294,7 @@ export function PermissionManager({
           </Badge>
         )}
       </div>
-      <p className="mt-1 text-xs sm:text-sm text-white/60">
+      <p className="text-xs sm:text-sm text-white/60">
         {isEmpty
           ? "No collaborators yet · Invite others to collaborate on this list"
           : "People with access to this list"}
@@ -341,15 +341,15 @@ export function PermissionManager({
                   className="bg-white/5 border border-white/10 rounded-lg p-3 sm:p-4 hover:bg-white/10 transition-colors"
                 >
                   <div className="flex items-start justify-between gap-2">
-                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                    <div className="flex items-start gap-2 flex-1 min-w-0">
                       <UserAvatar
                         seed={collaborator.email}
                         size={40}
                         alt={collaborator.email}
-                        className="h-9 w-9 sm:h-10 sm:w-10"
+                        className="h-9 w-9 sm:h-10 sm:w-10 shrink-0 rounded-full ring-2 ring-white/25 shadow-[0_0_12px_rgba(255,255,255,0.12)]"
                       />
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm sm:text-base text-white font-medium truncate">
+                        <p className="text-xs sm:text-sm text-white font-medium truncate">
                           {collaborator.email}
                         </p>
                         <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] sm:text-xs text-white/50">

@@ -709,3 +709,16 @@ Append-only. Newest entries at bottom.
 | Rationale | Mounted share path flashed; soft-nav omitted UrlList; Back/history cold; Insights remounted live Recharts twice; icon gaps deleted in cleanup. |
 | Linked REQs | REQ-0050 |
 | Status | Implemented and locally validated 2026-08-25. |
+
+---
+
+## DEC-0052 — C7.12 stable jobs menu + chart labels + Visit openExternalUrl
+
+| Field | Value |
+|---|---|
+| Timestamp | 2026-08-25 |
+| Agent | Cursor |
+| Decision | Extract always-mounted `ListDetailJobsMenu` (disable Refresh/Health when no URLs/busy); soft-nav Copy parity; Activity `LabelList` non-zero on 7/30; pie labels use slice fill; UrlCard visits via `openExternalUrl`; Cloudinary fill `gravity: auto`; no new densify gateway. |
+| Rationale | Soft-nav lacked Copy and late-mounted Refresh/Health reflowed header; chart points unlabeled; Visit needed absolute new-tab open; face OG center-crop. |
+| Linked REQs | C7.12 UX |
+| Status | Implemented and locally validated 2026-08-25. |

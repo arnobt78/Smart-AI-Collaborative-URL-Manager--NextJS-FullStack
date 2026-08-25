@@ -3,7 +3,8 @@
 import { useState, useLayoutEffect } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
-import { Activity, BarChart3, Globe } from "lucide-react";
+import { BarChart3, Copy, Globe } from "lucide-react";
+import { ListDetailJobsMenu } from "@/components/lists/ListDetailJobsMenu";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { CreateNewListButton } from "@/components/ui/CreateNewListButton";
 import { Tabs } from "@/components/ui/Tabs";
@@ -29,7 +30,6 @@ import { browseQueryKeys } from "@/lib/browse-query-keys";
 import { listQueryKeys } from "@/lib/query-keys";
 import type { UserList } from "@/hooks/useListQueries";
 import { useWarmSoftNav } from "@/hooks/useWarmSoftNav";
-import { glassActionButtonClass } from "@/lib/ui/glass-button-styles";
 import { LIST_STACK, PAGE_STACK } from "@/lib/ui-spacing";
 import { cn, listShareUrl } from "@/lib/utils";
 import { syncCurrentListFromSeedRow } from "@/lib/soft-nav-cache";
@@ -260,15 +260,12 @@ function ListDetailOptimisticSurface() {
         canInvite={false}
         onBack={() => warmRouterPush("/lists")}
         actions={
-          <button
-            type="button"
-            disabled
-            className={glassActionButtonClass("violet", "shrink-0 h-8 px-2 sm:px-3 text-xs")}
-          >
-            <Activity className="w-3.5 h-3.5 sm:w-4 sm:h-4" aria-hidden />
-            <span className="hidden sm:inline">Setup Schedule</span>
-            <span className="sm:hidden">Schedule</span>
-          </button>
+          <ListDetailJobsMenu
+            busy
+            hasUrls={
+              Array.isArray(list.urls) ? list.urls.length > 0 : false
+            }
+          />
         }
         shareRow={
           <div className="flex flex-col sm:flex-row sm:items-center gap-2 flex-wrap pt-2 border-t border-white/10 sm:border-t-0 sm:pt-0">
@@ -276,9 +273,19 @@ function ListDetailOptimisticSurface() {
               <Globe className="w-3.5 h-3.5 shrink-0" aria-hidden />
               Shareable Link:
             </span>
-            <span className="text-xs sm:text-sm text-white/90 truncate">
-              {listShareUrl(listSlug)}
-            </span>
+            <div className="flex items-center gap-1 flex-1 min-w-0">
+              <span className="text-xs sm:text-sm text-white/90 truncate">
+                {listShareUrl(listSlug)}
+              </span>
+              <button
+                type="button"
+                disabled
+                className="flex-shrink-0 p-1.5 rounded-md sm:rounded-lg opacity-50 cursor-not-allowed"
+                aria-label="Copy link"
+              >
+                <Copy className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white/70" />
+              </button>
+            </div>
           </div>
         }
       />

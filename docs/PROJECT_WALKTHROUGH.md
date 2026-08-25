@@ -23,7 +23,7 @@ Next 15 URL bookmark manager. Demo: https://daily-urlist.vercel.app/
 - Logs: `lib/dev-log.ts` — SSE/AI/import quiet in prod
 - Deploy: Sentry upload only if `SENTRY_UPLOAD_SOURCEMAPS=1` · `prisma.config.ts` seed
 - Lists: slug-safe placeholder · ListPage `currentList` sync · My Lists title → `/list/[slug]` · SC create stays
-- Visit: `ensureAbsoluteHttpUrl` + semantic safe new-tab links; click analytics patches list/KPI caches optimistically.
+- Visit: `openExternalUrl` / `ensureAbsoluteHttpUrl` (UrlCard title, Visit, Similar); click analytics patches list/KPI caches optimistically.
 - Collaborators empty one-row · Card/SC `p-2 sm:p-4`
 - Local DB: `.env` / `.env.local` → remote `77.42.71.87:25432` (gitignored)
 - Out of scope: full densify rewrite / JWT-null SSR / Next 16 / Prisma 7
@@ -31,8 +31,8 @@ Next 15 URL bookmark manager. Demo: https://daily-urlist.vercel.app/
 - Home motion: `ui/ScrollReveal.tsx` provides replayable CSS/observer reveal plus subtle parallax; shared controls use `h-10 min-h-10` and text-sm placeholders
 - Home wave: hero copy lines and CTAs are individual reveal units, staggered in order rather than animated as a grouped row
 - Data sync: SSR prefetch/dehydrate (C6.7) + optimistic `currentList` + `invalidateMutationImpact` + C7.1 `densifyBrowsePublicLists` / `dropUnifiedListCache` (C7.9 `{ list: null }` tombstone) + SSE densify/drop.
-- Soft-nav: warm full-parity chrome (C7.0); list-detail seeds thin unified from Lists (C7.9–C7.10.1 UrlList + warm history); cold one continuous detail skeleton; browse densify (C7.1); rare Links `prefetch={false}` (C7.2); api-docs spinner shell; api-status `ApiStatusChrome` + header Refresh/refreshing… (C7.5–C7.6).
-- Insights: overview+activity share one cached list scan; C7.11 soft-nav chart skeleton + single LineChart + shared tooltip; status route slim (no external metadata probe); status page client-fetches.
+- Soft-nav: warm full-parity chrome (C7.0); list-detail seeds thin unified from Lists (C7.9–C7.12 UrlList + Copy parity + `ListDetailJobsMenu` + warm history); cold one continuous detail skeleton; browse densify (C7.1); rare Links `prefetch={false}` (C7.2); api-docs spinner shell; api-status `ApiStatusChrome` + header Refresh/refreshing… (C7.5–C7.6).
+- Insights: overview+activity share one cached list scan; C7.11–C7.12 soft-nav chart skeleton + single LineChart + LabelList + pie slice-colored labels + shared tooltip; status route slim (no external metadata probe); status page client-fetches.
 - Logout: C7.8 — forceGuest cookie+SS; keepalive signout; clear RQ/`react-query:*`/session cookies; `replace("/login")` (no nav/footer; one html scrollbar). No Auth overlay on `/`.
 - Open later: optional `(auth)` route-group; lists/browse cold API slim; status API speed OOS.
 - Compact data UI: `DataSurfaceSlot` + `useDelayedPending`; Activity Feed default-collapsed; Insights aligned tabs.

@@ -7,8 +7,8 @@ import { useStore } from "@nanostores/react";
 import { currentList } from "@/stores/urlListStore";
 import { UrlList } from "@/components/lists/UrlList";
 import { Button } from "@/components/ui/Button";
-import { glassActionButtonClass } from "@/lib/ui/glass-button-styles";
-import { Copy, Check, Activity, RefreshCw, Globe } from "lucide-react";
+import { Copy, Check, Globe } from "lucide-react";
+import { ListDetailJobsMenu } from "@/components/lists/ListDetailJobsMenu";
 import { useToast } from "@/components/ui/Toaster";
 import { ActivityFeed } from "@/components/collaboration/ActivityFeed";
 import { PermissionManager } from "@/components/collaboration/PermissionManager";
@@ -602,229 +602,172 @@ export default function ListPageClient() {
           );
         }}
         actions={
-          <>
-            <button
-              type="button"
-              onClick={async () => {
-                setIsSettingUpSchedule(true);
-                try {
-                  const response = await fetch("/api/jobs/setup-schedule", {
-                    method: "POST",
-                  });
-                  const data = await response.json();
-                  if (response.ok) {
-                    toast({
-                      title: "Scheduled Jobs Setup Complete!",
-                      description:
-                        "Daily health checks and weekly metadata refresh are now scheduled.",
-                      variant: "success",
-                    });
-                  } else if (data.localDevelopment) {
-                    toast({
-                      title: "Local Development Detected",
-                      description:
-                        "Scheduled jobs require a public URL. Deploy to production or set up manually in QStash dashboard.",
-                      variant: "info",
-                    });
-                  } else {
-                    toast({
-                      title: "Setup Failed",
-                      description:
-                        data.error ||
-                        data.message ||
-                        "Failed to setup scheduled jobs",
-                      variant: "error",
-                    });
-                  }
-                } catch {
+          <ListDetailJobsMenu
+            hasUrls={Boolean(list.urls && list.urls.length > 0)}
+            isSettingUpSchedule={isSettingUpSchedule}
+            isRefreshingMetadata={isRefreshingMetadata}
+            isCheckingHealth={isCheckingHealth}
+            onSetupSchedule={async () => {
+              setIsSettingUpSchedule(true);
+              try {
+                const response = await fetch("/api/jobs/setup-schedule", {
+                  method: "POST",
+                });
+                const data = await response.json();
+                if (response.ok) {
                   toast({
-                    title: "Error",
-                    description: "An unexpected error occurred",
+                    title: "Scheduled Jobs Setup Complete!",
+                    description:
+                      "Daily health checks and weekly metadata refresh are now scheduled.",
+                    variant: "success",
+                  });
+                } else if (data.localDevelopment) {
+                  toast({
+                    title: "Local Development Detected",
+                    description:
+                      "Scheduled jobs require a public URL. Deploy to production or set up manually in QStash dashboard.",
+                    variant: "info",
+                  });
+                } else {
+                  toast({
+                    title: "Setup Failed",
+                    description:
+                      data.error ||
+                      data.message ||
+                      "Failed to setup scheduled jobs",
                     variant: "error",
                   });
-                } finally {
-                  setIsSettingUpSchedule(false);
                 }
-              }}
-              disabled={isSettingUpSchedule}
-              className={glassActionButtonClass(
-                "violet",
-                "shrink-0 h-8 px-2 sm:px-3 text-xs",
-              )}
-              title="Setup scheduled jobs (daily health checks, weekly metadata refresh)"
-            >
-              <Activity
-                className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${
-                  isSettingUpSchedule ? "animate-spin" : ""
-                }`}
-              />
-              <span className="hidden sm:inline">
-                {isSettingUpSchedule ? "Setting up..." : "Setup Schedule"}
-              </span>
-              <span className="sm:hidden">Schedule</span>
-            </button>
-            {list.urls && list.urls.length > 0 && (
-              <button
-                type="button"
-                onClick={async () => {
-                  if (!list.id) return;
-                  setIsRefreshingMetadata(true);
-                  try {
-                    const response = await fetch("/api/jobs/refresh-metadata", {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({ listId: list.id }),
-                    });
-                    const data = await response.json();
-                    if (response.ok) {
-                      if (list.urls && list.urls.length > 0) {
-                        window.dispatchEvent(
-                          new CustomEvent("metadata-refresh-complete", {
-                            detail: { listId: list.id },
-                          }),
-                        );
-                      }
-                      if (typeof slug === "string") {
-                        invalidateMutationImpact(
-                          queryClient,
-                          "metadata",
-                          slug,
-                          list.id,
-                        );
-                      }
-                      toast({
-                        title: "Metadata Refresh Complete!",
-                        description: `Refreshed metadata for ${
-                          data.refreshed || list.urls?.length || 0
-                        } URLs using improved extractor.`,
-                        variant: "success",
-                      });
-                    } else {
-                      toast({
-                        title: "Refresh Failed",
-                        description: data.error || "Failed to refresh metadata",
-                        variant: "error",
-                      });
-                    }
-                  } catch {
-                    toast({
-                      title: "Error",
-                      description: "An unexpected error occurred",
-                      variant: "error",
-                    });
-                  } finally {
-                    setIsRefreshingMetadata(false);
+              } catch {
+                toast({
+                  title: "Error",
+                  description: "An unexpected error occurred",
+                  variant: "error",
+                });
+              } finally {
+                setIsSettingUpSchedule(false);
+              }
+            }}
+            onRefreshMetadata={async () => {
+              if (!list.id) return;
+              setIsRefreshingMetadata(true);
+              try {
+                const response = await fetch("/api/jobs/refresh-metadata", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ listId: list.id }),
+                });
+                const data = await response.json();
+                if (response.ok) {
+                  if (list.urls && list.urls.length > 0) {
+                    window.dispatchEvent(
+                      new CustomEvent("metadata-refresh-complete", {
+                        detail: { listId: list.id },
+                      }),
+                    );
                   }
-                }}
-                disabled={isRefreshingMetadata}
-                className={glassActionButtonClass(
-                  "emerald",
-                  "shrink-0 h-8 px-2 sm:px-3 text-xs",
-                )}
-                title="Refresh metadata for all URLs with improved extractor"
-              >
-                <RefreshCw
-                  className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${
-                    isRefreshingMetadata ? "animate-spin" : ""
-                  }`}
-                />
-                <span className="hidden sm:inline">
-                  {isRefreshingMetadata ? "Refreshing..." : "Refresh Metadata"}
-                </span>
-                <span className="sm:hidden">Refresh</span>
-              </button>
-            )}
-            {list.urls && list.urls.length > 0 && (
-              <button
-                type="button"
-                onClick={async () => {
-                  if (!list.id) return;
-                  setIsCheckingHealth(true);
-                  try {
-                    const response = await fetch("/api/jobs/check-urls", {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({ listId: list.id }),
-                    });
-                    const data = await response.json();
-                    if (response.ok) {
-                      if (data.list) {
-                        flushSync(() => {
-                          currentList.set(data.list);
-                        });
-                        if (data.activity && typeof slug === "string") {
-                          window.dispatchEvent(
-                            new CustomEvent("activity-added", {
-                              detail: {
-                                listId: data.list.id || list?.id,
-                                activity: data.activity,
-                              },
-                            }),
-                          );
-                        }
-                        if (typeof slug === "string") {
-                          invalidateMutationImpact(
-                            queryClient,
-                            "action",
-                            slug,
-                            list.id,
-                          );
-                        }
-                      } else if (typeof slug === "string") {
-                        invalidateMutationImpact(
-                          queryClient,
-                          "action",
-                          slug,
-                          list.id,
-                        );
-                      }
-                      toast({
-                        title: "Health Check Complete!",
-                        description: `Checked ${
-                          data.checked || 0
-                        } URLs. Healthy: ${
-                          data.results?.healthy || 0
-                        }, Warning: ${data.results?.warning || 0}, Broken: ${
-                          data.results?.broken || 0
-                        }`,
-                        variant: "success",
-                      });
-                    } else {
-                      toast({
-                        title: "Health Check Failed",
-                        description: data.error || "Failed to check URL health",
-                        variant: "error",
-                      });
-                    }
-                  } catch {
-                    toast({
-                      title: "Error",
-                      description: "An unexpected error occurred",
-                      variant: "error",
-                    });
-                  } finally {
-                    setIsCheckingHealth(false);
+                  if (typeof slug === "string") {
+                    invalidateMutationImpact(
+                      queryClient,
+                      "metadata",
+                      slug,
+                      list.id,
+                    );
                   }
-                }}
-                disabled={isCheckingHealth}
-                className={glassActionButtonClass(
-                  "blue",
-                  "shrink-0 h-8 px-2 sm:px-3 text-xs",
-                )}
-                title="Check URL health status for this list"
-              >
-                <Activity
-                  className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${
-                    isCheckingHealth ? "animate-spin" : ""
-                  }`}
-                />
-                <span className="hidden sm:inline">
-                  {isCheckingHealth ? "Checking..." : "Health Check"}
-                </span>
-                <span className="sm:hidden">Health</span>
-              </button>
-            )}
-          </>
+                  toast({
+                    title: "Metadata Refresh Complete!",
+                    description: `Refreshed metadata for ${
+                      data.refreshed || list.urls?.length || 0
+                    } URLs using improved extractor.`,
+                    variant: "success",
+                  });
+                } else {
+                  toast({
+                    title: "Refresh Failed",
+                    description: data.error || "Failed to refresh metadata",
+                    variant: "error",
+                  });
+                }
+              } catch {
+                toast({
+                  title: "Error",
+                  description: "An unexpected error occurred",
+                  variant: "error",
+                });
+              } finally {
+                setIsRefreshingMetadata(false);
+              }
+            }}
+            onHealthCheck={async () => {
+              if (!list.id) return;
+              setIsCheckingHealth(true);
+              try {
+                const response = await fetch("/api/jobs/check-urls", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ listId: list.id }),
+                });
+                const data = await response.json();
+                if (response.ok) {
+                  if (data.list) {
+                    flushSync(() => {
+                      currentList.set(data.list);
+                    });
+                    if (data.activity && typeof slug === "string") {
+                      window.dispatchEvent(
+                        new CustomEvent("activity-added", {
+                          detail: {
+                            listId: data.list.id || list?.id,
+                            activity: data.activity,
+                          },
+                        }),
+                      );
+                    }
+                    if (typeof slug === "string") {
+                      invalidateMutationImpact(
+                        queryClient,
+                        "action",
+                        slug,
+                        list.id,
+                      );
+                    }
+                  } else if (typeof slug === "string") {
+                    invalidateMutationImpact(
+                      queryClient,
+                      "action",
+                      slug,
+                      list.id,
+                    );
+                  }
+                  toast({
+                    title: "Health Check Complete!",
+                    description: `Checked ${
+                      data.checked || 0
+                    } URLs. Healthy: ${
+                      data.results?.healthy || 0
+                    }, Warning: ${data.results?.warning || 0}, Broken: ${
+                      data.results?.broken || 0
+                    }`,
+                    variant: "success",
+                  });
+                } else {
+                  toast({
+                    title: "Health Check Failed",
+                    description: data.error || "Failed to check URL health",
+                    variant: "error",
+                  });
+                }
+              } catch {
+                toast({
+                  title: "Error",
+                  description: "An unexpected error occurred",
+                  variant: "error",
+                });
+              } finally {
+                setIsCheckingHealth(false);
+              }
+            }}
+          />
         }
         shareRow={
           <div className="flex flex-col sm:flex-row sm:items-center gap-2 flex-wrap pt-2 border-t border-white/10 sm:border-t-0 sm:pt-0">

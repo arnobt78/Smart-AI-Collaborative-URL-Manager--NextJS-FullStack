@@ -435,3 +435,15 @@ Gate 2: BLOCKED — RISK-0016 is accepted; `EVAL_RESULTS.md` PASS/WAIVED evidenc
 | Insights | ActivityChart single LineChart; tooltip; gaps | PASS | Soft-nav skeleton; YAxis 36; pie label false. |
 | Validation | `tsc`; `lint`; focused Jest; `build` | PASS | lint 0; soft-nav/Insights suites; build exit 0. |
 | OOS | densify rewrite / load balancer / updates API latency | — | Deferred. |
+
+## 2026-08-25 — C7.12 list-detail + Insights chart UX
+
+| Scope | Command / evidence | Result | Notes |
+|---|---|---|---|
+| Charts | ActivityChart LabelList; PerformanceMetrics pie labels | PASS | Non-zero 7/30; slice `fill` color; tooltip kept. |
+| Soft-nav header | Copy disabled + `ListDetailJobsMenu` busy | PASS | No share/action remount flash. |
+| Jobs | ListPage `ListDetailJobsMenu` + `invalidateMutationImpact` | PASS | metadata/action paths preserved. |
+| UrlCard / OG | `openExternalUrl`; `object-cover object-top`; Cloudinary gravity auto | PASS | Title/Visit/Similar; fill crop. |
+| Collab / tabs | PermissionManager; UrlList border-b removed | PASS | items-start; ring; email xs/sm. |
+| Validation | `tsc`; `lint`; soft-nav Jest; `build`; verify-deep | PASS | lint 0; 12/12 soft-nav; build exit 0. |
+| OOS | full metadata rewrite / densify gateway / Insights API speed | — | Deferred. |

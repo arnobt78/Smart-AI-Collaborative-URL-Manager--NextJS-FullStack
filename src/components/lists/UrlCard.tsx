@@ -31,7 +31,7 @@ import { currentList } from "@/stores/urlListStore";
 import { UrlHealthIndicator } from "@/components/urls/UrlHealthIndicator";
 import { Comments } from "@/components/collaboration/Comments";
 import { MessageSquare } from "lucide-react";
-import { ensureAbsoluteHttpUrl } from "@/lib/utils";
+import { ensureAbsoluteHttpUrl, openExternalUrl } from "@/lib/utils";
 // Using public path instead of import
 const logoPath = "/favicon.ico";
 
@@ -232,7 +232,6 @@ export const UrlCard: React.FC<UrlCardProps> = ({
   // For own URLs, always use logo. For external URLs, only use metadata image (no favicon fallback)
   // We rely on server-side metadata API to find valid images - no client-side fallbacks to avoid 403 errors
   const primaryImage = isOwnUrl ? logoPath : metadata?.image || undefined;
-  const externalHref = ensureAbsoluteHttpUrl(url.url);
 
   // Determine current image URL to use
   React.useEffect(() => {
@@ -331,7 +330,7 @@ export const UrlCard: React.FC<UrlCardProps> = ({
   const isNoPreview = !hasImage && !description;
 
   return (
-    <div className="group relative overflow-hidden rounded-2xl border border-white/20 bg-white/5 backdrop-blur-md shadow-lg hover:shadow-xl transition-all duration-300 hover:border-blue-400/30">
+    <div className="group relative overflow-hidden rounded-2xl border border-white/20 bg-white/5 backdrop-blur-md shadow-lg hover:shadow-xl transition-all duration-300 hover:border-blue-400/30 cursor-default">
       {/* Drag handle in top-right corner */}
       {dragHandleProps && (
         <div
@@ -368,7 +367,7 @@ export const UrlCard: React.FC<UrlCardProps> = ({
                   alt={title}
                   width={208}
                   height={208}
-                  className={`h-full w-full object-contain group-hover:scale-105 transition-transform duration-300 ${
+                  className={`h-full w-full object-cover object-top group-hover:scale-105 transition-transform duration-300 ${
                     imageError ? "opacity-0" : imageLoading ? "opacity-0" : ""
                   }`}
                   onError={() => {
@@ -442,13 +441,18 @@ export const UrlCard: React.FC<UrlCardProps> = ({
             <>
               <div className="flex-1 min-w-0">
                 {/* Title with Health Status directly after text */}
-                <div className=" min-w-0">
-                  <h3
-                    className="font-medium text-base sm:text-lg xl:text-xl text-white group-hover:text-blue-400 transition-colors font-joti inline break-words"
+                <div className="min-w-0">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onUrlClick?.(url.id);
+                      openExternalUrl(url.url);
+                    }}
+                    className="font-medium text-base sm:text-lg xl:text-xl text-white hover:text-blue-400 transition-colors font-joti inline break-words text-left cursor-pointer"
                     title={title}
                   >
                     {title}
-                  </h3>
+                  </button>
                   <span className="inline-flex items-center ml-2 align-middle">
                     {/* Health Status Indicator - directly after title */}
                     <UrlHealthIndicator
@@ -463,7 +467,7 @@ export const UrlCard: React.FC<UrlCardProps> = ({
 
                 {/* Pinned Badge */}
                 {url.isPinned && (
-                  <div className=" flex items-center gap-1">
+                  <div className="mt-1 flex items-center gap-1">
                     <Pin className="h-3.5 w-3.5 text-yellow-400 fill-yellow-400" />
                     <span className="px-2 py-0.5 bg-yellow-500/20 border border-yellow-400/30 text-yellow-300 rounded-md text-xs font-medium">
                       Pinned
@@ -473,7 +477,7 @@ export const UrlCard: React.FC<UrlCardProps> = ({
 
                 {/* Category and Tags Display - Same Line */}
                 {(url.category || (url.tags && url.tags.length > 0)) && (
-                  <div className="flex items-center gap-2  flex-wrap">
+                  <div className="mt-1 flex items-center gap-2 flex-wrap">
                     {url.category && (
                       <span className="px-2 py-1 bg-blue-500/20 border border-blue-400/30 text-blue-300 rounded-md text-xs font-medium whitespace-nowrap">
                         {url.category}
@@ -496,7 +500,7 @@ export const UrlCard: React.FC<UrlCardProps> = ({
 
                 {/* Reminder Display */}
                 {url.reminder && (
-                  <div className=" flex items-center gap-2">
+                  <div className="mt-1 flex items-center gap-2">
                     <BellIcon className="h-4 w-4 text-yellow-400" />
                     <span className="text-sm text-yellow-300 font-medium">
                       Reminder:{" "}
@@ -526,12 +530,12 @@ export const UrlCard: React.FC<UrlCardProps> = ({
                 )}
 
                 {isNoPreview ? (
-                  <p className="text-sm sm:text-base text-white/40 italic font-delicious">
+                  <p className="mt-1 text-xs sm:text-sm text-white/40 italic font-delicious">
                     No preview available for this site.
                   </p>
                 ) : (
                   description && (
-                    <p className="text-sm sm:text-base text-white/60 leading-relaxed font-delicious line-clamp-5 break-words overflow-hidden">
+                    <p className="mt-1 text-xs sm:text-sm text-white/60 leading-relaxed font-delicious line-clamp-5 break-words overflow-hidden">
                       {description}
                     </p>
                   )
@@ -542,14 +546,13 @@ export const UrlCard: React.FC<UrlCardProps> = ({
                 <div className="flex items-center gap-2 flex-wrap">
                   <IconButton
                     icon={<ArrowTopRightOnSquareIcon />}
-                    href={externalHref}
                     onClick={() => {
-                      // Analytics must never delay the browser-owned new-tab navigation.
                       onUrlClick?.(url.id);
+                      openExternalUrl(url.url);
                     }}
                     tooltip="Visit Site"
                     variant="primary"
-                    className="hover:translate-x-0.5 hover:-translate-y-0.5 transition-transform"
+                    className="hover:translate-x-0.5 hover:-translate-y-0.5 transition-transform cursor-pointer"
                   />
                   <IconButton
                     icon={<PencilIcon />}
@@ -800,15 +803,13 @@ export const UrlCard: React.FC<UrlCardProps> = ({
                         </p>
                       )}
                     </div>
-                    <a
-                      href={ensureAbsoluteHttpUrl(result.url.url)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      referrerPolicy="no-referrer"
-                      className="flex-shrink-0 rounded-lg bg-blue-600 px-4 py-2 text-white whitespace-nowrap transition-colors hover:bg-blue-700"
+                    <button
+                      type="button"
+                      onClick={() => openExternalUrl(result.url.url)}
+                      className="flex-shrink-0 rounded-lg bg-blue-600 px-4 py-2 text-white whitespace-nowrap transition-colors hover:bg-blue-700 cursor-pointer"
                     >
                       Visit
-                    </a>
+                    </button>
                   </div>
                 </div>
               ))}

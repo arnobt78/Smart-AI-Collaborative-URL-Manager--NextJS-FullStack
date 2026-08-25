@@ -10,6 +10,7 @@ import {
   Tooltip,
   ResponsiveContainer,
   Legend,
+  LabelList,
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/Tabs";
@@ -155,7 +156,33 @@ export function ActivityChart({
                       : false
                   }
                   name="Lists Created"
-                />
+                >
+                  {showDots ? (
+                    <LabelList
+                      dataKey="lists"
+                      position="top"
+                      content={({ x, y, value }) => {
+                        const n = typeof value === "number" ? value : Number(value);
+                        if (!n || !Number.isFinite(n)) return null;
+                        const px = typeof x === "number" ? x : Number(x);
+                        const py = typeof y === "number" ? y : Number(y);
+                        if (!Number.isFinite(px) || !Number.isFinite(py)) return null;
+                        return (
+                          <text
+                            x={px}
+                            y={py}
+                            dy={-8}
+                            textAnchor="middle"
+                            fill="#3b82f6"
+                            fontSize={10}
+                          >
+                            {n}
+                          </text>
+                        );
+                      }}
+                    />
+                  ) : null}
+                </Line>
                 <Line
                   type="monotone"
                   dataKey="urls"
@@ -168,7 +195,33 @@ export function ActivityChart({
                       : false
                   }
                   name="URLs Added"
-                />
+                >
+                  {showDots ? (
+                    <LabelList
+                      dataKey="urls"
+                      position="top"
+                      content={({ x, y, value }) => {
+                        const n = typeof value === "number" ? value : Number(value);
+                        if (!n || !Number.isFinite(n)) return null;
+                        const px = typeof x === "number" ? x : Number(x);
+                        const py = typeof y === "number" ? y : Number(y);
+                        if (!Number.isFinite(px) || !Number.isFinite(py)) return null;
+                        return (
+                          <text
+                            x={px}
+                            y={py}
+                            dy={-8}
+                            textAnchor="middle"
+                            fill="#a855f7"
+                            fontSize={10}
+                          >
+                            {n}
+                          </text>
+                        );
+                      }}
+                    />
+                  ) : null}
+                </Line>
               </LineChart>
             </ResponsiveContainer>
           </div>
