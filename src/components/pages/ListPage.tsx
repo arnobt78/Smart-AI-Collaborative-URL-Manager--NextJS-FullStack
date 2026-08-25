@@ -7,10 +7,8 @@ import { useStore } from "@nanostores/react";
 import { currentList } from "@/stores/urlListStore";
 import { UrlList } from "@/components/lists/UrlList";
 import { Button } from "@/components/ui/Button";
-import { Badge } from "@/components/ui/Badge";
-import { Switch } from "@/components/ui/Switch";
 import { glassActionButtonClass } from "@/lib/ui/glass-button-styles";
-import { Copy, Check, Globe, Lock, Activity, RefreshCw } from "lucide-react";
+import { Copy, Check, Activity, RefreshCw } from "lucide-react";
 import { useToast } from "@/components/ui/Toaster";
 import { ActivityFeed } from "@/components/collaboration/ActivityFeed";
 import { PermissionManager } from "@/components/collaboration/PermissionManager";
@@ -27,9 +25,15 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Dialog } from "@/components/ui/Dialog";
 import EditListPageClient from "@/components/pages/EditListPage";
 import { ListDetailRouteSkeleton } from "@/components/ui/RoutePageSkeleton";
-import { HEADING_STACK } from "@/lib/ui-spacing";
+import {
+  ListDetailBodySkeletons,
+  ListDetailHeaderChrome,
+} from "@/components/lists/ListDetailHeaderChrome";
+import { CARD_PAD, HEADING_STACK, PAGE_STACK } from "@/lib/ui-spacing";
 import { invalidateMutationImpact } from "@/utils/queryInvalidation";
 import { useListDialogRouteState } from "@/hooks/useListDialogRouteState";
+import { isSoftNavThinSeed } from "@/lib/soft-nav-cache";
+import { cn } from "@/lib/utils";
 
 export default function ListPageClient() {
   const { toast } = useToast();
@@ -41,7 +45,6 @@ export default function ListPageClient() {
     isAuthenticated,
   } = useSession();
   const storeList = useStore(currentList);
-  const permissions = useListPermissions(); // Get permissions for current list and user
   const listSlug = typeof slug === "string" ? slug : "";
   const { editDialogSlug, closeDialog } = useListDialogRouteState({
     defaultEditSlug: listSlug,
@@ -72,6 +75,9 @@ export default function ListPageClient() {
     (unifiedData?.list?.slug === listSlug ? unifiedData.list : undefined) ??
     (cachedUnified?.list?.slug === listSlug ? cachedUnified.list : undefined) ??
     (storeList?.id && storeList.slug === listSlug ? storeList : undefined);
+
+  // C7.9: permissions from RQ list so Switch enables before store sync
+  const permissions = useListPermissions(list);
 
   // CRITICAL: Start with loading=false to show cached data immediately
   // Only show loading if we truly have no data
@@ -516,6 +522,14 @@ export default function ListPageClient() {
   // Matched slug only — never treat another list's placeholder as "have data"
   const hasAnyData = !!(list && list.id && list.slug === listSlug);
 
+  // C7.9: thin soft-nav seed paints chrome only; keep body skeletons until hydrate/fetch clears marker
+  const showThinBodySkeletons =
+    hasAnyData &&
+    (isSoftNavThinSeed(unifiedData) ||
+      isSoftNavThinSeed(
+        cachedUnified as { _softNavThinSeed?: boolean } | undefined,
+      ));
+
   // C6.9: paint immediately when RQ/store has this slug; skeleton only when cold
   const shouldShowLoading =
     Boolean(listSlug) &&
@@ -528,7 +542,7 @@ export default function ListPageClient() {
 
   if (!list?.id) {
     return (
-      <div className="min-h-screen w-full">
+      <div className={cn("w-full", PAGE_STACK)}>
         <div className="text-center">
           <div className={HEADING_STACK}>
             <h1 className="text-lg sm:text-xl font-medium">List not found</h1>
@@ -546,85 +560,42 @@ export default function ListPageClient() {
   }
 
   return (
-    <div className="min-h-screen w-full">
-      {/* Header Card */}
-      <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-xl sm:rounded-2xl p-2 sm:p-4  shadow-xl">
-        {/* First Row: Title/Info on Left, Buttons on Right */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4  sm:mb-4">
-          {/* Left Side: Title, URL Count, Visibility Badge, Toggle */}
-          <div className="flex flex-col gap-2 sm:gap-2">
-            {/* Title */}
-            <h1 className="text-base sm:text-lg lg:text-xl xl:text-2xl font-medium text-white break-words">
-              {list.title || `List: ${list.slug}`}
-            </h1>
-
-            {/* Badges and Toggle Row */}
-            <div className="flex items-center gap-2 sm:gap-2 flex-wrap">
-              {/* URL Count Badge */}
-              <Badge variant="secondary" className="text-xs sm:text-sm w-fit">
-                {list.urls?.length || 0}{" "}
-                {list.urls?.length === 1 ? "URL" : "URLs"}
-              </Badge>
-
-              {/* Visibility Badge */}
-              <Badge
-                variant={list.isPublic ? "success" : "secondary"}
-                className="text-xs sm:text-sm flex items-center gap-1 w-fit"
-              >
-                {list.isPublic ? (
-                  <>
-                    <Globe className="w-3 h-3" />
-                    <span className="hidden sm:inline">
-                      Public - Anyone can view
-                    </span>
-                    <span className="sm:hidden">Public</span>
-                  </>
-                ) : (
-                  <>
-                    <Lock className="w-3 h-3" />
-                    <span className="hidden sm:inline">
-                      Private - Only you & collaborators
-                    </span>
-                    <span className="sm:hidden">Private</span>
-                  </>
-                )}
-              </Badge>
-
-              {/* Private/Public Toggle - Disabled for viewers */}
-              <div className="flex items-center gap-1">
-                <Switch
-                  checked={list.isPublic ?? false}
-                  disabled={visibilityMutation.isPending || !permissions.canInvite}
-                  onChange={(e) => {
-                    if (!list.id || !list.slug) return;
-                    const newValue = e.target.checked;
-                    visibilityMutation.mutate(
-                      { id: list.id, slug: list.slug, isPublic: newValue },
-                      {
-                        onSuccess: () => toast({
-                          title: newValue ? "Made Public 🌐" : "Made Private 🔒",
-                          description: `List is now ${newValue ? "public" : "private"}`,
-                          variant: "success",
-                        }),
-                        onError: (error) => toast({
-                          title: "Visibility Update Failed",
-                          description: error instanceof Error ? error.message : "Please try again.",
-                          variant: "error",
-                        }),
-                      },
-                    );
-                  }}
-                />
-                <span className="text-[10px] text-white/50 hidden sm:inline">
-                  {list.isPublic ? "Public" : "Private"}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Right Side: Setup Schedule and Health Check Buttons */}
-          <div className="flex items-center gap-2 sm:gap-2 flex-wrap">
-            {/* Setup Schedule Button */}
+    <div className={cn("w-full", PAGE_STACK)}>
+      <ListDetailHeaderChrome
+        list={{
+          slug: list.slug!,
+          title: list.title,
+          description: list.description,
+          isPublic: list.isPublic,
+          urls: list.urls ?? [],
+        }}
+        canInvite={permissions.canInvite}
+        visibilityPending={visibilityMutation.isPending}
+        onVisibilityChange={(newValue) => {
+          if (!list.id || !list.slug) return;
+          visibilityMutation.mutate(
+            { id: list.id, slug: list.slug, isPublic: newValue },
+            {
+              onSuccess: () =>
+                toast({
+                  title: newValue ? "Made Public" : "Made Private",
+                  description: `List is now ${newValue ? "public" : "private"}`,
+                  variant: "success",
+                }),
+              onError: (error) =>
+                toast({
+                  title: "Visibility Update Failed",
+                  description:
+                    error instanceof Error
+                      ? error.message
+                      : "Please try again.",
+                  variant: "error",
+                }),
+            },
+          );
+        }}
+        actions={
+          <>
             <button
               type="button"
               onClick={async () => {
@@ -633,35 +604,30 @@ export default function ListPageClient() {
                   const response = await fetch("/api/jobs/setup-schedule", {
                     method: "POST",
                   });
-
                   const data = await response.json();
-
                   if (response.ok) {
                     toast({
-                      title: "Scheduled Jobs Setup Complete! ✅",
+                      title: "Scheduled Jobs Setup Complete!",
                       description:
                         "Daily health checks and weekly metadata refresh are now scheduled.",
                       variant: "success",
                     });
+                  } else if (data.localDevelopment) {
+                    toast({
+                      title: "Local Development Detected",
+                      description:
+                        "Scheduled jobs require a public URL. Deploy to production or set up manually in QStash dashboard.",
+                      variant: "info",
+                    });
                   } else {
-                    // Handle local development case
-                    if (data.localDevelopment) {
-                      toast({
-                        title: "Local Development Detected",
-                        description:
-                          "Scheduled jobs require a public URL. Deploy to production or set up manually in QStash dashboard. Check console for details.",
-                        variant: "info",
-                      });
-                    } else {
-                      toast({
-                        title: "Setup Failed",
-                        description:
-                          data.error ||
-                          data.message ||
-                          "Failed to setup scheduled jobs",
-                        variant: "error",
-                      });
-                    }
+                    toast({
+                      title: "Setup Failed",
+                      description:
+                        data.error ||
+                        data.message ||
+                        "Failed to setup scheduled jobs",
+                      variant: "error",
+                    });
                   }
                 } catch {
                   toast({
@@ -690,7 +656,6 @@ export default function ListPageClient() {
               </span>
               <span className="sm:hidden">Schedule</span>
             </button>
-            {/* Refresh Metadata Button */}
             {list.urls && list.urls.length > 0 && (
               <button
                 type="button"
@@ -703,26 +668,25 @@ export default function ListPageClient() {
                       headers: { "Content-Type": "application/json" },
                       body: JSON.stringify({ listId: list.id }),
                     });
-
                     const data = await response.json();
-
                     if (response.ok) {
-                      // Clear React Query cache for all URLs to force re-fetch
                       if (list.urls && list.urls.length > 0) {
-                        // Dispatch event to clear metadata cache
                         window.dispatchEvent(
                           new CustomEvent("metadata-refresh-complete", {
                             detail: { listId: list.id },
                           }),
                         );
                       }
-
                       if (typeof slug === "string") {
-                        invalidateMutationImpact(queryClient, "metadata", slug, list.id);
+                        invalidateMutationImpact(
+                          queryClient,
+                          "metadata",
+                          slug,
+                          list.id,
+                        );
                       }
-
                       toast({
-                        title: "Metadata Refresh Complete! ✅",
+                        title: "Metadata Refresh Complete!",
                         description: `Refreshed metadata for ${
                           data.refreshed || list.urls?.length || 0
                         } URLs using improved extractor.`,
@@ -763,7 +727,6 @@ export default function ListPageClient() {
                 <span className="sm:hidden">Refresh</span>
               </button>
             )}
-            {/* Health Check Button */}
             {list.urls && list.urls.length > 0 && (
               <button
                 type="button"
@@ -776,17 +739,12 @@ export default function ListPageClient() {
                       headers: { "Content-Type": "application/json" },
                       body: JSON.stringify({ listId: list.id }),
                     });
-
                     const data = await response.json();
-
                     if (response.ok) {
-                      // Update list immediately if returned
                       if (data.list) {
                         flushSync(() => {
                           currentList.set(data.list);
                         });
-
-                        // CRITICAL: Dispatch activity-added event if activity data is present
                         if (data.activity && typeof slug === "string") {
                           window.dispatchEvent(
                             new CustomEvent("activity-added", {
@@ -797,16 +755,24 @@ export default function ListPageClient() {
                             }),
                           );
                         }
-
                         if (typeof slug === "string") {
-                          invalidateMutationImpact(queryClient, "action", slug, list.id);
+                          invalidateMutationImpact(
+                            queryClient,
+                            "action",
+                            slug,
+                            list.id,
+                          );
                         }
                       } else if (typeof slug === "string") {
-                        invalidateMutationImpact(queryClient, "action", slug, list.id);
+                        invalidateMutationImpact(
+                          queryClient,
+                          "action",
+                          slug,
+                          list.id,
+                        );
                       }
-
                       toast({
-                        title: "Health Check Complete! ✅",
+                        title: "Health Check Complete!",
                         description: `Checked ${
                           data.checked || 0
                         } URLs. Healthy: ${
@@ -851,90 +817,100 @@ export default function ListPageClient() {
                 <span className="sm:hidden">Health</span>
               </button>
             )}
-          </div>
-        </div>
-
-        {/* Second Row: Shareable Link */}
-        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-2 flex-wrap pt-2 sm:pt-0 border-t border-white/10 sm:border-t-0">
-          <span className="text-xs sm:text-sm font-light text-white/70 whitespace-nowrap">
-            Shareable Link:
-          </span>
-          <div className="flex items-center gap-1 flex-1 min-w-0">
-            <span className="text-xs sm:text-sm text-white/90 truncate">
-              {mounted && list?.slug
-                ? `${window.location.origin}/list/${list.slug}`
-                : list?.slug
-                  ? `/list/${list.slug}`
-                  : ""}
+          </>
+        }
+        shareRow={
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 flex-wrap pt-2 border-t border-white/10 sm:border-t-0 sm:pt-0">
+            <span className="text-xs sm:text-sm font-light text-white/70 whitespace-nowrap">
+              Shareable Link:
             </span>
-            <button
-              type="button"
-              onClick={async () => {
-                const url =
-                  mounted && list?.slug
-                    ? `${window.location.origin}/list/${list.slug}`
-                    : list?.slug
-                      ? `/list/${list.slug}`
-                      : "";
-                if (!url) return;
-                try {
-                  await navigator.clipboard.writeText(url);
-                  setIsCopied(true);
-                  toast({
-                    title: "Copied!",
-                    description: "Link copied to clipboard",
-                    variant: "success",
-                  });
-                  setTimeout(() => setIsCopied(false), 2000);
-                } catch {
-                  toast({
-                    title: "Failed",
-                    description: "Failed to copy link",
-                    variant: "error",
-                  });
-                }
-              }}
-              className="flex-shrink-0 p-1.5 rounded-md sm:rounded-lg hover:bg-white/10 transition-colors duration-200 group"
-              aria-label="Copy link"
-            >
-              {isCopied ? (
-                <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-green-400 group-hover:scale-110 transition-transform duration-200" />
-              ) : (
-                <Copy className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white/70 group-hover:text-white group-hover:scale-110 transition-all duration-200" />
+            <div className="flex items-center gap-1 flex-1 min-w-0">
+              <span className="text-xs sm:text-sm text-white/90 truncate">
+                {mounted && list?.slug
+                  ? `${window.location.origin}/list/${list.slug}`
+                  : list?.slug
+                    ? `/list/${list.slug}`
+                    : ""}
+              </span>
+              <button
+                type="button"
+                onClick={async () => {
+                  const url =
+                    mounted && list?.slug
+                      ? `${window.location.origin}/list/${list.slug}`
+                      : list?.slug
+                        ? `/list/${list.slug}`
+                        : "";
+                  if (!url) return;
+                  try {
+                    await navigator.clipboard.writeText(url);
+                    setIsCopied(true);
+                    toast({
+                      title: "Copied!",
+                      description: "Link copied to clipboard",
+                      variant: "success",
+                    });
+                    setTimeout(() => setIsCopied(false), 2000);
+                  } catch {
+                    toast({
+                      title: "Failed",
+                      description: "Failed to copy link",
+                      variant: "error",
+                    });
+                  }
+                }}
+                className="flex-shrink-0 p-1.5 rounded-md sm:rounded-lg hover:bg-white/10 transition-colors duration-200 group"
+                aria-label="Copy link"
+              >
+                {isCopied ? (
+                  <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-green-400 group-hover:scale-110 transition-transform duration-200" />
+                ) : (
+                  <Copy className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white/70 group-hover:text-white group-hover:scale-110 transition-all duration-200" />
+                )}
+              </button>
+            </div>
+          </div>
+        }
+      />
+
+      {showThinBodySkeletons ? (
+        <ListDetailBodySkeletons />
+      ) : (
+        <>
+          {list.id && list.slug && (
+            <div
+              className={cn(
+                "bg-gradient-to-br from-white/5 to-white/3 backdrop-blur-md border border-white/10 rounded-xl sm:rounded-2xl shadow-xl",
+                CARD_PAD,
               )}
-            </button>
-          </div>
-        </div>
+            >
+              <PermissionManager
+                listId={list.id}
+                listTitle={list.title || "Untitled List"}
+                listSlug={list.slug}
+              />
+            </div>
+          )}
 
-        {/* Collaborators Section - PermissionManager */}
-        {list.id && list.slug && (
-          <div className="mt-2 sm:mt-4 bg-gradient-to-br from-white/5 to-white/3 backdrop-blur-md border border-white/10 rounded-xl sm:rounded-2xl p-2 sm:p-4 shadow-xl">
-            <PermissionManager
-              listId={list.id}
-              listTitle={list.title || "Untitled List"}
-              listSlug={list.slug}
-            />
-          </div>
-        )}
-
-        {/* Smart Collections Section */}
-        {list.id && list.slug && (
-          <div className="mt-4 sm:mt-6">
+          {list.id && list.slug && (
             <SmartCollections listId={list.id} listSlug={list.slug} />
-          </div>
-        )}
+          )}
 
-        {/* Activity Feed Section */}
-        {list.id && (
-          <div className="mt-4 sm:mt-6 bg-white/5 backdrop-blur-md border border-white/10 rounded-xl sm:rounded-2xl p-2 sm:p-4 shadow-xl">
-            <ActivityFeed listId={list.id} limit={30} />
-          </div>
-        )}
-      </div>
-      {/* Gap between Activity Feed / header card and Active URLs row */}
-      <div className="mt-6 sm:mt-8">
-        <UrlList />
-      </div>
+          {list.id && (
+            <div
+              className={cn(
+                "bg-white/5 backdrop-blur-md border border-white/10 rounded-xl sm:rounded-2xl shadow-xl",
+                CARD_PAD,
+              )}
+            >
+              <ActivityFeed listId={list.id} limit={30} />
+            </div>
+          )}
+
+          <UrlList />
+        </>
+      )}
+
       {list.id ? (
         <Dialog
           open={editDialogOpen}

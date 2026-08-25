@@ -1,5 +1,14 @@
 # CHANGELOG.md
 
+## CR-0027 — C7.9 list-detail soft-nav + polish
+
+- **Cycle:** C7.9
+- **Affected requirement:** REQ-0049
+- **Change:** Seed unified from Lists; thin-seed + body skeletons; header chrome; collab … menu + enriched roles; archived toolbar; Activity hover; compact empties; ui-spacing; delete null tombstone + SSE densify/drop.
+- **Rationale:** Lists→detail was cold (dual Opening/Preparing); thin seed without stale/tombstone risked Infinity-blind and ghost detail.
+- **Impact:** soft-nav-cache, ListPage, ListDetailHeaderChrome, OptimisticSoftNavSurface, UrlList, PermissionManager, ActivityFeed, queryInvalidation, SSE, list APIs, docs.
+- **Requested by / approval:** GATE-0034.
+
 ## CR-0026 — C7.8 `/login` chrome-free Auth
 
 - **Cycle:** C7.8

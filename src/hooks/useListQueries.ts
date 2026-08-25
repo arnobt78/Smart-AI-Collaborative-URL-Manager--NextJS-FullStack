@@ -99,6 +99,7 @@ export function useUnifiedListQuery(slug: string, enabled: boolean = true) {
         activities: data.activities || [],
         collaborators: data.collaborators || [],
         commentCounts,
+        // Clear soft-nav thin-seed marker after authoritative network fetch
       };
     },
     enabled: enabled && !!slug,
@@ -446,11 +447,19 @@ function patchUnifiedListCache(
   queryClient: ReturnType<typeof useQueryClient>,
   list: UrlList & UserList,
 ): void {
-  queryClient.setQueryData<UnifiedListData>(listQueryKeys.unified(list.slug), (current) =>
-    current
-      ? { ...current, list: current.list ? { ...current.list, ...list } : list }
-      : { list, activities: [], collaborators: [], commentCounts: {} },
-  );
+  queryClient.setQueryData<UnifiedListData>(listQueryKeys.unified(list.slug), (current) => {
+    if (!current) {
+      return { list, activities: [], collaborators: [], commentCounts: {} };
+    }
+    // Drop soft-nav thin-seed marker once real list fields are patched (C7.9)
+    const { _softNavThinSeed: _drop, ...rest } = current as UnifiedListData & {
+      _softNavThinSeed?: boolean;
+    };
+    return {
+      ...rest,
+      list: current.list ? { ...current.list, ...list } : list,
+    };
+  });
 
   const currentListValue = currentList.get();
   if (currentListValue.id === list.id) {
@@ -977,6 +986,63 @@ export function setupSSECacheSync() {
         devLog(
           `🔄 [SSE CACHE SYNC] Invalidating unified query for: ${listSlug} (action: ${action})`
         );
+
+        // C7.9 playbook: densify/drop on delete + visibility so thin seed cannot resurrect ghosts
+        if (action === "list_deleted") {
+          queryClient.setQueryData<{ lists: UserList[] }>(
+            listQueryKeys.allLists(),
+            (old) => {
+              if (!old?.lists) return old;
+              return {
+                lists: old.lists.filter(
+                  (list) => list.id !== listId && list.slug !== listSlug,
+                ),
+              };
+            },
+          );
+          densifyBrowsePublicLists(
+            queryClient,
+            { id: listId!, slug: listSlug! },
+            { remove: true },
+          );
+          dropUnifiedListCache(queryClient, listSlug!);
+        } else if (
+          action === "list_made_public" ||
+          action === "list_made_private"
+        ) {
+          const isPublic = action === "list_made_public";
+          queryClient.setQueryData<{ lists: UserList[] }>(
+            listQueryKeys.allLists(),
+            (old) => {
+              if (!old?.lists) return old;
+              return {
+                lists: old.lists.map((list) =>
+                  list.id === listId || list.slug === listSlug
+                    ? { ...list, isPublic }
+                    : list,
+                ),
+              };
+            },
+          );
+          const fromLists = queryClient
+            .getQueryData<{ lists: UserList[] }>(listQueryKeys.allLists())
+            ?.lists?.find(
+              (list) => list.id === listId || list.slug === listSlug,
+            );
+          densifyBrowsePublicLists(
+            queryClient,
+            {
+              id: listId!,
+              slug: listSlug!,
+              title: fromLists?.title,
+              description: fromLists?.description ?? undefined,
+              urls: fromLists?.urls,
+              isPublic,
+            },
+            isPublic ? undefined : { remove: true },
+          );
+        }
+
         queryClient.invalidateQueries({
           queryKey: listQueryKeys.unified(listSlug!),
         });

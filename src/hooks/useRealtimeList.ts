@@ -251,7 +251,8 @@ export function useRealtimeList(listId: string | null) {
             // Check if this is a metadata change (needs immediate update)
             const isMetadataChange = data.action === "list_made_public" || 
                                      data.action === "list_made_private" ||
-                                     data.action === "list_updated";
+                                     data.action === "list_updated" ||
+                                     data.action === "list_deleted";
             
             // Use shorter throttle for metadata changes, longer for others
             const throttleWindow = isMetadataChange ? 2000 : 5000;
@@ -270,19 +271,15 @@ export function useRealtimeList(listId: string | null) {
             }
 
             // UNIFIED APPROACH: Dispatch unified event instead of separate list-updated
-            // This will trigger ONE unified API call that returns both list + activities
-            // List updated - dispatching unified-update
-
-            // Get current list slug and dispatch unified event
+            // Get slug from SSE payload first (delete/visibility include it), then store
             const current = currentList.get();
-            if (current?.slug) {
-              // Dispatch unified event that will trigger the unified endpoint
-              // CRITICAL: Include slug in event so setupSSECacheSync can invalidate the unified query
+            const eventSlug = data.slug || current?.slug;
+            if (eventSlug) {
               window.dispatchEvent(
                 new CustomEvent("unified-update", {
                   detail: {
                     listId,
-                    slug: current.slug, // Include slug for query invalidation
+                    slug: eventSlug,
                     timestamp: data.timestamp || new Date().toISOString(),
                     action: data.action || "list_updated",
                   },

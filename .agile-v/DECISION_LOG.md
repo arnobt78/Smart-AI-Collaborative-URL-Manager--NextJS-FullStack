@@ -683,3 +683,16 @@ Append-only. Newest entries at bottom.
 | Rationale | Overlay + `scrollbar-gutter: stable` caused double tracks and L↔R shift; a dedicated route gives one document scrollbar and no shell chrome. |
 | Linked REQs | C7.8 auth UX |
 | Status | Implemented and locally validated. |
+
+---
+
+## DEC-0050 — C7.9 list-detail soft-nav seed + thin-seed tombstone
+
+| Field | Value |
+|---|---|
+| Timestamp | 2026-08-25 |
+| Agent | Cursor |
+| Decision | Seed thin `unified(slug)` from `allLists` for warm Lists→detail; mark `_softNavThinSeed` + invalidate `refetchType: "none"`; never reseed when `list: null`; `dropUnifiedListCache` tombs null; shared `ListDetailHeaderChrome` + body skeletons; SSE densify/drop on delete/visibility. |
+| Rationale | Warm gate required unified while Lists only had allLists → cold dual skeleton; thin seed without stale mark could blind Infinity staleTime; removeQueries allowed ghost reseed. |
+| Linked REQs | REQ-0049 |
+| Status | Implemented and locally validated 2026-08-25. |

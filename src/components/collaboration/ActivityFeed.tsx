@@ -363,12 +363,12 @@ export function ActivityFeed({ listId, limit = 50 }: ActivityFeedProps) {
   };
 
   return (
-    <div className="space-y-2 sm:space-y-3">
+    <div className="-m-2 sm:-m-4">
       <button
         type="button"
         onClick={() => setIsExpanded((expanded) => !expanded)}
         aria-expanded={isExpanded}
-        className="flex w-full items-center justify-between rounded-lg text-left transition-colors hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+        className="flex w-full items-center justify-between rounded-xl sm:rounded-2xl px-2 py-2.5 sm:px-4 sm:py-3 text-left transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-inset"
       >
         <span className="flex items-center gap-2">
           <Activity className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white/70" aria-hidden />
@@ -377,7 +377,7 @@ export function ActivityFeed({ listId, limit = 50 }: ActivityFeedProps) {
         <ChevronDown className={`size-4 text-white/60 transition-transform ${isExpanded ? "rotate-180" : ""}`} aria-hidden />
       </button>
 
-      {isExpanded ? <div className="space-y-2 sm:space-y-2 max-h-[400px] sm:max-h-[500px] overflow-y-auto custom-scrollbar">
+      {isExpanded ? <div className="space-y-2 sm:space-y-2 max-h-[400px] sm:max-h-[500px] overflow-y-auto custom-scrollbar px-2 pb-2 sm:px-4 sm:pb-4">
         {isLoading ? (
           <div className="text-xs sm:text-sm text-white/50 text-center py-3 sm:py-4">
             Loading activities...

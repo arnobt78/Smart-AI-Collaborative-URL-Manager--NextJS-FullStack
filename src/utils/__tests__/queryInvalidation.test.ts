@@ -60,11 +60,13 @@ describe("C7.1 densify browse + insights invalidation", () => {
     expect(client.getQueryData<{ lists: { id: string }[] }>(key)?.lists).toEqual([]);
   });
 
-  it("dropUnifiedListCache removes warm soft-nav detail data", () => {
+  it("dropUnifiedListCache tombs unified so soft-nav cannot reseed a ghost", () => {
     const client = new QueryClient();
     client.setQueryData(listQueryKeys.unified("gone"), { list: { slug: "gone" } });
     dropUnifiedListCache(client, "gone");
-    expect(client.getQueryData(listQueryKeys.unified("gone"))).toBeUndefined();
+    expect(
+      client.getQueryData<{ list: null }>(listQueryKeys.unified("gone"))?.list,
+    ).toBeNull();
   });
 
   it("invalidateBrowseQueries marks activity and popular stale", () => {

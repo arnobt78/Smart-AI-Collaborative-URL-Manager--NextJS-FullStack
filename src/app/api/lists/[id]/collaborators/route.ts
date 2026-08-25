@@ -77,7 +77,12 @@ export async function POST(
 
     // addCollaborator handles duplicate prevention (case-insensitive) - 
     // if collaborator exists, it updates the role instead of creating duplicate
-    const updatedList = await addCollaborator(listId, email.trim(), role);
+    const updatedList = await addCollaborator(
+      listId,
+      email.trim(),
+      role,
+      user.email,
+    );
 
     // Create activity log
     const activity = await createActivity(listId, user.id, "collaborator_added", {

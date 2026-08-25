@@ -60,7 +60,7 @@ import { useListPermissions } from "@/hooks/useListPermissions";
 import { UrlFilterBar } from "./UrlFilterBar";
 import { UrlBulkImportExport } from "./UrlBulkImportExport";
 import { UrlAddForm } from "./UrlAddForm";
-import { HEADING_STACK } from "@/lib/ui-spacing";
+import { HEADING_STACK, LIST_STACK } from "@/lib/ui-spacing";
 
 // Component wrapper that fetches metadata using React Query for each URL
 function UrlCardWrapper({
@@ -2303,8 +2303,25 @@ export function UrlList() {
 
   if (!list.id || !list.urls) return null;
 
-  const archivedUrls = list.archivedUrls || [];
-  const archivedUrlsList = showArchived ? archivedUrls : [];
+  const archivedUrls = (list.archivedUrls || []) as UrlItem[];
+  const archivedSearch = search.trim().toLowerCase();
+  const archivedUrlsList = !showArchived
+    ? []
+    : !archivedSearch
+      ? archivedUrls
+      : archivedUrls.filter((url) => {
+          const haystack = [
+            url.title,
+            url.url,
+            url.description,
+            ...(url.tags || []),
+            url.notes,
+          ]
+            .filter(Boolean)
+            .join(" ")
+            .toLowerCase();
+          return haystack.includes(archivedSearch);
+        });
 
   const handleRestore = async (urlId: string) => {
     // Set flag for restore operation
@@ -2348,7 +2365,7 @@ export function UrlList() {
   };
 
   return (
-    <div className="flex flex-col gap-4 sm:gap-6">
+    <div className={LIST_STACK}>
       {/* Tabs for Active/Archived and Add URL Button */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4 border-b border-white/10 pb-3 sm:pb-4">
         <div className="flex items-center gap-2 sm:gap-3 flex-1 sm:flex-none">
@@ -2374,32 +2391,30 @@ export function UrlList() {
           </Button>
         </div>
 
-        {/* Add URL Button - show for all users, but disable for viewers */}
-        {!showArchived && (
-          <Button
-            type="button"
-            disabled={!permissions.canEdit}
-            onClick={() => {
-              if (!permissions.canEdit) return; // Prevent action if disabled
-              setIsAddUrlFormExpanded(!isAddUrlFormExpanded);
-              if (isAddUrlFormExpanded) {
-                // Collapse: clear form and reset states
-                setNewUrl("");
-                setNewNote("");
-                setNewTags("");
-                setEnhancementResult(null);
-                setError(undefined);
-              }
-            }}
-            className={`w-full sm:w-auto ${
-              !permissions.canEdit ? "opacity-50 cursor-not-allowed" : ""
-            }`}
-            variant="glassEmerald"
-          >
-            <WandSparkles className="h-4 w-4 shrink-0" aria-hidden />
-            Add URL
-          </Button>
-        )}
+        {/* Add URL Button - show on Active and Archived (disabled for viewers) */}
+        <Button
+          type="button"
+          disabled={!permissions.canEdit}
+          onClick={() => {
+            if (!permissions.canEdit) return;
+            if (showArchived) setShowArchived(false);
+            setIsAddUrlFormExpanded(!isAddUrlFormExpanded);
+            if (isAddUrlFormExpanded) {
+              setNewUrl("");
+              setNewNote("");
+              setNewTags("");
+              setEnhancementResult(null);
+              setError(undefined);
+            }
+          }}
+          className={`w-full sm:w-auto ${
+            !permissions.canEdit ? "opacity-50 cursor-not-allowed" : ""
+          }`}
+          variant="glassEmerald"
+        >
+          <WandSparkles className="h-4 w-4 shrink-0" aria-hidden />
+          Add URL
+        </Button>
       </div>
 
       {/* Add URL Form - Expandable - only show for active URLs and users who can edit */}
@@ -2429,9 +2444,8 @@ export function UrlList() {
         />
       )}
 
-      {/* Search, Filter, and Import/Export bar - Same Row, Responsive */}
-      {!showArchived && (
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-2 mb-4 w-full">
+      {/* Search, Filter, and Import/Export bar — Active and Archived */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-2 w-full">
           {/* Row 1 on phone: Search and Filter */}
           <div className="flex items-center gap-2 sm:contents">
             {/* Search Input */}
@@ -2487,7 +2501,6 @@ export function UrlList() {
             />
           </div>
         </div>
-      )}
 
       {/* Active URLs List */}
       {!showArchived && (
@@ -2622,15 +2635,15 @@ export function UrlList() {
       {showArchived && (
         <div className="space-y-8">
           {archivedUrlsList.length === 0 ? (
-            <div className="rounded-2xl border-2 border-dashed border-white/30 p-16 text-center bg-white/5 backdrop-blur-md">
-              <div className="mx-auto w-32 h-32 bg-gradient-to-br from-gray-500/20 via-gray-500/20 to-transparent rounded-full flex items-center justify-center shadow-inner border border-gray-400/30">
-                <ArchiveBoxIcon className="h-16 w-16 text-gray-400" />
+            <div className="rounded-xl border-2 border-dashed border-white/30 p-4 sm:p-6 text-center bg-white/5 backdrop-blur-md">
+              <div className="mx-auto w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-gray-500/20 via-gray-500/20 to-transparent rounded-full flex items-center justify-center shadow-inner border border-gray-400/30">
+                <ArchiveBoxIcon className="h-6 w-6 sm:h-7 sm:w-7 text-gray-400" />
               </div>
-              <div className={`${HEADING_STACK} mt-6`}>
-                <h3 className="text-2xl font-medium text-white">
+              <div className={`${HEADING_STACK} mt-3`}>
+                <h3 className="text-base sm:text-lg font-medium text-white">
                   No Archived URLs
                 </h3>
-                <p className="text-lg text-white/60 max-w-md mx-auto">
+                <p className="text-sm text-white/60 max-w-md mx-auto">
                   Archived URLs will appear here. You can restore them at any
                   time.
                 </p>
@@ -2688,13 +2701,13 @@ export function UrlList() {
       )}
 
       {!showArchived && list.urls.length === 0 && (
-        <div className="rounded-2xl border-2 border-dashed border-white/30 p-16 text-center bg-white/5 backdrop-blur-md">
-          <div className="mx-auto w-32 h-32 bg-gradient-to-br from-blue-500/20 via-blue-500/20 to-transparent rounded-full flex items-center justify-center shadow-inner border border-blue-400/30">
-            <LinkIcon className="h-16 w-16 text-blue-400" />
+        <div className="rounded-xl border-2 border-dashed border-white/30 p-4 sm:p-6 text-center bg-white/5 backdrop-blur-md">
+          <div className="mx-auto w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-blue-500/20 via-blue-500/20 to-transparent rounded-full flex items-center justify-center shadow-inner border border-blue-400/30">
+            <LinkIcon className="h-6 w-6 sm:h-7 sm:w-7 text-blue-400" />
           </div>
-          <div className={`${HEADING_STACK} mt-6`}>
-            <h3 className="text-2xl font-medium text-white">No URLs Yet</h3>
-            <p className="text-lg text-white/60 max-w-md mx-auto">
+          <div className={`${HEADING_STACK} mt-3`}>
+            <h3 className="text-base sm:text-lg font-medium text-white">No URLs Yet</h3>
+            <p className="text-sm text-white/60 max-w-md mx-auto">
               Start building your collection by adding your first URL using the
               form above
             </p>

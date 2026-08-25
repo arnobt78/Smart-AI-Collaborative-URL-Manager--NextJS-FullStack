@@ -1,5 +1,9 @@
 import { getCurrentUser } from "@/lib/auth";
 import { getListById } from "@/lib/db";
+import {
+  resolveCollaboratorRole,
+  type CollaboratorRolesJson,
+} from "@/lib/collaborator-roles";
 
 export type UserRole = "owner" | "editor" | "viewer" | "none";
 
@@ -34,18 +38,11 @@ export function getRoleForListUser(
 
   if (list.userId === user.id) return "owner";
 
-  if (list.collaboratorRoles && typeof list.collaboratorRoles === "object") {
-    const roles = list.collaboratorRoles as Record<string, string>;
-    const userEmailLower = user.email.toLowerCase();
-    const matchingKey = Object.keys(roles).find(
-      (key) => key.toLowerCase() === userEmailLower,
-    );
-
-    if (matchingKey) {
-      const role = roles[matchingKey];
-      if (role === "editor" || role === "viewer") return role;
-    }
-  }
+  const collabRole = resolveCollaboratorRole(
+    list.collaboratorRoles as CollaboratorRolesJson | null | undefined,
+    user.email,
+  );
+  if (collabRole) return collabRole;
 
   if (
     list.collaborators?.some(

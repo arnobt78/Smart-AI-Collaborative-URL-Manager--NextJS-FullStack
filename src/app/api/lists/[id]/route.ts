@@ -50,6 +50,16 @@ export async function DELETE(_req: NextRequest, context: RouteContext) {
     if (!access.ok) return routeError(access);
 
     await deleteList(access.list.id);
+
+    // C7.9: cross-tab soft-nav densify/drop — other clients must not reseed ghost detail
+    await publishMessage(CHANNELS.listUpdate(access.list.id), {
+      type: "list_updated",
+      listId: access.list.id,
+      slug: access.list.slug,
+      action: "list_deleted",
+      timestamp: new Date().toISOString(),
+    });
+
     return NextResponse.json({ success: true });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Failed to delete list";
@@ -87,6 +97,7 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
       await publishMessage(CHANNELS.listUpdate(access.list.id), {
         type: "list_updated",
         listId: access.list.id,
+        slug: access.list.slug,
         action: activityAction,
         timestamp: new Date().toISOString(),
       });

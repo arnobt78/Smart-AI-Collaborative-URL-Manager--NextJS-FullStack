@@ -9,6 +9,7 @@ import {
   peekWarmSoftNav,
   prepareWarmSoftNav,
   resetWarmSoftNavForTests,
+  seedUnifiedFromAllLists,
 } from "@/lib/soft-nav-cache";
 
 describe("C6.9 soft-nav-cache", () => {
@@ -58,5 +59,50 @@ describe("C6.9 soft-nav-cache", () => {
     expect(prepareWarmSoftNav(client, "/lists")).toBe(true);
     expect(consumeWarmSoftNav()).toBe(true);
     clearWarmSoftNav();
+  });
+
+  it("seeds unified from allLists so list detail is warm", () => {
+    const client = new QueryClient();
+    client.setQueryData(listQueryKeys.allLists(), {
+      lists: [
+        {
+          id: "1",
+          slug: "my-list",
+          title: "My List",
+          description: "desc",
+          isPublic: false,
+          urls: [],
+        },
+      ],
+    });
+    expect(isDestinationCacheWarm(client, "/list/my-list")).toBe(true);
+    const seeded = client.getQueryData<{
+      list?: { title?: string };
+      _softNavThinSeed?: boolean;
+    }>(listQueryKeys.unified("my-list"));
+    expect(seeded?.list?.title).toBe("My List");
+    expect(seeded?._softNavThinSeed).toBe(true);
+    expect(client.getQueryState(listQueryKeys.unified("my-list"))?.isInvalidated).toBe(
+      true,
+    );
+    expect(prepareWarmSoftNav(client, "/list/my-list")).toBe(true);
+    expect(consumeWarmSoftNav()).toBe(true);
+  });
+
+  it("does not reseed from allLists when unified list is null", () => {
+    const client = new QueryClient();
+    client.setQueryData(listQueryKeys.allLists(), {
+      lists: [{ id: "1", slug: "gone", title: "Gone", urls: [] }],
+    });
+    client.setQueryData(listQueryKeys.unified("gone"), {
+      list: null,
+      activities: [],
+      collaborators: [],
+    });
+    expect(seedUnifiedFromAllLists(client, "gone")).toBe(false);
+    expect(isDestinationCacheWarm(client, "/list/gone")).toBe(false);
+    expect(
+      client.getQueryData<{ list: null }>(listQueryKeys.unified("gone"))?.list,
+    ).toBeNull();
   });
 });

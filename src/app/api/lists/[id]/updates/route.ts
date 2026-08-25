@@ -3,6 +3,10 @@ import { getCollaboratorsWithRoles, type UrlItem } from "@/lib/db";
 import { getActivitiesForList } from "@/lib/db/activities";
 import { getCommentCountsForUrls } from "@/lib/db/comments";
 import { resolveAuthorizedList } from "@/lib/list-route-access";
+import {
+  resolveCollaboratorRole,
+  type CollaboratorRolesJson,
+} from "@/lib/collaborator-roles";
 
 /**
  * GET /api/lists/[id]/updates
@@ -45,19 +49,16 @@ export async function GET(
     // Read normalization must never persist data. Legacy URLs receive stable response
     // positions here; authorized mutations persist positions through their own routes.
     // Determine if user can access collaborators first (synchronous check, no DB query)
-    // CRITICAL: Email matching must be case-insensitive to handle email casing differences
+    // CRITICAL: Email matching must be case-insensitive; roles may be enriched objects (C7.9)
     const userEmailLower = user?.email.toLowerCase();
     const canViewCollaborators =
       list.isPublic || // Public shared URLs keep their existing read contract.
       (user && list.userId === user.id) || // Owner can always view
-      (userEmailLower && list.collaboratorRoles && typeof list.collaboratorRoles === "object" &&
-       (() => {
-         const roles = list.collaboratorRoles as Record<string, string>;
-         const matchingKey = Object.keys(roles).find(
-           (key) => key.toLowerCase() === userEmailLower
-         );
-         return matchingKey && (roles[matchingKey] === "editor" || roles[matchingKey] === "viewer");
-       })()) || // Collaborator can view (case-insensitive)
+      (user &&
+        resolveCollaboratorRole(
+          list.collaboratorRoles as CollaboratorRolesJson | null,
+          user.email,
+        ) != null) ||
       (userEmailLower && list.collaborators && Array.isArray(list.collaborators) &&
        list.collaborators.some((email) => email.toLowerCase() === userEmailLower)) || // Legacy check (case-insensitive)
       false;

@@ -26,10 +26,11 @@ describe("C6.6 / C7.3 RoutePageSkeleton presets", () => {
     expect(container.textContent).toMatch(/Preparing insights/);
   });
 
-  it("renders list detail shell with local data slot", () => {
+  it("renders list detail shell as one continuous destination skeleton", () => {
     const { container } = render(<ListDetailRouteSkeleton />);
-    expect(container.textContent).toMatch(/Opening list/);
-    expect(container.textContent).toMatch(/Preparing list/);
+    expect(container.querySelector("[aria-busy='true']")).toBeTruthy();
+    expect(container.textContent).not.toMatch(/Opening list/);
+    expect(container.textContent).not.toMatch(/Preparing list/);
   });
 
   it("renders API docs shell with local data slot", () => {

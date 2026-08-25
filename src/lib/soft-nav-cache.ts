@@ -3,13 +3,92 @@ import { browseQueryKeys } from "@/lib/browse-query-keys";
 import { listQueryKeys } from "@/lib/query-keys";
 
 /**
- * C6.9: Soft-nav warm cache — when RQ already has destination data, segment
+ * C6.9 / C7.9: Soft-nav warm cache — when RQ already has destination data, segment
  * loading.tsx paints OptimisticSoftNavSurface (never null / empty hole).
  * Cold soft-nav keeps one RoutePageSkeleton.
  *
  * Warm = data present (not freshness) so invalidated-but-present cache still
  * paints cached UI while refetch runs after invalidateMutationImpact.
+ *
+ * C7.9: Lists→detail seeds thin unified(slug) from allLists before the warm check.
+ * Thin seeds are marked stale (refetchType none) so Infinity staleTime cannot blind
+ * a later network fetch if SSR dehydrate is missing (playbook §8.8.5).
  */
+
+/** Marker on thin soft-nav seeds — ListPage keeps body skeletons until hydrate/fetch clears it. */
+export const SOFT_NAV_THIN_SEED = "_softNavThinSeed" as const;
+
+type SeedableListRow = {
+  id: string;
+  slug: string;
+  title?: string | null;
+  description?: string | null;
+  isPublic?: boolean;
+  urls?: unknown;
+  createdAt?: string | Date | null;
+  updatedAt?: string | Date | null;
+  created_at?: string | Date | null;
+  updated_at?: string | Date | null;
+  userId?: string;
+  collaborators?: string[];
+  collaboratorRoles?: unknown;
+};
+
+type UnifiedCacheShape = {
+  list?: { slug?: string } | null;
+  activities?: unknown[];
+  collaborators?: unknown[];
+  commentCounts?: Record<string, number>;
+  [SOFT_NAV_THIN_SEED]?: boolean;
+};
+
+export function isSoftNavThinSeed(
+  data: UnifiedCacheShape | null | undefined,
+): boolean {
+  return Boolean(data?.[SOFT_NAV_THIN_SEED]);
+}
+
+/**
+ * If unified(slug) is missing but allLists has the row, seed a thin unified
+ * cache so soft-nav marks warm and OptimisticSoftNavSurface can paint chrome.
+ * Never reseeds when unified is explicitly `{ list: null }` (404 / deleted).
+ */
+export function seedUnifiedFromAllLists(
+  queryClient: QueryClient,
+  slug: string,
+): boolean {
+  const key = listQueryKeys.unified(slug);
+  const existing = queryClient.getQueryData<UnifiedCacheShape>(key);
+
+  // Full chrome-ready row already present
+  if (existing?.list?.slug === slug) return true;
+
+  // Explicit null list (404 / deleted) — do not resurrect from allLists
+  if (existing && existing.list == null) return false;
+
+  const all = queryClient.getQueryData<{ lists?: SeedableListRow[] }>(
+    listQueryKeys.allLists(),
+  );
+  const row = all?.lists?.find((list) => list.slug === slug);
+  if (!row?.id || !row.slug) return false;
+
+  queryClient.setQueryData(key, {
+    list: row,
+    activities: [],
+    collaborators: [],
+    commentCounts: {},
+    [SOFT_NAV_THIN_SEED]: true,
+  });
+
+  // Keep cached paint for warm soft-nav, but mark stale so active ListPage refetches
+  // when SSR dehydrate is missing (staleTime Infinity would otherwise never refetch).
+  void queryClient.invalidateQueries({
+    queryKey: key,
+    refetchType: "none",
+  });
+
+  return true;
+}
 
 let warmSoftNavPending = false;
 let warmSoftNavClearTimer: ReturnType<typeof setTimeout> | null = null;
@@ -93,7 +172,8 @@ export function isDestinationCacheWarm(
     const listMatch = path.match(/^\/list\/([^/]+)$/);
     if (listMatch) {
       const slug = decodeURIComponent(listMatch[1]);
-      const data = queryClient.getQueryData<{ list?: { slug?: string } }>(
+      seedUnifiedFromAllLists(queryClient, slug);
+      const data = queryClient.getQueryData<UnifiedCacheShape>(
         listQueryKeys.unified(slug),
       );
       return Boolean(data?.list?.slug === slug);

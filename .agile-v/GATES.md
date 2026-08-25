@@ -19,7 +19,7 @@ Implementation is locally verified; C2 Gate 2 remains pending release evidence a
 Stage 1 Requirements → Stage 2 Validation → [Human Gate 1] → Stage 3 Synthesis → Stage 4 Verification → [Human Gate 2] → Stage 5 Acceptance
 ```
 
-Current: **C7.7 Stage 4 complete locally** for REQ-0048. GATE-0033 approved. GATE-0002 remains pending (`EVAL_RESULTS.md` absent).
+Current: **C7.9 Stage 4 complete locally** for REQ-0049. GATE-0034 approved. GATE-0002 remains pending (`EVAL_RESULTS.md` absent).
 
 Reconciliation note (2026-08-18): commits and prior validation records document C1 implementation activity, but `APPROVALS.md` has no matching approved record for the original GATE-0001 token. This is retained as historical evidence, not retroactively approved. It does not authorize further implementation.
 
@@ -349,6 +349,21 @@ Implementation is locally verified. Production check remains with TASK-0039. Gat
 | Evidence | REQ-0048; TASK-0053; DEC-0049 |
 | Required human action | Completed — user approved optimistic Auth logout plan. |
 | Scope | forceGuest; instant `/` Auth; keepalive signout; goodbye toast at click. |
+
+Implementation is locally verified. Production check remains with TASK-0039. Gate 2 remains required before any release decision.
+
+---
+
+## GATE-0034 — Human Gate 1 (C7.9 list-detail soft-nav)
+
+| Field | Value |
+|-------|-------|
+| Type | Human-Decision |
+| Status | **APPROVED 2026-08-25** |
+| Checkpoint | `C7.9-HG1-LIST-DETAIL-SOFTNAV-2026-08-25` |
+| Evidence | REQ-0049; TASK-0055; DEC-0050; CR-0027 |
+| Required human action | Completed — user approved C7.9 plan + verify residual + commit-ready. |
+| Scope | Lists→detail soft-nav seed/chrome/skeletons; collab menu/roles; archived toolbar; tombstone densify. |
 
 Implementation is locally verified. Production check remains with TASK-0039. Gate 2 remains required before any release decision.
 

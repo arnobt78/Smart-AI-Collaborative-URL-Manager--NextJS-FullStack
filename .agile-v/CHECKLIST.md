@@ -34,6 +34,7 @@
 - [x] **C7.5 / GATE-0031** REQ-0045 api-status chrome loading shell (local validation pass)
 - [x] **C7.6 / GATE-0032** REQ-0046 api-status header refresh (local validation pass)
 - [x] **C7.7 / GATE-0033** REQ-0048 optimistic logout instant Auth (local validation pass)
+- [x] **C7.9 / GATE-0034** REQ-0049 list-detail soft-nav + polish (local validation pass)
 - [x] REQ-0036 / TASK-0041 C6.6 instant soft-nav shells (local validation pass)
 - [x] REQ-0037 / TASK-0042 C6.7 SSR hydrate under loading shells (local validation pass)
 - [x] REQ-0038 / TASK-0043 C6.8 warm soft-nav + lighter Insights (local validation pass)

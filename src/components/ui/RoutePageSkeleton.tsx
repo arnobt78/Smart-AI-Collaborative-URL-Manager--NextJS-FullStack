@@ -103,25 +103,38 @@ export function ApiDocsRouteSkeleton() {
   );
 }
 
-/** Soft-nav shell for `/list/[slug]` — title chrome + local slot. */
+/** Soft-nav shell for `/list/[slug]` — one continuous destination-shaped skeleton (C7.9). */
 export function ListDetailRouteSkeleton() {
   return (
-    <div className={cn("w-full", PAGE_STACK)}>
-      <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-xl sm:rounded-2xl p-2 sm:p-4 shadow-xl animate-pulse">
+    <div className={cn("w-full", PAGE_STACK)} aria-busy="true">
+      <div
+        className={cn(
+          "bg-white/5 backdrop-blur-md border border-white/10 rounded-xl sm:rounded-2xl shadow-xl animate-pulse",
+          "p-2 sm:p-4",
+        )}
+      >
         <div className={HEADING_STACK}>
           <div className="flex items-center gap-2">
-            <Link2 className="h-5 w-5 text-blue-300 shrink-0" aria-hidden />
-            <h1 className="text-base sm:text-lg lg:text-xl font-medium text-white/70">
-              Opening list…
-            </h1>
+            <Link2 className="h-5 w-5 text-blue-300/50 shrink-0" aria-hidden />
+            <div className="h-5 w-40 sm:w-56 rounded bg-white/10" />
           </div>
-          <p className="text-sm text-white/50">Loading collection details</p>
+          <div className="flex items-center gap-2 mt-2">
+            <div className="h-5 w-16 rounded-full bg-white/10" />
+            <div className="h-5 w-24 rounded-full bg-white/10" />
+            <div className="h-5 w-10 rounded-full bg-white/10" />
+          </div>
+          <div className="h-3 w-2/3 max-w-md rounded bg-white/5 mt-2" />
         </div>
       </div>
-      <DataSurfaceSlot
-        label="Preparing list"
-        description="Loading URLs and collaborators…"
-      />
+      <div className="flex flex-col gap-4 sm:gap-6" aria-hidden>
+        <div className="bg-white/5 border border-white/10 rounded-xl sm:rounded-2xl p-2 sm:p-4 animate-pulse">
+          <div className="h-4 w-28 rounded bg-white/10 mb-3" />
+          <div className="h-12 rounded-lg bg-white/5" />
+        </div>
+        <div className="bg-white/5 border border-white/10 rounded-xl sm:rounded-2xl p-2 sm:p-4 animate-pulse h-24" />
+        <div className="bg-white/5 border border-white/10 rounded-xl sm:rounded-2xl p-2 sm:p-4 animate-pulse h-10" />
+        <div className="h-16 rounded-xl border border-dashed border-white/20 bg-white/5 animate-pulse" />
+      </div>
     </div>
   );
 }

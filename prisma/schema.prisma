@@ -54,7 +54,8 @@ model List {
   userId            String   @map("user_id")
   isPublic          Boolean  @default(false) @map("is_public")
   collaborators     String[] @default([]) // Array of email addresses (legacy, kept for backward compatibility)
-  collaboratorRoles Json?    @map("collaborator_roles") // JSON object mapping email -> role: { "email@example.com": "editor" }
+  // Legacy: { "email": "editor" }. Enriched: { "email": { role, invitedByEmail, invitedAt, updatedAt } }
+  collaboratorRoles Json?    @map("collaborator_roles")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   comments Comment[] // Comments on URLs in this list

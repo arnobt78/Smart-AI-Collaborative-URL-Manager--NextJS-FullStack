@@ -414,3 +414,14 @@ Gate 2: BLOCKED — RISK-0016 is accepted; `EVAL_RESULTS.md` PASS/WAIVED evidenc
 | Guests | `app/page.tsx` redirect | PASS | `/` → `/login` when not authed. |
 | Validation | `tsc`; `lint`; Jest related + full | PASS | 105/5 Jest; lint 0; tsc. |
 | OOS | densify/JWT-null SSR/Python/Vite | — | Unchanged. |
+
+## 2026-08-25 — C7.9 list-detail soft-nav + polish
+
+| Scope | Command / evidence | Result | Notes |
+|---|---|---|---|
+| Soft-nav seed | soft-nav-cache.test.ts | PASS | Thin seed + stale; no reseed on null list. |
+| Densify tombstone | queryInvalidation.test.ts | PASS | `dropUnifiedListCache` → `{ list: null }`. |
+| Collaborator roles | collaborator-roles.test.ts | PASS | Legacy + enriched JSON. |
+| Skeleton | RoutePageSkeleton.test.tsx | PASS | No Opening/Preparing dual copy. |
+| Validation | `tsc`; `lint`; focused Jest | PASS | lint 0; tsc; soft-nav/densify/roles suites. |
+| OOS | full densify rewrite / JWT-null SSR / further list-detail UX | — | Deferred. |

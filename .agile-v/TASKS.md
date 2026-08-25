@@ -342,5 +342,13 @@ RSC shells · densify/Zod/SHA/Next16
 
 **Dependencies:** User UX after C7.7; overlay scrollbar issues.
 
+### TASK-0055 — C7.9 list-detail soft-nav + polish — DONE
+
+1. Seed unified from allLists; thin-seed + body skeletons; header chrome.
+2. Collaborator menu/roles; archived toolbar; Activity hover; empties; spacing.
+3. Tombstone drop + SSE densify; validate + docs.
+
+**Dependencies:** GATE-0034 plan approval; C7.0 soft-nav patterns.
+
 
 

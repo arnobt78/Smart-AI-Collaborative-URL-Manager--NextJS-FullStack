@@ -102,13 +102,23 @@ export function densifyBrowsePublicLists(
   );
 }
 
-/** C7.1: Drop unified cache so deleted slugs are not warm soft-nav destinations. */
+/**
+ * C7.1 / C7.9: Tombstone unified cache so deleted slugs are not warm soft-nav
+ * destinations and seedUnifiedFromAllLists cannot resurrect from allLists
+ * (playbook §8.6). Prefer setQueryData null over removeQueries so the null
+ * guard remains observable.
+ */
 export function dropUnifiedListCache(
   queryClient: QueryClient,
   listSlug: string,
 ): void {
   if (!listSlug) return;
-  queryClient.removeQueries({ queryKey: listQueryKeys.unified(listSlug) });
+  queryClient.setQueryData(listQueryKeys.unified(listSlug), {
+    list: null,
+    activities: [],
+    collaborators: [],
+    commentCounts: {},
+  });
 }
 
 /** Snapshot browse public caches for optimistic rollback. */

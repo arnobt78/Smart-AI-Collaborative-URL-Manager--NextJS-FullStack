@@ -3,8 +3,7 @@
 import { useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
-import { BarChart3, Globe, Link2, Lock } from "lucide-react";
-import { Badge } from "@/components/ui/Badge";
+import { Activity, BarChart3, Globe } from "lucide-react";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { CreateNewListButton } from "@/components/ui/CreateNewListButton";
 import { Tabs } from "@/components/ui/Tabs";
@@ -21,10 +20,15 @@ import { ListsPageChrome } from "@/components/lists/ListsPageChrome";
 import { MyListsCard } from "@/components/lists/MyListsCard";
 import { BrowsePublicListCard } from "@/components/lists/BrowsePublicListCard";
 import { BrowseSearchField } from "@/components/lists/BrowseSearchField";
+import {
+  ListDetailBodySkeletons,
+  ListDetailHeaderChrome,
+} from "@/components/lists/ListDetailHeaderChrome";
 import { browseQueryKeys } from "@/lib/browse-query-keys";
 import { listQueryKeys } from "@/lib/query-keys";
 import type { UserList } from "@/hooks/useListQueries";
 import { useWarmSoftNav } from "@/hooks/useWarmSoftNav";
+import { glassActionButtonClass } from "@/lib/ui/glass-button-styles";
 import { LIST_STACK, PAGE_STACK } from "@/lib/ui-spacing";
 import { cn } from "@/lib/utils";
 
@@ -218,43 +222,41 @@ function ListDetailOptimisticSurface() {
     return <ListDetailRouteSkeleton />;
   }
 
-  const urlCount = Array.isArray(list.urls) ? list.urls.length : 0;
-
   return (
     <div className={cn("w-full", PAGE_STACK)} aria-busy="true">
-      <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-xl sm:rounded-2xl p-2 sm:p-4 shadow-xl">
-        <div className="flex flex-col gap-2">
-          <div className="flex items-center gap-2">
-            <Link2 className="h-5 w-5 text-blue-300 shrink-0" aria-hidden />
-            <h1 className="text-base sm:text-lg lg:text-xl font-medium text-white break-words">
-              {list.title || `List: ${list.slug}`}
-            </h1>
+      <ListDetailHeaderChrome
+        list={{
+          slug: list.slug,
+          title: list.title,
+          description: list.description,
+          isPublic: list.isPublic,
+          urls: Array.isArray(list.urls) ? list.urls : [],
+        }}
+        busy
+        canInvite={false}
+        actions={
+          <button
+            type="button"
+            disabled
+            className={glassActionButtonClass("violet", "shrink-0 h-8 px-2 sm:px-3 text-xs")}
+          >
+            <Activity className="w-3.5 h-3.5 sm:w-4 sm:h-4" aria-hidden />
+            <span className="hidden sm:inline">Setup Schedule</span>
+            <span className="sm:hidden">Schedule</span>
+          </button>
+        }
+        shareRow={
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 flex-wrap pt-2 border-t border-white/10 sm:border-t-0 sm:pt-0">
+            <span className="text-xs sm:text-sm font-light text-white/70 whitespace-nowrap">
+              Shareable Link:
+            </span>
+            <span className="text-xs sm:text-sm text-white/90 truncate">
+              /list/{list.slug}
+            </span>
           </div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <Badge variant="secondary" className="text-xs sm:text-sm w-fit">
-              {urlCount} {urlCount === 1 ? "URL" : "URLs"}
-            </Badge>
-            {list.isPublic !== undefined && (
-              <Badge
-                variant={list.isPublic ? "success" : "secondary"}
-                className="text-xs sm:text-sm flex items-center gap-1 w-fit"
-              >
-                {list.isPublic ? (
-                  <Globe className="w-3 h-3" aria-hidden />
-                ) : (
-                  <Lock className="w-3 h-3" aria-hidden />
-                )}
-                <span className="hidden sm:inline">
-                  {list.isPublic ? "Public" : "Private"}
-                </span>
-              </Badge>
-            )}
-          </div>
-          {list.description ? (
-            <p className="text-sm text-white/60 line-clamp-2">{list.description}</p>
-          ) : null}
-        </div>
-      </div>
+        }
+      />
+      <ListDetailBodySkeletons />
     </div>
   );
 }

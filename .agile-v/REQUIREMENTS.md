@@ -942,3 +942,24 @@ These describe the current product as verified in code. They are **Accepted as b
 **Affected:** logout-client, ProfileDropdown, useWasAuthedHint, useSession, HomePage, Navbar, Auth.
 **Trace:** TASK-0053, DEC-0049, GATE-0033.
 **Status:** Completed and locally validated [C7.7] on 2026-08-21 (flicker fix included).
+
+---
+
+### REQ-0049 — Instant list-detail soft-nav + detail UX polish (C7.9) (approved 2026-08-25)
+
+**Priority:** P1
+**Type:** UX / soft-nav / collaboration
+
+**Statement:** Soft-nav from Lists to `/list/[slug]` MUST paint destination chrome immediately (C7.0 parity). MUST seed thin `unified(slug)` from `allLists` when missing; MUST mark thin seeds stale without blanking warm paint; MUST NOT reseed when unified is `{ list: null }`. Cold path MUST use one continuous skeleton (no dual Opening/Preparing). Warm path MUST show full header chrome + body card skeletons until hydrate. Collaborator rows MUST use ProfileDropdown-style `…` menu, UserAvatar/robohash, and enriched `collaboratorRoles` metadata when present. Archived tab MUST keep Add URL + filter. Activity collapse hover MUST cover the full bar. Delete MUST tombstone unified and densify via SSE parity.
+
+**Acceptance criteria:**
+
+- [x] `seedUnifiedFromAllLists` + `_softNavThinSeed` + `refetchType: "none"`; no reseed on null list.
+- [x] `ListDetailHeaderChrome` + `ListDetailBodySkeletons`; `ListDetailRouteSkeleton` continuous.
+- [x] PermissionManager `…` menu; enriched roles helpers; Update Role icon; Activity hover; compact empties; archived toolbar; ui-spacing.
+- [x] `dropUnifiedListCache` → `{ list: null }`; SSE densify/drop; DELETE/visibility publish slug.
+- [x] tsc, lint 0, focused Jest pass.
+
+**Affected:** soft-nav-cache, OptimisticSoftNavSurface, ListPage, ListDetailHeaderChrome, RoutePageSkeleton, UrlList, ActivityFeed, PermissionManager, collaborator-roles, db, queryInvalidation, SSE, list APIs.
+**Trace:** TASK-0055, DEC-0050, CR-0027, GATE-0034.
+**Status:** Completed and locally validated [C7.9] on 2026-08-25.

@@ -44,6 +44,7 @@ export async function POST(
     await publishMessage(CHANNELS.listUpdate(id), {
       type: "list_updated",
       listId: id,
+      slug: list.slug,
       action: isPublic ? "list_made_public" : "list_made_private",
       timestamp: new Date().toISOString(),
     });
@@ -69,8 +70,8 @@ export async function POST(
       },
     });
 
-    // Fetch and return the updated list
-    const updatedList = await getListById(id);
+    // Return the updated list without a second DB round-trip
+    const updatedList = { ...list, isPublic };
     return NextResponse.json({ list: updatedList });
   } catch (error) {
     const message =

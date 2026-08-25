@@ -1,5 +1,11 @@
 import { prisma } from "./prisma";
 import type { Prisma } from "@prisma/client";
+import {
+  buildCollaboratorRoleEntry,
+  listCollaboratorsFromRoles,
+  parseCollaboratorRoleEntry,
+  type CollaboratorRolesJson,
+} from "@/lib/collaborator-roles";
 
 export interface UrlItem {
   id: string;
@@ -192,7 +198,8 @@ export async function deleteList(listId: string) {
 export async function addCollaborator(
   listId: string,
   email: string,
-  role: "editor" | "viewer" = "editor"
+  role: "editor" | "viewer" = "editor",
+  invitedByEmail?: string | null,
 ) {
   const list = await prisma.list.findUnique({
     where: { id: listId },
@@ -206,9 +213,8 @@ export async function addCollaborator(
   const trimmedEmail = email.trim();
   const normalizedEmail = trimmedEmail.toLowerCase();
 
-  // Update collaboratorRoles (new role-based system)
   const collaboratorRoles =
-    (list.collaboratorRoles as Record<string, string>) || {};
+    ((list.collaboratorRoles as CollaboratorRolesJson) || {}) as CollaboratorRolesJson;
 
   // Check for existing collaborator (case-insensitive) - update role if exists
   const existingEmailKey = Object.keys(collaboratorRoles).find(
@@ -216,11 +222,15 @@ export async function addCollaborator(
   );
 
   if (existingEmailKey) {
-    // Update existing collaborator's role (keep original email casing from database)
-    collaboratorRoles[existingEmailKey] = role;
+    const previous = parseCollaboratorRoleEntry(collaboratorRoles[existingEmailKey]);
+    collaboratorRoles[existingEmailKey] = buildCollaboratorRoleEntry(role, {
+      invitedByEmail: invitedByEmail ?? previous?.invitedByEmail,
+      previous,
+    });
   } else {
-    // Add new collaborator with trimmed email
-    collaboratorRoles[trimmedEmail] = role;
+    collaboratorRoles[trimmedEmail] = buildCollaboratorRoleEntry(role, {
+      invitedByEmail: invitedByEmail ?? null,
+    });
   }
 
   // Also maintain legacy collaborators array for backward compatibility
@@ -259,8 +269,17 @@ export async function updateCollaboratorRole(
   }
 
   const collaboratorRoles =
-    (list.collaboratorRoles as Record<string, string>) || {};
-  collaboratorRoles[email] = role;
+    ((list.collaboratorRoles as CollaboratorRolesJson) || {}) as CollaboratorRolesJson;
+  const emailLower = email.toLowerCase();
+  const matchingKey =
+    Object.keys(collaboratorRoles).find((key) => key.toLowerCase() === emailLower) ||
+    email;
+  const previous = parseCollaboratorRoleEntry(collaboratorRoles[matchingKey]);
+  collaboratorRoles[matchingKey] = buildCollaboratorRoleEntry(role, {
+    previous,
+    invitedByEmail: previous?.invitedByEmail,
+    invitedAt: previous?.invitedAt,
+  });
 
   return prisma.list.update({
     where: { id: listId },
@@ -283,13 +302,20 @@ export async function removeCollaborator(listId: string, email: string) {
     throw new Error("List not found");
   }
 
-  // Remove from collaboratorRoles
+  // Remove from collaboratorRoles (case-insensitive key match)
   const collaboratorRoles =
-    (list.collaboratorRoles as Record<string, string>) || {};
-  delete collaboratorRoles[email];
+    (list.collaboratorRoles as Record<string, unknown>) || {};
+  const emailLower = email.toLowerCase();
+  for (const key of Object.keys(collaboratorRoles)) {
+    if (key.toLowerCase() === emailLower) {
+      delete collaboratorRoles[key];
+    }
+  }
 
   // Remove from legacy collaborators array
-  const collaborators = (list.collaborators || []).filter((e) => e !== email);
+  const collaborators = (list.collaborators || []).filter(
+    (e) => e.toLowerCase() !== emailLower,
+  );
 
   return prisma.list.update({
     where: { id: listId },
@@ -301,7 +327,7 @@ export async function removeCollaborator(listId: string, email: string) {
 }
 
 /**
- * Get all collaborators with their roles
+ * Get all collaborators with their roles (+ optional invite metadata)
  */
 export async function getCollaboratorsWithRoles(listId: string) {
   const list = await prisma.list.findUnique({
@@ -312,24 +338,8 @@ export async function getCollaboratorsWithRoles(listId: string) {
     throw new Error("List not found");
   }
 
-  const roles = (list.collaboratorRoles as Record<string, string>) || {};
-  const collaborators: Array<{ email: string; role: "editor" | "viewer" }> = [];
-
-  // Get from collaboratorRoles first
-  for (const [email, role] of Object.entries(roles)) {
-    if (role === "editor" || role === "viewer") {
-      collaborators.push({ email, role });
-    }
-  }
-
-  // Also check legacy collaborators array for any missing (backward compatibility)
-  const legacyCollaborators = list.collaborators || [];
-  for (const email of legacyCollaborators) {
-    if (!roles[email]) {
-      // Legacy collaborator without role - default to editor
-      collaborators.push({ email, role: "editor" as const });
-    }
-  }
-
-  return collaborators;
+  return listCollaboratorsFromRoles(
+    list.collaboratorRoles as CollaboratorRolesJson | null,
+    list.collaborators || [],
+  );
 }
