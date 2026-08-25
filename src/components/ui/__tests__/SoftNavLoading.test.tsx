@@ -66,6 +66,32 @@ describe("C7.0 SoftNavLoading", () => {
     expect(screen.getByText("Preparing your lists")).toBeInTheDocument();
   });
 
+  it("paints lists chrome when RQ warm without prepare flag (Back/Forward)", () => {
+    const client = new QueryClient();
+    client.setQueryData(listQueryKeys.allLists(), {
+      lists: [
+        {
+          id: "1",
+          slug: "demo",
+          title: "Demo List",
+          isPublic: true,
+          description: "Demo description",
+          urls: [],
+          createdAt: "2026-08-20T00:00:00.000Z",
+        },
+      ],
+    });
+
+    render(
+      <QueryClientProvider client={client}>
+        <ListsSoftNavLoading />
+      </QueryClientProvider>,
+    );
+
+    expect(screen.getByText("Demo List")).toBeInTheDocument();
+    expect(screen.queryByText("Preparing your lists")).not.toBeInTheDocument();
+  });
+
   it("falls back to skeleton when warm but RQ empty", () => {
     const client = new QueryClient();
     markWarmSoftNav();

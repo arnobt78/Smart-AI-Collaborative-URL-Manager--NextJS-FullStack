@@ -15,6 +15,7 @@ import {
   CartesianGrid,
 } from "recharts";
 import { TrendingUp, Link2 } from "lucide-react";
+import { InsightsChartTooltip } from "@/components/business-insights/InsightsChartTooltip";
 import { CARD_PAD } from "@/lib/ui-spacing";
 
 interface PerformanceData {
@@ -34,28 +35,6 @@ interface PerformanceData {
 interface PerformanceMetricsProps {
   data: PerformanceData;
   isLoading?: boolean;
-}
-
-interface PieLabelProps {
-  name: string;
-  percent: number;
-  value: number;
-  cx?: number;
-  cy?: number;
-  midAngle?: number;
-  innerRadius?: number;
-  outerRadius?: number;
-}
-
-interface TooltipPayload {
-  name?: string;
-  value?: number;
-  color?: string;
-}
-
-interface CustomTooltipProps {
-  active?: boolean;
-  payload?: TooltipPayload[];
 }
 
 export function PerformanceMetrics({
@@ -82,27 +61,6 @@ export function PerformanceMetrics({
       list.title.length > 15 ? list.title.substring(0, 15) + "..." : list.title,
     urls: list.urlCount,
   }));
-
-  const CustomTooltip = ({ active, payload }: CustomTooltipProps) => {
-    if (active && payload && payload.length && payload[0]) {
-      const firstPayload = payload[0];
-      return (
-        <div className="bg-gray-900 border border-white/20 rounded-lg p-3 shadow-lg">
-          <p className="text-white text-sm font-medium mb-1">
-            {firstPayload.name || "Unknown"}
-          </p>
-          <p
-            className="text-white text-sm"
-            style={{ color: firstPayload.color }}
-          >
-            Count:{" "}
-            <span className="font-medium">{firstPayload.value ?? "N/A"}</span>
-          </p>
-        </div>
-      );
-    }
-    return null;
-  };
 
   return (
     <div className="space-y-6">
@@ -161,10 +119,7 @@ export function PerformanceMetrics({
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div
-              className="h-64 w-full min-h-[256px]"
-              style={{ minHeight: "256px" }}
-            >
+            <div className="h-64 w-full min-h-[256px]">
               <ResponsiveContainer width="100%" height={256}>
                 <PieChart>
                   <Pie
@@ -172,20 +127,19 @@ export function PerformanceMetrics({
                     cx="50%"
                     cy="50%"
                     labelLine={false}
-                    label={(props) => {
-                      const { name, percent } =
-                        props as unknown as PieLabelProps;
-                      return `${name}: ${(percent * 100).toFixed(0)}%`;
-                    }}
+                    label={false}
                     outerRadius={80}
                     fill="#8884d8"
                     dataKey="value"
+                    isAnimationActive={false}
                   >
                     {distributionData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
-                  <Tooltip content={<CustomTooltip />} />
+                  <Tooltip
+                    content={<InsightsChartTooltip showPercent />}
+                  />
                   <Legend
                     wrapperStyle={{ color: "#ffffff60", fontSize: "10px" }}
                   />
@@ -203,10 +157,7 @@ export function PerformanceMetrics({
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div
-              className="h-64 w-full min-h-[256px]"
-              style={{ minHeight: "256px" }}
-            >
+            <div className="h-64 w-full min-h-[256px]">
               <ResponsiveContainer width="100%" height={256}>
                 <BarChart data={topListsData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#ffffff20" />
@@ -221,19 +172,24 @@ export function PerformanceMetrics({
                     interval="preserveStartEnd"
                   />
                   <YAxis
+                    width={36}
+                    tickMargin={4}
+                    allowDecimals={false}
                     stroke="#ffffff60"
                     style={{ fontSize: "10px" }}
                     className="text-[10px] sm:text-xs"
                   />
                   <Tooltip
-                    contentStyle={{
-                      backgroundColor: "#1f2937",
-                      border: "1px solid rgba(255,255,255,0.2)",
-                      borderRadius: "8px",
-                      color: "#fff",
-                    }}
+                    content={<InsightsChartTooltip />}
+                    cursor={{ fill: "rgba(255,255,255,0.06)" }}
                   />
-                  <Bar dataKey="urls" fill="#3b82f6" radius={[8, 8, 0, 0]} />
+                  <Bar
+                    dataKey="urls"
+                    fill="#3b82f6"
+                    radius={[8, 8, 0, 0]}
+                    name="URLs"
+                    isAnimationActive={false}
+                  />
                 </BarChart>
               </ResponsiveContainer>
             </div>

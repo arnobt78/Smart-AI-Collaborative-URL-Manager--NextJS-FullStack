@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useLayoutEffect } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { Activity, BarChart3, Globe } from "lucide-react";
@@ -14,7 +14,7 @@ import {
   ListsRouteSkeleton,
 } from "@/components/ui/RoutePageSkeleton";
 import { OverviewCards } from "@/components/business-insights/OverviewCards";
-import { ActivityChart } from "@/components/business-insights/ActivityChart";
+import { ActivityChartSkeleton } from "@/components/business-insights/ActivityChart";
 import { InsightsTabsList } from "@/components/business-insights/InsightsTabsList";
 import { ListsPageChrome } from "@/components/lists/ListsPageChrome";
 import { MyListsCard } from "@/components/lists/MyListsCard";
@@ -24,13 +24,15 @@ import {
   ListDetailBodySkeletons,
   ListDetailHeaderChrome,
 } from "@/components/lists/ListDetailHeaderChrome";
+import { UrlList } from "@/components/lists/UrlList";
 import { browseQueryKeys } from "@/lib/browse-query-keys";
 import { listQueryKeys } from "@/lib/query-keys";
 import type { UserList } from "@/hooks/useListQueries";
 import { useWarmSoftNav } from "@/hooks/useWarmSoftNav";
 import { glassActionButtonClass } from "@/lib/ui/glass-button-styles";
 import { LIST_STACK, PAGE_STACK } from "@/lib/ui-spacing";
-import { cn } from "@/lib/utils";
+import { cn, listShareUrl } from "@/lib/utils";
+import { syncCurrentListFromSeedRow } from "@/lib/soft-nav-cache";
 
 /**
  * C7.0: Warm soft-nav paints full chrome + cards from RQ (parity with real pages).
@@ -68,11 +70,16 @@ type InsightsOverviewCache = {
 type ActivityCache = { activity?: Array<{ date: string; lists: number; urls: number }> };
 type UnifiedCache = {
   list?: {
+    id?: string;
     slug?: string;
     title?: string | null;
     isPublic?: boolean;
     urls?: unknown[];
     description?: string | null;
+    createdAt?: string | Date | null;
+    updatedAt?: string | Date | null;
+    collaborators?: string[];
+    collaboratorRoles?: unknown;
   };
 };
 
@@ -191,7 +198,8 @@ function InsightsOptimisticSurface() {
         <InsightsTabsList />
         <div className="mt-2 space-y-6">
           <OverviewCards data={overview} />
-          {activity ? <ActivityChart initialData={activity} /> : null}
+          {/* C7.11: skeleton only — avoid second live ActivityChart remount */}
+          {activity ? <ActivityChartSkeleton /> : null}
         </div>
       </Tabs>
     </div>
@@ -200,6 +208,7 @@ function InsightsOptimisticSurface() {
 
 function ListDetailOptimisticSurface() {
   const queryClient = useQueryClient();
+  const { warmRouterPush } = useWarmSoftNav();
   const params = useParams();
   const slugParam = params?.slug;
   const slug =
@@ -209,24 +218,39 @@ function ListDetailOptimisticSurface() {
         ? decodeURIComponent(slugParam[0] || "")
         : "";
 
-  if (!slug) {
+  const data = slug
+    ? queryClient.getQueryData<UnifiedCache>(listQueryKeys.unified(slug))
+    : undefined;
+  const list =
+    data?.list?.slug && data.list.slug === slug ? data.list : undefined;
+
+  useLayoutEffect(() => {
+    if (!list?.id || !list.slug) return;
+    syncCurrentListFromSeedRow({
+      id: list.id,
+      slug: list.slug,
+      title: list.title,
+      description: list.description,
+      isPublic: list.isPublic,
+      urls: list.urls,
+      createdAt: list.createdAt,
+      updatedAt: list.updatedAt,
+      collaborators: list.collaborators,
+      collaboratorRoles: list.collaboratorRoles,
+    });
+  }, [list]);
+
+  if (!slug || !list?.slug) {
     return <ListDetailRouteSkeleton />;
   }
 
-  const data = queryClient.getQueryData<UnifiedCache>(
-    listQueryKeys.unified(slug),
-  );
-  const list = data?.list;
-
-  if (!list || list.slug !== slug) {
-    return <ListDetailRouteSkeleton />;
-  }
+  const listSlug = list.slug;
 
   return (
     <div className={cn("w-full", PAGE_STACK)} aria-busy="true">
       <ListDetailHeaderChrome
         list={{
-          slug: list.slug,
+          slug: listSlug,
           title: list.title,
           description: list.description,
           isPublic: list.isPublic,
@@ -234,6 +258,7 @@ function ListDetailOptimisticSurface() {
         }}
         busy
         canInvite={false}
+        onBack={() => warmRouterPush("/lists")}
         actions={
           <button
             type="button"
@@ -247,16 +272,19 @@ function ListDetailOptimisticSurface() {
         }
         shareRow={
           <div className="flex flex-col sm:flex-row sm:items-center gap-2 flex-wrap pt-2 border-t border-white/10 sm:border-t-0 sm:pt-0">
-            <span className="text-xs sm:text-sm font-light text-white/70 whitespace-nowrap">
+            <span className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-light text-white/70 whitespace-nowrap">
+              <Globe className="w-3.5 h-3.5 shrink-0" aria-hidden />
               Shareable Link:
             </span>
             <span className="text-xs sm:text-sm text-white/90 truncate">
-              /list/{list.slug}
+              {listShareUrl(listSlug)}
             </span>
           </div>
         }
       />
       <ListDetailBodySkeletons />
+      {/* C7.10.1: paint UrlList during soft-nav (parity with ListPage thin seed) */}
+      <UrlList />
     </div>
   );
 }

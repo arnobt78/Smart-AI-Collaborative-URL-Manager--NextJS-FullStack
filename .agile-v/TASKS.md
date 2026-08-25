@@ -350,5 +350,13 @@ RSC shells · densify/Zod/SHA/Next16
 
 **Dependencies:** GATE-0034 plan approval; C7.0 soft-nav patterns.
 
+### TASK-0056 — C7.10–C7.11 list-detail UX + flash + Insights — DONE
+
+1. Absolute share; detail icons/Back/Search/collab; UrlList thin-seed + soft-nav; warm history.
+2. Insights chart skeleton; single LineChart; YAxis; shared tooltip; icon-meta gaps.
+3. Validate + docs sync (commit-ready).
+
+**Dependencies:** User plans + GATE-0035; C7.9 soft-nav base.
+
 
 

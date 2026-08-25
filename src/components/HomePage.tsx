@@ -43,7 +43,8 @@ const features = [
 
 /** Static marketing home — no session wait / spinner. */
 function MarketingHome() {
-  const { createDialogOpen, openCreateDialog, closeDialog } = useListDialogRouteState();
+  const { createDialogOpen, openCreateDialog, closeDialog } =
+    useListDialogRouteState();
   const { warmRouterPush, prefetchIntent } = useWarmSoftNav();
 
   return (
@@ -127,7 +128,7 @@ function MarketingHome() {
                 {feature.icon}
               </div>
               <div className={HEADING_STACK}>
-                <h3 className="text-base sm:text-lg lg:text-xl font-medium text-white group-hover:text-blue-400 transition-colors">
+                <h3 className="text-base sm:text-lg xl:text-xl font-medium text-white group-hover:text-blue-400 transition-colors">
                   {feature.title}
                 </h3>
                 <p className="text-sm sm:text-base text-white/60 leading-relaxed">
@@ -158,10 +159,10 @@ function MarketingHome() {
               CARD_PAD,
             )}
           >
-            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-blue-500/20 backdrop-blur-md border border-blue-400/30 text-blue-400 flex items-center justify-center text-base sm:text-lg lg:text-xl font-medium">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-blue-500/20 backdrop-blur-md border border-blue-400/30 text-blue-400 flex items-center justify-center text-base sm:text-lg xl:text-xl font-medium">
               1
             </div>
-            <h3 className="text-base sm:text-lg lg:text-xl font-medium text-white">
+            <h3 className="text-base sm:text-lg xl:text-xl font-medium text-white">
               Create a List
             </h3>
             <p className="text-sm sm:text-base text-white/60">
@@ -177,10 +178,10 @@ function MarketingHome() {
               CARD_PAD,
             )}
           >
-            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-purple-500/20 backdrop-blur-md border border-purple-400/30 text-purple-400 flex items-center justify-center text-base sm:text-lg lg:text-xl font-medium">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-purple-500/20 backdrop-blur-md border border-purple-400/30 text-purple-400 flex items-center justify-center text-base sm:text-lg xl:text-xl font-medium">
               2
             </div>
-            <h3 className="text-base sm:text-lg lg:text-xl font-medium text-white">
+            <h3 className="text-base sm:text-lg xl:text-xl font-medium text-white">
               Add URLs
             </h3>
             <p className="text-sm sm:text-base text-white/60">
@@ -196,10 +197,10 @@ function MarketingHome() {
               CARD_PAD,
             )}
           >
-            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-indigo-500/20 backdrop-blur-md border border-indigo-400/30 text-indigo-400 flex items-center justify-center text-base sm:text-lg lg:text-xl font-medium">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-indigo-500/20 backdrop-blur-md border border-indigo-400/30 text-indigo-400 flex items-center justify-center text-base sm:text-lg xl:text-xl font-medium">
               3
             </div>
-            <h3 className="text-base sm:text-lg lg:text-xl font-medium text-white">
+            <h3 className="text-base sm:text-lg xl:text-xl font-medium text-white">
               Share
             </h3>
             <p className="text-sm sm:text-base text-white/60">
@@ -223,7 +224,7 @@ function MarketingHome() {
             </h2>
           </ScrollReveal>
           <ScrollReveal delay={160} direction="right">
-            <p className="text-sm sm:text-base lg:text-xl text-white/60 px-2">
+            <p className="text-sm sm:text-base xl:text-xl text-white/60 px-2">
               Start organizing and sharing your favorite URLs today.
             </p>
           </ScrollReveal>

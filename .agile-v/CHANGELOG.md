@@ -1,5 +1,13 @@
 # CHANGELOG.md
 
+## CR-0028 — C7.10 / C7.10.1 list-detail UX + flash · C7.11 Insights
+
+- **Cycle:** C7.10–C7.11
+- **Change:** Absolute share URL; detail icons/Back/Search/collab layout; UrlList thin-seed + soft-nav; store sync + warm history; Insights chart skeleton, single LineChart, YAxis gutter, icon gaps, shared tooltip.
+- **Rationale:** Prod feedback — path flash, soft-nav catch-up, Back cold skeleton, Insights remount + cramped meta, thin tooltips.
+- **Impact:** utils share helpers, soft-nav-cache, SoftNavLoading, OptimisticSoftNavSurface, ListPage, ListDetailHeaderChrome, UrlList, PermissionManager, Insights chart/Popular/Global/Performance, docs.
+- **Requested by / approval:** User plans list_detail_ux_polish + flash hardening + Insights UX spacing.
+
 ## CR-0027 — C7.9 list-detail soft-nav + polish
 
 - **Cycle:** C7.9

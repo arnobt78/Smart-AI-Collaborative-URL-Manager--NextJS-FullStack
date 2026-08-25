@@ -12,7 +12,8 @@ import {
   Legend,
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/Tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/Tabs";
+import { InsightsChartTooltip } from "@/components/business-insights/InsightsChartTooltip";
 import { useBusinessActivityQuery } from "@/hooks/useBrowseQueries";
 import { CARD_PAD } from "@/lib/ui-spacing";
 import { cn } from "@/lib/utils";
@@ -28,54 +29,37 @@ interface ActivityChartProps {
   initialLoading?: boolean;
 }
 
-interface TooltipPayload {
-  name: string;
-  value: number;
-  color: string;
-  payload?: {
-    date: string;
-  };
+/** Soft-nav / loading placeholder — avoids mounting a second live Recharts tree. */
+export function ActivityChartSkeleton({ className }: { className?: string }) {
+  return (
+    <Card className={cn(CARD_PAD, "animate-pulse", className)} aria-hidden>
+      <CardHeader className="pb-2">
+        <div className="h-5 bg-white/10 rounded w-1/3" />
+      </CardHeader>
+      <CardContent>
+        <div className="mb-4 grid grid-cols-3 gap-2">
+          <div className="h-8 rounded-lg bg-white/10" />
+          <div className="h-8 rounded-lg bg-white/10" />
+          <div className="h-8 rounded-lg bg-white/10" />
+        </div>
+        <div className="h-64 min-h-[256px] rounded-lg bg-white/10" />
+      </CardContent>
+    </Card>
+  );
 }
-
-interface CustomTooltipProps {
-  active?: boolean;
-  payload?: TooltipPayload[];
-}
-
-const CustomTooltip = ({ active, payload }: CustomTooltipProps) => {
-  if (active && payload && payload.length) {
-    return (
-      <div className="bg-gray-900 border border-white/20 rounded-lg p-3 shadow-lg">
-        <p className="text-white/60 text-sm ">{payload[0]?.payload?.date}</p>
-        {payload.map((entry, index) => (
-          <p
-            key={index}
-            className="text-white text-sm"
-            style={{ color: entry.color }}
-          >
-            {entry.name}: <span className="font-medium">{entry.value}</span>
-          </p>
-        ))}
-      </div>
-    );
-  }
-  return null;
-};
 
 export function ActivityChart({
   initialData,
   initialLoading: _,
 }: ActivityChartProps) {
   const [activeTab, setActiveTab] = useState<string>("30");
-  const days = parseInt(activeTab);
+  const days = parseInt(activeTab, 10);
 
-  // CRITICAL: Use React Query with Infinity cache - only refetches when invalidated
   const { data: activityResult, isLoading: isLoadingQuery } =
     useBusinessActivityQuery(days);
   const data = activityResult?.activity || initialData || [];
   const isLoading = isLoadingQuery && !initialData;
 
-  // Format dates for display
   const formattedData =
     data?.map((item) => ({
       ...item,
@@ -85,17 +69,13 @@ export function ActivityChart({
       }),
     })) || [];
 
+  const chartData =
+    days === 7 ? formattedData.slice(-7) : formattedData;
+  const showAngle = days >= 30;
+  const showDots = days <= 30;
+
   if (isLoading && data.length === 0) {
-    return (
-      <Card className={cn(CARD_PAD, "animate-pulse")}>
-        <CardHeader className="pb-2">
-          <div className="h-6 bg-white/10 rounded w-1/3" />
-        </CardHeader>
-        <CardContent>
-          <div className="h-64 bg-white/10 rounded" />
-        </CardContent>
-      </Card>
-    );
+    return <ActivityChartSkeleton />;
   }
 
   return (
@@ -113,7 +93,7 @@ export function ActivityChart({
             setActiveTab(value);
           }}
         >
-          <TabsList className="mb-4 grid grid-cols-3 ">
+          <TabsList className="mb-4 grid grid-cols-3">
             <TabsTrigger
               value="7"
               className="text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2"
@@ -133,143 +113,65 @@ export function ActivityChart({
               90 Days
             </TabsTrigger>
           </TabsList>
-          <TabsContent value="7" className="mt-0">
-            <div
-              className="h-64 w-full min-h-[256px]"
-              style={{ minHeight: "256px" }}
-            >
-              <ResponsiveContainer width="100%" height={256}>
-                <LineChart data={formattedData.slice(-7)}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#ffffff20" />
-                  <XAxis
-                    dataKey="date"
-                    stroke="#ffffff60"
-                    style={{ fontSize: "10px" }}
-                    className="text-[10px] sm:text-xs"
-                  />
-                  <YAxis
-                    stroke="#ffffff60"
-                    style={{ fontSize: "10px" }}
-                    className="text-[10px] sm:text-xs"
-                  />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Legend
-                    wrapperStyle={{ color: "#ffffff60", fontSize: "10px" }}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="lists"
-                    stroke="#3b82f6"
-                    strokeWidth={2}
-                    dot={{ fill: "#3b82f6", r: 3 }}
-                    name="Lists Created"
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="urls"
-                    stroke="#a855f7"
-                    strokeWidth={2}
-                    dot={{ fill: "#a855f7", r: 3 }}
-                    name="URLs Added"
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          </TabsContent>
-          <TabsContent value="30" className="mt-0">
-            <div
-              className="h-64 w-full min-h-[256px]"
-              style={{ minHeight: "256px" }}
-            >
-              <ResponsiveContainer width="100%" height={256}>
-                <LineChart data={formattedData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#ffffff20" />
-                  <XAxis
-                    dataKey="date"
-                    stroke="#ffffff60"
-                    style={{ fontSize: "10px" }}
-                    className="text-[10px] sm:text-xs"
-                    angle={-45}
-                    textAnchor="end"
-                    height={60}
-                    interval="preserveStartEnd"
-                  />
-                  <YAxis
-                    stroke="#ffffff60"
-                    style={{ fontSize: "10px" }}
-                    className="text-[10px] sm:text-xs"
-                  />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Legend
-                    wrapperStyle={{ color: "#ffffff60", fontSize: "10px" }}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="lists"
-                    stroke="#3b82f6"
-                    strokeWidth={2}
-                    dot={{ fill: "#3b82f6", r: 2.5 }}
-                    name="Lists Created"
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="urls"
-                    stroke="#a855f7"
-                    strokeWidth={2}
-                    dot={{ fill: "#a855f7", r: 2.5 }}
-                    name="URLs Added"
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          </TabsContent>
-          <TabsContent value="90" className="mt-0">
-            <div
-              className="h-64 w-full min-h-[256px]"
-              style={{ minHeight: "256px" }}
-            >
-              <ResponsiveContainer width="100%" height={256}>
-                <LineChart data={formattedData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#ffffff20" />
-                  <XAxis
-                    dataKey="date"
-                    stroke="#ffffff60"
-                    style={{ fontSize: "10px" }}
-                    className="text-[10px] sm:text-xs"
-                    angle={-45}
-                    textAnchor="end"
-                    height={60}
-                    interval="preserveStartEnd"
-                  />
-                  <YAxis
-                    stroke="#ffffff60"
-                    style={{ fontSize: "10px" }}
-                    className="text-[10px] sm:text-xs"
-                  />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Legend
-                    wrapperStyle={{ color: "#ffffff60", fontSize: "10px" }}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="lists"
-                    stroke="#3b82f7"
-                    strokeWidth={2}
-                    dot={false}
-                    name="Lists Created"
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="urls"
-                    stroke="#a855f7"
-                    strokeWidth={2}
-                    dot={false}
-                    name="URLs Added"
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          </TabsContent>
+
+          <div className="h-64 w-full min-h-[256px]">
+            <ResponsiveContainer width="100%" height={256}>
+              <LineChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#ffffff20" />
+                <XAxis
+                  dataKey="date"
+                  stroke="#ffffff60"
+                  style={{ fontSize: "10px" }}
+                  className="text-[10px] sm:text-xs"
+                  angle={showAngle ? -45 : 0}
+                  textAnchor={showAngle ? "end" : "middle"}
+                  height={showAngle ? 60 : 30}
+                  interval="preserveStartEnd"
+                />
+                <YAxis
+                  width={36}
+                  tickMargin={4}
+                  allowDecimals={false}
+                  stroke="#ffffff60"
+                  style={{ fontSize: "10px" }}
+                  className="text-[10px] sm:text-xs"
+                />
+                <Tooltip
+                  content={<InsightsChartTooltip />}
+                  cursor={{ stroke: "rgba(255,255,255,0.2)" }}
+                />
+                <Legend
+                  wrapperStyle={{ color: "#ffffff60", fontSize: "10px" }}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="lists"
+                  stroke="#3b82f6"
+                  strokeWidth={2}
+                  isAnimationActive={false}
+                  dot={
+                    showDots
+                      ? { fill: "#3b82f6", r: days === 7 ? 3 : 2.5 }
+                      : false
+                  }
+                  name="Lists Created"
+                />
+                <Line
+                  type="monotone"
+                  dataKey="urls"
+                  stroke="#a855f7"
+                  strokeWidth={2}
+                  isAnimationActive={false}
+                  dot={
+                    showDots
+                      ? { fill: "#a855f7", r: days === 7 ? 3 : 2.5 }
+                      : false
+                  }
+                  name="URLs Added"
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
         </Tabs>
       </CardContent>
     </Card>

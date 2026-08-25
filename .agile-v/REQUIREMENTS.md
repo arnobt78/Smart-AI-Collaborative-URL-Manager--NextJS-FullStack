@@ -963,3 +963,23 @@ These describe the current product as verified in code. They are **Accepted as b
 **Affected:** soft-nav-cache, OptimisticSoftNavSurface, ListPage, ListDetailHeaderChrome, RoutePageSkeleton, UrlList, ActivityFeed, PermissionManager, collaborator-roles, db, queryInvalidation, SSE, list APIs.
 **Trace:** TASK-0055, DEC-0050, CR-0027, GATE-0034.
 **Status:** Completed and locally validated [C7.9] on 2026-08-25.
+
+---
+
+### REQ-0050 — List-detail UX polish + flash harden + Insights chart polish (C7.10–C7.11) (approved 2026-08-25)
+
+**Priority:** P1
+**Type:** UX / soft-nav / Insights
+
+**Statement:** List detail MUST show absolute share URL from `NEXT_PUBLIC_BASE_URL` without mounted path flash; MUST paint UrlList during thin seed and soft-nav; MUST warm Back/history when RQ warm; MUST ignore stuck thin-seed on unified error. Insights soft-nav MUST NOT mount a second live ActivityChart; Activity timeline MUST use one LineChart; chart tooltips MUST share one glass panel; Popular/Global icon-meta rows MUST keep consistent gaps.
+
+**Acceptance criteria:**
+
+- [x] `getPublicAppOrigin` / `listShareUrl`; soft-nav + ListPage share parity.
+- [x] UrlList outside thin skeletons; soft-nav UrlList; `syncCurrentListFromSeedRow`; `shouldPaintWarmSoftNav`.
+- [x] `ActivityChartSkeleton`; single LineChart; YAxis width 36; `InsightsChartTooltip`; Popular/Global gaps.
+- [x] tsc, lint 0, focused Jest, build pass.
+
+**Affected:** utils, soft-nav-cache, SoftNavLoading, OptimisticSoftNavSurface, ListPage, ListDetailHeaderChrome, UrlList, PermissionManager, Insights charts/Popular/Global.
+**Trace:** DEC-0051, CR-0028, GATE-0035.
+**Status:** Completed and locally validated [C7.11] on 2026-08-25.

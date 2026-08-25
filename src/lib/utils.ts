@@ -12,6 +12,41 @@ export function getBaseUrl() {
 }
 
 /**
+ * Absolute site origin for shareable links (SSR/client-identical).
+ * Uses only NEXT_PUBLIC_* so the first paint matches hydration.
+ * Prefers NEXT_PUBLIC_BASE_URL (canonical in this repo / Vercel).
+ */
+export function getPublicAppOrigin(): string {
+  const configured =
+    process.env.NEXT_PUBLIC_BASE_URL?.trim().replace(/\/$/, "") ||
+    process.env.NEXT_PUBLIC_APP_URL?.trim().replace(/\/$/, "");
+  if (configured) return configured;
+  const vercel = process.env.NEXT_PUBLIC_VERCEL_URL?.trim();
+  if (vercel) {
+    return vercel.startsWith("http") ? vercel.replace(/\/$/, "") : `https://${vercel}`;
+  }
+  return "";
+}
+
+/** Absolute share URL for a list slug (path-only if public origin env unset). */
+export function listShareUrl(slug: string): string {
+  if (!slug) return "";
+  const origin = getPublicAppOrigin();
+  return origin ? `${origin}/list/${slug}` : `/list/${slug}`;
+}
+
+/** Prefer absolute share URL; fill origin from the browser when env is unset (client only). */
+export function resolveListShareUrl(slug: string): string {
+  if (!slug) return "";
+  const fromEnv = listShareUrl(slug);
+  if (fromEnv.startsWith("http")) return fromEnv;
+  if (typeof window !== "undefined" && window.location?.origin) {
+    return `${window.location.origin}/list/${slug}`;
+  }
+  return fromEnv;
+}
+
+/**
  * Ensure a stored URL is absolute so Visit / window / <a> open the external site
  * (schemeless hosts like "example.vercel.app" are otherwise treated as relative paths).
  */

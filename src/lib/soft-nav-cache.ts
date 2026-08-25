@@ -1,6 +1,7 @@
 import type { QueryClient } from "@tanstack/react-query";
 import { browseQueryKeys } from "@/lib/browse-query-keys";
 import { listQueryKeys } from "@/lib/query-keys";
+import { currentList, type UrlItem, type UrlList } from "@/stores/urlListStore";
 
 /**
  * C6.9 / C7.9: Soft-nav warm cache — when RQ already has destination data, segment
@@ -13,6 +14,9 @@ import { listQueryKeys } from "@/lib/query-keys";
  * C7.9: Lists→detail seeds thin unified(slug) from allLists before the warm check.
  * Thin seeds are marked stale (refetchType none) so Infinity staleTime cannot blind
  * a later network fetch if SSR dehydrate is missing (playbook §8.8.5).
+ *
+ * C7.10.1: early-return syncs currentList; SoftNavLoading recovers warm paint
+ * when Back/Forward hit a warm cache without prepareWarmSoftNav.
  */
 
 /** Marker on thin soft-nav seeds — ListPage keeps body skeletons until hydrate/fetch clears it. */
@@ -35,7 +39,7 @@ type SeedableListRow = {
 };
 
 type UnifiedCacheShape = {
-  list?: { slug?: string } | null;
+  list?: SeedableListRow | { slug?: string } | null;
   activities?: unknown[];
   collaborators?: unknown[];
   commentCounts?: Record<string, number>;
@@ -46,6 +50,38 @@ export function isSoftNavThinSeed(
   data: UnifiedCacheShape | null | undefined,
 ): boolean {
   return Boolean(data?.[SOFT_NAV_THIN_SEED]);
+}
+
+/** Map allLists / unified list row → UrlList and sync nanostore when slug differs. */
+export function syncCurrentListFromSeedRow(
+  row: SeedableListRow | null | undefined,
+): void {
+  if (!row?.id || !row.slug) return;
+  const store = currentList.get();
+  if (store?.slug === row.slug) return;
+
+  const seeded: UrlList = {
+    id: row.id,
+    slug: row.slug,
+    title: row.title ?? undefined,
+    description: row.description ?? undefined,
+    isPublic: row.isPublic,
+    urls: Array.isArray(row.urls) ? (row.urls as UrlItem[]) : [],
+    createdAt: String(row.createdAt ?? row.created_at ?? ""),
+    updatedAt: row.updatedAt
+      ? String(row.updatedAt)
+      : row.updated_at
+        ? String(row.updated_at)
+        : undefined,
+    collaborators: row.collaborators,
+    collaboratorRoles:
+      row.collaboratorRoles &&
+      typeof row.collaboratorRoles === "object" &&
+      !Array.isArray(row.collaboratorRoles)
+        ? (row.collaboratorRoles as Record<string, string>)
+        : undefined,
+  };
+  currentList.set(seeded);
 }
 
 /**
@@ -60,8 +96,11 @@ export function seedUnifiedFromAllLists(
   const key = listQueryKeys.unified(slug);
   const existing = queryClient.getQueryData<UnifiedCacheShape>(key);
 
-  // Full chrome-ready row already present
-  if (existing?.list?.slug === slug) return true;
+  // Full chrome-ready row already present — still sync store (cross-list flash fix)
+  if (existing?.list?.slug === slug) {
+    syncCurrentListFromSeedRow(existing.list as SeedableListRow);
+    return true;
+  }
 
   // Explicit null list (404 / deleted) — do not resurrect from allLists
   if (existing && existing.list == null) return false;
@@ -79,6 +118,9 @@ export function seedUnifiedFromAllLists(
     commentCounts: {},
     [SOFT_NAV_THIN_SEED]: true,
   });
+
+  // C7.10: seed nanostore so ListPage / soft-nav UrlList can paint urls first frame
+  syncCurrentListFromSeedRow(row);
 
   // Keep cached paint for warm soft-nav, but mark stale so active ListPage refetches
   // when SSR dehydrate is missing (staleTime Infinity would otherwise never refetch).
@@ -127,6 +169,18 @@ export function consumeWarmSoftNav(): boolean {
     warmSoftNavClearTimer = null;
   }
   return true;
+}
+
+/**
+ * C7.10.1: Paint warm optimistic UI when prepareWarmSoftNav ran, OR when
+ * Back/Forward lands on a destination whose RQ cache is already warm.
+ */
+export function shouldPaintWarmSoftNav(
+  queryClient: QueryClient,
+  href: string,
+): boolean {
+  if (consumeWarmSoftNav()) return true;
+  return isDestinationCacheWarm(queryClient, href);
 }
 
 /** Test helper — reset module flag between tests. */

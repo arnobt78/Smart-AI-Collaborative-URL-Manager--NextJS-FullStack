@@ -3,8 +3,13 @@
 import type { ReactNode } from "react";
 import { Badge } from "@/components/ui/Badge";
 import { Switch } from "@/components/ui/Switch";
-import { Globe, Link2, Lock } from "lucide-react";
-import { CARD_PAD, HEADING_STACK } from "@/lib/ui-spacing";
+import {
+  ArrowLeft,
+  Blocks,
+  Globe2,
+  GlobeLock,
+} from "lucide-react";
+import { CARD_PAD, HEADING_STACK, LIST_STACK } from "@/lib/ui-spacing";
 import { cn } from "@/lib/utils";
 
 export type ListDetailHeaderList = {
@@ -22,13 +27,17 @@ export type ListDetailHeaderChromeProps = {
   canInvite?: boolean;
   visibilityPending?: boolean;
   onVisibilityChange?: (isPublic: boolean) => void;
+  /** Navigate back to Lists (stable). Soft-nav may omit or pass live handler. */
+  onBack?: () => void;
   actions?: ReactNode;
   shareRow?: ReactNode;
   className?: string;
 };
 
+const badgeTextClass = "text-xs sm:text-sm text-center justify-center";
+
 /**
- * Shared list-detail header chrome for ListPage + OptimisticSoftNavSurface (C7.9).
+ * Shared list-detail header chrome for ListPage + OptimisticSoftNavSurface (C7.9 / C7.10).
  */
 export function ListDetailHeaderChrome({
   list,
@@ -36,6 +45,7 @@ export function ListDetailHeaderChrome({
   canInvite = false,
   visibilityPending = false,
   onVisibilityChange,
+  onBack,
   actions,
   shareRow,
   className,
@@ -51,32 +61,53 @@ export function ListDetailHeaderChrome({
         className,
       )}
     >
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4 sm:mb-4">
-        <div className={cn(HEADING_STACK, "gap-2")}>
-          <div className="flex items-center gap-2 min-w-0">
-            <Link2 className="h-5 w-5 text-blue-300 shrink-0" aria-hidden />
-            <h1 className="text-base sm:text-lg lg:text-xl xl:text-2xl font-medium text-white break-words">
-              {list.title || `List: ${list.slug}`}
-            </h1>
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-4 sm:mb-4">
+        <div className={cn(HEADING_STACK, "gap-2 min-w-0 flex-1")}>
+          <div className="flex items-center justify-between gap-2 min-w-0">
+            <div className="flex items-center gap-2 min-w-0">
+              <Blocks className="h-5 w-5 text-blue-300 shrink-0" aria-hidden />
+              <h1 className="text-base sm:text-lg xl:text-xl font-medium text-white break-words">
+                {list.title || `List: ${list.slug}`}
+              </h1>
+            </div>
+            {onBack ? (
+              <button
+                type="button"
+                onClick={onBack}
+                className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-white/15 bg-white/5 px-2 py-1.5 text-xs sm:text-sm text-white/80 hover:bg-white/10 hover:text-white transition-colors"
+                aria-label="Back"
+              >
+                <ArrowLeft className="h-4 w-4" aria-hidden />
+                <span className="hidden sm:inline">Back</span>
+              </button>
+            ) : null}
           </div>
 
           <div className="flex items-center gap-2 flex-wrap">
-            <Badge variant="secondary" className="text-xs sm:text-sm w-fit">
+            <Badge
+              variant="secondary"
+              className={cn(badgeTextClass, "inline-flex items-center w-fit")}
+            >
               {urlCount} {urlCount === 1 ? "URL" : "URLs"}
             </Badge>
             <Badge
               variant={isPublic ? "success" : "secondary"}
-              className="text-xs sm:text-sm flex items-center gap-1 w-fit"
+              className={cn(
+                badgeTextClass,
+                "inline-flex items-center gap-1 w-fit",
+              )}
             >
               {isPublic ? (
                 <>
-                  <Globe className="w-3 h-3" aria-hidden />
-                  <span className="hidden sm:inline">Public - Anyone can view</span>
+                  <Globe2 className="w-3 h-3 shrink-0" aria-hidden />
+                  <span className="hidden sm:inline">
+                    Public - Anyone can view
+                  </span>
                   <span className="sm:hidden">Public</span>
                 </>
               ) : (
                 <>
-                  <Lock className="w-3 h-3" aria-hidden />
+                  <GlobeLock className="w-3 h-3 shrink-0" aria-hidden />
                   <span className="hidden sm:inline">
                     Private - Only you & collaborators
                   </span>
@@ -100,12 +131,16 @@ export function ListDetailHeaderChrome({
           </div>
 
           {list.description ? (
-            <p className="text-sm text-white/60 line-clamp-2">{list.description}</p>
+            <p className="text-sm text-white/60 line-clamp-2">
+              {list.description}
+            </p>
           ) : null}
         </div>
 
         {actions ? (
-          <div className="flex items-center gap-2 flex-wrap">{actions}</div>
+          <div className="flex items-center gap-2 flex-wrap shrink-0">
+            {actions}
+          </div>
         ) : null}
       </div>
 
@@ -114,10 +149,10 @@ export function ListDetailHeaderChrome({
   );
 }
 
-/** Inline pulse blocks for Collaborators / SC / Activity / UrlList while warm soft-nav awaits RSC. */
+/** Skeletons for Collaborators / SC / Activity while thin soft-nav awaits hydrate (UrlList paints live). */
 export function ListDetailBodySkeletons() {
   return (
-    <div className="flex flex-col gap-4 sm:gap-6" aria-hidden>
+    <div className={LIST_STACK} aria-hidden>
       <div
         className={cn(
           "bg-white/5 border border-white/10 rounded-xl sm:rounded-2xl animate-pulse",
@@ -145,14 +180,6 @@ export function ListDetailBodySkeletons() {
           CARD_PAD,
         )}
       />
-      <div className="space-y-3 animate-pulse">
-        <div className="flex gap-2">
-          <div className="h-9 w-28 rounded-lg bg-white/10" />
-          <div className="h-9 w-24 rounded-lg bg-white/5" />
-        </div>
-        <div className="h-10 rounded-lg bg-white/5 border border-white/10" />
-        <div className="h-20 rounded-xl bg-white/5 border border-dashed border-white/20" />
-      </div>
     </div>
   );
 }

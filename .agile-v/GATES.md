@@ -365,6 +365,18 @@ Implementation is locally verified. Production check remains with TASK-0039. Gat
 | Required human action | Completed — user approved C7.9 plan + verify residual + commit-ready. |
 | Scope | Lists→detail soft-nav seed/chrome/skeletons; collab menu/roles; archived toolbar; tombstone densify. |
 
+---
+
+## GATE-0035 — Human Gate 1 (C7.10–C7.11 list-detail UX + Insights)
+
+| Field | Value |
+|-------|-------|
+| Status | APPROVED (user plan + verify-deep + commit-ready) |
+| Checkpoint | `C7.11-HG1-DETAIL-UX-INSIGHTS-2026-08-25` |
+| Evidence | REQ-0050; DEC-0051; CR-0028 |
+| Required human action | Completed — user approved C7.10 / flash / Insights plans + verify-deep + commit-ready. |
+| Scope | Absolute share; thin-seed/soft-nav UrlList; warm Back/history; Insights skeleton/tooltip/gaps. |
+
 Implementation is locally verified. Production check remains with TASK-0039. Gate 2 remains required before any release decision.
 
 ---

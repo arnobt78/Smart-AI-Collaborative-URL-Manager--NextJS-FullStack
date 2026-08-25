@@ -50,7 +50,7 @@ import { fetchUrlMetadata, type UrlMetadata } from "@/utils/urlMetadata";
 import { UrlCard } from "./UrlCard";
 import { UrlEditModal } from "./UrlEditModal";
 import { LinkIcon, ArchiveBoxIcon } from "@heroicons/react/24/outline";
-import { Archive, Link2, WandSparkles } from "lucide-react";
+import { Archive, Link2, Search, WandSparkles } from "lucide-react";
 import type { EnhancementResult } from "@/lib/ai";
 import { useDebounce } from "@/hooks/useDebounce";
 import type { SearchResult } from "@/lib/ai/search";
@@ -794,10 +794,7 @@ export function UrlList() {
         }
 
         // Skip getList during bulk imports to prevent overwhelming the browser/server
-        if (
-          typeof window !== "undefined" &&
-          window.__bulkImportActive
-        ) {
+        if (typeof window !== "undefined" && window.__bulkImportActive) {
           return;
         }
 
@@ -815,10 +812,7 @@ export function UrlList() {
         refreshTimeoutRef.current = setTimeout(async () => {
           const now = Date.now();
           // Skip if bulk import started during the delay
-          if (
-            typeof window !== "undefined" &&
-            window.__bulkImportActive
-          ) {
+          if (typeof window !== "undefined" && window.__bulkImportActive) {
             return;
           }
           // CRITICAL: Check drag end time here too - queued refreshes must respect drag protection
@@ -985,7 +979,9 @@ export function UrlList() {
 
     const oldClickCount = urlToUpdate.clickCount || 0;
     const previousUnified = current.slug
-      ? queryClient.getQueryData<{ list?: typeof current }>(listQueryKeys.unified(current.slug))
+      ? queryClient.getQueryData<{ list?: typeof current }>(
+          listQueryKeys.unified(current.slug),
+        )
       : undefined;
 
     // Update click count optimistically FIRST - immediate UI feedback
@@ -1060,16 +1056,29 @@ export function UrlList() {
           }
         }
         if (current.slug) {
-          invalidateMutationImpact(queryClient, "analytics", current.slug, current.id);
+          invalidateMutationImpact(
+            queryClient,
+            "analytics",
+            current.slug,
+            current.id,
+          );
         }
       } else {
         await response.json().catch(() => ({}));
         currentList.set(current);
-        if (current.slug) queryClient.setQueryData(listQueryKeys.unified(current.slug), previousUnified);
+        if (current.slug)
+          queryClient.setQueryData(
+            listQueryKeys.unified(current.slug),
+            previousUnified,
+          );
       }
     } catch {
       currentList.set(current);
-      if (current.slug) queryClient.setQueryData(listQueryKeys.unified(current.slug), previousUnified);
+      if (current.slug)
+        queryClient.setQueryData(
+          listQueryKeys.unified(current.slug),
+          previousUnified,
+        );
     }
   };
 
@@ -1587,7 +1596,12 @@ export function UrlList() {
           // CRITICAL: Invalidate unified query to trigger updates?activityLimit=30 API call
           // This ensures activity feed updates immediately after reorder (same pattern as other URL actions)
           if (current.slug && current.id) {
-            invalidateMutationImpact(queryClient, "url", current.slug, current.id);
+            invalidateMutationImpact(
+              queryClient,
+              "url",
+              current.slug,
+              current.id,
+            );
           }
 
           // DON'T clear localStorage immediately - keep it much longer to survive Fast Refresh
@@ -1633,7 +1647,12 @@ export function UrlList() {
           }
         }
         if (current.slug && current.id) {
-          invalidateMutationImpact(queryClient, "url", current.slug, current.id);
+          invalidateMutationImpact(
+            queryClient,
+            "url",
+            current.slug,
+            current.id,
+          );
         }
       } finally {
         // Clear flags IMMEDIATELY after API call completes
@@ -1694,11 +1713,7 @@ export function UrlList() {
       if (current.id && typeof window !== "undefined") {
         try {
           // Update cache with new drag order (centralized function handles both localStorage and global cache)
-          updateDragOrderCache(
-            current.id,
-            reorderedUrls,
-            false,
-          );
+          updateDragOrderCache(current.id, reorderedUrls, false);
 
           // Cache updated successfully
         } catch {
@@ -1722,7 +1737,6 @@ export function UrlList() {
       // NOTE: The order is now preserved in both store AND ref
       // The ref ensures urlsToUse memo uses preserved order during drag
       // The store ensures the final order is persisted after drag completes
-
 
       // Use unified PATCH endpoint for reorder (same pattern as other URL actions)
       // CRITICAL: Always use the preserved order from ref, not from store after API response
@@ -1804,7 +1818,12 @@ export function UrlList() {
           // CRITICAL: Invalidate unified query to trigger updates?activityLimit=30 API call
           // This ensures activity feed updates immediately after reorder (same pattern as other URL actions)
           if (current.slug && current.id) {
-            invalidateMutationImpact(queryClient, "url", current.slug, current.id);
+            invalidateMutationImpact(
+              queryClient,
+              "url",
+              current.slug,
+              current.id,
+            );
           }
 
           // DON'T clear localStorage immediately - keep it much longer to survive Fast Refresh
@@ -1850,7 +1869,12 @@ export function UrlList() {
           }
         }
         if (current.slug && current.id) {
-          invalidateMutationImpact(queryClient, "url", current.slug, current.id);
+          invalidateMutationImpact(
+            queryClient,
+            "url",
+            current.slug,
+            current.id,
+          );
         }
       } finally {
         // Clear flags IMMEDIATELY after API call completes
@@ -2012,8 +2036,7 @@ export function UrlList() {
             }
           }
         }
-      } catch {
-      }
+      } catch {}
     }
 
     // If we have a preserved drag order, use it (prevents card jumping on Fast Refresh)
@@ -2367,7 +2390,7 @@ export function UrlList() {
   return (
     <div className={LIST_STACK}>
       {/* Tabs for Active/Archived and Add URL Button */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4 border-b border-white/10 pb-3 sm:pb-4">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4 border-b border-white/10">
         <div className="flex items-center gap-2 sm:gap-3 flex-1 sm:flex-none">
           <Button
             type="button"
@@ -2446,61 +2469,62 @@ export function UrlList() {
 
       {/* Search, Filter, and Import/Export bar — Active and Archived */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-2 w-full">
-          {/* Row 1 on phone: Search and Filter */}
-          <div className="flex items-center gap-2 sm:contents">
-            {/* Search Input */}
-            <div className="relative flex-1 min-w-0">
-              <Input
-                type="text"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search URLs, titles, or descriptions... (AI-powered)"
-                className="min-w-[180px] bg-transparent pr-16 font-delicious text-sm sm:pr-20 sm:text-base lg:text-lg"
-              />
-              {search.trim() && (
-                <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
-                  {isSearching ? (
-                    <div className="flex items-center gap-2 text-blue-400">
-                      <div className="w-4 h-4 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
-                      <span className="text-xs font-medium">AI Search...</span>
-                    </div>
-                  ) : searchCacheIndicator ? (
-                    <span className="text-xs text-green-400 font-medium flex items-center gap-1">
-                      <span className="w-2 h-2 bg-green-400 rounded-full" />
-                      Cached
-                    </span>
-                  ) : smartSearchResults ? (
-                    <span className="text-xs text-blue-400 font-medium flex items-center gap-1">
-                      <span className="w-2 h-2 bg-blue-400 rounded-full" />
-                      AI
-                    </span>
-                  ) : null}
-                </div>
-              )}
-            </div>
-
-            {/* Filter Dropdown */}
-            <UrlFilterBar
-              sortOption={sortOption}
-              setSortOption={setSortOption}
+        {/* Row 1 on phone: Search and Filter */}
+        <div className="flex items-center gap-2 sm:contents">
+          {/* Search Input */}
+          <div className="relative flex-1 min-w-0">
+            <Search
+              className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/45"
+              aria-hidden
             />
+            <Input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search URLs, titles, or descriptions... (AI-powered)"
+              className="min-w-[180px] bg-transparent pl-9 pr-16 font-delicious text-sm sm:pr-20 sm:text-base lg:text-lg"
+            />
+            {search.trim() && (
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                {isSearching ? (
+                  <div className="flex items-center gap-2 text-blue-400">
+                    <div className="w-4 h-4 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
+                    <span className="text-xs font-medium">AI Search...</span>
+                  </div>
+                ) : searchCacheIndicator ? (
+                  <span className="text-xs text-green-400 font-medium flex items-center gap-1">
+                    <span className="w-2 h-2 bg-green-400 rounded-full" />
+                    Cached
+                  </span>
+                ) : smartSearchResults ? (
+                  <span className="text-xs text-blue-400 font-medium flex items-center gap-1">
+                    <span className="w-2 h-2 bg-blue-400 rounded-full" />
+                    AI
+                  </span>
+                ) : null}
+              </div>
+            )}
           </div>
 
-          {/* Row 2 on phone: Import/Export Bar */}
-          <div className="sm:contents">
-            <UrlBulkImportExport
-              urls={(list.urls as unknown as UrlItem[]) || []}
-              listTitle={list.title}
-              canEdit={permissions.canEdit} // Disable import for viewers
-              onBulkOperationStart={() => {
-                isLocalOperationRef.current = true;
-              }}
-              onBulkOperationEnd={() => {
-                isLocalOperationRef.current = false;
-              }}
-            />
-          </div>
+          {/* Filter Dropdown */}
+          <UrlFilterBar sortOption={sortOption} setSortOption={setSortOption} />
         </div>
+
+        {/* Row 2 on phone: Import/Export Bar */}
+        <div className="sm:contents">
+          <UrlBulkImportExport
+            urls={(list.urls as unknown as UrlItem[]) || []}
+            listTitle={list.title}
+            canEdit={permissions.canEdit} // Disable import for viewers
+            onBulkOperationStart={() => {
+              isLocalOperationRef.current = true;
+            }}
+            onBulkOperationEnd={() => {
+              isLocalOperationRef.current = false;
+            }}
+          />
+        </div>
+      </div>
 
       {/* Active URLs List */}
       {!showArchived && (
@@ -2557,9 +2581,9 @@ export function UrlList() {
                 localStorage.setItem(storageKey, JSON.stringify(reorderedUrls));
 
                 // Also update global cache
-            const globalCache = window.__dragOrderCache || {};
-            globalCache[storageKey] = reorderedUrls;
-            window.__dragOrderCache = globalCache;
+                const globalCache = window.__dragOrderCache || {};
+                globalCache[storageKey] = reorderedUrls;
+                window.__dragOrderCache = globalCache;
               } catch {
                 // Ignore localStorage errors
               }
@@ -2640,12 +2664,12 @@ export function UrlList() {
                 <ArchiveBoxIcon className="h-6 w-6 sm:h-7 sm:w-7 text-gray-400" />
               </div>
               <div className={`${HEADING_STACK} mt-3`}>
-                <h3 className="text-base sm:text-lg font-medium text-white">
-                  No Archived URLs
+                <h3 className="text-sm sm:text-md font-medium text-white">
+                  No Archived URLs Yet!
                 </h3>
-                <p className="text-sm text-white/60 max-w-md mx-auto">
+                <p className="text-sm text-white/60">
                   Archived URLs will appear here. You can restore them at any
-                  time.
+                  time using the restore button below.
                 </p>
               </div>
             </div>
@@ -2706,8 +2730,10 @@ export function UrlList() {
             <LinkIcon className="h-6 w-6 sm:h-7 sm:w-7 text-blue-400" />
           </div>
           <div className={`${HEADING_STACK} mt-3`}>
-            <h3 className="text-base sm:text-lg font-medium text-white">No URLs Yet</h3>
-            <p className="text-sm text-white/60 max-w-md mx-auto">
+            <h3 className="text-sm sm:text-md font-medium text-white">
+              No URLs Added Yet!
+            </h3>
+            <p className="text-sm text-white/60">
               Start building your collection by adding your first URL using the
               form above
             </p>

@@ -1,30 +1,33 @@
 # STATE.md
 
-**C7.9** | 2026-08-25
+**C7.11** | 2026-08-25
 
 ## Done
 
-- **C7.9:** List-detail soft-nav C7.0 parity — seed `unified(slug)` from `allLists`; thin-seed marker + stale mark; full header chrome + body skeletons; no dual Opening/Preparing; collaborator `…` menu + enriched roles JSON; archived Add URL/filter; Activity full-bar hover; compact empties; ui-spacing; delete `{ list: null }` tombstone + SSE densify/drop.
-- C7.8 `/login` chrome-free · C7.7 force-guest · densify.
+- **C7.10:** List-detail UX polish — absolute share (`NEXT_PUBLIC_BASE_URL` / `listShareUrl`); Blocks/Globe2/GlobeLock/Back; UrlList during thin seed; PermissionManager two-col + calendar meta; Search icon; badge typography; LIST_STACK rhythm.
+- **C7.10.1:** Flash harden — `syncCurrentListFromSeedRow` (incl. seed early-return); soft-nav paints UrlList; `shouldPaintWarmSoftNav` for Back/Forward; warm Back; ignore stuck thin-seed on unified `isError`.
+- **C7.11:** Insights — soft-nav `ActivityChartSkeleton`; single Activity `LineChart`; YAxis `width={36}`; Popular/Global icon-meta gaps; shared `InsightsChartTooltip`; pie `label={false}`.
+- Prior: C7.9 soft-nav seed · C7.8 `/login` · densify.
 
 ## Human
 
 - HA-0001 Firewall
-- TASK-0039 production verify after deploy (include Lists→detail soft-nav)
+- TASK-0039 production verify after deploy (Lists→detail soft-nav + Insights revisit chart)
 
 ## Remaining (user later)
 
-- Further list-detail UX (user one-by-one); optional `(auth)` route-group; lists/browse cold API slim; status API speed OOS; browse densify `"you@local"` actor (pre-C7.1)
+- Optional `(auth)` route-group; lists/browse cold API slim; status API speed OOS; browse densify `"you@local"` actor (pre-C7.1); further list-detail UX one-by-one
 
 ## Current checkpoint
 
-- **Stage:** C7.9 list-detail soft-nav locally validated (commit pending / this session).
-- **Validation:** tsc · lint 0 · focused soft-nav/densify/roles Jest PASS.
-- **Docs:** CLAUDE · walkthrough · `.agile-v` synced this session.
+- **Stage:** C7.10 + C7.10.1 + C7.11 locally validated; commit-ready.
+- **Validation:** tsc · lint 0 · soft-nav/Insights Jest · build PASS.
+- **Docs:** CLAUDE · STATE · walkthrough · `.agile-v` synced this session.
 
 ## Next
 
 ```text
-Prod: Lists→list detail (warm chrome, no dual loader). Collaborator … menu.
+Prod: Lists→detail (absolute share, UrlList soft-nav, warm Back).
+Insights revisit (no double chart; tooltip; icon gaps).
 TASK-0039.
 ```

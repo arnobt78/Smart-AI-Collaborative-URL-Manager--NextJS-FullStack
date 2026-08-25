@@ -23,6 +23,9 @@ import {
   List,
 } from "lucide-react";
 import { CARD_PAD } from "@/lib/ui-spacing";
+import { InsightsChartTooltip } from "@/components/business-insights/InsightsChartTooltip";
+import { UI_CONTROL_ICON_GAP } from "@/lib/ui/control-styles";
+import { cn } from "@/lib/utils";
 
 interface GlobalStatsData {
   totalUsers: number;
@@ -43,36 +46,6 @@ interface GlobalStatsProps {
   data: GlobalStatsData;
   isLoading?: boolean;
 }
-
-interface CustomTooltipProps {
-  active?: boolean;
-  payload?: Array<{
-    value: number;
-    name: string;
-    color: string;
-  }>;
-  label?: string;
-}
-
-const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
-  if (active && payload && payload.length) {
-    return (
-      <div className="bg-gray-900 border border-white/20 rounded-lg p-3 shadow-lg">
-        <p className="text-white/60 text-sm ">{label || ""}</p>
-        {payload.map((entry, index) => (
-          <p
-            key={index}
-            className="text-white text-sm"
-            style={{ color: entry.color }}
-          >
-            {entry.name}: <span className="font-medium">{entry.value}</span>
-          </p>
-        ))}
-      </div>
-    );
-  }
-  return null;
-};
 
 export function GlobalStats({ data, isLoading }: GlobalStatsProps) {
   if (isLoading) {
@@ -208,25 +181,21 @@ export function GlobalStats({ data, isLoading }: GlobalStatsProps) {
             <CardTitle className="text-xs sm:text-sm font-medium text-white/70">
               List Distribution
             </CardTitle>
-            <div className="flex ">
+            <div className={cn("flex", UI_CONTROL_ICON_GAP)}>
               <Globe className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-green-400" />
               <Lock className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-yellow-400" />
             </div>
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
-              <div className="flex items-center gap-2">
-                <Badge variant="success" className="text-xs">
-                  <Globe className="h-3 w-3 mr-1" />
-                  {data.publicLists} Public
-                </Badge>
-              </div>
-              <div className="flex items-center gap-2">
-                <Badge variant="warning" className="text-xs">
-                  <Lock className="h-3 w-3 mr-1" />
-                  {data.privateLists} Private
-                </Badge>
-              </div>
+              <Badge variant="success" className="text-xs gap-1.5">
+                <Globe className="h-3 w-3" />
+                {data.publicLists} Public
+              </Badge>
+              <Badge variant="warning" className="text-xs gap-1.5">
+                <Lock className="h-3 w-3" />
+                {data.privateLists} Private
+              </Badge>
             </div>
           </CardContent>
         </Card>
@@ -275,11 +244,17 @@ export function GlobalStats({ data, isLoading }: GlobalStatsProps) {
                   interval="preserveStartEnd"
                 />
                 <YAxis
+                  width={36}
+                  tickMargin={4}
+                  allowDecimals={false}
                   stroke="#ffffff60"
                   style={{ fontSize: "10px" }}
                   className="text-[10px] sm:text-xs"
                 />
-                <Tooltip content={<CustomTooltip />} />
+                <Tooltip
+                  content={<InsightsChartTooltip />}
+                  cursor={{ stroke: "rgba(255,255,255,0.2)" }}
+                />
                 <Legend
                   wrapperStyle={{ color: "#ffffff60", fontSize: "10px" }}
                 />
@@ -288,6 +263,7 @@ export function GlobalStats({ data, isLoading }: GlobalStatsProps) {
                   dataKey="users"
                   stroke="#3b82f6"
                   strokeWidth={2}
+                  isAnimationActive={false}
                   dot={{ fill: "#3b82f6", r: 3 }}
                   name="New Users"
                 />

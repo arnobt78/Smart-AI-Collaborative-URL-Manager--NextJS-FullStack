@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useLayoutEffect, useState, useRef } from "react";
 import { flushSync } from "react-dom";
 import { useParams, useRouter } from "next/navigation";
 import { useStore } from "@nanostores/react";
@@ -8,7 +8,7 @@ import { currentList } from "@/stores/urlListStore";
 import { UrlList } from "@/components/lists/UrlList";
 import { Button } from "@/components/ui/Button";
 import { glassActionButtonClass } from "@/lib/ui/glass-button-styles";
-import { Copy, Check, Activity, RefreshCw } from "lucide-react";
+import { Copy, Check, Activity, RefreshCw, Globe } from "lucide-react";
 import { useToast } from "@/components/ui/Toaster";
 import { ActivityFeed } from "@/components/collaboration/ActivityFeed";
 import { PermissionManager } from "@/components/collaboration/PermissionManager";
@@ -33,11 +33,13 @@ import { CARD_PAD, HEADING_STACK, PAGE_STACK } from "@/lib/ui-spacing";
 import { invalidateMutationImpact } from "@/utils/queryInvalidation";
 import { useListDialogRouteState } from "@/hooks/useListDialogRouteState";
 import { isSoftNavThinSeed } from "@/lib/soft-nav-cache";
-import { cn } from "@/lib/utils";
+import { cn, listShareUrl, resolveListShareUrl } from "@/lib/utils";
+import { useWarmSoftNav } from "@/hooks/useWarmSoftNav";
 
 export default function ListPageClient() {
   const { toast } = useToast();
   const router = useRouter();
+  const { warmRouterPush } = useWarmSoftNav();
   const { slug } = useParams();
   const {
     user: sessionUser,
@@ -63,6 +65,7 @@ export default function ListPageClient() {
     data: unifiedData,
     isLoading: isLoadingQuery,
     isPlaceholderData,
+    isError: isUnifiedError,
   } = useUnifiedListQuery(listSlug, !!listSlug);
 
   // Prefer RQ cache for the active slug — include same-slug placeholder for warm soft-nav
@@ -93,8 +96,9 @@ export default function ListPageClient() {
   const syncInProgress = useRef<string | null>(null); // Track if sync is currently in progress for a list
   const hasRedirectedRef = useRef<boolean>(false); // Track if we've already redirected to prevent duplicate redirects
 
-  // Clear stale store when navigating to a different slug (cache-hit skips queryFn)
-  useEffect(() => {
+  // Clear stale store when navigating to a different slug (cache-hit skips queryFn).
+  // useLayoutEffect so UrlList (reads currentList) does not paint the previous slug.
+  useLayoutEffect(() => {
     if (!listSlug) return;
     const store = currentList.get();
     if (store?.slug && store.slug !== listSlug) {
@@ -102,8 +106,8 @@ export default function ListPageClient() {
     }
   }, [listSlug]);
 
-  // Sync RQ cache → currentList when queryFn did not run (staleTime Infinity cache hit)
-  useEffect(() => {
+  // Sync RQ → currentList before paint (C7.10 thin-seed UrlList needs urls on first frame).
+  useLayoutEffect(() => {
     if (
       unifiedData?.list &&
       unifiedData.list.slug === listSlug &&
@@ -522,9 +526,11 @@ export default function ListPageClient() {
   // Matched slug only — never treat another list's placeholder as "have data"
   const hasAnyData = !!(list && list.id && list.slug === listSlug);
 
-  // C7.9: thin soft-nav seed paints chrome only; keep body skeletons until hydrate/fetch clears marker
+  // C7.9/C7.10.1: thin soft-nav seed keeps body skeletons until hydrate clears marker.
+  // Ignore stuck thin flag when unified query errored but we still have list data.
   const showThinBodySkeletons =
     hasAnyData &&
+    !isUnifiedError &&
     (isSoftNavThinSeed(unifiedData) ||
       isSoftNavThinSeed(
         cachedUnified as { _softNavThinSeed?: boolean } | undefined,
@@ -571,6 +577,7 @@ export default function ListPageClient() {
         }}
         canInvite={permissions.canInvite}
         visibilityPending={visibilityMutation.isPending}
+        onBack={() => warmRouterPush("/lists")}
         onVisibilityChange={(newValue) => {
           if (!list.id || !list.slug) return;
           visibilityMutation.mutate(
@@ -821,26 +828,18 @@ export default function ListPageClient() {
         }
         shareRow={
           <div className="flex flex-col sm:flex-row sm:items-center gap-2 flex-wrap pt-2 border-t border-white/10 sm:border-t-0 sm:pt-0">
-            <span className="text-xs sm:text-sm font-light text-white/70 whitespace-nowrap">
+            <span className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-light text-white/70 whitespace-nowrap">
+              <Globe className="w-3.5 h-3.5 shrink-0" aria-hidden />
               Shareable Link:
             </span>
             <div className="flex items-center gap-1 flex-1 min-w-0">
               <span className="text-xs sm:text-sm text-white/90 truncate">
-                {mounted && list?.slug
-                  ? `${window.location.origin}/list/${list.slug}`
-                  : list?.slug
-                    ? `/list/${list.slug}`
-                    : ""}
+                {list?.slug ? listShareUrl(list.slug) : ""}
               </span>
               <button
                 type="button"
                 onClick={async () => {
-                  const url =
-                    mounted && list?.slug
-                      ? `${window.location.origin}/list/${list.slug}`
-                      : list?.slug
-                        ? `/list/${list.slug}`
-                        : "";
+                  const url = list?.slug ? resolveListShareUrl(list.slug) : "";
                   if (!url) return;
                   try {
                     await navigator.clipboard.writeText(url);
@@ -873,6 +872,7 @@ export default function ListPageClient() {
         }
       />
 
+      {/* C7.10: UrlList paints from thin seed; only collab / SC / activity stay skeleton */}
       {showThinBodySkeletons ? (
         <ListDetailBodySkeletons />
       ) : (
@@ -906,10 +906,10 @@ export default function ListPageClient() {
               <ActivityFeed listId={list.id} limit={30} />
             </div>
           )}
-
-          <UrlList />
         </>
       )}
+
+      <UrlList />
 
       {list.id ? (
         <Dialog

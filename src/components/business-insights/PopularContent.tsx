@@ -12,6 +12,8 @@ import {
   MousePointerClick,
 } from "lucide-react";
 import { CARD_PAD } from "@/lib/ui-spacing";
+import { UI_CONTROL_ICON_GAP } from "@/lib/ui/control-styles";
+import { cn } from "@/lib/utils";
 
 interface PopularUrl {
   id: string;
@@ -69,13 +71,18 @@ export function PopularContent({
       {/* Popular URLs */}
       <Card className={CARD_PAD}>
         <CardHeader className="pb-2">
-          <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
-            <Star className="h-4 w-4  text-yellow-400" />
+          <CardTitle
+            className={cn(
+              "flex items-center text-sm sm:text-base",
+              UI_CONTROL_ICON_GAP,
+            )}
+          >
+            <Star className="h-4 w-4 text-yellow-400" />
             <span>Popular URLs</span>
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-2 sm:space-y-2">
+          <div className="space-y-2">
             {popularUrls.length === 0 ? (
               <p className="text-white/60 text-xs sm:text-sm text-center py-6 sm:py-8">
                 No URLs yet
@@ -84,7 +91,10 @@ export function PopularContent({
               popularUrls.map((url) => (
                 <div
                   key={url.id}
-                  className="flex items-start gap-2 sm:gap-2 p-2 sm:p-3 rounded-lg bg-white/5 border border-white/10 hover:border-blue-400/30 transition-all"
+                  className={cn(
+                    "flex items-start p-2 sm:p-3 rounded-lg bg-white/5 border border-white/10 hover:border-blue-400/30 transition-all",
+                    UI_CONTROL_ICON_GAP,
+                  )}
                 >
                   {url.isFavorite && (
                     <Star className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-yellow-400 flex-shrink-0 mt-0.5 sm:mt-1 fill-yellow-400" />
@@ -98,7 +108,11 @@ export function PopularContent({
                     >
                       {url.title || url.url}
                     </a>
-                    <div className="flex items-center  mt-1 flex-wrap">
+                    <div
+                      className={cn(
+                        "flex items-center mt-1 flex-wrap gap-1.5",
+                      )}
+                    >
                       <WarmSoftNavLink
                         href={`/list/${url.listSlug}`}
                         className="text-white/60 hover:text-white/80 text-xs truncate"
@@ -106,7 +120,11 @@ export function PopularContent({
                         From: {url.listTitle}
                       </WarmSoftNavLink>
                       {url.clickCount !== undefined && url.clickCount > 0 && (
-                        <span className="flex items-center gap-1 text-white/50 text-xs">
+                        <span
+                          className={cn(
+                            "flex items-center text-white/50 text-xs gap-1.5",
+                          )}
+                        >
                           <MousePointerClick className="h-3 w-3" />
                           {url.clickCount}
                         </span>
@@ -124,13 +142,18 @@ export function PopularContent({
       {/* Active Lists */}
       <Card className={CARD_PAD}>
         <CardHeader className="pb-2">
-          <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
-            <Users className="h-4 w-4  text-blue-400" />
+          <CardTitle
+            className={cn(
+              "flex items-center text-sm sm:text-base",
+              UI_CONTROL_ICON_GAP,
+            )}
+          >
+            <Users className="h-4 w-4 text-blue-400" />
             <span>Most Active Lists</span>
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-2 sm:space-y-2">
+          <div className="space-y-2">
             {activeLists.length === 0 ? (
               <p className="text-white/60 text-xs sm:text-sm text-center py-6 sm:py-8">
                 No lists yet
@@ -140,10 +163,14 @@ export function PopularContent({
                 <WarmSoftNavLink
                   key={list.id}
                   href={`/list/${list.slug}`}
-                  className="flex items-center justify-between p-2 sm:p-3 rounded-lg bg-white/5 border border-white/10 hover:border-blue-400/30 transition-all group"
+                  className="flex items-center justify-between gap-2 p-2 sm:p-3 rounded-lg bg-white/5 border border-white/10 hover:border-blue-400/30 transition-all group"
                 >
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center  mb-1">
+                    <div
+                      className={cn(
+                        "flex items-center mb-1 gap-1.5 min-w-0",
+                      )}
+                    >
                       <h4 className="text-white group-hover:text-blue-400 transition-colors text-xs sm:text-sm font-medium truncate">
                         {list.title}
                       </h4>
@@ -153,20 +180,24 @@ export function PopularContent({
                         <Lock className="h-3 w-3 text-yellow-400 flex-shrink-0" />
                       )}
                     </div>
-                    <div className="flex items-center gap-2 sm:gap-2 text-xs text-white/60">
+                    <div
+                      className={cn(
+                        "flex items-center flex-wrap text-xs text-white/60 gap-1.5",
+                      )}
+                    >
                       <span>{list.urlCount} URLs</span>
                       {list.collaborators > 0 && (
                         <>
-                          <span>•</span>
-                          <span className="flex items-center gap-1">
-                            <Users className="h-3 w-3" />
+                          <span aria-hidden>•</span>
+                          <span className="inline-flex items-center gap-1.5">
+                            <Users className="h-3 w-3 shrink-0" />
                             {list.collaborators}
                           </span>
                         </>
                       )}
                     </div>
                   </div>
-                  <Badge variant="secondary" className="ml-2 text-xs">
+                  <Badge variant="secondary" className="shrink-0 text-xs">
                     {list.urlCount}
                   </Badge>
                 </WarmSoftNavLink>

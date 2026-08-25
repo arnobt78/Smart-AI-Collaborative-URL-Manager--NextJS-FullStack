@@ -696,3 +696,16 @@ Append-only. Newest entries at bottom.
 | Rationale | Warm gate required unified while Lists only had allLists → cold dual skeleton; thin seed without stale mark could blind Infinity staleTime; removeQueries allowed ghost reseed. |
 | Linked REQs | REQ-0049 |
 | Status | Implemented and locally validated 2026-08-25. |
+
+---
+
+## DEC-0051 — C7.10–C7.11 share origin + Insights soft-nav chart skeleton
+
+| Field | Value |
+|---|---|
+| Timestamp | 2026-08-25 |
+| Agent | Cursor |
+| Decision | Prefer `NEXT_PUBLIC_BASE_URL` for `listShareUrl` (SSR/client identical); paint UrlList from thin seed/soft-nav; recover warm soft-nav via `shouldPaintWarmSoftNav` without a second warm flag; Insights soft-nav uses `ActivityChartSkeleton` + single LineChart + shared tooltip — no densify rewrite. |
+| Rationale | Mounted share path flashed; soft-nav omitted UrlList; Back/history cold; Insights remounted live Recharts twice; icon gaps deleted in cleanup. |
+| Linked REQs | REQ-0050 |
+| Status | Implemented and locally validated 2026-08-25. |

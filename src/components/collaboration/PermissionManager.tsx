@@ -18,6 +18,8 @@ import {
   Send,
   UserCog,
   X,
+  CalendarPlus,
+  CalendarArrowUp,
 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useListPermissions } from "@/hooks/useListPermissions";
@@ -28,7 +30,9 @@ import {
   listQueryKeys,
 } from "@/hooks/useListQueries";
 import { glassPrimaryButtonClass } from "@/lib/ui/glass-button-styles";
+import { LIST_STACK } from "@/lib/ui-spacing";
 import { Dialog } from "@/components/ui/Dialog";
+import { cn } from "@/lib/utils";
 
 export interface Collaborator {
   email: string;
@@ -274,192 +278,200 @@ export function PermissionManager({
 
   const isEmpty = !isLoading && collaborators.length === 0;
 
-  return (
-    <div className={isEmpty ? undefined : "space-y-2 sm:space-y-3"}>
-      {/* Empty: one compact row — title | invite copy | Add. Populated/loading: header + list */}
-      {isEmpty ? (
-        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-2">
-          <div className="flex items-center gap-2 shrink-0">
-            <Shield className="h-4 w-4  text-white" />
-            <h3 className="text-base sm:text-lg font-medium text-white">
-              Collaborators
-            </h3>
-          </div>
-          <p className="flex-1 min-w-0 text-xs sm:text-sm text-white/60 text-center sm:truncate">
-            No collaborators yet · Invite others to collaborate on this list
-          </p>
-          {addCollaboratorButton}
-        </div>
-      ) : (
-        <>
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
-            <div className="flex items-center gap-2">
-              <Shield className="h-4 w-4  text-white" />
-              <h3 className="text-base sm:text-lg font-medium text-white">
-                Collaborators
-              </h3>
-              {collaborators.length > 0 && (
-                <Badge
-                  variant="secondary"
-                  className="bg-blue-500/30 text-blue-200 border-blue-400/50 text-xs sm:text-sm"
-                >
-                  {collaborators.length}
-                </Badge>
-              )}
-            </div>
-            {addCollaboratorButton}
-          </div>
+  const headerLeft = (
+    <div className="min-w-0 flex-1">
+      <div className="flex items-center gap-2">
+        <Shield className="h-4 w-4 text-white shrink-0" aria-hidden />
+        <h3 className="text-base sm:text-lg font-medium text-white">
+          Collaborators
+        </h3>
+        {(isLoading || collaborators.length > 0) && (
+          <Badge
+            variant="secondary"
+            className="inline-flex h-5 min-w-5 sm:h-6 sm:min-w-6 items-center justify-center rounded-full bg-blue-500/30 text-blue-200 border-blue-400/50 px-1.5 text-xs sm:text-sm text-center"
+          >
+            {isLoading ? "…" : collaborators.length}
+          </Badge>
+        )}
+      </div>
+      <p className="mt-1 text-xs sm:text-sm text-white/60">
+        {isEmpty
+          ? "No collaborators yet · Invite others to collaborate on this list"
+          : "People with access to this list"}
+      </p>
+    </div>
+  );
 
-          {isLoading ? (
-            <div className="space-y-2">
-              {[1, 2].map((i) => (
+  return (
+    <div className={cn(LIST_STACK, "gap-2 sm:gap-3")}>
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-3">
+        {headerLeft}
+        {addCollaboratorButton}
+      </div>
+
+      {isLoading ? (
+        <div className="space-y-2">
+          {[1, 2].map((i) => (
+            <div
+              key={i}
+              className="h-16 bg-white/5 border border-white/10 rounded-lg animate-pulse"
+            />
+          ))}
+        </div>
+      ) : isEmpty ? null : (
+        <div className="space-y-2">
+          {(collaborators as Collaborator[])
+            .reduce<Collaborator[]>((acc, collaborator) => {
+              const emailLower = collaborator.email.toLowerCase();
+              const exists = acc.some(
+                (c) => c.email.toLowerCase() === emailLower,
+              );
+              if (!exists) {
+                acc.push(collaborator);
+              }
+              return acc;
+            }, [])
+            .map((collaborator, index) => {
+              const invitedAt = formatMetaDate(collaborator.invitedAt);
+              const updatedAt = formatMetaDate(collaborator.updatedAt);
+              const menuOpen = menuEmail === collaborator.email;
+              return (
                 <div
-                  key={i}
-                  className="h-16 bg-white/5 border border-white/10 rounded-lg animate-pulse"
-                />
-              ))}
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {(collaborators as Collaborator[])
-                .reduce<Collaborator[]>((acc, collaborator) => {
-                  const emailLower = collaborator.email.toLowerCase();
-                  const exists = acc.some(
-                    (c) => c.email.toLowerCase() === emailLower,
-                  );
-                  if (!exists) {
-                    acc.push(collaborator);
-                  }
-                  return acc;
-                }, [])
-                .map((collaborator, index) => {
-                  const invitedAt = formatMetaDate(collaborator.invitedAt);
-                  const updatedAt = formatMetaDate(collaborator.updatedAt);
-                  const menuOpen = menuEmail === collaborator.email;
-                  return (
-                    <div
-                      key={`${collaborator.email.toLowerCase()}-${index}`}
-                      className="bg-white/5 border border-white/10 rounded-lg p-3 sm:p-4 hover:bg-white/10 transition-colors"
-                    >
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="flex items-center gap-2 flex-1 min-w-0">
-                          <UserAvatar
-                            seed={collaborator.email}
-                            size={40}
-                            alt={collaborator.email}
-                            className="h-9 w-9 sm:h-10 sm:w-10"
-                          />
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm sm:text-base text-white font-medium truncate">
-                              {collaborator.email}
-                            </p>
-                            <div className="flex items-center gap-2 mt-1 flex-wrap">
-                              <div
-                                className={`${getRoleBadgeColor(
-                                  collaborator.role,
-                                )} inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border`}
-                              >
-                                {getRoleIcon(collaborator.role)}
-                                <span className="capitalize">
-                                  {collaborator.role}
-                                </span>
-                              </div>
-                            </div>
-                            <div className="mt-1.5 space-y-0.5 text-[11px] sm:text-xs text-white/50">
-                              {collaborator.invitedByEmail ? (
-                                <p className="truncate">
-                                  Added by {collaborator.invitedByEmail}
-                                  {invitedAt ? ` · ${invitedAt}` : ""}
-                                </p>
-                              ) : invitedAt ? (
-                                <p>Added {invitedAt}</p>
-                              ) : null}
-                              {updatedAt ? <p>Updated {updatedAt}</p> : null}
-                            </div>
-                          </div>
-                        </div>
-                        <div className="relative shrink-0" ref={menuOpen ? menuRef : undefined}>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() =>
-                              setMenuEmail(menuOpen ? null : collaborator.email)
-                            }
-                            className="text-white/80 hover:text-white hover:bg-white/10"
-                            aria-expanded={menuOpen}
-                            aria-haspopup="menu"
-                            aria-label={`Actions for ${collaborator.email}`}
+                  key={`${collaborator.email.toLowerCase()}-${index}`}
+                  className="bg-white/5 border border-white/10 rounded-lg p-3 sm:p-4 hover:bg-white/10 transition-colors"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                      <UserAvatar
+                        seed={collaborator.email}
+                        size={40}
+                        alt={collaborator.email}
+                        className="h-9 w-9 sm:h-10 sm:w-10"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm sm:text-base text-white font-medium truncate">
+                          {collaborator.email}
+                        </p>
+                        <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] sm:text-xs text-white/50">
+                          <div
+                            className={`${getRoleBadgeColor(
+                              collaborator.role,
+                            )} inline-flex items-center justify-center gap-1 px-2 py-0.5 rounded-full text-xs sm:text-sm font-medium border text-center`}
                           >
-                            <MoreVertical className="h-4 w-4" />
-                          </Button>
-                          {menuOpen && (
-                            <div
-                              role="menu"
-                              className="absolute right-0 top-full z-[100] mt-1.5 w-48 origin-top-right rounded-xl border border-white/20 bg-gradient-to-br from-zinc-900/95 to-zinc-800/95 p-1 shadow-2xl backdrop-blur-md animate-in fade-in-0 zoom-in-95 slide-in-from-top-2 duration-150"
-                            >
-                              <button
-                                type="button"
-                                role="menuitem"
-                                disabled={!canInvite}
-                                onClick={() => {
-                                  if (!canInvite) return;
-                                  setMenuEmail(null);
-                                  setRoleChangeDialog({
-                                    open: true,
-                                    email: collaborator.email,
-                                    currentRole: collaborator.role,
-                                  });
-                                }}
-                                className={`flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm transition-colors ${
-                                  canInvite
-                                    ? "text-white/90 hover:bg-white/10"
-                                    : "text-white/40 cursor-not-allowed"
-                                }`}
-                              >
-                                <Edit3 className="h-4 w-4 text-blue-300" />
-                                Change Role
-                              </button>
-                              <button
-                                type="button"
-                                role="menuitem"
-                                disabled={!canInvite}
-                                onClick={() => {
-                                  if (!canInvite) return;
-                                  setMenuEmail(null);
-                                  setDeleteDialog({
-                                    open: true,
-                                    email: collaborator.email,
-                                  });
-                                }}
-                                className={`flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm transition-colors ${
-                                  canInvite
-                                    ? "text-red-400 hover:bg-red-500/10 hover:text-red-300"
-                                    : "text-red-400/40 cursor-not-allowed"
-                                }`}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                                Remove
-                              </button>
-                              <div className="my-1 h-px bg-white/10" />
-                              <button
-                                type="button"
-                                role="menuitem"
-                                onClick={() => setMenuEmail(null)}
-                                className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-white/70 hover:bg-white/10 hover:text-white"
-                              >
-                                <X className="h-4 w-4" />
-                                Cancel
-                              </button>
-                            </div>
-                          )}
+                            {getRoleIcon(collaborator.role)}
+                            <span className="capitalize">
+                              {collaborator.role}
+                            </span>
+                          </div>
+                          {collaborator.invitedByEmail || invitedAt ? (
+                            <span className="inline-flex items-center gap-1 min-w-0">
+                              <CalendarPlus
+                                className="h-3 w-3 shrink-0"
+                                aria-hidden
+                              />
+                              <span className="truncate">
+                                {collaborator.invitedByEmail
+                                  ? `Added by ${collaborator.invitedByEmail}`
+                                  : "Added"}
+                                {invitedAt ? ` · ${invitedAt}` : ""}
+                              </span>
+                            </span>
+                          ) : null}
+                          {updatedAt ? (
+                            <span className="inline-flex items-center gap-1">
+                              <CalendarArrowUp
+                                className="h-3 w-3 shrink-0"
+                                aria-hidden
+                              />
+                              Updated {updatedAt}
+                            </span>
+                          ) : null}
                         </div>
                       </div>
                     </div>
-                  );
-                })}
-            </div>
-          )}
-        </>
+                    <div
+                      className="relative shrink-0"
+                      ref={menuOpen ? menuRef : undefined}
+                    >
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() =>
+                          setMenuEmail(menuOpen ? null : collaborator.email)
+                        }
+                        className="text-white/80 hover:text-white hover:bg-white/10"
+                        aria-expanded={menuOpen}
+                        aria-haspopup="menu"
+                        aria-label={`Actions for ${collaborator.email}`}
+                      >
+                        <MoreVertical className="h-4 w-4" />
+                      </Button>
+                      {menuOpen && (
+                        <div
+                          role="menu"
+                          className="absolute right-0 top-full z-[100] mt-1.5 w-48 origin-top-right rounded-xl border border-white/20 bg-gradient-to-br from-zinc-900/95 to-zinc-800/95 p-1 shadow-2xl backdrop-blur-md animate-in fade-in-0 zoom-in-95 slide-in-from-top-2 duration-150"
+                        >
+                          <button
+                            type="button"
+                            role="menuitem"
+                            disabled={!canInvite}
+                            onClick={() => {
+                              if (!canInvite) return;
+                              setMenuEmail(null);
+                              setRoleChangeDialog({
+                                open: true,
+                                email: collaborator.email,
+                                currentRole: collaborator.role,
+                              });
+                            }}
+                            className={`flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm transition-colors ${
+                              canInvite
+                                ? "text-white/90 hover:bg-white/10"
+                                : "text-white/40 cursor-not-allowed"
+                            }`}
+                          >
+                            <Edit3 className="h-4 w-4 text-blue-300" />
+                            Change Role
+                          </button>
+                          <button
+                            type="button"
+                            role="menuitem"
+                            disabled={!canInvite}
+                            onClick={() => {
+                              if (!canInvite) return;
+                              setMenuEmail(null);
+                              setDeleteDialog({
+                                open: true,
+                                email: collaborator.email,
+                              });
+                            }}
+                            className={`flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm transition-colors ${
+                              canInvite
+                                ? "text-red-400 hover:bg-red-500/10 hover:text-red-300"
+                                : "text-red-400/40 cursor-not-allowed"
+                            }`}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                            Remove
+                          </button>
+                          <div className="my-1 h-px bg-white/10" />
+                          <button
+                            type="button"
+                            role="menuitem"
+                            onClick={() => setMenuEmail(null)}
+                            className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-white/70 hover:bg-white/10 hover:text-white"
+                          >
+                            <X className="h-4 w-4" />
+                            Cancel
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+        </div>
       )}
 
       {/* Add Collaborator Dialog - Custom Implementation with Role Selection */}

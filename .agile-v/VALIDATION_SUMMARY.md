@@ -425,3 +425,13 @@ Gate 2: BLOCKED — RISK-0016 is accepted; `EVAL_RESULTS.md` PASS/WAIVED evidenc
 | Skeleton | RoutePageSkeleton.test.tsx | PASS | No Opening/Preparing dual copy. |
 | Validation | `tsc`; `lint`; focused Jest | PASS | lint 0; tsc; soft-nav/densify/roles suites. |
 | OOS | full densify rewrite / JWT-null SSR / further list-detail UX | — | Deferred. |
+
+## 2026-08-25 — C7.10 / C7.10.1 list-detail UX + flash · C7.11 Insights
+
+| Scope | Command / evidence | Result | Notes |
+|---|---|---|---|
+| Share URL | `listShareUrl` / `NEXT_PUBLIC_BASE_URL` | PASS | No mounted path flash when env set. |
+| Soft-nav flash | soft-nav-cache + SoftNavLoading tests | PASS | Store sync; UrlList; warm history. |
+| Insights | ActivityChart single LineChart; tooltip; gaps | PASS | Soft-nav skeleton; YAxis 36; pie label false. |
+| Validation | `tsc`; `lint`; focused Jest; `build` | PASS | lint 0; soft-nav/Insights suites; build exit 0. |
+| OOS | densify rewrite / load balancer / updates API latency | — | Deferred. |

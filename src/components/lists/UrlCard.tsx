@@ -185,7 +185,9 @@ export const UrlCard: React.FC<UrlCardProps> = ({
       toast({
         title: "Delete Failed",
         description:
-          caughtError instanceof Error ? caughtError.message : "Please try again",
+          caughtError instanceof Error
+            ? caughtError.message
+            : "Please try again",
         variant: "error",
       });
     } finally {
@@ -442,7 +444,7 @@ export const UrlCard: React.FC<UrlCardProps> = ({
                 {/* Title with Health Status directly after text */}
                 <div className=" min-w-0">
                   <h3
-                    className="font-medium text-base sm:text-lg lg:text-xl text-white group-hover:text-blue-400 transition-colors font-joti inline break-words"
+                    className="font-medium text-base sm:text-lg xl:text-xl text-white group-hover:text-blue-400 transition-colors font-joti inline break-words"
                     title={title}
                   >
                     {title}

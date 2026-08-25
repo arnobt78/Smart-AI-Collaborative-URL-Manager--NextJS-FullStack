@@ -10,11 +10,14 @@ import {
   prepareWarmSoftNav,
   resetWarmSoftNavForTests,
   seedUnifiedFromAllLists,
+  shouldPaintWarmSoftNav,
 } from "@/lib/soft-nav-cache";
+import { currentList } from "@/stores/urlListStore";
 
 describe("C6.9 soft-nav-cache", () => {
   beforeEach(() => {
     resetWarmSoftNavForTests();
+    currentList.set({});
   });
 
   it("marks and consumes warm soft-nav once", () => {
@@ -82,6 +85,8 @@ describe("C6.9 soft-nav-cache", () => {
     }>(listQueryKeys.unified("my-list"));
     expect(seeded?.list?.title).toBe("My List");
     expect(seeded?._softNavThinSeed).toBe(true);
+    expect(currentList.get().slug).toBe("my-list");
+    expect(currentList.get().title).toBe("My List");
     expect(client.getQueryState(listQueryKeys.unified("my-list"))?.isInvalidated).toBe(
       true,
     );
@@ -104,5 +109,36 @@ describe("C6.9 soft-nav-cache", () => {
     expect(
       client.getQueryData<{ list: null }>(listQueryKeys.unified("gone"))?.list,
     ).toBeNull();
+  });
+
+  it("early-return syncs currentList when unified already present", () => {
+    const client = new QueryClient();
+    currentList.set({
+      id: "other",
+      slug: "other-list",
+      title: "Other",
+      urls: [],
+      createdAt: "",
+    });
+    client.setQueryData(listQueryKeys.unified("my-list"), {
+      list: {
+        id: "1",
+        slug: "my-list",
+        title: "My List",
+        urls: [{ id: "u1", url: "https://a.com", createdAt: "", isFavorite: false }],
+      },
+    });
+    expect(seedUnifiedFromAllLists(client, "my-list")).toBe(true);
+    expect(currentList.get().slug).toBe("my-list");
+    expect(currentList.get().title).toBe("My List");
+    expect(currentList.get().urls).toHaveLength(1);
+  });
+
+  it("shouldPaintWarmSoftNav recovers when cache warm without prepare", () => {
+    const client = new QueryClient();
+    client.setQueryData(listQueryKeys.allLists(), { lists: [] });
+    expect(peekWarmSoftNav()).toBe(false);
+    expect(shouldPaintWarmSoftNav(client, "/lists")).toBe(true);
+    expect(peekWarmSoftNav()).toBe(false);
   });
 });

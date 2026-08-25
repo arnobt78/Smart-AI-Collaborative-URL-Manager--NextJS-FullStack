@@ -31,8 +31,8 @@ Next 15 URL bookmark manager. Demo: https://daily-urlist.vercel.app/
 - Home motion: `ui/ScrollReveal.tsx` provides replayable CSS/observer reveal plus subtle parallax; shared controls use `h-10 min-h-10` and text-sm placeholders
 - Home wave: hero copy lines and CTAs are individual reveal units, staggered in order rather than animated as a grouped row
 - Data sync: SSR prefetch/dehydrate (C6.7) + optimistic `currentList` + `invalidateMutationImpact` + C7.1 `densifyBrowsePublicLists` / `dropUnifiedListCache` (C7.9 `{ list: null }` tombstone) + SSE densify/drop.
-- Soft-nav: warm full-parity chrome (C7.0); list-detail seeds thin unified from Lists (C7.9); cold one continuous detail skeleton; browse densify (C7.1); rare Links `prefetch={false}` (C7.2); api-docs spinner shell; api-status `ApiStatusChrome` + header Refresh/refreshing… (C7.5–C7.6).
-- Insights: overview+activity share one cached list scan; status route slim (no external metadata probe); status page client-fetches.
+- Soft-nav: warm full-parity chrome (C7.0); list-detail seeds thin unified from Lists (C7.9–C7.10.1 UrlList + warm history); cold one continuous detail skeleton; browse densify (C7.1); rare Links `prefetch={false}` (C7.2); api-docs spinner shell; api-status `ApiStatusChrome` + header Refresh/refreshing… (C7.5–C7.6).
+- Insights: overview+activity share one cached list scan; C7.11 soft-nav chart skeleton + single LineChart + shared tooltip; status route slim (no external metadata probe); status page client-fetches.
 - Logout: C7.8 — forceGuest cookie+SS; keepalive signout; clear RQ/`react-query:*`/session cookies; `replace("/login")` (no nav/footer; one html scrollbar). No Auth overlay on `/`.
 - Open later: optional `(auth)` route-group; lists/browse cold API slim; status API speed OOS.
 - Compact data UI: `DataSurfaceSlot` + `useDelayedPending`; Activity Feed default-collapsed; Insights aligned tabs.
