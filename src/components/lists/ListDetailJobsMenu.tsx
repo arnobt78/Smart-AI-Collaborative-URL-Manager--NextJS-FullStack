@@ -1,8 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { Activity, MoreVertical, RefreshCw, X } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import { GlassPortalMenu } from "@/components/ui/GlassPortalMenu";
+import { UI_ICON_MENU_TRIGGER } from "@/lib/ui/control-styles";
 import { cn } from "@/lib/utils";
 
 export type ListDetailJobsMenuProps = {
@@ -20,6 +22,7 @@ export type ListDetailJobsMenuProps = {
 /**
  * Stable header … menu for list-detail jobs (Setup Schedule / Refresh / Health).
  * Always mounts the trigger so soft-nav → hydrate does not reflow the action row.
+ * Panel is body-portaled so it paints above Collaborators / later cards.
  */
 export function ListDetailJobsMenu({
   busy = false,
@@ -32,25 +35,7 @@ export function ListDetailJobsMenu({
   onHealthCheck,
 }: ListDetailJobsMenuProps) {
   const [open, setOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    const onPointerDown = (e: PointerEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
-    };
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false);
-    };
-    document.addEventListener("pointerdown", onPointerDown);
-    document.addEventListener("keydown", onKey);
-    return () => {
-      document.removeEventListener("pointerdown", onPointerDown);
-      document.removeEventListener("keydown", onKey);
-    };
-  }, [open]);
+  const triggerRef = useRef<HTMLButtonElement>(null);
 
   const anyBusy =
     busy || isSettingUpSchedule || isRefreshingMetadata || isCheckingHealth;
@@ -59,12 +44,13 @@ export function ListDetailJobsMenu({
   const scheduleDisabled = busy || isSettingUpSchedule;
 
   return (
-    <div className="relative shrink-0" ref={open ? menuRef : undefined}>
+    <div className="relative shrink-0">
       <Button
+        ref={triggerRef}
         variant="ghost"
         size="sm"
         onClick={() => setOpen((v) => !v)}
-        className="h-8 px-2 text-white/80 hover:text-white hover:bg-white/10"
+        className={UI_ICON_MENU_TRIGGER}
         aria-expanded={open}
         aria-haspopup="menu"
         aria-label="List jobs menu"
@@ -77,95 +63,95 @@ export function ListDetailJobsMenu({
           )}
         />
       </Button>
-      {open && (
-        <div
-          role="menu"
-          className="absolute right-0 top-full z-[100] mt-1.5 w-56 origin-top-right rounded-xl border border-white/20 bg-gradient-to-br from-zinc-900/95 to-zinc-800/95 p-1 shadow-2xl backdrop-blur-md animate-in fade-in-0 zoom-in-95 slide-in-from-top-2 duration-150"
+      <GlassPortalMenu
+        open={open}
+        onClose={() => setOpen(false)}
+        triggerRef={triggerRef}
+        widthClassName="w-56"
+      >
+        <button
+          type="button"
+          role="menuitem"
+          disabled={scheduleDisabled}
+          onClick={() => {
+            if (scheduleDisabled) return;
+            setOpen(false);
+            void onSetupSchedule?.();
+          }}
+          className={cn(
+            "flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm transition-colors",
+            scheduleDisabled
+              ? "text-white/40 cursor-not-allowed"
+              : "text-white/90 hover:bg-white/10",
+          )}
         >
-          <button
-            type="button"
-            role="menuitem"
-            disabled={scheduleDisabled}
-            onClick={() => {
-              if (scheduleDisabled) return;
-              setOpen(false);
-              void onSetupSchedule?.();
-            }}
+          <Activity
             className={cn(
-              "flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm transition-colors",
-              scheduleDisabled
-                ? "text-white/40 cursor-not-allowed"
-                : "text-white/90 hover:bg-white/10",
+              "h-4 w-4 text-violet-300",
+              isSettingUpSchedule && "animate-spin",
             )}
-          >
-            <Activity
-              className={cn(
-                "h-4 w-4 text-violet-300",
-                isSettingUpSchedule && "animate-spin",
-              )}
-            />
-            {isSettingUpSchedule ? "Setting up…" : "Setup Schedule"}
-          </button>
-          <button
-            type="button"
-            role="menuitem"
-            disabled={refreshDisabled}
-            onClick={() => {
-              if (refreshDisabled) return;
-              setOpen(false);
-              void onRefreshMetadata?.();
-            }}
+          />
+          {isSettingUpSchedule ? "Setting up…" : "Setup Schedule"}
+        </button>
+        <button
+          type="button"
+          role="menuitem"
+          disabled={refreshDisabled}
+          onClick={() => {
+            if (refreshDisabled) return;
+            setOpen(false);
+            void onRefreshMetadata?.();
+          }}
+          className={cn(
+            "flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm transition-colors",
+            refreshDisabled
+              ? "text-white/40 cursor-not-allowed"
+              : "text-white/90 hover:bg-white/10",
+          )}
+        >
+          <RefreshCw
             className={cn(
-              "flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm transition-colors",
-              refreshDisabled
-                ? "text-white/40 cursor-not-allowed"
-                : "text-white/90 hover:bg-white/10",
+              "h-4 w-4 text-emerald-300",
+              isRefreshingMetadata && "animate-spin",
             )}
-          >
-            <RefreshCw
-              className={cn(
-                "h-4 w-4 text-emerald-300",
-                isRefreshingMetadata && "animate-spin",
-              )}
-            />
-            {isRefreshingMetadata ? "Refreshing…" : "Refresh Metadata"}
-          </button>
-          <button
-            type="button"
-            role="menuitem"
-            disabled={healthDisabled}
-            onClick={() => {
-              if (healthDisabled) return;
-              setOpen(false);
-              void onHealthCheck?.();
-            }}
+          />
+          {isRefreshingMetadata ? "Refreshing…" : "Refresh Metadata"}
+        </button>
+        <button
+          type="button"
+          role="menuitem"
+          disabled={healthDisabled}
+          onClick={() => {
+            if (healthDisabled) return;
+            setOpen(false);
+            void onHealthCheck?.();
+          }}
+          className={cn(
+            "flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm transition-colors",
+            healthDisabled
+              ? "text-white/40 cursor-not-allowed"
+              : "text-white/90 hover:bg-white/10",
+          )}
+        >
+          <Activity
             className={cn(
-              "flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm transition-colors",
-              healthDisabled
-                ? "text-white/40 cursor-not-allowed"
-                : "text-white/90 hover:bg-white/10",
+              "h-4 w-4 text-blue-300",
+              isCheckingHealth && "animate-spin",
             )}
-          >
-            <Activity
-              className={cn(
-                "h-4 w-4 text-blue-300",
-                isCheckingHealth && "animate-spin",
-              )}
-            />
-            {isCheckingHealth ? "Checking…" : "Health Check"}
-          </button>
-          <div className="my-1 h-px bg-white/10" />
-          <button
-            type="button"
-            role="menuitem"
-            onClick={() => setOpen(false)}
-            className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-white/70 hover:bg-white/10 hover:text-white"
-          >
-            <X className="h-4 w-4" />
-            Cancel
-          </button>
-        </div>
-      )}
+          />
+          {isCheckingHealth ? "Checking…" : "Health Check"}
+        </button>
+        <div className="my-1 h-px bg-white/10" />
+        <button
+          type="button"
+          role="menuitem"
+          onClick={() => setOpen(false)}
+          className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-white/70 hover:bg-white/10 hover:text-white"
+        >
+          <X className="h-4 w-4" />
+          Cancel
+        </button>
+      </GlassPortalMenu>
     </div>
   );
 }

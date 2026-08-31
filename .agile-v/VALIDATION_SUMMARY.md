@@ -466,3 +466,14 @@ Gate 2: BLOCKED — RISK-0016 is accepted; `EVAL_RESULTS.md` PASS/WAIVED evidenc
 | ESLint | `globalIgnores` moved to start of `defineConfig` | PASS | Flat-config convention; lint 0 on Node 24.19. |
 | Docs | walkthrough OOS; STATE/CLAUDE/README Node 24 + `proxy.ts` | PASS | Next 16 no longer listed as OOS. |
 | Types | `tsc --noEmit` | PASS | Node 24 via nvm. |
+
+## 2026-08-31 — C7.14 list-detail polish + GlassPortalMenu
+
+| Scope | Command / evidence | Result | Notes |
+|---|---|---|---|
+| Portal | `GlassPortalMenu` body portal + flip/clamp | PASS | `z-[900]`; jobs, collab, ProfileDropdown. |
+| Header | badges text-xs; share in HEADING_STACK; AlignLeft desc; Back+… h-10 | PASS | Soft-nav share parity. |
+| UrlCard | title/health items-center; note items-center; Added/Updated text-xs | PASS | Updated when `updatedAt` present. |
+| Insights | dense meta/tabs `gap-1` | PASS | GlobalStats / Tabs / Popular. |
+| Validation | lint; tsc; Jest UrlList\|SoftNav; build; verify-deep | PASS | BUILD exit 0; lint 0. |
+| OOS | UrlFilterBar portal | — | Deferred. |

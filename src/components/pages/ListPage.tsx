@@ -486,10 +486,20 @@ export default function ListPageClient() {
     const clearVectorSyncMarker = () => {
       if (typeof window === "undefined") return;
       try {
-        const stored = JSON.parse(localStorage.getItem("vector-synced-lists") || "[]") as string[];
-        localStorage.setItem("vector-synced-lists", JSON.stringify(stored.filter((id) => id !== listId)));
-        const sessionStored = JSON.parse(sessionStorage.getItem("vector-synced-lists") || "[]") as string[];
-        sessionStorage.setItem("vector-synced-lists", JSON.stringify(sessionStored.filter((id) => id !== listId)));
+        const stored = JSON.parse(
+          localStorage.getItem("vector-synced-lists") || "[]",
+        ) as string[];
+        localStorage.setItem(
+          "vector-synced-lists",
+          JSON.stringify(stored.filter((id) => id !== listId)),
+        );
+        const sessionStored = JSON.parse(
+          sessionStorage.getItem("vector-synced-lists") || "[]",
+        ) as string[];
+        sessionStorage.setItem(
+          "vector-synced-lists",
+          JSON.stringify(sessionStored.filter((id) => id !== listId)),
+        );
       } catch {
         localStorage.removeItem("vector-synced-lists");
         sessionStorage.removeItem("vector-synced-lists");
@@ -502,7 +512,9 @@ export default function ListPageClient() {
       markListVectorSynced(listId);
 
       try {
-        const response = await fetch(`/api/lists/${listId}/sync-vectors`, { method: "POST" });
+        const response = await fetch(`/api/lists/${listId}/sync-vectors`, {
+          method: "POST",
+        });
         if (!response.ok) throw new Error("Vector sync failed");
         if (!hasListSyncedVectors(listId)) markListVectorSynced(listId);
       } catch {
@@ -538,9 +550,7 @@ export default function ListPageClient() {
 
   // C6.9: paint immediately when RQ/store has this slug; skeleton only when cold
   const shouldShowLoading =
-    Boolean(listSlug) &&
-    !hasAnyData &&
-    (isLoadingQuery || sessionLoading);
+    Boolean(listSlug) && !hasAnyData && (isLoadingQuery || sessionLoading);
 
   if (shouldShowLoading) {
     return <ListDetailRouteSkeleton />;
@@ -741,9 +751,7 @@ export default function ListPageClient() {
                   }
                   toast({
                     title: "Health Check Complete!",
-                    description: `Checked ${
-                      data.checked || 0
-                    } URLs. Healthy: ${
+                    description: `Checked ${data.checked || 0} URLs. Healthy: ${
                       data.results?.healthy || 0
                     }, Warning: ${data.results?.warning || 0}, Broken: ${
                       data.results?.broken || 0
@@ -770,47 +778,45 @@ export default function ListPageClient() {
           />
         }
         shareRow={
-          <div className="flex flex-col sm:flex-row sm:items-center gap-2 flex-wrap pt-2 border-t border-white/10 sm:border-t-0 sm:pt-0">
-            <span className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-light text-white/70 whitespace-nowrap">
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="inline-flex items-center gap-1.5 text-xs font-light text-white/70 whitespace-nowrap shrink-0">
               <Globe className="w-3.5 h-3.5 shrink-0" aria-hidden />
               Shareable Link:
             </span>
-            <div className="flex items-center gap-1 flex-1 min-w-0">
-              <span className="text-xs sm:text-sm text-white/90 truncate">
-                {list?.slug ? listShareUrl(list.slug) : ""}
-              </span>
-              <button
-                type="button"
-                onClick={async () => {
-                  const url = list?.slug ? resolveListShareUrl(list.slug) : "";
-                  if (!url) return;
-                  try {
-                    await navigator.clipboard.writeText(url);
-                    setIsCopied(true);
-                    toast({
-                      title: "Copied!",
-                      description: "Link copied to clipboard",
-                      variant: "success",
-                    });
-                    setTimeout(() => setIsCopied(false), 2000);
-                  } catch {
-                    toast({
-                      title: "Failed",
-                      description: "Failed to copy link",
-                      variant: "error",
-                    });
-                  }
-                }}
-                className="flex-shrink-0 p-1.5 rounded-md sm:rounded-lg hover:bg-white/10 transition-colors duration-200 group"
-                aria-label="Copy link"
-              >
-                {isCopied ? (
-                  <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-green-400 group-hover:scale-110 transition-transform duration-200" />
-                ) : (
-                  <Copy className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white/70 group-hover:text-white group-hover:scale-110 transition-all duration-200" />
-                )}
-              </button>
-            </div>
+            <span className="text-xs text-white/90 truncate min-w-0 flex-1">
+              {list?.slug ? listShareUrl(list.slug) : ""}
+            </span>
+            <button
+              type="button"
+              onClick={async () => {
+                const url = list?.slug ? resolveListShareUrl(list.slug) : "";
+                if (!url) return;
+                try {
+                  await navigator.clipboard.writeText(url);
+                  setIsCopied(true);
+                  toast({
+                    title: "Copied!",
+                    description: "Link copied to clipboard",
+                    variant: "success",
+                  });
+                  setTimeout(() => setIsCopied(false), 2000);
+                } catch {
+                  toast({
+                    title: "Failed",
+                    description: "Failed to copy link",
+                    variant: "error",
+                  });
+                }
+              }}
+              className="flex-shrink-0 inline-flex h-8 w-8 items-center justify-center rounded-md hover:bg-white/10 transition-colors duration-200 group"
+              aria-label="Copy link"
+            >
+              {isCopied ? (
+                <Check className="w-3.5 h-3.5 text-green-400 group-hover:scale-110 transition-transform duration-200" />
+              ) : (
+                <Copy className="w-3.5 h-3.5 text-white/70 group-hover:text-white group-hover:scale-110 transition-all duration-200" />
+              )}
+            </button>
           </div>
         }
       />

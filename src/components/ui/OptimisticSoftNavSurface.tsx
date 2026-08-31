@@ -67,7 +67,9 @@ type InsightsOverviewCache = {
     recentUrls: number;
   };
 };
-type ActivityCache = { activity?: Array<{ date: string; lists: number; urls: number }> };
+type ActivityCache = {
+  activity?: Array<{ date: string; lists: number; urls: number }>;
+};
 type UnifiedCache = {
   list?: {
     id?: string;
@@ -137,9 +139,7 @@ function BrowseOptimisticSurface() {
     queryClient.getQueryData<BrowseCache>(
       browseQueryKeys.publicLists(page, ""),
     ) ??
-    queryClient.getQueryData<BrowseCache>(
-      browseQueryKeys.publicLists(1, ""),
-    );
+    queryClient.getQueryData<BrowseCache>(browseQueryKeys.publicLists(1, ""));
   const lists = data?.lists;
 
   if (!data || !lists) {
@@ -262,30 +262,26 @@ function ListDetailOptimisticSurface() {
         actions={
           <ListDetailJobsMenu
             busy
-            hasUrls={
-              Array.isArray(list.urls) ? list.urls.length > 0 : false
-            }
+            hasUrls={Array.isArray(list.urls) ? list.urls.length > 0 : false}
           />
         }
         shareRow={
-          <div className="flex flex-col sm:flex-row sm:items-center gap-2 flex-wrap pt-2 border-t border-white/10 sm:border-t-0 sm:pt-0">
-            <span className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-light text-white/70 whitespace-nowrap">
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="inline-flex items-center gap-1.5 text-xs font-light text-white/70 whitespace-nowrap shrink-0">
               <Globe className="w-3.5 h-3.5 shrink-0" aria-hidden />
               Shareable Link:
             </span>
-            <div className="flex items-center gap-1 flex-1 min-w-0">
-              <span className="text-xs sm:text-sm text-white/90 truncate">
-                {listShareUrl(listSlug)}
-              </span>
-              <button
-                type="button"
-                disabled
-                className="flex-shrink-0 p-1.5 rounded-md sm:rounded-lg opacity-50 cursor-not-allowed"
-                aria-label="Copy link"
-              >
-                <Copy className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white/70" />
-              </button>
-            </div>
+            <span className="text-xs text-white/90 truncate min-w-0 flex-1">
+              {listShareUrl(listSlug)}
+            </span>
+            <button
+              type="button"
+              disabled
+              className="flex-shrink-0 inline-flex h-8 w-8 items-center justify-center rounded-md opacity-50 cursor-not-allowed"
+              aria-label="Copy link"
+            >
+              <Copy className="w-3.5 h-3.5 text-white/70" />
+            </button>
           </div>
         }
       />

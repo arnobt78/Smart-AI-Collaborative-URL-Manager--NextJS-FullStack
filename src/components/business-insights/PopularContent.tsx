@@ -109,9 +109,7 @@ export function PopularContent({
                       {url.title || url.url}
                     </a>
                     <div
-                      className={cn(
-                        "flex items-center mt-1 flex-wrap gap-1.5",
-                      )}
+                      className={cn("flex items-center mt-1 flex-wrap gap-1")}
                     >
                       <WarmSoftNavLink
                         href={`/list/${url.listSlug}`}
@@ -122,7 +120,7 @@ export function PopularContent({
                       {url.clickCount !== undefined && url.clickCount > 0 && (
                         <span
                           className={cn(
-                            "flex items-center text-white/50 text-xs gap-1.5",
+                            "flex items-center text-white/50 text-xs gap-1",
                           )}
                         >
                           <MousePointerClick className="h-3 w-3" />
@@ -166,11 +164,7 @@ export function PopularContent({
                   className="flex items-center justify-between gap-2 p-2 sm:p-3 rounded-lg bg-white/5 border border-white/10 hover:border-blue-400/30 transition-all group"
                 >
                   <div className="flex-1 min-w-0">
-                    <div
-                      className={cn(
-                        "flex items-center mb-1 gap-1.5 min-w-0",
-                      )}
-                    >
+                    <div className={cn("flex items-center mb-1 gap-1 min-w-0")}>
                       <h4 className="text-white group-hover:text-blue-400 transition-colors text-xs sm:text-sm font-medium truncate">
                         {list.title}
                       </h4>
@@ -182,14 +176,14 @@ export function PopularContent({
                     </div>
                     <div
                       className={cn(
-                        "flex items-center flex-wrap text-xs text-white/60 gap-1.5",
+                        "flex items-center flex-wrap text-xs text-white/60 gap-1",
                       )}
                     >
                       <span>{list.urlCount} URLs</span>
                       {list.collaborators > 0 && (
                         <>
                           <span aria-hidden>•</span>
-                          <span className="inline-flex items-center gap-1.5">
+                          <span className="inline-flex items-center gap-1">
                             <Users className="h-3 w-3 shrink-0" />
                             {list.collaborators}
                           </span>

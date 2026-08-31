@@ -188,11 +188,11 @@ export function GlobalStats({ data, isLoading }: GlobalStatsProps) {
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
-              <Badge variant="success" className="text-xs gap-1.5">
+              <Badge variant="success" className="text-xs gap-1">
                 <Globe className="h-3 w-3" />
                 {data.publicLists} Public
               </Badge>
-              <Badge variant="warning" className="text-xs gap-1.5">
+              <Badge variant="warning" className="text-xs gap-1">
                 <Lock className="h-3 w-3" />
                 {data.privateLists} Private
               </Badge>

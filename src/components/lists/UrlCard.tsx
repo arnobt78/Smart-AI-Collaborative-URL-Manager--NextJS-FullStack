@@ -59,7 +59,7 @@ interface TimeInfoProps {
 }
 
 const TimeInfo = ({ icon, label, date }: TimeInfoProps) => (
-  <div className="flex items-center gap-1 text-white/60 text-sm font-delicious">
+  <div className="flex items-center gap-1 text-white/60 text-xs font-delicious">
     {icon}
     <span>{label}</span>
     <span className="text-white/40">{date.toLocaleDateString()}</span>
@@ -405,7 +405,7 @@ export const UrlCard: React.FC<UrlCardProps> = ({
           </div>
         </div>
         {/* Content Section */}
-        <div className="sm:w-3/5 w-full flex-1 min-w-0 flex flex-col gap-4">
+        <div className="sm:w-3/5 w-full flex-1 min-w-0 flex flex-col gap-2 sm:gap-4">
           {shouldShowSkeleton ? (
             <>
               {/* Skeleton for title */}
@@ -440,21 +440,20 @@ export const UrlCard: React.FC<UrlCardProps> = ({
           ) : (
             <>
               <div className="flex-1 min-w-0">
-                {/* Title with Health Status directly after text */}
-                <div className="min-w-0">
+                {/* Title with Health Status — one vertically centered row */}
+                <div className="flex items-center gap-2 flex-wrap min-w-0">
                   <button
                     type="button"
                     onClick={() => {
                       onUrlClick?.(url.id);
                       openExternalUrl(url.url);
                     }}
-                    className="font-medium text-base sm:text-lg xl:text-xl text-white hover:text-blue-400 transition-colors font-joti inline break-words text-left cursor-pointer"
+                    className="font-medium text-base sm:text-lg xl:text-xl text-white hover:text-blue-400 transition-colors font-joti break-words text-left cursor-pointer min-w-0"
                     title={title}
                   >
                     {title}
                   </button>
-                  <span className="inline-flex items-center ml-2 align-middle">
-                    {/* Health Status Indicator - directly after title */}
+                  <span className="inline-flex items-center shrink-0">
                     <UrlHealthIndicator
                       status={url.healthStatus}
                       httpStatus={url.healthLastStatus}
@@ -501,8 +500,8 @@ export const UrlCard: React.FC<UrlCardProps> = ({
                 {/* Reminder Display */}
                 {url.reminder && (
                   <div className="mt-1 flex items-center gap-2">
-                    <BellIcon className="h-4 w-4 text-yellow-400" />
-                    <span className="text-sm text-yellow-300 font-medium">
+                    <BellIcon className="h-3.5 w-3.5 text-yellow-400 shrink-0" />
+                    <span className="text-xs text-yellow-300 font-medium inline-flex items-center flex-wrap gap-1">
                       Reminder:{" "}
                       <span className="text-yellow-200">
                         {new Date(url.reminder).toLocaleDateString("en-US", {
@@ -512,7 +511,7 @@ export const UrlCard: React.FC<UrlCardProps> = ({
                         })}
                       </span>
                       {new Date(url.reminder) < new Date() && (
-                        <span className="ml-2 px-2 py-0.5 bg-red-500/20 border border-red-400/30 text-red-300 rounded text-xs font-medium">
+                        <span className="px-2 py-0.5 bg-red-500/20 border border-red-400/30 text-red-300 rounded text-xs font-medium">
                           Overdue
                         </span>
                       )}
@@ -521,7 +520,7 @@ export const UrlCard: React.FC<UrlCardProps> = ({
                           new Date(
                             new Date().setDate(new Date().getDate() + 7),
                           ) && (
-                          <span className="ml-2 px-2 py-0.5 bg-orange-500/20 border border-orange-400/30 text-orange-300 rounded text-xs font-medium">
+                          <span className="px-2 py-0.5 bg-orange-500/20 border border-orange-400/30 text-orange-300 rounded text-xs font-medium">
                             Soon
                           </span>
                         )}
@@ -530,14 +529,16 @@ export const UrlCard: React.FC<UrlCardProps> = ({
                 )}
 
                 {isNoPreview ? (
-                  <p className="mt-1 text-xs sm:text-sm text-white/40 italic font-delicious">
+                  <p className="mt-1 text-xs text-white/40 italic font-delicious">
                     No preview available for this site.
                   </p>
                 ) : (
                   description && (
-                    <p className="mt-1 text-xs sm:text-sm text-white/60 leading-relaxed font-delicious line-clamp-5 break-words overflow-hidden">
-                      {description}
-                    </p>
+                    <div className="mt-1 flex w-full min-h-[3.5rem] items-center">
+                      <p className="w-full text-xs text-white/60 leading-relaxed font-delicious line-clamp-5 break-words">
+                        {description}
+                      </p>
+                    </div>
                   )
                 )}
               </div>
@@ -665,19 +666,19 @@ export const UrlCard: React.FC<UrlCardProps> = ({
                     badge={url.commentCount}
                   />
                 </div>
-                <div className="flex items-center gap-2 text-white/60 text-sm font-delicious">
+                <div className="flex items-center gap-2 text-white/60 text-xs font-delicious flex-wrap justify-end">
                   <TimeInfo
-                    icon={<ClockIcon className="h-4 w-4" />}
+                    icon={<ClockIcon className="h-3.5 w-3.5 shrink-0" />}
                     label="Added"
                     date={new Date(url.createdAt)}
                   />
-                  {url.updatedAt && url.updatedAt !== url.createdAt && (
+                  {url.updatedAt ? (
                     <TimeInfo
-                      icon={<ClockIcon className="h-4 w-4" />}
+                      icon={<ClockIcon className="h-3.5 w-3.5 shrink-0" />}
                       label="Updated"
                       date={new Date(url.updatedAt)}
                     />
-                  )}
+                  ) : null}
                 </div>
               </div>
               {/* Toast notification */}
@@ -694,10 +695,10 @@ export const UrlCard: React.FC<UrlCardProps> = ({
       {/* Bottom bar with note */}
       {url.notes && (
         <div className="px-6 pb-4 pt-0 border-t border-white/10">
-          <div className="flex items-start gap-2 text-yellow-200 text-sm font-delicious pt-4">
-            <ExclamationCircleIcon className="h-5 w-5 flex-shrink-0 mt-0.5" />
-            <span className="font-medium">Note:</span>
-            <span>{url.notes}</span>
+          <div className="flex items-center gap-2 text-yellow-200 text-xs font-delicious pt-4">
+            <ExclamationCircleIcon className="h-4 w-4 flex-shrink-0 self-center" />
+            <span className="font-medium shrink-0 self-center">Note:</span>
+            <span className="min-w-0 flex-1 leading-relaxed">{url.notes}</span>
           </div>
         </div>
       )}

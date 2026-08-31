@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/Badge";
 import { AlertDialog } from "@/components/ui/AlertDialog";
 import { useToast } from "@/components/ui/Toaster";
 import { UserAvatar } from "@/components/ui/UserAvatar";
+import { GlassPortalMenu } from "@/components/ui/GlassPortalMenu";
 import {
   UserPlus,
   Edit3,
@@ -30,6 +31,7 @@ import {
   listQueryKeys,
 } from "@/hooks/useListQueries";
 import { glassPrimaryButtonClass } from "@/lib/ui/glass-button-styles";
+import { UI_ICON_MENU_TRIGGER } from "@/lib/ui/control-styles";
 import { LIST_STACK } from "@/lib/ui-spacing";
 import { Dialog } from "@/components/ui/Dialog";
 import { cn } from "@/lib/utils";
@@ -71,25 +73,8 @@ export function PermissionManager({
   const [newEmail, setNewEmail] = useState("");
   const [newRole, setNewRole] = useState<"editor" | "viewer">("editor");
   const [menuEmail, setMenuEmail] = useState<string | null>(null);
-  const menuRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!menuEmail) return;
-    const onDoc = (event: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        setMenuEmail(null);
-      }
-    };
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setMenuEmail(null);
-    };
-    document.addEventListener("mousedown", onDoc);
-    document.addEventListener("keydown", onKey);
-    return () => {
-      document.removeEventListener("mousedown", onDoc);
-      document.removeEventListener("keydown", onKey);
-    };
-  }, [menuEmail]);
+  /** Active row trigger for portaled menu positioning. */
+  const menuTriggerRef = useRef<HTMLButtonElement | null>(null);
 
   const formatMetaDate = (value?: string | null) => {
     if (!value) return null;
@@ -288,7 +273,7 @@ export function PermissionManager({
         {(isLoading || collaborators.length > 0) && (
           <Badge
             variant="secondary"
-            className="inline-flex h-5 min-w-5 sm:h-6 sm:min-w-6 items-center justify-center rounded-full bg-blue-500/30 text-blue-200 border-blue-400/50 px-1.5 text-xs sm:text-sm text-center"
+            className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-blue-500/30 text-blue-200 border-blue-400/50 px-1.5 text-xs text-center"
           >
             {isLoading ? "…" : collaborators.length}
           </Badge>
@@ -340,8 +325,8 @@ export function PermissionManager({
                   key={`${collaborator.email.toLowerCase()}-${index}`}
                   className="bg-white/5 border border-white/10 rounded-lg p-3 sm:p-4 hover:bg-white/10 transition-colors"
                 >
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex items-start gap-2 flex-1 min-w-0">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 flex-1 min-w-0">
                       <UserAvatar
                         seed={collaborator.email}
                         size={40}
@@ -349,14 +334,14 @@ export function PermissionManager({
                         className="h-9 w-9 sm:h-10 sm:w-10 shrink-0 rounded-full ring-2 ring-white/25 shadow-[0_0_12px_rgba(255,255,255,0.12)]"
                       />
                       <div className="flex-1 min-w-0">
-                        <p className="text-xs sm:text-sm text-white font-medium truncate">
+                        <p className="text-xs text-white font-medium truncate">
                           {collaborator.email}
                         </p>
-                        <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] sm:text-xs text-white/50">
+                        <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-white/50">
                           <div
                             className={`${getRoleBadgeColor(
                               collaborator.role,
-                            )} inline-flex items-center justify-center gap-1 px-2 py-0.5 rounded-full text-xs sm:text-sm font-medium border text-center`}
+                            )} inline-flex items-center justify-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border text-center`}
                           >
                             {getRoleIcon(collaborator.role)}
                             <span className="capitalize">
@@ -389,27 +374,27 @@ export function PermissionManager({
                         </div>
                       </div>
                     </div>
-                    <div
-                      className="relative shrink-0"
-                      ref={menuOpen ? menuRef : undefined}
-                    >
+                    <div className="relative shrink-0">
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() =>
-                          setMenuEmail(menuOpen ? null : collaborator.email)
-                        }
-                        className="text-white/80 hover:text-white hover:bg-white/10"
+                        onClick={(e) => {
+                          menuTriggerRef.current = e.currentTarget;
+                          setMenuEmail(menuOpen ? null : collaborator.email);
+                        }}
+                        className={UI_ICON_MENU_TRIGGER}
                         aria-expanded={menuOpen}
                         aria-haspopup="menu"
                         aria-label={`Actions for ${collaborator.email}`}
                       >
                         <MoreVertical className="h-4 w-4" />
                       </Button>
-                      {menuOpen && (
-                        <div
-                          role="menu"
-                          className="absolute right-0 top-full z-[100] mt-1.5 w-48 origin-top-right rounded-xl border border-white/20 bg-gradient-to-br from-zinc-900/95 to-zinc-800/95 p-1 shadow-2xl backdrop-blur-md animate-in fade-in-0 zoom-in-95 slide-in-from-top-2 duration-150"
+                      {menuOpen ? (
+                        <GlassPortalMenu
+                          open={menuOpen}
+                          onClose={() => setMenuEmail(null)}
+                          triggerRef={menuTriggerRef}
+                          widthClassName="w-48"
                         >
                           <button
                             type="button"
@@ -464,8 +449,8 @@ export function PermissionManager({
                             <X className="h-4 w-4" />
                             Cancel
                           </button>
-                        </div>
-                      )}
+                        </GlassPortalMenu>
+                      ) : null}
                     </div>
                   </div>
                 </div>
