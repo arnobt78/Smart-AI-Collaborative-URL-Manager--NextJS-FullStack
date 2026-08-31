@@ -371,6 +371,12 @@
   @apply outline-none ring-2 ring-blue-500 ring-offset-0;
 }
 
+/* Radix/shadcn menus: glass highlight only — no global blue ring on panel or rows */
+[role="menu"]:focus-visible,
+[role="menuitem"]:focus-visible {
+  @apply outline-none ring-0 ring-offset-0;
+}
+
 /* Selection Styles */
 ::selection {
   @apply bg-blue-500 text-white;

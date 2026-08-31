@@ -1,5 +1,6 @@
 /** C7.7: Optimistic logout — force-guest + keepalive signout + /login. */
-import { fireEvent, render, screen } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ToastProvider } from "@/components/ui/Toaster";
 import { ProfileDropdown } from "@/components/layout/ProfileDropdown";
@@ -52,11 +53,14 @@ describe("ProfileDropdown logout", () => {
     queryClient.clear();
   });
 
-  it("queues toast, force-guest, keepalive signout, clears client (no await)", () => {
+  it("queues toast, force-guest, keepalive signout, clears client (no await)", async () => {
+    const user = userEvent.setup();
     renderDropdown();
 
-    fireEvent.click(screen.getByRole("button", { name: "Open profile menu" }));
-    fireEvent.click(screen.getByRole("menuitem", { name: "Logout" }));
+    await user.click(
+      screen.getByRole("button", { name: "Open profile menu" }),
+    );
+    await user.click(screen.getByRole("menuitem", { name: "Logout" }));
 
     expect(screen.queryByRole("menu")).not.toBeInTheDocument();
     expect(queueAuthToast).toHaveBeenCalledWith({
@@ -73,8 +77,10 @@ describe("ProfileDropdown logout", () => {
     });
 
     // In-flight guard
-    fireEvent.click(screen.getByRole("button", { name: "Open profile menu" }));
-    fireEvent.click(screen.getByRole("menuitem", { name: "Logout" }));
+    await user.click(
+      screen.getByRole("button", { name: "Open profile menu" }),
+    );
+    await user.click(screen.getByRole("menuitem", { name: "Logout" }));
     expect(mockFetch).toHaveBeenCalledTimes(1);
   });
 });

@@ -17,11 +17,23 @@ export const UI_CONTROL_TRIGGER = `${UI_CONTROL_HEIGHT} ${UI_CONTROL_ICON_GAP} i
 export const UI_CHROME_ROW = "flex w-full items-center justify-between";
 
 /** Square icon-only … / overflow menu trigger (matches Back / chrome h-10). */
-export const UI_ICON_MENU_TRIGGER = `${UI_CONTROL_HEIGHT} w-10 shrink-0 px-0 text-white/80 hover:text-white hover:bg-white/10`;
+export const UI_ICON_MENU_TRIGGER = `${UI_CONTROL_HEIGHT} w-10 shrink-0 px-0 text-white/80 hover:text-white hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30 focus-visible:ring-offset-0`;
 
 /**
- * Portaled glass menu panel (fixed). z below Dialog (1000) / tooltips (9999),
- * above list-detail cards so menus are not covered by later siblings.
+ * Glass dropdown panel chrome for Radix DropdownMenu Content.
+ * z below Dialog (1000) / tooltips (9999), above list-detail cards.
+ * Positioning is handled by Radix (absolute in portal); do not use `fixed` here.
  */
 export const UI_GLASS_MENU_PANEL =
-  "fixed z-[900] origin-top-right rounded-xl border border-white/20 bg-gradient-to-br from-zinc-900/95 to-zinc-800/95 p-1 shadow-2xl backdrop-blur-md animate-in fade-in-0 zoom-in-95 slide-in-from-top-2 duration-150";
+  "z-[900] rounded-xl border border-white/20 bg-gradient-to-br from-zinc-900/95 to-zinc-800/95 p-1 text-white shadow-2xl backdrop-blur-md outline-none focus:outline-none focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0";
+
+/** Glass menu row / DropdownMenuItem defaults. */
+export const UI_GLASS_MENU_ITEM =
+  "relative flex cursor-default select-none items-center gap-2 rounded-lg px-3 py-2 text-sm text-white/90 outline-none transition-colors focus:bg-white/10 focus:text-white focus-visible:ring-0 focus-visible:ring-offset-0 data-[highlighted]:bg-white/10 data-[highlighted]:text-white data-[disabled]:pointer-events-none data-[disabled]:opacity-40";
+
+/** Subtle keyboard focus for dropdown triggers only (not panel/items). */
+export const UI_GLASS_MENU_TRIGGER_FOCUS =
+  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30 focus-visible:ring-offset-0";
+
+/** Glass menu separator. */
+export const UI_GLASS_MENU_SEPARATOR = "-mx-1 my-1 h-px bg-white/10";

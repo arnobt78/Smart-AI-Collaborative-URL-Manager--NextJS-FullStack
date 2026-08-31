@@ -266,21 +266,21 @@ function ListDetailOptimisticSurface() {
           />
         }
         shareRow={
-          <div className="flex items-center gap-2 min-w-0">
-            <span className="inline-flex items-center gap-1.5 text-xs font-light text-white/70 whitespace-nowrap shrink-0">
-              <Globe className="w-3.5 h-3.5 shrink-0" aria-hidden />
+          <div className="flex items-center gap-1.5 min-w-0 text-xs">
+            <span className="inline-flex items-center gap-1.5 font-light text-white/70 whitespace-nowrap shrink-0">
+              <Globe className="h-3.5 w-3.5 shrink-0" aria-hidden />
               Shareable Link:
             </span>
-            <span className="text-xs text-white/90 truncate min-w-0 flex-1">
+            <span className="text-white/90 truncate min-w-0">
               {listShareUrl(listSlug)}
             </span>
             <button
               type="button"
               disabled
-              className="flex-shrink-0 inline-flex h-8 w-8 items-center justify-center rounded-md opacity-50 cursor-not-allowed"
+              className="inline-flex shrink-0 items-center p-0.5 rounded opacity-50 cursor-not-allowed"
               aria-label="Copy link"
             >
-              <Copy className="w-3.5 h-3.5 text-white/70" />
+              <Copy className="h-3.5 w-3.5 text-white/70" />
             </button>
           </div>
         }

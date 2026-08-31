@@ -1,4 +1,5 @@
 import { render, screen, waitFor, fireEvent } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ToastProvider } from "@/components/ui/Toaster";
 import { UrlBulkImportExport } from "../UrlBulkImportExport";
@@ -143,10 +144,11 @@ function TestWrapper({ children }: { children: React.ReactNode }) {
 }
 
 async function openChromeBookmarkImportInput() {
+  const user = userEvent.setup();
   const importButton = await screen.findByRole("button", {
     name: /import urls/i,
   });
-  fireEvent.click(importButton);
+  await user.click(importButton);
   const fileInput = (await screen.findByText(/chrome bookmarks/i))
     .closest("label")
     ?.querySelector('input[type="file"]') as HTMLInputElement | null;

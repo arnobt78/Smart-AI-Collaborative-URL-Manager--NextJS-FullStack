@@ -10,7 +10,13 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { HoverTooltip } from "@/components/ui/HoverTooltip";
-import { UI_CONTROL_TRIGGER } from "@/lib/ui/control-styles";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { UI_CONTROL_TRIGGER, UI_GLASS_MENU_TRIGGER_FOCUS } from "@/lib/ui/control-styles";
 import { useToast } from "@/components/ui/Toaster";
 import type { UrlItem } from "@/stores/urlListStore";
 import { addUrlToList, cancelPendingGetList } from "@/stores/urlListStore";
@@ -52,8 +58,6 @@ export function UrlBulkImportExport({
   const [isImporting, setIsImporting] = useState(false);
   const [showImportMenu, setShowImportMenu] = useState(false);
   const [showExportMenu, setShowExportMenu] = useState(false);
-  const importMenuRef = useRef<HTMLDivElement>(null);
-  const exportMenuRef = useRef<HTMLDivElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
   const isMountedRef = useRef(true);
   const isImportActiveRef = useRef(false); // Track if import is active (accessible from cleanup)
@@ -199,31 +203,6 @@ export function UrlBulkImportExport({
       setIsExporting(null);
     }
   };
-
-  // Close import menu when clicking outside
-  React.useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (
-        importMenuRef.current &&
-        !importMenuRef.current.contains(event.target as Node)
-      ) {
-        setShowImportMenu(false);
-      }
-      if (
-        exportMenuRef.current &&
-        !exportMenuRef.current.contains(event.target as Node)
-      ) {
-        setShowExportMenu(false);
-      }
-    }
-
-    if (showImportMenu || showExportMenu) {
-      document.addEventListener("mousedown", handleClickOutside);
-      return () => {
-        document.removeEventListener("mousedown", handleClickOutside);
-      };
-    }
-  }, [showImportMenu, showExportMenu]);
 
   // Cleanup on unmount - cancel any ongoing imports
   React.useEffect(() => {
@@ -2087,186 +2066,212 @@ export function UrlBulkImportExport({
   return (
     <div className="flex flex-row items-center gap-2 flex-wrap flex-shrink-0 w-full sm:w-auto justify-end sm:justify-start">
       {/* Export with dropdown menu */}
-      <div className="relative flex-none" ref={exportMenuRef}>
-        <HoverTooltip
-          message="Export URLs in various formats"
-          position="top"
-          usePortal
+      <div className="relative flex-none">
+        <DropdownMenu
+          modal={false}
+          open={showExportMenu}
+          onOpenChange={(open) => {
+            if (isExporting !== null || urls.length === 0) return;
+            setShowExportMenu(open);
+          }}
         >
-          <button
-            type="button"
-            onClick={() => setShowExportMenu(!showExportMenu)}
-            disabled={isExporting !== null || urls.length === 0}
-            className={`
-              ${UI_CONTROL_TRIGGER} relative shadow-md hover:shadow-lg
+          <HoverTooltip
+            message="Export URLs in various formats"
+            position="top"
+            usePortal
+          >
+            <DropdownMenuTrigger asChild>
+              <button
+                type="button"
+                disabled={isExporting !== null || urls.length === 0}
+                className={`
+              ${UI_CONTROL_TRIGGER} ${UI_GLASS_MENU_TRIGGER_FOCUS} relative shadow-md hover:shadow-lg
               ${
                 isExporting !== null || urls.length === 0
                   ? "bg-white/5 text-white/40 cursor-not-allowed"
                   : "bg-gradient-to-r from-purple-600/20 to-purple-500/20 hover:from-purple-600/30 hover:to-purple-500/30 border border-purple-500/30 text-purple-300 hover:text-purple-200"
               }
             `}
-          >
-            {isExporting ? (
-              <>
-                <div className="w-3.5 h-3.5 sm:w-4 sm:h-4 border-2 border-purple-400 border-t-transparent rounded-full animate-spin" />
-                <span>Exporting...</span>
-              </>
-            ) : (
-              <>
-                <Download className="h-4 w-4 shrink-0" aria-hidden />
-                <span>Export URLs</span>
-                <ChevronDown className="h-3 w-3 shrink-0" aria-hidden />
-              </>
-            )}
-          </button>
-        </HoverTooltip>
+              >
+                {isExporting ? (
+                  <>
+                    <div className="w-3.5 h-3.5 sm:w-4 sm:h-4 border-2 border-purple-400 border-t-transparent rounded-full animate-spin" />
+                    <span>Exporting...</span>
+                  </>
+                ) : (
+                  <>
+                    <Download className="h-4 w-4 shrink-0" aria-hidden />
+                    <span>Export URLs</span>
+                    <ChevronDown className="h-3 w-3 shrink-0" aria-hidden />
+                  </>
+                )}
+              </button>
+            </DropdownMenuTrigger>
+          </HoverTooltip>
 
-        {/* Export dropdown menu */}
-        {showExportMenu && !isExporting && (
-          <div className="absolute top-full left-0 sm:left-auto sm:right-0 mt-2 w-[280px] max-w-[calc(100vw-1rem)] sm:w-56 sm:max-w-none bg-slate-800 border border-slate-700 rounded-lg shadow-xl z-50 overflow-hidden">
-            <div className="py-1">
-              <button
-                type="button"
-                onClick={() => {
-                  handleExport("json");
-                  setShowExportMenu(false);
-                }}
-                disabled={urls.length === 0}
-                className="w-full block px-4 py-2 text-sm text-white/90 hover:bg-slate-700 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-slate-800"
-              >
-                <span className="flex items-center gap-2">
-                  <FileJson className="h-4 w-4 text-purple-400" />
-                  <span>Export as JSON</span>
-                </span>
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  handleExport("csv");
-                  setShowExportMenu(false);
-                }}
-                disabled={urls.length === 0}
-                className="w-full block px-4 py-2 text-sm text-white/90 hover:bg-slate-700 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-slate-800"
-              >
-                <span className="flex items-center gap-2">
-                  <FileSpreadsheet className="h-4 w-4 text-emerald-400" />
-                  <span>Export as CSV</span>
-                </span>
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  handleExport("markdown");
-                  setShowExportMenu(false);
-                }}
-                disabled={urls.length === 0}
-                className="w-full block px-4 py-2 text-sm text-white/90 hover:bg-slate-700 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-slate-800"
-              >
-                <span className="flex items-center gap-2">
-                  <FileText className="h-4 w-4 text-indigo-400" />
-                  <span>Export as Markdown</span>
-                </span>
-              </button>
-            </div>
-          </div>
-        )}
+          <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuItem
+              disabled={urls.length === 0}
+              onSelect={() => {
+                handleExport("json");
+              }}
+              className="cursor-pointer"
+            >
+              <FileJson className="h-4 w-4 text-purple-400" />
+              Export as JSON
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              disabled={urls.length === 0}
+              onSelect={() => {
+                handleExport("csv");
+              }}
+              className="cursor-pointer"
+            >
+              <FileSpreadsheet className="h-4 w-4 text-emerald-400" />
+              Export as CSV
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              disabled={urls.length === 0}
+              onSelect={() => {
+                handleExport("markdown");
+              }}
+              className="cursor-pointer"
+            >
+              <FileText className="h-4 w-4 text-indigo-400" />
+              Export as Markdown
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       {/* Import with dropdown menu */}
-      <div className="relative flex-none" ref={importMenuRef}>
-        <HoverTooltip
-          message="Import URLs from various formats"
-          position="top"
-          usePortal
+      <div className="relative flex-none">
+        <DropdownMenu
+          modal={false}
+          open={showImportMenu}
+          onOpenChange={(open) => {
+            if (isImporting || !canEdit) return;
+            setShowImportMenu(open);
+          }}
         >
-          <button
-            type="button"
-            onClick={() => setShowImportMenu(!showImportMenu)}
-            disabled={isImporting || !canEdit}
-            className={`
-              ${UI_CONTROL_TRIGGER} relative shadow-md hover:shadow-lg
+          <HoverTooltip
+            message="Import URLs from various formats"
+            position="top"
+            usePortal
+          >
+            <DropdownMenuTrigger asChild>
+              <button
+                type="button"
+                disabled={isImporting || !canEdit}
+                className={`
+              ${UI_CONTROL_TRIGGER} ${UI_GLASS_MENU_TRIGGER_FOCUS} relative shadow-md hover:shadow-lg
               ${
                 isImporting || !canEdit
                   ? "bg-white/5 text-white/40 cursor-not-allowed"
                   : "bg-gradient-to-r from-blue-600/20 to-blue-500/20 hover:from-blue-600/30 hover:to-blue-500/30 border border-blue-500/30 text-blue-300 hover:text-blue-200"
               }
             `}
-          >
-            {isImporting ? (
-              <>
-                <div className="w-3.5 h-3.5 sm:w-4 sm:h-4 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
-                <span>Importing...</span>
-              </>
-            ) : (
-              <>
-                <Upload className="h-4 w-4 shrink-0" aria-hidden />
-                <span>Import URLs</span>
-                <ChevronDown className="h-3 w-3 shrink-0" aria-hidden />
-              </>
-            )}
-          </button>
-        </HoverTooltip>
+              >
+                {isImporting ? (
+                  <>
+                    <div className="w-3.5 h-3.5 sm:w-4 sm:h-4 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
+                    <span>Importing...</span>
+                  </>
+                ) : (
+                  <>
+                    <Upload className="h-4 w-4 shrink-0" aria-hidden />
+                    <span>Import URLs</span>
+                    <ChevronDown className="h-3 w-3 shrink-0" aria-hidden />
+                  </>
+                )}
+              </button>
+            </DropdownMenuTrigger>
+          </HoverTooltip>
 
-        {/* Import dropdown menu */}
-        {showImportMenu && !isImporting && canEdit && (
-          <div className="absolute top-full right-0 mt-2 w-[280px] max-w-[calc(100vw-1rem)] sm:w-56 sm:max-w-none bg-slate-800 border border-slate-700 rounded-lg shadow-xl z-50 overflow-hidden">
-            <div className="py-1">
-              <label className="block px-4 py-2 text-sm text-white/90 hover:bg-slate-700 cursor-pointer">
-                <span className="flex items-center gap-2">
-                  <FileJson className="h-4 w-4 text-purple-400" />
-                  <span>JSON or CSV</span>
-                </span>
+          <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuItem
+              onSelect={(e) => e.preventDefault()}
+              className="cursor-pointer p-0"
+              asChild
+            >
+              <label className="flex w-full cursor-pointer items-center gap-2 px-3 py-2">
+                <FileJson className="h-4 w-4 text-purple-400" />
+                <span>JSON or CSV</span>
                 <input
                   ref={fileInputRef}
                   type="file"
                   accept=".json,.csv"
-                  onChange={(e) => handleImport(e, "auto")}
+                  onChange={(e) => {
+                    setShowImportMenu(false);
+                    handleImport(e, "auto");
+                  }}
                   disabled={isImporting}
                   className="hidden"
                 />
               </label>
-              <label className="block px-4 py-2 text-sm text-white/90 hover:bg-slate-700 cursor-pointer">
-                <span className="flex items-center gap-2">
-                  <FileText className="h-4 w-4 text-orange-400" />
-                  <span>Chrome Bookmarks</span>
-                </span>
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onSelect={(e) => e.preventDefault()}
+              className="cursor-pointer p-0"
+              asChild
+            >
+              <label className="flex w-full cursor-pointer items-center gap-2 px-3 py-2">
+                <FileText className="h-4 w-4 text-orange-400" />
+                <span>Chrome Bookmarks</span>
                 <input
                   type="file"
                   accept=".html"
-                  onChange={(e) => handleImport(e, "chrome")}
+                  onChange={(e) => {
+                    setShowImportMenu(false);
+                    handleImport(e, "chrome");
+                  }}
                   disabled={isImporting}
                   className="hidden"
                 />
               </label>
-              <label className="block px-4 py-2 text-sm text-white/90 hover:bg-slate-700 cursor-pointer">
-                <span className="flex items-center gap-2">
-                  <FileJson className="h-4 w-4 text-red-400" />
-                  <span>Pocket Export</span>
-                </span>
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onSelect={(e) => e.preventDefault()}
+              className="cursor-pointer p-0"
+              asChild
+            >
+              <label className="flex w-full cursor-pointer items-center gap-2 px-3 py-2">
+                <FileJson className="h-4 w-4 text-red-400" />
+                <span>Pocket Export</span>
                 <input
                   type="file"
                   accept=".json"
-                  onChange={(e) => handleImport(e, "pocket")}
+                  onChange={(e) => {
+                    setShowImportMenu(false);
+                    handleImport(e, "pocket");
+                  }}
                   disabled={isImporting}
                   className="hidden"
                 />
               </label>
-              <label className="block px-4 py-2 text-sm text-white/90 hover:bg-slate-700 cursor-pointer">
-                <span className="flex items-center gap-2">
-                  <FileJson className="h-4 w-4 text-green-400" />
-                  <span>Pinboard Export</span>
-                </span>
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onSelect={(e) => e.preventDefault()}
+              className="cursor-pointer p-0"
+              asChild
+            >
+              <label className="flex w-full cursor-pointer items-center gap-2 px-3 py-2">
+                <FileJson className="h-4 w-4 text-green-400" />
+                <span>Pinboard Export</span>
                 <input
                   type="file"
                   accept=".json"
-                  onChange={(e) => handleImport(e, "pinboard")}
+                  onChange={(e) => {
+                    setShowImportMenu(false);
+                    handleImport(e, "pinboard");
+                  }}
                   disabled={isImporting}
                   className="hidden"
                 />
               </label>
-            </div>
-          </div>
-        )}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </div>
   );

@@ -778,12 +778,12 @@ export default function ListPageClient() {
           />
         }
         shareRow={
-          <div className="flex items-center gap-2 min-w-0">
-            <span className="inline-flex items-center gap-1.5 text-xs font-light text-white/70 whitespace-nowrap shrink-0">
-              <Globe className="w-3.5 h-3.5 shrink-0" aria-hidden />
+          <div className="flex items-center gap-1.5 min-w-0 text-xs">
+            <span className="inline-flex items-center gap-1.5 font-light text-white/70 whitespace-nowrap shrink-0">
+              <Globe className="h-3.5 w-3.5 shrink-0" aria-hidden />
               Shareable Link:
             </span>
-            <span className="text-xs text-white/90 truncate min-w-0 flex-1">
+            <span className="text-white/90 truncate min-w-0">
               {list?.slug ? listShareUrl(list.slug) : ""}
             </span>
             <button
@@ -808,13 +808,13 @@ export default function ListPageClient() {
                   });
                 }
               }}
-              className="flex-shrink-0 inline-flex h-8 w-8 items-center justify-center rounded-md hover:bg-white/10 transition-colors duration-200 group"
+              className="inline-flex shrink-0 items-center p-0.5 rounded hover:bg-white/10 transition-colors duration-200 group"
               aria-label="Copy link"
             >
               {isCopied ? (
-                <Check className="w-3.5 h-3.5 text-green-400 group-hover:scale-110 transition-transform duration-200" />
+                <Check className="h-3.5 w-3.5 text-green-400 group-hover:scale-110 transition-transform duration-200" />
               ) : (
-                <Copy className="w-3.5 h-3.5 text-white/70 group-hover:text-white group-hover:scale-110 transition-all duration-200" />
+                <Copy className="h-3.5 w-3.5 text-white/70 group-hover:text-white group-hover:scale-110 transition-all duration-200" />
               )}
             </button>
           </div>

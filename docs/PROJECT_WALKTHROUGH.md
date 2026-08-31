@@ -9,14 +9,14 @@ Next 16 URL bookmark manager. Demo: https://daily-urlist.vercel.app/
 ## Layout
 
 - Pages → `components/pages/*` · `app/api/**` · SEO `layout.tsx` + sitemap
-- Auth: `/login` → `Auth.tsx` (chrome-free) · `ProfileDropdown` (`GlassPortalMenu`) · `UserAvatar` · `lib/robohash.ts` · `constants/auth.ts` · `proxy.ts` `x-pathname` (Next 16+; not middleware)
+- Auth: `/login` → `Auth.tsx` (chrome-free) · `ProfileDropdown` (Radix glass `DropdownMenu`) · `UserAvatar` · `lib/robohash.ts` · `constants/auth.ts` · `proxy.ts` `x-pathname` (Next 16+; not middleware)
 - Flash: SSR `WAS_AUTHED_COOKIE` / `session_token` → Marketing on `/`; guests `redirect("/login")`
 - Auth UI: split viewport inside `max-w-7xl` — left Welcome typewriter + about-process; right Sign In + Sign up; sticky login when fits
 - Guest credentials: opaque dropdown is raised above staggered Auth rows; trigger exposes expanded/menu ARIA
 - CTAs: `src/lib/ui/glass-*` shadow-glow (stock recipe); Auth Sign In Sparkles
 - Chrome: shared `UI_CHROME_ROW`; Navbar stays centered in `h-14`; Footer centers at desktop and uses `min-h-14` when compact content stacks
 - BG: static `FloatingBackground` (no `animate-float`) · PostHog `PostHogPageview` Suspense island only
-- Spacing: `lib/ui-spacing.ts` PAGE/SECTION/MARKETING/FORM/LIST/HEADING_STACK/PAGE_HEADER/CARD_PAD; heading stacks have zero added title/subtitle gap only.
+- Spacing: `lib/ui-spacing.ts` PAGE/SECTION/MARKETING/FORM/LIST/HEADING_STACK/PAGE_HEADER/`CARD_STACK`/`CARD_PAD`; heading stacks have zero added title/subtitle gap only.
 - Layout main: `py-6 sm:py-10` · `html { scrollbar-gutter: stable }`
 - Auth toasts: `lib/auth-toast.ts` + `AuthToastBridge`; UI stack bottom-right + `toast-slide-in`
 - Logout: menu dismisses immediately; force-guest + keepalive `/api/auth/signout`; navigate `/login`.
@@ -31,8 +31,9 @@ Next 16 URL bookmark manager. Demo: https://daily-urlist.vercel.app/
 - Home motion: `ui/ScrollReveal.tsx` provides replayable CSS/observer reveal plus subtle parallax; shared controls use `h-10 min-h-10` and text-sm placeholders
 - Home wave: hero copy lines and CTAs are individual reveal units, staggered in order rather than animated as a grouped row
 - Data sync: SSR prefetch/dehydrate (C6.7) + optimistic `currentList` + `invalidateMutationImpact` + C7.1 `densifyBrowsePublicLists` / `dropUnifiedListCache` (C7.9 `{ list: null }` tombstone) + SSE densify/drop.
-- Soft-nav: warm full-parity chrome (C7.0); list-detail seeds thin unified from Lists (C7.9–C7.14 UrlList + Copy parity + `ListDetailJobsMenu` + `GlassPortalMenu` + share row in header stack + warm history); cold one continuous detail skeleton; browse densify (C7.1); rare Links `prefetch={false}` (C7.2); api-docs spinner shell; api-status `ApiStatusChrome` + header Refresh/refreshing… (C7.5–C7.6).
-- Menus: `GlassPortalMenu` body portal + flip/clamp (`z-[900]`) for list jobs, collaborator …, and profile; `UI_ICON_MENU_TRIGGER` h-10.
+- Soft-nav: warm full-parity chrome (C7.0); list-detail seeds thin unified from Lists (C7.9–C7.15 UrlList + Copy parity + `ListDetailJobsMenu` + Radix glass menus + share row in header stack + warm history); cold one continuous detail skeleton; browse densify (C7.1); rare Links `prefetch={false}` (C7.2); api-docs spinner shell; api-status `ApiStatusChrome` + header Refresh/refreshing… (C7.5–C7.6).
+- Menus: `ui/dropdown-menu.tsx` (Radix + `UI_GLASS_MENU_*`, `modal={false}`, `z-[900]`) for list jobs, collaborator …, profile, Auth guest, bulk import/export; `UI_ICON_MENU_TRIGGER` h-10; no blue focus ring on menu panel/items.
+- Cards/UrlCard: `CARD_STACK` on MyLists/Browse/detail headers; UrlCard single `CARD_PAD` + note separator + local `URL_META_CHIP` tones.
 - Insights: overview+activity share one cached list scan; C7.11–C7.12 soft-nav chart skeleton + single LineChart + LabelList + pie slice-colored labels + shared tooltip; status route slim (no external metadata probe); status page client-fetches.
 - Logout: C7.8 — forceGuest cookie+SS; keepalive signout; clear RQ/`react-query:*`/session cookies; `replace("/login")` (no nav/footer; one html scrollbar). No Auth overlay on `/`.
 - Open later: optional `(auth)` route-group; lists/browse cold API slim; status API speed OOS.

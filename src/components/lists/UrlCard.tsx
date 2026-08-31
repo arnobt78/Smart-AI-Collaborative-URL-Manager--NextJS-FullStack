@@ -11,7 +11,6 @@ import {
   TrashIcon,
   ClockIcon,
   ArrowTopRightOnSquareIcon,
-  ExclamationCircleIcon,
   ClipboardIcon,
   DocumentDuplicateIcon,
   ArchiveBoxIcon,
@@ -31,7 +30,8 @@ import { currentList } from "@/stores/urlListStore";
 import { UrlHealthIndicator } from "@/components/urls/UrlHealthIndicator";
 import { Comments } from "@/components/collaboration/Comments";
 import { MessageSquare } from "lucide-react";
-import { ensureAbsoluteHttpUrl, openExternalUrl } from "@/lib/utils";
+import { CARD_PAD } from "@/lib/ui-spacing";
+import { cn, ensureAbsoluteHttpUrl, openExternalUrl } from "@/lib/utils";
 // Using public path instead of import
 const logoPath = "/favicon.ico";
 
@@ -65,6 +65,15 @@ const TimeInfo = ({ icon, label, date }: TimeInfoProps) => (
     <span className="text-white/40">{date.toLocaleDateString()}</span>
   </div>
 );
+
+/** Even meta-chip rhythm (category / tags / pinned / reminder / similar). */
+const URL_META_CHIP =
+  "inline-flex items-center px-2 py-0.5 rounded-md text-xs font-normal border whitespace-nowrap";
+const URL_META_CHIP_BLUE = `${URL_META_CHIP} bg-blue-500/20 border-blue-400/30 text-blue-300`;
+const URL_META_CHIP_PURPLE = `${URL_META_CHIP} bg-purple-500/20 border-purple-400/30 text-purple-300`;
+const URL_META_CHIP_YELLOW = `${URL_META_CHIP} bg-yellow-500/20 border-yellow-400/30 text-yellow-300`;
+const URL_META_CHIP_RED = `${URL_META_CHIP} bg-red-500/20 border-red-400/30 text-red-300`;
+const URL_META_CHIP_ORANGE = `${URL_META_CHIP} bg-orange-500/20 border-orange-400/30 text-orange-300`;
 
 export const UrlCard: React.FC<UrlCardProps> = ({
   url,
@@ -345,363 +354,345 @@ export const UrlCard: React.FC<UrlCardProps> = ({
           <Grip className="h-5 w-5 text-white/40 hover:text-blue-400 transition-colors pointer-events-none" />
         </div>
       )}
-      <div className="flex flex-col sm:flex-row p-3 sm:p-4 gap-2 sm:gap-4">
-        {/* Image Section */}
-        <div className="md:w-1/5 w-full flex-shrink-0 flex items-center justify-center">
-          <div className="relative w-24 h-24 sm:w-28 sm:h-28 md:w-full md:h-full aspect-square overflow-hidden rounded-lg sm:rounded-xl shadow-sm bg-gray-900/30 backdrop-blur-md border border-white/10 flex items-center justify-center">
-            {shouldShowSkeleton ? (
-              <div className="absolute inset-0 bg-gray-800/40 rounded-xl animate-pulse" />
-            ) : !currentImageUrl || imageError ? (
-              <div className="flex flex-col items-center justify-center h-full w-full text-white/40">
-                <GlobeAltIcon className="h-12 w-12 " />
-                <span className="text-sm">No image available</span>
-              </div>
-            ) : (
-              <div className="relative w-full h-full">
-                {imageLoading && (
-                  <div className="absolute inset-0 bg-gray-800/40 rounded-xl animate-pulse" />
-                )}
-                <SafeImage
-                  key={currentImageUrl}
-                  src={currentImageUrl}
-                  alt={title}
-                  width={208}
-                  height={208}
-                  className={`h-full w-full object-cover object-top group-hover:scale-105 transition-transform duration-300 ${
-                    imageError ? "opacity-0" : imageLoading ? "opacity-0" : ""
-                  }`}
-                  onError={() => {
-                    // Native fallback also failed — show placeholder
-                    setImageLoading(false);
-                    handleImageError();
-                  }}
-                  onLoad={() => {
-                    setImageLoading(false);
-                    setImageError(false);
-
-                    // Mark image as loaded in global cache (for instant display on future renders)
-                    if (currentImageUrl && typeof window !== "undefined") {
-                      try {
-                        const imageCacheKey = `image-loaded:${currentImageUrl}`;
-                        sessionStorage.setItem(imageCacheKey, "true");
-                      } catch {
-                        // Ignore sessionStorage errors
-                      }
-                    }
-                  }}
-                />
-              </div>
-            )}
-            <button
-              onClick={() => onToggleFavorite(url.id)}
-              className="absolute top-2 right-2 bg-black/50 backdrop-blur-md rounded-lg p-2 hover:bg-black/70 transition-colors cursor-pointer z-10"
-            >
-              <StarIcon
-                className={`h-5 w-5 ${
-                  url.isFavorite ? "text-yellow-400" : "text-white"
-                }`}
-              />
-            </button>
-          </div>
-        </div>
-        {/* Content Section */}
-        <div className="sm:w-3/5 w-full flex-1 min-w-0 flex flex-col gap-2 sm:gap-4">
-          {shouldShowSkeleton ? (
-            <>
-              {/* Skeleton for title */}
-              <div className="flex-1 min-w-0 space-y-2">
-                <div className="h-7 bg-gray-800/40 rounded-lg w-3/4 animate-pulse" />
-                {/* Skeleton for category/tags */}
-                <div className="flex gap-2">
-                  <div className="h-6 w-20 bg-gray-800/30 rounded animate-pulse" />
-                  <div className="h-6 w-24 bg-gray-800/30 rounded animate-pulse" />
-                  <div className="h-6 w-20 bg-gray-800/30 rounded animate-pulse" />
+      <div className={cn(CARD_PAD, "flex flex-col gap-2")}>
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
+          {/* Image Section */}
+          <div className="md:w-1/5 w-full flex-shrink-0 flex items-center justify-center">
+            <div className="relative w-24 h-24 sm:w-28 sm:h-28 md:w-full md:h-full aspect-square overflow-hidden rounded-lg sm:rounded-xl shadow-sm bg-gray-900/30 backdrop-blur-md border border-white/10 flex items-center justify-center">
+              {shouldShowSkeleton ? (
+                <div className="absolute inset-0 bg-gray-800/40 rounded-xl animate-pulse" />
+              ) : !currentImageUrl || imageError ? (
+                <div className="flex flex-col items-center justify-center h-full w-full text-white/40">
+                  <GlobeAltIcon className="h-12 w-12 " />
+                  <span className="text-sm">No image available</span>
                 </div>
-                {/* Skeleton for description lines */}
-                <div className="space-y-2">
-                  <div className="h-4 bg-gray-800/30 rounded w-full animate-pulse" />
-                  <div className="h-4 bg-gray-800/30 rounded w-5/6 animate-pulse" />
-                  <div className="h-4 bg-gray-800/30 rounded w-4/6 animate-pulse" />
-                </div>
-              </div>
-              {/* Skeleton for action buttons */}
-              <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2">
-                  {[1, 2, 3, 4, 5].map((i) => (
-                    <div
-                      key={i}
-                      className="w-12 h-12 rounded-full bg-gray-800/40 animate-pulse"
-                    />
-                  ))}
-                </div>
-                <div className="h-5 w-24 bg-gray-800/40 rounded animate-pulse" />
-              </div>
-            </>
-          ) : (
-            <>
-              <div className="flex-1 min-w-0">
-                {/* Title with Health Status — one vertically centered row */}
-                <div className="flex items-center gap-2 flex-wrap min-w-0">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      onUrlClick?.(url.id);
-                      openExternalUrl(url.url);
+              ) : (
+                <div className="relative w-full h-full">
+                  {imageLoading && (
+                    <div className="absolute inset-0 bg-gray-800/40 rounded-xl animate-pulse" />
+                  )}
+                  <SafeImage
+                    key={currentImageUrl}
+                    src={currentImageUrl}
+                    alt={title}
+                    width={208}
+                    height={208}
+                    className={`h-full w-full object-cover object-top group-hover:scale-105 transition-transform duration-300 ${
+                      imageError ? "opacity-0" : imageLoading ? "opacity-0" : ""
+                    }`}
+                    onError={() => {
+                      // Native fallback also failed — show placeholder
+                      setImageLoading(false);
+                      handleImageError();
                     }}
-                    className="font-medium text-base sm:text-lg xl:text-xl text-white hover:text-blue-400 transition-colors font-joti break-words text-left cursor-pointer min-w-0"
-                    title={title}
-                  >
-                    {title}
-                  </button>
-                  <span className="inline-flex items-center shrink-0">
-                    <UrlHealthIndicator
-                      status={url.healthStatus}
-                      httpStatus={url.healthLastStatus}
-                      responseTime={url.healthResponseTime}
-                      checkedAt={url.healthCheckedAt}
-                      showDetails={false}
-                    />
-                  </span>
-                </div>
+                    onLoad={() => {
+                      setImageLoading(false);
+                      setImageError(false);
 
-                {/* Pinned Badge */}
-                {url.isPinned && (
-                  <div className="mt-1 flex items-center gap-1">
-                    <Pin className="h-3.5 w-3.5 text-yellow-400 fill-yellow-400" />
-                    <span className="px-2 py-0.5 bg-yellow-500/20 border border-yellow-400/30 text-yellow-300 rounded-md text-xs font-medium">
-                      Pinned
-                    </span>
-                  </div>
-                )}
-
-                {/* Category and Tags Display - Same Line */}
-                {(url.category || (url.tags && url.tags.length > 0)) && (
-                  <div className="mt-1 flex items-center gap-2 flex-wrap">
-                    {url.category && (
-                      <span className="px-2 py-1 bg-blue-500/20 border border-blue-400/30 text-blue-300 rounded-md text-xs font-medium whitespace-nowrap">
-                        {url.category}
-                      </span>
-                    )}
-                    {url.tags && url.tags.length > 0 && (
-                      <>
-                        {url.tags.map((tag, index) => (
-                          <span
-                            key={index}
-                            className="px-2 py-0.5 bg-purple-500/20 border border-purple-400/30 text-purple-300 rounded-md text-xs font-medium"
-                          >
-                            #{tag}
-                          </span>
-                        ))}
-                      </>
-                    )}
-                  </div>
-                )}
-
-                {/* Reminder Display */}
-                {url.reminder && (
-                  <div className="mt-1 flex items-center gap-2">
-                    <BellIcon className="h-3.5 w-3.5 text-yellow-400 shrink-0" />
-                    <span className="text-xs text-yellow-300 font-medium inline-flex items-center flex-wrap gap-1">
-                      Reminder:{" "}
-                      <span className="text-yellow-200">
-                        {new Date(url.reminder).toLocaleDateString("en-US", {
-                          month: "short",
-                          day: "numeric",
-                          year: "numeric",
-                        })}
-                      </span>
-                      {new Date(url.reminder) < new Date() && (
-                        <span className="px-2 py-0.5 bg-red-500/20 border border-red-400/30 text-red-300 rounded text-xs font-medium">
-                          Overdue
-                        </span>
-                      )}
-                      {new Date(url.reminder) >= new Date() &&
-                        new Date(url.reminder) <=
-                          new Date(
-                            new Date().setDate(new Date().getDate() + 7),
-                          ) && (
-                          <span className="px-2 py-0.5 bg-orange-500/20 border border-orange-400/30 text-orange-300 rounded text-xs font-medium">
-                            Soon
-                          </span>
-                        )}
-                    </span>
-                  </div>
-                )}
-
-                {isNoPreview ? (
-                  <p className="mt-1 text-xs text-white/40 italic font-delicious">
-                    No preview available for this site.
-                  </p>
-                ) : (
-                  description && (
-                    <div className="mt-1 flex w-full min-h-[3.5rem] items-center">
-                      <p className="w-full text-xs text-white/60 leading-relaxed font-delicious line-clamp-5 break-words">
-                        {description}
-                      </p>
-                    </div>
-                  )
-                )}
-              </div>
-              {/* Action buttons row with timestamp */}
-              <div className="flex items-center justify-between gap-2 flex-wrap">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <IconButton
-                    icon={<ArrowTopRightOnSquareIcon />}
-                    onClick={() => {
-                      onUrlClick?.(url.id);
-                      openExternalUrl(url.url);
-                    }}
-                    tooltip="Visit Site"
-                    variant="primary"
-                    className="hover:translate-x-0.5 hover:-translate-y-0.5 transition-transform cursor-pointer"
-                  />
-                  <IconButton
-                    icon={<PencilIcon />}
-                    onClick={() => onEdit(url)}
-                    tooltip="Edit URL"
-                    disabled={!canEdit}
-                  />
-                  <IconButton
-                    icon={<TrashIcon />}
-                    onClick={() => setDeleteDialogOpen(true)}
-                    tooltip="Delete URL"
-                    variant="danger"
-                    disabled={!canEdit}
-                  />
-                  <IconButton
-                    icon={<ShareIcon />}
-                    onClick={() => onShare(url)}
-                    tooltip={shareTooltip || "Share URL"}
-                  />
-                  <IconButton
-                    icon={
-                      <StarIcon
-                        className={
-                          url.isFavorite ? "text-yellow-400 fill-current" : ""
+                      // Mark image as loaded in global cache (for instant display on future renders)
+                      if (currentImageUrl && typeof window !== "undefined") {
+                        try {
+                          const imageCacheKey = `image-loaded:${currentImageUrl}`;
+                          sessionStorage.setItem(imageCacheKey, "true");
+                        } catch {
+                          // Ignore sessionStorage errors
                         }
-                      />
-                    }
-                    onClick={() => onToggleFavorite(url.id)}
-                    tooltip={
-                      url.isFavorite
-                        ? "Remove from favorites"
-                        : "Add to favorites"
-                    }
-                    variant={url.isFavorite ? "default" : "default"}
-                    className={url.isFavorite ? "border-yellow-400" : ""}
-                    disabled={!canEdit}
-                  />
-                  <IconButton
-                    icon={<ClipboardIcon className="h-5 w-5" />}
-                    onClick={handleCopyUrl}
-                    tooltip="Copy URL"
-                    variant="default"
-                  />
-                  {onDuplicate && (
-                    <IconButton
-                      icon={<DocumentDuplicateIcon className="h-5 w-5" />}
-                      onClick={() => onDuplicate(url)}
-                      tooltip="Duplicate URL"
-                      variant="default"
-                      disabled={!canEdit}
-                    />
-                  )}
-                  {onArchive && (
-                    <IconButton
-                      icon={<ArchiveBoxIcon className="h-5 w-5" />}
-                      onClick={() => setArchiveDialogOpen(true)}
-                      tooltip="Archive URL"
-                      variant="default"
-                      disabled={!canEdit}
-                    />
-                  )}
-                  {onPin && (
-                    <IconButton
-                      icon={
-                        <Pin
-                          className={`h-5 w-5 ${
-                            url.isPinned
-                              ? "text-yellow-400 fill-yellow-400"
-                              : ""
-                          }`}
-                        />
                       }
-                      onClick={() => {
-                        onPin(url.id);
-                        toast({
-                          title: url.isPinned ? "URL Unpinned" : "URL Pinned",
-                          description: url.isPinned
-                            ? `"${url.title || url.url}" has been unpinned.`
-                            : `"${
-                                url.title || url.url
-                              }" has been pinned to the top.`,
-                          variant: "success",
-                        });
-                      }}
-                      tooltip={url.isPinned ? "Unpin from top" : "Pin to top"}
-                      variant={url.isPinned ? "default" : "default"}
-                      disabled={!canEdit}
-                    />
-                  )}
-                  {url.clickCount !== undefined && (
-                    <IconButton
-                      icon={<ChartBarIcon className="h-5 w-5" />}
-                      onClick={handleShowAnalytics}
-                      tooltip={`View analytics (${url.clickCount || 0} clicks)`}
-                      variant="default"
-                      badge={url.clickCount}
-                    />
-                  )}
-                  <IconButton
-                    icon={<MagnifyingGlassIcon className="h-5 w-5" />}
-                    onClick={handleFindSimilar}
-                    tooltip="Find similar URLs"
-                    variant="default"
+                    }}
                   />
-                  <IconButton
-                    icon={<MessageSquare className="h-5 w-5" />}
-                    onClick={() => setCommentsOpen(true)}
-                    tooltip="Comments"
-                    variant="default"
-                    badge={url.commentCount}
-                  />
-                </div>
-                <div className="flex items-center gap-2 text-white/60 text-xs font-delicious flex-wrap justify-end">
-                  <TimeInfo
-                    icon={<ClockIcon className="h-3.5 w-3.5 shrink-0" />}
-                    label="Added"
-                    date={new Date(url.createdAt)}
-                  />
-                  {url.updatedAt ? (
-                    <TimeInfo
-                      icon={<ClockIcon className="h-3.5 w-3.5 shrink-0" />}
-                      label="Updated"
-                      date={new Date(url.updatedAt)}
-                    />
-                  ) : null}
-                </div>
-              </div>
-              {/* Toast notification */}
-              {toastMessage && (
-                <div className="fixed bottom-4 right-4 bg-green-500/90 backdrop-blur-md text-white px-4 py-2 rounded-lg shadow-xl z-50 animate-in fade-in slide-in-from-bottom-2 border border-green-400/30">
-                  {toastMessage}
                 </div>
               )}
-            </>
-          )}
-        </div>
-      </div>
+              <button
+                onClick={() => onToggleFavorite(url.id)}
+                className="absolute top-2 right-2 bg-black/50 backdrop-blur-md rounded-lg p-2 hover:bg-black/70 transition-colors cursor-pointer z-10"
+              >
+                <StarIcon
+                  className={`h-5 w-5 ${
+                    url.isFavorite ? "text-yellow-400" : "text-white"
+                  }`}
+                />
+              </button>
+            </div>
+          </div>
+          {/* Content Section */}
+          <div className="sm:w-3/5 w-full flex-1 min-w-0 flex flex-col gap-2 sm:gap-4">
+            {shouldShowSkeleton ? (
+              <>
+                {/* Skeleton for title */}
+                <div className="flex-1 min-w-0 space-y-2">
+                  <div className="h-7 bg-gray-800/40 rounded-lg w-3/4 animate-pulse" />
+                  {/* Skeleton for category/tags */}
+                  <div className="flex gap-2">
+                    <div className="h-6 w-20 bg-gray-800/30 rounded animate-pulse" />
+                    <div className="h-6 w-24 bg-gray-800/30 rounded animate-pulse" />
+                    <div className="h-6 w-20 bg-gray-800/30 rounded animate-pulse" />
+                  </div>
+                  {/* Skeleton for description lines */}
+                  <div className="space-y-2">
+                    <div className="h-4 bg-gray-800/30 rounded w-full animate-pulse" />
+                    <div className="h-4 bg-gray-800/30 rounded w-5/6 animate-pulse" />
+                    <div className="h-4 bg-gray-800/30 rounded w-4/6 animate-pulse" />
+                  </div>
+                </div>
+                {/* Skeleton for action buttons */}
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    {[1, 2, 3, 4, 5].map((i) => (
+                      <div
+                        key={i}
+                        className="w-12 h-12 rounded-full bg-gray-800/40 animate-pulse"
+                      />
+                    ))}
+                  </div>
+                  <div className="h-5 w-24 bg-gray-800/40 rounded animate-pulse" />
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="flex-1 min-w-0">
+                  {/* Title with Health Status — one vertically centered row */}
+                  <div className="flex items-center gap-2 flex-wrap min-w-0">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onUrlClick?.(url.id);
+                        openExternalUrl(url.url);
+                      }}
+                      className="font-medium text-base sm:text-lg xl:text-xl text-white hover:text-blue-400 transition-colors font-joti break-words text-left cursor-pointer min-w-0"
+                      title={title}
+                    >
+                      {title}
+                    </button>
+                    <span className="inline-flex items-center shrink-0">
+                      <UrlHealthIndicator
+                        status={url.healthStatus}
+                        httpStatus={url.healthLastStatus}
+                        responseTime={url.healthResponseTime}
+                        checkedAt={url.healthCheckedAt}
+                        showDetails={false}
+                      />
+                    </span>
+                  </div>
 
-      {/* Bottom bar with note */}
-      {url.notes && (
-        <div className="px-6 pb-4 pt-0 border-t border-white/10">
-          <div className="flex items-center gap-2 text-yellow-200 text-xs font-delicious pt-4">
-            <ExclamationCircleIcon className="h-4 w-4 flex-shrink-0 self-center" />
-            <span className="font-medium shrink-0 self-center">Note:</span>
-            <span className="min-w-0 flex-1 leading-relaxed">{url.notes}</span>
+                  {/* Pinned Badge */}
+                  {url.isPinned && (
+                    <div className="mt-1 flex items-center gap-1">
+                      <Pin className="h-3.5 w-3.5 text-yellow-400 fill-yellow-400" />
+                      <span className={URL_META_CHIP_YELLOW}>Pinned</span>
+                    </div>
+                  )}
+
+                  {/* Category and Tags Display - Same Line */}
+                  {(url.category || (url.tags && url.tags.length > 0)) && (
+                    <div className="mt-1 flex items-center gap-2 flex-wrap">
+                      {url.category && (
+                        <span className={URL_META_CHIP_BLUE}>
+                          {url.category}
+                        </span>
+                      )}
+                      {url.tags && url.tags.length > 0 && (
+                        <>
+                          {url.tags.map((tag, index) => (
+                            <span key={index} className={URL_META_CHIP_PURPLE}>
+                              #{tag}
+                            </span>
+                          ))}
+                        </>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Reminder Display */}
+                  {url.reminder && (
+                    <div className="mt-1 flex items-center gap-2">
+                      <BellIcon className="h-3.5 w-3.5 text-yellow-400 shrink-0" />
+                      <span className="text-xs text-yellow-300 font-normal inline-flex items-center flex-wrap gap-1">
+                        Reminder:{" "}
+                        <span className="text-yellow-200">
+                          {new Date(url.reminder).toLocaleDateString("en-US", {
+                            month: "short",
+                            day: "numeric",
+                            year: "numeric",
+                          })}
+                        </span>
+                        {new Date(url.reminder) < new Date() && (
+                          <span className={URL_META_CHIP_RED}>Overdue</span>
+                        )}
+                        {new Date(url.reminder) >= new Date() &&
+                          new Date(url.reminder) <=
+                            new Date(
+                              new Date().setDate(new Date().getDate() + 7),
+                            ) && (
+                            <span className={URL_META_CHIP_ORANGE}>Soon</span>
+                          )}
+                      </span>
+                    </div>
+                  )}
+
+                  {isNoPreview ? (
+                    <p className="mt-1 text-xs text-white/40 italic font-delicious">
+                      No preview available for this site.
+                    </p>
+                  ) : (
+                    description && (
+                      <div className="mt-1 flex w-full min-h-[3.5rem] items-center">
+                        <p className="w-full text-xs text-white/60 leading-relaxed font-delicious line-clamp-5 break-words">
+                          {description}
+                        </p>
+                      </div>
+                    )
+                  )}
+                </div>
+                {/* Action buttons row with timestamp */}
+                <div className="flex items-center justify-between gap-2 flex-wrap">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <IconButton
+                      icon={<ArrowTopRightOnSquareIcon />}
+                      onClick={() => {
+                        onUrlClick?.(url.id);
+                        openExternalUrl(url.url);
+                      }}
+                      tooltip="Visit Site"
+                      className="hover:translate-x-0.5 hover:-translate-y-0.5 transition-transform cursor-pointer"
+                    />
+                    <IconButton
+                      icon={<PencilIcon />}
+                      onClick={() => onEdit(url)}
+                      tooltip="Edit URL"
+                      disabled={!canEdit}
+                    />
+                    <IconButton
+                      icon={<TrashIcon />}
+                      onClick={() => setDeleteDialogOpen(true)}
+                      tooltip="Delete URL"
+                      variant="danger"
+                      disabled={!canEdit}
+                    />
+                    <IconButton
+                      icon={<ShareIcon />}
+                      onClick={() => onShare(url)}
+                      tooltip={shareTooltip || "Share URL"}
+                    />
+                    <IconButton
+                      icon={
+                        <StarIcon
+                          className={
+                            url.isFavorite ? "text-yellow-400 fill-current" : ""
+                          }
+                        />
+                      }
+                      onClick={() => onToggleFavorite(url.id)}
+                      tooltip={
+                        url.isFavorite
+                          ? "Remove from favorites"
+                          : "Add to favorites"
+                      }
+                      className={url.isFavorite ? "border-yellow-400" : ""}
+                      disabled={!canEdit}
+                    />
+                    <IconButton
+                      icon={<ClipboardIcon className="h-5 w-5" />}
+                      onClick={handleCopyUrl}
+                      tooltip="Copy URL"
+                    />
+                    {onDuplicate && (
+                      <IconButton
+                        icon={<DocumentDuplicateIcon className="h-5 w-5" />}
+                        onClick={() => onDuplicate(url)}
+                        tooltip="Duplicate URL"
+                        disabled={!canEdit}
+                      />
+                    )}
+                    {onArchive && (
+                      <IconButton
+                        icon={<ArchiveBoxIcon className="h-5 w-5" />}
+                        onClick={() => setArchiveDialogOpen(true)}
+                        tooltip="Archive URL"
+                        disabled={!canEdit}
+                      />
+                    )}
+                    {onPin && (
+                      <IconButton
+                        icon={
+                          <Pin
+                            className={`h-5 w-5 ${
+                              url.isPinned
+                                ? "text-yellow-400 fill-yellow-400"
+                                : ""
+                            }`}
+                          />
+                        }
+                        onClick={() => {
+                          onPin(url.id);
+                          toast({
+                            title: url.isPinned ? "URL Unpinned" : "URL Pinned",
+                            description: url.isPinned
+                              ? `"${url.title || url.url}" has been unpinned.`
+                              : `"${
+                                  url.title || url.url
+                                }" has been pinned to the top.`,
+                            variant: "success",
+                          });
+                        }}
+                        tooltip={url.isPinned ? "Unpin from top" : "Pin to top"}
+                        disabled={!canEdit}
+                      />
+                    )}
+                    {url.clickCount !== undefined && (
+                      <IconButton
+                        icon={<ChartBarIcon className="h-5 w-5" />}
+                        onClick={handleShowAnalytics}
+                        tooltip={`View analytics (${url.clickCount || 0} clicks)`}
+                        badge={url.clickCount}
+                      />
+                    )}
+                    <IconButton
+                      icon={<MagnifyingGlassIcon className="h-5 w-5" />}
+                      onClick={handleFindSimilar}
+                      tooltip="Find similar URLs"
+                    />
+                    <IconButton
+                      icon={<MessageSquare className="h-5 w-5" />}
+                      onClick={() => setCommentsOpen(true)}
+                      tooltip="Comments"
+                      badge={url.commentCount}
+                    />
+                  </div>
+                  <div className="flex items-center gap-2 text-white/60 text-xs font-delicious flex-wrap justify-end">
+                    <TimeInfo
+                      icon={<ClockIcon className="h-3.5 w-3.5 shrink-0" />}
+                      label="Added"
+                      date={new Date(url.createdAt)}
+                    />
+                    {url.updatedAt ? (
+                      <TimeInfo
+                        icon={<ClockIcon className="h-3.5 w-3.5 shrink-0" />}
+                        label="Updated"
+                        date={new Date(url.updatedAt)}
+                      />
+                    ) : null}
+                  </div>
+                </div>
+                {/* Toast notification */}
+                {toastMessage && (
+                  <div className="fixed bottom-4 right-4 bg-green-500/90 backdrop-blur-md text-white px-4 py-2 rounded-lg shadow-xl z-50 animate-in fade-in slide-in-from-bottom-2 border border-green-400/30">
+                    {toastMessage}
+                  </div>
+                )}
+              </>
+            )}
           </div>
         </div>
-      )}
+
+        {url.notes ? (
+          <>
+            <div className="h-px bg-white/10" aria-hidden />
+            <p className="min-w-0 text-xs italic leading-relaxed text-yellow-200/90">
+              <span className="not-italic font-medium">Note:</span> {url.notes}
+            </p>
+          </>
+        ) : null}
+      </div>
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog
@@ -778,11 +769,11 @@ export const UrlCard: React.FC<UrlCardProps> = ({
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2  flex-wrap">
-                        <span className="px-2 py-0.5 bg-blue-500/20 border border-blue-400/30 text-blue-300 rounded text-xs font-medium whitespace-nowrap">
+                        <span className={URL_META_CHIP_BLUE}>
                           {Math.round(result.relevanceScore * 100)}% match
                         </span>
                         {result.url.category && (
-                          <span className="px-2 py-0.5 bg-purple-500/20 border border-purple-400/30 text-purple-300 rounded text-xs font-medium whitespace-nowrap">
+                          <span className={URL_META_CHIP_PURPLE}>
                             {result.url.category}
                           </span>
                         )}

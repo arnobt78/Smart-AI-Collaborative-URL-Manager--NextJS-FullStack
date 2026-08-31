@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/Button";
 import { CancelButton } from "@/components/ui/ActionButtons";
 import { Input } from "@/components/ui/Input";
@@ -8,7 +8,13 @@ import { Badge } from "@/components/ui/Badge";
 import { AlertDialog } from "@/components/ui/AlertDialog";
 import { useToast } from "@/components/ui/Toaster";
 import { UserAvatar } from "@/components/ui/UserAvatar";
-import { GlassPortalMenu } from "@/components/ui/GlassPortalMenu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   UserPlus,
   Edit3,
@@ -72,9 +78,6 @@ export function PermissionManager({
   }>({ open: false, email: "" });
   const [newEmail, setNewEmail] = useState("");
   const [newRole, setNewRole] = useState<"editor" | "viewer">("editor");
-  const [menuEmail, setMenuEmail] = useState<string | null>(null);
-  /** Active row trigger for portaled menu positioning. */
-  const menuTriggerRef = useRef<HTMLButtonElement | null>(null);
 
   const formatMetaDate = (value?: string | null) => {
     if (!value) return null;
@@ -227,7 +230,6 @@ export function PermissionManager({
       onSuccess: () => {
         requestAnimationFrame(() => {
           setDeleteDialog({ open: false, email: "" });
-          setMenuEmail(null);
         });
         onUpdate?.();
       },
@@ -319,7 +321,6 @@ export function PermissionManager({
             .map((collaborator, index) => {
               const invitedAt = formatMetaDate(collaborator.invitedAt);
               const updatedAt = formatMetaDate(collaborator.updatedAt);
-              const menuOpen = menuEmail === collaborator.email;
               return (
                 <div
                   key={`${collaborator.email.toLowerCase()}-${index}`}
@@ -341,7 +342,7 @@ export function PermissionManager({
                           <div
                             className={`${getRoleBadgeColor(
                               collaborator.role,
-                            )} inline-flex items-center justify-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border text-center`}
+                            )} inline-flex items-center justify-center gap-1 px-2 py-0.5 rounded-full text-xs font-normal border text-center`}
                           >
                             {getRoleIcon(collaborator.role)}
                             <span className="capitalize">
@@ -375,82 +376,52 @@ export function PermissionManager({
                       </div>
                     </div>
                     <div className="relative shrink-0">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={(e) => {
-                          menuTriggerRef.current = e.currentTarget;
-                          setMenuEmail(menuOpen ? null : collaborator.email);
-                        }}
-                        className={UI_ICON_MENU_TRIGGER}
-                        aria-expanded={menuOpen}
-                        aria-haspopup="menu"
-                        aria-label={`Actions for ${collaborator.email}`}
-                      >
-                        <MoreVertical className="h-4 w-4" />
-                      </Button>
-                      {menuOpen ? (
-                        <GlassPortalMenu
-                          open={menuOpen}
-                          onClose={() => setMenuEmail(null)}
-                          triggerRef={menuTriggerRef}
-                          widthClassName="w-48"
-                        >
-                          <button
-                            type="button"
-                            role="menuitem"
+                      <DropdownMenu modal={false}>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className={UI_ICON_MENU_TRIGGER}
+                            aria-label={`Actions for ${collaborator.email}`}
+                          >
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-48">
+                          <DropdownMenuItem
                             disabled={!canInvite}
-                            onClick={() => {
-                              if (!canInvite) return;
-                              setMenuEmail(null);
+                            onSelect={() => {
                               setRoleChangeDialog({
                                 open: true,
                                 email: collaborator.email,
                                 currentRole: collaborator.role,
                               });
                             }}
-                            className={`flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm transition-colors ${
-                              canInvite
-                                ? "text-white/90 hover:bg-white/10"
-                                : "text-white/40 cursor-not-allowed"
-                            }`}
+                            className="cursor-pointer"
                           >
                             <Edit3 className="h-4 w-4 text-blue-300" />
                             Change Role
-                          </button>
-                          <button
-                            type="button"
-                            role="menuitem"
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
                             disabled={!canInvite}
-                            onClick={() => {
-                              if (!canInvite) return;
-                              setMenuEmail(null);
+                            onSelect={() => {
                               setDeleteDialog({
                                 open: true,
                                 email: collaborator.email,
                               });
                             }}
-                            className={`flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm transition-colors ${
-                              canInvite
-                                ? "text-red-400 hover:bg-red-500/10 hover:text-red-300"
-                                : "text-red-400/40 cursor-not-allowed"
-                            }`}
+                            className="cursor-pointer text-red-400 focus:bg-red-500/10 focus:text-red-300 data-[highlighted]:bg-red-500/10 data-[highlighted]:text-red-300"
                           >
                             <Trash2 className="h-4 w-4" />
                             Remove
-                          </button>
-                          <div className="my-1 h-px bg-white/10" />
-                          <button
-                            type="button"
-                            role="menuitem"
-                            onClick={() => setMenuEmail(null)}
-                            className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-white/70 hover:bg-white/10 hover:text-white"
-                          >
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem className="cursor-pointer text-white/70">
                             <X className="h-4 w-4" />
                             Cancel
-                          </button>
-                        </GlassPortalMenu>
-                      ) : null}
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
                   </div>
                 </div>

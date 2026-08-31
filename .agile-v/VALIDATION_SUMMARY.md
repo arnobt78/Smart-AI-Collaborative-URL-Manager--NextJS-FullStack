@@ -477,3 +477,16 @@ Gate 2: BLOCKED — RISK-0016 is accepted; `EVAL_RESULTS.md` PASS/WAIVED evidenc
 | Insights | dense meta/tabs `gap-1` | PASS | GlobalStats / Tabs / Popular. |
 | Validation | lint; tsc; Jest UrlList\|SoftNav; build; verify-deep | PASS | BUILD exit 0; lint 0. |
 | OOS | UrlFilterBar portal | — | Deferred. |
+
+## 2026-08-31 — C7.15 Radix DropdownMenu + CARD_STACK + UrlCard polish
+
+| Scope | Command / evidence | Result | Notes |
+|---|---|---|---|
+| Menus | Radix `dropdown-menu.tsx`; delete `GlassPortalMenu` | PASS | jobs, collab, profile, Auth guest, bulk I/E; `modal={false}`. |
+| Focus | globals `[role=menu\|menuitem]` ring-0; trigger white/30 | PASS | No blue ring on panel/rows. |
+| Cards | `CARD_STACK`; MyLists/Browse/detail header | PASS | Dense title→badges→meta. |
+| UrlCard | unified `CARD_PAD`; note `h-px`+italic; `URL_META_CHIP` | PASS | Chip tones + Visit default IconButton. |
+| Config | `/_next/static` immutable headers prod-only | PASS | Dev HMR no longer fights Cache-Control. |
+| Deps | `@radix-ui/react-dropdown-menu` · `tailwindcss-animate` | PASS | audit 0. |
+| Tests | Jest UrlBulkImportExport via `userEvent` open menu | PASS | fireEvent insufficient for Radix. |
+| Validation | `tsc`; `eslint .`; Jest; `npm run build`; audit | PASS | BUILD exit 0; lint 0. |

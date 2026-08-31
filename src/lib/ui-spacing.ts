@@ -28,5 +28,8 @@ export const HEADING_STACK = "flex flex-col gap-0";
 /** Page-level alias retained for existing page header call sites. */
 export const PAGE_HEADER = HEADING_STACK;
 
+/** Dense vertical stack inside glass list/detail cards (title → badges → meta). */
+export const CARD_STACK = "flex flex-col gap-1";
+
 /** Align with Card Header/Content pad where raw divs mimic cards */
 export const CARD_PAD = "p-2 sm:p-4";

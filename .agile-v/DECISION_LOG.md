@@ -735,3 +735,16 @@ Append-only. Newest entries at bottom.
 | Rationale | User required Next 16+ / React 19+ / Node 24; Prisma 7/8 and DB migration OOS; Next 16 prefers proxy over middleware for this pathname header; override is the upstream-recommended consumer fix. |
 | Linked REQs | C7.13 deps |
 | Status | Implemented and locally validated 2026-08-31. |
+
+---
+
+## DEC-0054 — C7.15 Radix glass DropdownMenu + card/UrlCard polish
+
+| Field | Value |
+|---|---|
+| Timestamp | 2026-08-31 |
+| Agent | Cursor |
+| Decision | Replace custom `GlassPortalMenu` with Radix `@radix-ui/react-dropdown-menu` + glass tokens (`UI_GLASS_MENU_*`, `modal={false}`); suppress global blue `:focus-visible` on menu roles; add `CARD_STACK`; UrlCard single `CARD_PAD` + local `URL_META_CHIP`; prod-only immutable `/_next/static` Cache-Control. |
+| Rationale | Custom portal flip/clamp duplicated Radix positioning; blue rings fought glass chrome; list cards needed one dense stack token; UrlCard note/chips needed one pad rhythm; immutable static headers broke Turbopack HMR in dev. |
+| Linked REQs | C7.15 UX |
+| Status | Implemented and locally validated 2026-08-31. |

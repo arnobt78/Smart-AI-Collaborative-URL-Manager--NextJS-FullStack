@@ -62,7 +62,7 @@ export default function PrivacyPage() {
             us at{" "}
             <a
               href="mailto:arnob_t78@yahoo.com"
-              className="text-blue-400 hover:text-blue-300 underline"
+              className="text-blue-400 hover:text-blue-300 "
             >
               arnob_t78@yahoo.com
             </a>

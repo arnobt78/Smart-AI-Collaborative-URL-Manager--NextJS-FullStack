@@ -40,13 +40,17 @@ const nextConfig = {
     NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME: process.env.CLOUDINARY_CLOUD_NAME,
   },
   async headers() {
-    return [
+    /** @type {{ source: string; headers: { key: string; value: string }[] }[]} */
+    const list = [
       {
         // Apply security headers to all routes
         source: "/(.*)",
         headers: securityHeaders,
       },
-      {
+    ];
+    // Prod only — Next warns that custom Cache-Control on /_next/static breaks dev HMR.
+    if (process.env.NODE_ENV === "production") {
+      list.push({
         // Content-hashed build assets — long-lived immutable cache (reduces bot re-fetch)
         source: "/_next/static/(.*)",
         headers: [
@@ -55,8 +59,9 @@ const nextConfig = {
             value: "public, max-age=31536000, immutable",
           },
         ],
-      },
-    ];
+      });
+    }
+    return list;
   },
 };
 

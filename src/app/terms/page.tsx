@@ -81,7 +81,7 @@ export default function TermsPage() {
             For any questions regarding these terms, please contact us at{" "}
             <a
               href="mailto:arnob_t78@yahoo.com"
-              className="text-blue-400 hover:text-blue-300 underline"
+              className="text-blue-400 hover:text-blue-300 "
             >
               arnob_t78@yahoo.com
             </a>

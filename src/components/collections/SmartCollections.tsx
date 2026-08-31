@@ -57,10 +57,9 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
   // First visit: Fetches in background (non-blocking with placeholderData), page shows immediately
   // Subsequent visits: Uses cache instantly (no API call)
   // After invalidation: Refetches once, then cached again
-  const {
-    data: suggestionsData,
-    isLoading: isLoadingSuggestions,
-  } = useQuery<{ suggestions: CollectionSuggestion[] }>({
+  const { data: suggestionsData, isLoading: isLoadingSuggestions } = useQuery<{
+    suggestions: CollectionSuggestion[];
+  }>({
     queryKey: [...listQueryKeys.collections(listId), list?.urls?.length],
     queryFn: async () => {
       if (!listSlug) {
@@ -177,8 +176,11 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
       const result = await fetch(
         `/api/lists/${listSlug}/collections?clearCache=true&_t=${Date.now()}`,
       );
-      if (!result.ok) throw new Error("Failed to refresh collection suggestions");
-      const refreshedData = await result.json() as { suggestions?: CollectionSuggestion[] };
+      if (!result.ok)
+        throw new Error("Failed to refresh collection suggestions");
+      const refreshedData = (await result.json()) as {
+        suggestions?: CollectionSuggestion[];
+      };
       queryClient.setQueryData(
         [...listQueryKeys.collections(listId), list?.urls?.length],
         { suggestions: refreshedData.suggestions || [] },
@@ -230,14 +232,7 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
     } finally {
       setIsRefreshing(false);
     }
-  }, [
-    listSlug,
-    list?.urls,
-    listId,
-    suggestions.length,
-    toast,
-    queryClient,
-  ]);
+  }, [listSlug, list?.urls, listId, suggestions.length, toast, queryClient]);
 
   // UNIFIED EVENT LISTENER: Listen for URL changes via unified-update events (single source of truth)
   // Uses event deduplication to prevent processing the same event twice
@@ -328,28 +323,40 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
     if (isCreating) return;
 
     setIsCreating(suggestion.id);
-    const suggestionKey = [...listQueryKeys.collections(listId), list?.urls?.length] as const;
+    const suggestionKey = [
+      ...listQueryKeys.collections(listId),
+      list?.urls?.length,
+    ] as const;
     const previousList = currentList.get();
-    const previousUnified = queryClient.getQueryData<{ list?: typeof previousList }>(
-      listQueryKeys.unified(listSlug),
-    );
-    const previousSuggestions = queryClient.getQueryData<{ suggestions: CollectionSuggestion[] }>(suggestionKey);
+    const previousUnified = queryClient.getQueryData<{
+      list?: typeof previousList;
+    }>(listQueryKeys.unified(listSlug));
+    const previousSuggestions = queryClient.getQueryData<{
+      suggestions: CollectionSuggestion[];
+    }>(suggestionKey);
     const movedUrlIds = new Set(suggestion.urls.map((url) => url.id));
-    const optimisticUrls = (previousList.urls || []).filter((url) => !movedUrlIds.has(url.id));
-    const optimisticSuggestionKey = [...listQueryKeys.collections(listId), optimisticUrls.length] as const;
-    const previousOptimisticSuggestions = queryClient.getQueryData<{ suggestions: CollectionSuggestion[] }>(
-      optimisticSuggestionKey,
+    const optimisticUrls = (previousList.urls || []).filter(
+      (url) => !movedUrlIds.has(url.id),
     );
-    const nextSuggestions = (previousSuggestions?.suggestions || suggestions).filter(
-      (item) => item.id !== suggestion.id,
-    );
+    const optimisticSuggestionKey = [
+      ...listQueryKeys.collections(listId),
+      optimisticUrls.length,
+    ] as const;
+    const previousOptimisticSuggestions = queryClient.getQueryData<{
+      suggestions: CollectionSuggestion[];
+    }>(optimisticSuggestionKey);
+    const nextSuggestions = (
+      previousSuggestions?.suggestions || suggestions
+    ).filter((item) => item.id !== suggestion.id);
 
     // Commit the source-list change in both render surfaces before the request starts.
     currentList.set({ ...previousList, urls: optimisticUrls });
     queryClient.setQueryData(
       listQueryKeys.unified(listSlug),
       (cached: typeof previousUnified) =>
-        cached?.list ? { ...cached, list: { ...cached.list, urls: optimisticUrls } } : cached,
+        cached?.list
+          ? { ...cached, list: { ...cached.list, urls: optimisticUrls } }
+          : cached,
     );
     queryClient.setQueryData<{ suggestions: CollectionSuggestion[] }>(
       suggestionKey,
@@ -357,7 +364,9 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
     );
     // The query key includes URL count; seed its post-mutation variant so the
     // next render never falls through to an avoidable cold request.
-    queryClient.setQueryData(optimisticSuggestionKey, { suggestions: nextSuggestions });
+    queryClient.setQueryData(optimisticSuggestionKey, {
+      suggestions: nextSuggestions,
+    });
 
     try {
       const response = await fetch(`/api/lists/${listSlug}/collections`, {
@@ -387,12 +396,21 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
       invalidateMutationImpact(queryClient, "collection", listSlug, listId);
     } catch (error) {
       currentList.set(previousList);
-      queryClient.setQueryData(listQueryKeys.unified(listSlug), previousUnified);
+      queryClient.setQueryData(
+        listQueryKeys.unified(listSlug),
+        previousUnified,
+      );
       queryClient.setQueryData(suggestionKey, previousSuggestions);
       if (previousOptimisticSuggestions) {
-        queryClient.setQueryData(optimisticSuggestionKey, previousOptimisticSuggestions);
+        queryClient.setQueryData(
+          optimisticSuggestionKey,
+          previousOptimisticSuggestions,
+        );
       } else {
-        queryClient.removeQueries({ queryKey: optimisticSuggestionKey, exact: true });
+        queryClient.removeQueries({
+          queryKey: optimisticSuggestionKey,
+          exact: true,
+        });
       }
       // Handle expected errors silently (no error overlay):
       // - 401 Unauthorized (user lost access)
@@ -649,9 +667,11 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
                                       {d.listSlug ? (
                                         <button
                                           onClick={() => {
-                                            warmRouterPush(`/list/${d.listSlug}`);
+                                            warmRouterPush(
+                                              `/list/${d.listSlug}`,
+                                            );
                                           }}
-                                          className="underline hover:text-white transition-colors break-words"
+                                          className=" hover:text-white transition-colors break-words"
                                           title={`Open ${d.listTitle || "list"}`}
                                         >
                                           {d.listTitle || "Unknown List"}
