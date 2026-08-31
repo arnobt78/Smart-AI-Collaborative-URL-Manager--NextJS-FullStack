@@ -1,14 +1,14 @@
 # Smart AI Collaborative URL Bookmark Manager - Next.js, TypeScript, PostgreSQL, Prisma, TanStack Query, Upstash, QStash, Cloudinary, AI Features, SSE Full-Stack Project
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Next.js](https://img.shields.io/badge/Next.js-15-black)](https://nextjs.org/)
-[![React](https://img.shields.io/badge/React-18.3.1-blue)](https://react.dev/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.7.3-blue)](https://www.typescriptlang.org/)
+[![Next.js](https://img.shields.io/badge/Next.js-16-black)](https://nextjs.org/)
+[![React](https://img.shields.io/badge/React-19.2-blue)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue)](https://www.typescriptlang.org/)
 [![Prisma](https://img.shields.io/badge/Prisma-6.19-2D3748)](https://www.prisma.io/)
 [![React Query](https://img.shields.io/badge/TanStack%20Query-5-FF4154)](https://tanstack.com/query)
 [![launch with diploi badge](https://diploi.com/launch.svg)](https://diploi.com/launch/arnobt78/Daily-URL-Bookmark-Notes-Dairy--NextJS-FullStack)
 
-A production-ready, full-stack URL bookmarking and sharing platform (**The Daily Urlist**, package `urlist` v0.2.1). Built with **Next.js 15 App Router**, **React 18**, **TypeScript**, **Prisma**, and **PostgreSQL**. Features AI-powered enhancements, real-time collaboration, vector search, Redis caching, portable auth UI (Robohash avatars + profile menu), and intelligent URL organization.
+A production-ready, full-stack URL bookmarking and sharing platform (**The Daily Urlist**, package `urlist` v0.2.1). Built with **Next.js 16 App Router**, **React 19**, **TypeScript**, **Prisma**, and **PostgreSQL**. Features AI-powered enhancements, real-time collaboration, vector search, Redis caching, portable auth UI (Robohash avatars + profile menu), and intelligent URL organization.
 
 - **Live Demo:** [https://daily-urlist.vercel.app/](https://daily-urlist.vercel.app/)
 - **Security:** Private reports → [SECURITY.md](./SECURITY.md) · [contact@arnobmahmud.com](mailto:contact@arnobmahmud.com)
@@ -133,9 +133,9 @@ You do **not** need every third-party key to learn the codebase. See [Environmen
 
 | Tech                   | Version (approx.) | Why                                |
 | ---------------------- | ----------------- | ---------------------------------- |
-| **Next.js**            | 15.5.x            | App Router, SSR shells, API routes |
-| **React**              | 18.3              | UI + client islands                |
-| **TypeScript**         | 5.7.x             | Typed app and API                  |
+| **Next.js**            | 16.3.x            | App Router, SSR shells, API routes, `proxy.ts` |
+| **React**              | 19.2              | UI + client islands                |
+| **TypeScript**         | 5.9.x             | Typed app and API                  |
 | **Tailwind CSS**       | 3.4               | Utility styling                    |
 | **TanStack Query**     | 5.x               | Server-state cache                 |
 | **NanoStores**         | 1.x               | Lightweight list state             |

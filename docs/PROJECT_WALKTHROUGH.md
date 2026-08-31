@@ -4,12 +4,12 @@ Compact agent map. Code = source of truth.
 
 ## App
 
-Next 15 URL bookmark manager. Demo: https://daily-urlist.vercel.app/
+Next 16 URL bookmark manager. Demo: https://daily-urlist.vercel.app/
 
 ## Layout
 
 - Pages → `components/pages/*` · `app/api/**` · SEO `layout.tsx` + sitemap
-- Auth: `/login` → `Auth.tsx` (chrome-free) · `ProfileDropdown` · `UserAvatar` · `lib/robohash.ts` · `constants/auth.ts` · `middleware.ts` `x-pathname`
+- Auth: `/login` → `Auth.tsx` (chrome-free) · `ProfileDropdown` · `UserAvatar` · `lib/robohash.ts` · `constants/auth.ts` · `proxy.ts` `x-pathname`
 - Flash: SSR `WAS_AUTHED_COOKIE` / `session_token` → Marketing on `/`; guests `redirect("/login")`
 - Auth UI: split viewport inside `max-w-7xl` — left Welcome typewriter + about-process; right Sign In + Sign up; sticky login when fits
 - Guest credentials: opaque dropdown is raised above staggered Auth rows; trigger exposes expanded/menu ARIA
@@ -44,11 +44,11 @@ Next 15 URL bookmark manager. Demo: https://daily-urlist.vercel.app/
 - List access: `lib/list-route-access.ts` verifies a persisted session before resolving list slug/ID; public lists are visible to every authenticated account, while private reads require ownership/collaboration; PATCH content is owner/editor, visibility and deletion owner-only, and vector sync/metadata refresh require edit permission. Unified GET normalization is response-only and shared with server hydration, preserving comment and collaborator cache data.
 - Comment badges: create increments, delete decrements, edit is count-neutral, and failed mutations restore only their own optimistic delta.
 - Manual: TASK-0039 + C6.9 warm revisit paints destination UI after deploy; code OK.
-- Audit: lint/tsc/Jest(103/5)/build pass; RISK-0016 accepted; Gate 2 needs EvalGate.
+- Audit: lint/tsc/Jest/build pass; RISK-0016 closed (deepmerge override); Gate 2 needs EvalGate.
 
 ## Versions
 
-Next **15.5.23** · React **18** · Prisma **6.19.3** · Jest · Node **24.x** · ESLint audit **0**
+Next **16.3.3** · React **19.2** · Prisma **6.19.3** · Jest · Node **24.x** · ESLint audit **0**
 
 ## Env
 

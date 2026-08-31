@@ -4,14 +4,12 @@
  */
 export function devLog(...args: unknown[]): void {
   if (process.env.NODE_ENV === "development") {
-    // eslint-disable-next-line no-console -- intentional dev diagnostics
     console.log(...args);
   }
 }
 
 export function devWarn(...args: unknown[]): void {
   if (process.env.NODE_ENV === "development") {
-    // eslint-disable-next-line no-console -- intentional dev diagnostics
     console.warn(...args);
   }
 }

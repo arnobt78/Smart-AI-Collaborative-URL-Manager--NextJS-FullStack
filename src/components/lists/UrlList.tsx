@@ -580,7 +580,6 @@ export function UrlList() {
 
     // Fetch metadata IMMEDIATELY when list loads (no delay to prevent individual calls)
     fetchAllMetadata();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [list?.id, list?.urls, queryClient]);
 
   // Track if we're currently performing a local operation to prevent refresh loops

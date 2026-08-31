@@ -295,7 +295,6 @@ export function UrlBulkImportExport({
       window.removeEventListener("popstate", handlePopState);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Empty dependency array - only run on mount/unmount, not when isImporting changes
 
   const handleImport = async (

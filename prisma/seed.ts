@@ -84,6 +84,7 @@ async function parseCSV<T>(filePath: string): Promise<T[]> {
   return records as T[];
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- CSV seed JSON is untyped
 function parseJSONField(field: string): any {
   if (!field || field === "null" || field === "") {
     return null;

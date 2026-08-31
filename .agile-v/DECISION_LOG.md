@@ -722,3 +722,16 @@ Append-only. Newest entries at bottom.
 | Rationale | Soft-nav lacked Copy and late-mounted Refresh/Health reflowed header; chart points unlabeled; Visit needed absolute new-tab open; face OG center-crop. |
 | Linked REQs | C7.12 UX |
 | Status | Implemented and locally validated 2026-08-25. |
+
+---
+
+## DEC-0053 — C7.13 Next 16 proxy + deepmerge override (keep Prisma 6)
+
+| Field | Value |
+|---|---|
+| Timestamp | 2026-08-31 |
+| Agent | Cursor |
+| Decision | Upgrade to Next 16.3.3 + React 19.2.8 + Node 24.x tooling; rename `middleware.ts` → `src/proxy.ts`; clear GHSA-ggr8-5vv4-36mx via `overrides.deepmerge-ts` `^8.0.2` without Prisma major or `npm audit fix --force` downgrade. |
+| Rationale | User required Next 16+ / React 19+ / Node 24; Prisma 7/8 and DB migration OOS; Next 16 prefers proxy over middleware for this pathname header; override is the upstream-recommended consumer fix. |
+| Linked REQs | C7.13 deps |
+| Status | Implemented and locally validated 2026-08-31. |

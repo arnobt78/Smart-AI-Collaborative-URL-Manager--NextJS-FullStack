@@ -1263,8 +1263,7 @@ export async function restoreArchivedUrl(urlId: string) {
     );
 
     // Add back to active URLs (remove archivedAt field if it exists)
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { archivedAt, ...restoredUrl } = urlToRestore as UrlItem & {
+    const { archivedAt: _archivedAt, ...restoredUrl } = urlToRestore as UrlItem & {
       archivedAt?: string;
     };
     const updatedUrls = [...(current.urls || []), restoredUrl];

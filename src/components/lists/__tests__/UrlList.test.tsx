@@ -4,10 +4,19 @@ import { UrlList } from "../UrlList";
 import { currentList } from "@/stores/urlListStore";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ToastProvider } from "@/components/ui/Toaster";
+import { openExternalUrl } from "@/lib/utils";
 
 jest.mock("@/hooks/useRealtimeList", () => ({
   useRealtimeList: jest.fn(() => ({ isConnected: false })),
 }));
+
+jest.mock("@/lib/utils", () => {
+  const actual = jest.requireActual("@/lib/utils");
+  return {
+    ...actual,
+    openExternalUrl: jest.fn(),
+  };
+});
 
 global.EventSource = jest.fn().mockImplementation(() => ({
   addEventListener: jest.fn(),
@@ -33,6 +42,7 @@ function renderWithProviders(ui: React.ReactElement) {
 describe("UrlList Component", () => {
   beforeEach(() => {
     global.fetch = jest.fn();
+    (openExternalUrl as jest.Mock).mockClear();
     currentList.set({
       id: "test-list",
       slug: "test-list",
@@ -62,13 +72,12 @@ describe("UrlList Component", () => {
     expect(screen.getByText("Example 2")).toBeInTheDocument();
   });
 
-  it("uses native safe new-tab links for URL visits", () => {
+  it("opens visits via openExternalUrl (absolute new-tab helper)", () => {
     renderWithProviders(<UrlList />);
 
-    const visitLinks = screen.getAllByRole("link", { name: "Visit Site" });
-    expect(visitLinks[0]).toHaveAttribute("href", "https://example.com/1");
-    expect(visitLinks[0]).toHaveAttribute("target", "_blank");
-    expect(visitLinks[0]).toHaveAttribute("rel", "noopener noreferrer");
+    fireEvent.click(screen.getAllByRole("button", { name: "Visit Site" })[0]);
+
+    expect(openExternalUrl).toHaveBeenCalledWith("https://example.com/1");
   });
 
   it("rolls back an unconfirmed URL-click optimistic update", async () => {
@@ -81,7 +90,7 @@ describe("UrlList Component", () => {
 
     renderWithProviders(<UrlList />);
 
-    fireEvent.click(screen.getAllByRole("link", { name: "Visit Site" })[0]);
+    fireEvent.click(screen.getAllByRole("button", { name: "Visit Site" })[0]);
 
     expect((currentList.get().urls?.[0] as { clickCount?: number }).clickCount).toBe(1);
 

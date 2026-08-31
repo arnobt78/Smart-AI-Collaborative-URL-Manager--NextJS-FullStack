@@ -33,7 +33,6 @@ export function useUrlMetadata(url: string, enabled: boolean = true) {
     }
     return undefined;
     // Only depend on enabled and url since queryKey is derived from url
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [enabled, url, queryClient, queryKey]);
 
   // Check if we have cached data in React Query (may have been prefetched)

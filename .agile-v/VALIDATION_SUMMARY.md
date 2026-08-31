@@ -447,3 +447,14 @@ Gate 2: BLOCKED — RISK-0016 is accepted; `EVAL_RESULTS.md` PASS/WAIVED evidenc
 | Collab / tabs | PermissionManager; UrlList border-b removed | PASS | items-start; ring; email xs/sm. |
 | Validation | `tsc`; `lint`; soft-nav Jest; `build`; verify-deep | PASS | lint 0; 12/12 soft-nav; build exit 0. |
 | OOS | full metadata rewrite / densify gateway / Insights API speed | — | Deferred. |
+
+## 2026-08-31 — C7.13 Next 16 + React 19 + Node 24 + proxy
+
+| Scope | Command / evidence | Result | Notes |
+|---|---|---|---|
+| Stack | next 16.3.3 · react/react-dom 19.2.8 · engines/`.nvmrc`/`@types/node` 24.x | PASS | Prisma 6.19.3 unchanged. |
+| Proxy | `src/proxy.ts` (replaces middleware) | PASS | Sets `x-pathname`; build lists `ƒ Proxy`. |
+| Audit | `deepmerge-ts` override `^8.0.2` | PASS | npm audit **0**; RISK-0016 closed. |
+| Lint | flat `eslint.config.mjs` · `eslint .` | PASS | lint 0; `next lint` removed. |
+| Validation | `tsc`; Jest; `build`; verify-deep | PASS | 114 passed / 5 skipped; build exit 0. |
+| OOS | Prisma 7/8 · densify rewrite | — | Deferred. |

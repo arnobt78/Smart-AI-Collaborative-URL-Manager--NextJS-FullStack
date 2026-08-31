@@ -110,7 +110,6 @@ jest.mock("@/utils/abortRegistry", () => {
 
 // Shared mock handle for assertions (same object returned by the mock factory)
 const mockAbortRegistry = (
-  // eslint-disable-next-line @typescript-eslint/no-require-imports -- jest mock factory export
   require("@/utils/abortRegistry") as {
     __mockAbortRegistry: {
       startGlobalInterception: jest.Mock;
