@@ -5,7 +5,7 @@
 Live: https://daily-urlist.vercel.app/ · Resume: `.agile-v/STATE.md`
 
 ## Status (C7.13)
-Done: C7.8–C7.12 UX/nav · **C7.13** Next **16.3.3** + React **19.2.8** + Node **24.x** (`.nvmrc` / `engines` / `@types/node@24`); `src/proxy.ts` (not middleware); flat ESLint; `deepmerge-ts@8` override → npm audit **0**; Prisma **6.19.3** unchanged.
+Done: C7.8–C7.12 UX/nav · **C7.13** Next **16.3.3** + React **19.2.8** + Node **24.x** (`.nvmrc` / `engines` / `@types/node@24`; use nvm 24 locally — shell may still be 22); `src/proxy.ts` (Next 16+; not `middleware.ts`); flat ESLint (`globalIgnores` first); `deepmerge-ts@8` override → npm audit **0**; Prisma **6.19.3** unchanged.
 Nav: warm Lists/Browse/Insights; api-status chrome+refresh; api-docs skeleton.
 Data: densifyBrowse + dropUnified tombstone + invalidateMutationImpact + SSE. Full densify/JWT-null SSR OOS.
 Defer: `(auth)` route-group (optional); lists/browse cold API slim; status API speed OOS; full metadata rewrite OOS; Prisma 7/8.

@@ -242,7 +242,7 @@ Collaborators ←── SSE /api/realtime/list/[listId]/events
 
 ### Prerequisites
 
-- **Node.js** 20+ recommended
+- **Node.js** **24.x** (`.nvmrc` / `engines`; Vercel target)
 - **npm**
 - A **PostgreSQL** database
 

@@ -19,9 +19,9 @@
 
 ## Current checkpoint
 
-- **Stage:** C7.13 complete locally; commit-ready.
-- **Validation:** tsc · lint 0 · Jest 114/5 · build PASS · npm audit 0 · verify-deep PASS WITH WARNINGS (docs synced this pass).
-- **Docs:** CLAUDE · STATE · walkthrough · README · VALIDATION · DECISION · RISKS synced.
+- **Stage:** C7.13 + hygiene (eslint `globalIgnores` lead; walkthrough OOS drop Next 16) commit-ready.
+- **Validation:** tsc · lint 0 (Node **24.x** via `.nvmrc`; local shells may still be 22 — engines/Vercel target 24) · Jest 114/5 · build PASS · npm audit 0 · verify-deep PASS.
+- **Docs:** CLAUDE · STATE · walkthrough · README · VALIDATION · DECISION · RISKS synced (`proxy.ts`, not middleware).
 
 ## Next
 

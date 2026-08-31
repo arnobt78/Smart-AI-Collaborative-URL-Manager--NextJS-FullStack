@@ -26,7 +26,7 @@ Next 16 URL bookmark manager. Demo: https://daily-urlist.vercel.app/
 - Visit: `openExternalUrl` / `ensureAbsoluteHttpUrl` (UrlCard title, Visit, Similar); click analytics patches list/KPI caches optimistically.
 - Collaborators empty one-row · Card/SC `p-2 sm:p-4`
 - Local DB: `.env` / `.env.local` → remote `77.42.71.87:25432` (gitignored)
-- Out of scope: full densify rewrite / JWT-null SSR / Next 16 / Prisma 7
+- Out of scope: full densify rewrite / JWT-null SSR / Prisma 7/8
 - UI controls: `lib/ui/control-styles.ts` provides shared 48px field/trigger geometry; Auth uses CSS reveal with reduced-motion support
 - Home motion: `ui/ScrollReveal.tsx` provides replayable CSS/observer reveal plus subtle parallax; shared controls use `h-10 min-h-10` and text-sm placeholders
 - Home wave: hero copy lines and CTAs are individual reveal units, staggered in order rather than animated as a grouped row

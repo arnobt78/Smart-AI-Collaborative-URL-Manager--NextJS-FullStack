@@ -3,6 +3,15 @@ import nextVitals from "eslint-config-next/core-web-vitals";
 import nextTs from "eslint-config-next/typescript";
 
 const eslintConfig = defineConfig([
+  // Flat config: globalIgnores must lead so ignored paths skip later configs.
+  globalIgnores([
+    ".next/**",
+    "out/**",
+    "build/**",
+    "node_modules/**",
+    "next-env.d.ts",
+    "coverage/**",
+  ]),
   ...nextVitals,
   ...nextTs,
   {
@@ -42,14 +51,6 @@ const eslintConfig = defineConfig([
       "@typescript-eslint/no-explicit-any": "off",
     },
   },
-  globalIgnores([
-    ".next/**",
-    "out/**",
-    "build/**",
-    "node_modules/**",
-    "next-env.d.ts",
-    "coverage/**",
-  ]),
 ]);
 
 export default eslintConfig;

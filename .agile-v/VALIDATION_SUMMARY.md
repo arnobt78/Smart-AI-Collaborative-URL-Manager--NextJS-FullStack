@@ -458,3 +458,11 @@ Gate 2: BLOCKED — RISK-0016 is accepted; `EVAL_RESULTS.md` PASS/WAIVED evidenc
 | Lint | flat `eslint.config.mjs` · `eslint .` | PASS | lint 0; `next lint` removed. |
 | Validation | `tsc`; Jest; `build`; verify-deep | PASS | 114 passed / 5 skipped; build exit 0. |
 | OOS | Prisma 7/8 · densify rewrite | — | Deferred. |
+
+## 2026-08-31 — C7.13 hygiene (eslint ignores + walkthrough OOS)
+
+| Scope | Command / evidence | Result | Notes |
+|---|---|---|---|
+| ESLint | `globalIgnores` moved to start of `defineConfig` | PASS | Flat-config convention; lint 0 on Node 24.19. |
+| Docs | walkthrough OOS; STATE/CLAUDE/README Node 24 + `proxy.ts` | PASS | Next 16 no longer listed as OOS. |
+| Types | `tsc --noEmit` | PASS | Node 24 via nvm. |
