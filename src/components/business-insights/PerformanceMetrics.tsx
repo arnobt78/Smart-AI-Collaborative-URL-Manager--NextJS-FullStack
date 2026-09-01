@@ -13,6 +13,7 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
+  LabelList,
 } from "recharts";
 import { TrendingUp, Link2 } from "lucide-react";
 import { InsightsChartTooltip } from "@/components/business-insights/InsightsChartTooltip";
@@ -210,7 +211,10 @@ export function PerformanceMetrics({
           <CardContent>
             <div className="h-64 w-full min-h-[256px]">
               <ResponsiveContainer width="100%" height={256}>
-                <BarChart data={topListsData}>
+                <BarChart
+                  data={topListsData}
+                  margin={{ top: 16, right: 4, left: 0, bottom: 0 }}
+                >
                   <CartesianGrid strokeDasharray="3 3" stroke="#ffffff20" />
                   <XAxis
                     dataKey="name"
@@ -240,7 +244,19 @@ export function PerformanceMetrics({
                     radius={[8, 8, 0, 0]}
                     name="URLs"
                     isAnimationActive={false}
-                  />
+                  >
+                    <LabelList
+                      dataKey="urls"
+                      position="top"
+                      fill="#93c5fd"
+                      fontSize={10}
+                      formatter={(value) => {
+                        const n =
+                          typeof value === "number" ? value : Number(value);
+                        return n > 0 ? String(n) : "";
+                      }}
+                    />
+                  </Bar>
                 </BarChart>
               </ResponsiveContainer>
             </div>

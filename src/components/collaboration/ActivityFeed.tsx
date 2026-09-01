@@ -368,49 +368,52 @@ export function ActivityFeed({ listId, limit = 50 }: ActivityFeedProps) {
 
   return (
     <div className="flex flex-col overflow-hidden rounded-xl sm:rounded-2xl">
-      <div className={cn(CARD_PAD, isExpanded && "border-b border-white/10")}>
-        <ListDetailSectionHeader
-          icon={Activity}
-          iconClassName="text-white/70"
-          title="Activity Feed"
-          badge={<SectionCountBadge count={activities.length} />}
-          subtitle="You & your collaborators' live activity"
-          collapsible
-          expanded={isExpanded}
-          onToggle={() => setIsExpanded((expanded) => !expanded)}
-          action={
-            <ChevronDown
-              className={cn(
-                "size-4 text-white/60 transition-transform",
-                isExpanded && "rotate-180",
-              )}
-              aria-hidden
-            />
-          }
-        />
-      </div>
+      <ListDetailSectionHeader
+        icon={Activity}
+        iconClassName="text-white/70"
+        title="Activity Feed"
+        badge={<SectionCountBadge count={activities.length} />}
+        subtitle="You & your collaborators' live activity"
+        collapsible
+        expanded={isExpanded}
+        onToggle={() => setIsExpanded((expanded) => !expanded)}
+        className={CARD_PAD}
+        action={
+          <ChevronDown
+            className={cn(
+              "size-4 text-white/60 transition-transform",
+              isExpanded && "rotate-180",
+            )}
+            aria-hidden
+          />
+        }
+      />
 
-      {isExpanded ? (
-        <div
-          className={cn(
-            "max-h-[400px] sm:max-h-[500px] overflow-y-auto custom-scrollbar-overlay",
-            "pb-2",
-          )}
-        >
-          {isLoading ? (
-            <div className="text-xs sm:text-sm text-white/50 text-center py-3 sm:py-4 px-2 sm:px-4">
-              Loading activities...
-            </div>
-          ) : activities.length === 0 ? (
-            <div className="text-xs sm:text-sm text-white/50 text-center py-3 sm:py-4 px-2 sm:px-4">
-              No activity yet. Start adding URLs to see activity here!
-            </div>
-          ) : (
-            activities.map((activity) => (
-              <div
-                key={activity.id}
-                className="flex items-center gap-2 border-b border-white/10 px-2 py-1.5 transition-colors last:border-0 hover:bg-white/5 sm:gap-3 sm:px-4"
-              >
+      <div
+        className={cn(
+          "overflow-hidden",
+          isExpanded
+            ? "max-h-[400px] border-t border-white/10 sm:max-h-[500px] overflow-y-auto custom-scrollbar-overlay"
+            : "max-h-0",
+        )}
+        aria-hidden={!isExpanded}
+      >
+        {isExpanded ? (
+          isLoading ? (
+          <div className="text-xs sm:text-sm text-white/50 text-center py-3 sm:py-4 px-2 sm:px-4">
+            Loading activities...
+          </div>
+        ) : activities.length === 0 ? (
+          <div className="text-xs sm:text-sm text-white/50 text-center py-3 sm:py-4 px-2 sm:px-4">
+            No activity yet. Start adding URLs to see activity here!
+          </div>
+        ) : (
+          activities.map((activity) => (
+            <div
+              key={activity.id}
+              className="w-full transition-colors hover:bg-white/5"
+            >
+              <div className="flex items-center gap-2 border-b border-white/10 px-2 py-1.5 last:border-0 sm:gap-3 sm:px-4">
                 {/* Action icon — leftmost, vertically centered */}
                 <div className="flex shrink-0 items-center justify-center">
                   {getActionIcon(activity.action)}
@@ -437,10 +440,11 @@ export function ActivityFeed({ listId, limit = 50 }: ActivityFeedProps) {
                   </div>
                 </div>
               </div>
-            ))
-          )}
-        </div>
-      ) : null}
+            </div>
+          ))
+        )
+        ) : null}
+      </div>
     </div>
   );
 }

@@ -538,6 +538,16 @@ Gate 2: BLOCKED — RISK-0016 is accepted; `EVAL_RESULTS.md` PASS/WAIVED evidenc
 | Validation | `tsc`; `eslint .`; Jest 123; `build`; verify-deep | PASS | lint 0; build exit 0. |
 | Browser | Scroll flicker stress test | PENDING USER | TASK-0039 after deploy. |
 
+## 2026-09-01 — C7.16 Activity full-bleed hover + Insights chart labels
+
+| Scope | Command / evidence | Result | Notes |
+|---|---|---|---|
+| ActivityFeed | full-bleed header/row hover; `CARD_PAD` on button; no collapsed `pb-2`; body `border-t` | PASS | Expand flash fix; ActivityFeed.test.tsx 1/1. |
+| ActivityChart | `LineChart` margin top + `linePeakLabel` dy clamp | PASS | Peak labels visible without card padding. |
+| PerformanceMetrics | `BarChart` margin top + `LabelList` on bars | PASS | URL counts above bars. |
+| Validation | `tsc`; `eslint .`; Jest 130; `build`; verify-deep | PASS WITH WARNINGS | lint 0; build exit 0; 90-day labels OOS. |
+| Browser | Activity hover + Insights labels | PENDING USER | TASK-0039 after deploy. |
+
 ## 2026-09-01 — C7.16 skeleton parity + warm cache paint
 
 | Scope | Command / evidence | Result | Notes |

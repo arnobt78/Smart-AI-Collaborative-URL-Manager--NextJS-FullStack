@@ -30,6 +30,36 @@ interface ActivityChartProps {
   initialLoading?: boolean;
 }
 
+function linePeakLabel(fill: string) {
+  function LinePeakLabel(props: {
+    x?: number | string;
+    y?: number | string;
+    value?: unknown;
+  }) {
+    const { x, y, value } = props;
+    const n = typeof value === "number" ? value : Number(value);
+    if (!n || !Number.isFinite(n)) return null;
+    const px = typeof x === "number" ? x : Number(x);
+    const py = typeof y === "number" ? y : Number(y);
+    if (!Number.isFinite(px) || !Number.isFinite(py)) return null;
+    const dy = py < 18 ? 12 : -8;
+    return (
+      <text
+        x={px}
+        y={py}
+        dy={dy}
+        textAnchor="middle"
+        fill={fill}
+        fontSize={10}
+      >
+        {n}
+      </text>
+    );
+  }
+  LinePeakLabel.displayName = "LinePeakLabel";
+  return LinePeakLabel;
+}
+
 /** Soft-nav / loading placeholder — avoids mounting a second live Recharts tree. */
 export function ActivityChartSkeleton({ className }: { className?: string }) {
   return (
@@ -117,7 +147,10 @@ export function ActivityChart({
 
           <div className="h-64 w-full min-h-[256px]">
             <ResponsiveContainer width="100%" height={256}>
-              <LineChart data={chartData}>
+              <LineChart
+                data={chartData}
+                margin={{ top: 14, right: 4, left: 0, bottom: 0 }}
+              >
                 <CartesianGrid strokeDasharray="3 3" stroke="#ffffff20" />
                 <XAxis
                   dataKey="date"
@@ -161,25 +194,7 @@ export function ActivityChart({
                     <LabelList
                       dataKey="lists"
                       position="top"
-                      content={({ x, y, value }) => {
-                        const n = typeof value === "number" ? value : Number(value);
-                        if (!n || !Number.isFinite(n)) return null;
-                        const px = typeof x === "number" ? x : Number(x);
-                        const py = typeof y === "number" ? y : Number(y);
-                        if (!Number.isFinite(px) || !Number.isFinite(py)) return null;
-                        return (
-                          <text
-                            x={px}
-                            y={py}
-                            dy={-8}
-                            textAnchor="middle"
-                            fill="#3b82f6"
-                            fontSize={10}
-                          >
-                            {n}
-                          </text>
-                        );
-                      }}
+                      content={linePeakLabel("#3b82f6")}
                     />
                   ) : null}
                 </Line>
@@ -200,25 +215,7 @@ export function ActivityChart({
                     <LabelList
                       dataKey="urls"
                       position="top"
-                      content={({ x, y, value }) => {
-                        const n = typeof value === "number" ? value : Number(value);
-                        if (!n || !Number.isFinite(n)) return null;
-                        const px = typeof x === "number" ? x : Number(x);
-                        const py = typeof y === "number" ? y : Number(y);
-                        if (!Number.isFinite(px) || !Number.isFinite(py)) return null;
-                        return (
-                          <text
-                            x={px}
-                            y={py}
-                            dy={-8}
-                            textAnchor="middle"
-                            fill="#a855f7"
-                            fontSize={10}
-                          >
-                            {n}
-                          </text>
-                        );
-                      }}
+                      content={linePeakLabel("#a855f7")}
                     />
                   ) : null}
                 </Line>
