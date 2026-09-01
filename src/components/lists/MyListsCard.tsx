@@ -13,6 +13,7 @@ import { Blocks, Eye, Globe2, GlobeLock, Users } from "lucide-react";
 import type { UserList } from "@/hooks/useListQueries";
 import { DescriptionRow } from "@/components/ui/DescriptionRow";
 import { ListMetaDates } from "@/lib/ui/list-meta-dates";
+import { UI_LIST_CARD_META_BADGE } from "@/lib/ui/control-styles";
 import {
   GLASS_LIST_CARD,
   GLASS_LIST_CARD_INTERACTIVE,
@@ -75,22 +76,29 @@ export function MyListsCard({
       )}
     >
       <div className="flex flex-col items-start justify-between gap-2 sm:flex-row sm:items-start sm:gap-4">
-        <div className={cn(CARD_STACK, "min-w-0 flex-1")}>
-          <div className="flex items-center gap-1 sm:gap-2 min-w-0">
-            <Blocks className="h-5 w-5 shrink-0 text-blue-300" aria-hidden />
+        <div className={cn(CARD_STACK, "min-w-0 w-full flex-1")}>
+          <div className="flex w-full min-w-0 items-start gap-1 sm:gap-2">
+            <Blocks
+              className="mt-0.5 h-5 w-5 shrink-0 self-start text-blue-300"
+              aria-hidden
+            />
             <button
               type="button"
               onClick={onView}
-              className="max-w-full min-w-0 truncate text-left text-sm font-medium text-white transition-colors group-hover:text-blue-300 sm:text-base"
+              className="min-w-0 flex-1 break-words text-left text-sm font-medium text-white line-clamp-2 transition-colors group-hover:text-blue-300 sm:text-base"
             >
               {list.title || `List: ${list.slug}`}
             </button>
           </div>
 
-          <div className="flex flex-wrap items-center gap-1 sm:gap-2 text-xs sm:text-sm text-white/60">
+          <div className="flex w-full min-w-0 flex-wrap items-center gap-1 sm:gap-2 text-xs sm:text-sm text-white/60">
             <Badge
               variant="secondary"
-              className={cn(badgeTextClass, "inline-flex items-center w-fit")}
+              className={cn(
+                badgeTextClass,
+                UI_LIST_CARD_META_BADGE,
+                "w-fit border",
+              )}
             >
               {urlCount} {urlCount === 1 ? "URL" : "URLs"}
             </Badge>
@@ -99,7 +107,8 @@ export function MyListsCard({
                 variant={isPublic ? "success" : "secondary"}
                 className={cn(
                   badgeTextClass,
-                  "inline-flex items-center gap-1 w-fit",
+                  UI_LIST_CARD_META_BADGE,
+                  "w-fit min-w-6 border sm:min-w-0",
                 )}
               >
                 {isPublic ? (

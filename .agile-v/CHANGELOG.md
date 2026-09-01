@@ -1,5 +1,13 @@
 # CHANGELOG.md
 
+## CR-0030 — C7.16 mobile polish (list detail + list cards)
+
+- **Cycle:** C7.16 mobile polish (Wave 0 follow-up)
+- **Change:** `ListDetailSectionHeader`; mobile list-detail header; PM/Activity two-line headers; share inline copy + blue globe; Activity padding/rounding; UrlCard inline health + centered placeholder; `UI_CONTROL_ICON_GAP` `gap-1`; `UI_LIST_CARD_META_BADGE`; MyListsCard/Browse mobile metadata wrap.
+- **Rationale:** User screenshot-driven mobile layout — header stacking, section header parity, share URL wrap, tighter button icon gap.
+- **Impact:** list detail + list card components, `control-styles`, `list-meta-dates`, docs.
+- **Requested by / approval:** List Detail Mobile Polish plan; verify-deep PASS WITH WARNINGS.
+
 ## CR-0029 — C7.16 Wave 0 list-card + detail UI polish
 
 - **Cycle:** C7.16 Wave 0

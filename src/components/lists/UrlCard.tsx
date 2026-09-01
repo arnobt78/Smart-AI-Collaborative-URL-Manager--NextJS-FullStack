@@ -356,7 +356,7 @@ export const UrlCard: React.FC<UrlCardProps> = ({
         <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
           {/* Image Section */}
           <div className="md:w-1/5 w-full flex-shrink-0 flex items-center justify-center">
-            <div className="relative w-24 h-24 sm:w-28 sm:h-28 md:w-full md:h-full aspect-square overflow-hidden rounded-lg sm:rounded-xl shadow-sm bg-gray-900/30 backdrop-blur-md border border-white/10 flex items-center justify-center">
+            <div className="relative mx-auto w-24 h-24 sm:w-28 sm:h-28 md:mx-0 md:w-full md:h-full aspect-square overflow-hidden rounded-lg sm:rounded-xl shadow-sm bg-gray-900/30 backdrop-blur-md border border-white/10 flex items-center justify-center">
               {shouldShowSkeleton ? (
                 <div className="absolute inset-0 bg-gray-800/40 rounded-xl animate-pulse" />
               ) : !currentImageUrl || imageError ? (
@@ -448,20 +448,20 @@ export const UrlCard: React.FC<UrlCardProps> = ({
             ) : (
               <>
                 <div className="flex-1 min-w-0">
-                  {/* Title with Health Status — one vertically centered row */}
-                  <div className="flex items-center gap-2 flex-wrap min-w-0">
+                  {/* Title with health status — inline after last line when space allows */}
+                  <p className="min-w-0 text-base sm:text-lg xl:text-xl">
                     <button
                       type="button"
                       onClick={() => {
                         onUrlClick?.(url.id);
                         openExternalUrl(url.url);
                       }}
-                      className="font-medium text-base sm:text-lg xl:text-xl text-white hover:text-blue-400 transition-colors font-joti break-words text-left cursor-pointer min-w-0"
+                      className="inline break-words align-baseline font-medium text-white hover:text-blue-400 transition-colors font-joti text-left cursor-pointer"
                       title={title}
                     >
                       {title}
                     </button>
-                    <span className="inline-flex items-center shrink-0">
+                    <span className="inline-flex shrink-0 align-middle ml-0.5">
                       <UrlHealthIndicator
                         status={url.healthStatus}
                         httpStatus={url.healthLastStatus}
@@ -470,7 +470,7 @@ export const UrlCard: React.FC<UrlCardProps> = ({
                         showDetails={false}
                       />
                     </span>
-                  </div>
+                  </p>
 
                   {/* Pinned Badge */}
                   {url.isPinned && (

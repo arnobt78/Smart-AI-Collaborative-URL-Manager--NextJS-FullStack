@@ -7,6 +7,7 @@ import { DescriptionRow } from "@/components/ui/DescriptionRow";
 import { Switch } from "@/components/ui/Switch";
 import { ArrowLeft, Blocks, Globe2, GlobeLock } from "lucide-react";
 import { GLASS_LIST_CARD } from "@/lib/ui/glass-card-styles";
+import { UI_LIST_CARD_META_BADGE } from "@/lib/ui/control-styles";
 import { CARD_PAD, CARD_STACK } from "@/lib/ui-spacing";
 import { cn } from "@/lib/utils";
 
@@ -54,39 +55,65 @@ export function ListDetailHeaderChrome({
   const urlCount = Array.isArray(list.urls) ? list.urls.length : 0;
   const isPublic = list.isPublic ?? false;
 
+  const backButton =
+    onBack ? (
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        onClick={onBack}
+        aria-label="Back"
+      >
+        <ArrowLeft className="h-4 w-4" aria-hidden />
+        <span className="hidden sm:inline">Back</span>
+      </Button>
+    ) : null;
+
+  const titleBlock = (
+    <>
+      <Blocks
+        className="mt-0.5 h-5 w-5 shrink-0 self-start text-blue-300"
+        aria-hidden
+      />
+      <h1 className="min-w-0 flex-1 break-words text-base font-medium text-white sm:text-lg xl:text-xl">
+        {list.title || `List: ${list.slug}`}
+      </h1>
+    </>
+  );
+
   return (
     <div
       className={cn(GLASS_LIST_CARD, CARD_PAD, className)}
     >
       <div className={cn(CARD_STACK, "min-w-0")}>
-        <div className="flex items-center justify-between gap-2 min-w-0">
-          <div className="flex items-center gap-1 sm:gap-2 min-w-0 flex-1">
-            <Blocks className="h-5 w-5 text-blue-300 shrink-0" aria-hidden />
-            <h1 className="text-base sm:text-lg xl:text-xl font-medium text-white break-words">
-              {list.title || `List: ${list.slug}`}
-            </h1>
+        {/* Mobile: actions row, then full-width title */}
+        <div className="flex w-full items-center justify-between sm:hidden">
+          {backButton}
+          {actions}
+        </div>
+        <div className="flex w-full min-w-0 items-start gap-1 sm:hidden">
+          {titleBlock}
+        </div>
+
+        {/* Desktop: title + actions on one row */}
+        <div className="hidden min-w-0 items-start justify-between gap-2 sm:flex">
+          <div className="flex min-w-0 flex-1 items-start gap-1 sm:gap-2">
+            {titleBlock}
           </div>
-          <div className="flex items-center gap-2 shrink-0">
-            {onBack ? (
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={onBack}
-                aria-label="Back"
-              >
-                <ArrowLeft className="h-4 w-4" aria-hidden />
-                <span className="hidden sm:inline">Back</span>
-              </Button>
-            ) : null}
+          <div className="flex shrink-0 items-center gap-2">
+            {backButton}
             {actions}
           </div>
         </div>
 
-        <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
+        <div className="flex flex-wrap items-center gap-1 sm:gap-2">
           <Badge
             variant="secondary"
-            className={cn(badgeTextClass, "inline-flex items-center w-fit")}
+            className={cn(
+              badgeTextClass,
+              UI_LIST_CARD_META_BADGE,
+              "w-fit border",
+            )}
           >
             {urlCount} {urlCount === 1 ? "URL" : "URLs"}
           </Badge>
@@ -94,7 +121,8 @@ export function ListDetailHeaderChrome({
             variant={isPublic ? "success" : "secondary"}
             className={cn(
               badgeTextClass,
-              "inline-flex items-center gap-1 w-fit",
+              UI_LIST_CARD_META_BADGE,
+              "w-fit min-w-6 border sm:min-w-0",
             )}
           >
             {isPublic ? (

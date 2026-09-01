@@ -516,3 +516,14 @@ Gate 2: BLOCKED — RISK-0016 is accepted; `EVAL_RESULTS.md` PASS/WAIVED evidenc
 | PM empty | Inline empty copy beside shield | PASS | Badge hidden at 0. |
 | Validation | `tsc`; `eslint .`; Jest 123; build; audit; verify-deep | PASS | lint 0; audit 0. |
 | Browser | 320/768/1440 Wave 0 smoke | PENDING USER | TASK-0039 after deploy. |
+
+## 2026-09-01 — C7.16 mobile polish (list detail + list cards)
+
+| Scope | Command / evidence | Result | Notes |
+|---|---|---|---|
+| Primitive | `ListDetailSectionHeader` (collapsible + static; a11y spans + focus ring) | PASS | PM + Activity; SC migration OOS. |
+| Detail | Mobile header rows; share inline copy; Activity chrome; UrlCard inline health | PASS | `UI_LIST_CARD_META_BADGE`; `break-words` dates. |
+| Cards | MyListsCard / BrowsePublicListCard / `DescriptionRow` wrap | PASS | Bundled with detail polish. |
+| Controls | `UI_CONTROL_ICON_GAP` `gap-1` | PASS | Global via `Button` / triggers. |
+| Validation | `tsc`; `eslint .`; Jest 123; `build`; verify-deep | PASS | lint 0; build exit 0; verifier PASS WITH WARNINGS. |
+| Browser | 320/390 list detail + cards | PENDING USER | TASK-0039 after deploy. |

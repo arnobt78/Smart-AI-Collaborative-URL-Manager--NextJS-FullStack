@@ -23,7 +23,7 @@ export function DescriptionRow({
       />
       <p
         className={cn(
-          "min-w-0 text-xs sm:text-sm text-white/60",
+          "min-w-0 text-xs sm:text-sm text-white/60 break-words",
           lineClamp && "line-clamp-2",
           textClassName,
         )}

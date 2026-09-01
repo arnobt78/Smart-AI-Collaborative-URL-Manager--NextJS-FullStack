@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/Button";
 import { CancelButton } from "@/components/ui/ActionButtons";
 import { Input } from "@/components/ui/Input";
+import { ListDetailSectionHeader } from "@/components/lists/ListDetailSectionHeader";
 import { SectionCountBadge } from "@/components/ui/SectionCountBadge";
 import { AlertDialog } from "@/components/ui/AlertDialog";
 import { useToast } from "@/components/ui/Toaster";
@@ -38,7 +39,7 @@ import {
 } from "@/hooks/useListQueries";
 import { glassPrimaryButtonClass } from "@/lib/ui/glass-button-styles";
 import { UI_ICON_MENU_TRIGGER } from "@/lib/ui/control-styles";
-import { CARD_PAD, CARD_STACK, HEADING_STACK } from "@/lib/ui-spacing";
+import { CARD_PAD, CARD_STACK } from "@/lib/ui-spacing";
 import { Dialog } from "@/components/ui/Dialog";
 import { cn } from "@/lib/utils";
 
@@ -266,35 +267,24 @@ export function PermissionManager({
   const isEmpty = !isLoading && collaborators.length === 0;
 
   const headerLeft = (
-    <div className={cn(HEADING_STACK, "min-w-0 flex-1")}>
-      <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-        <Shield className="h-4 w-4 text-white shrink-0" aria-hidden />
-        <h3 className="text-base sm:text-lg font-medium text-white">
-          Collaborators
-        </h3>
-        {(isLoading || collaborators.length > 0) && (
+    <ListDetailSectionHeader
+      icon={Shield}
+      title="Collaborators"
+      badge={
+        isLoading || collaborators.length > 0 ? (
           <SectionCountBadge
             count={collaborators.length}
             loading={isLoading}
           />
-        )}
-        {isEmpty ? (
-          <>
-            <span className="text-white/40" aria-hidden>
-              ·
-            </span>
-            <span className="text-xs sm:text-sm text-white/60">
-              No collaborators yet · Invite others to collaborate on this list
-            </span>
-          </>
-        ) : null}
-      </div>
-      {!isEmpty ? (
-        <p className="text-xs sm:text-sm text-white/60">
-          People with access to this list
-        </p>
-      ) : null}
-    </div>
+        ) : undefined
+      }
+      subtitle={
+        isEmpty
+          ? "No collaborators yet · Invite others to collaborate on this list"
+          : "People with access to this list"
+      }
+      className="min-w-0 flex-1"
+    />
   );
 
   return (
@@ -366,7 +356,7 @@ export function PermissionManager({
                                 className="h-3 w-3 shrink-0"
                                 aria-hidden
                               />
-                              <span className="truncate">
+                              <span className="break-words">
                                 {collaborator.invitedByEmail
                                   ? `Added by ${collaborator.invitedByEmail}`
                                   : "Added"}
@@ -375,7 +365,7 @@ export function PermissionManager({
                             </span>
                           ) : null}
                           {updatedAt ? (
-                            <span className="inline-flex items-center gap-1">
+                            <span className="inline-flex min-w-0 items-center gap-1 break-words">
                               <CalendarArrowUp
                                 className="h-3 w-3 shrink-0"
                                 aria-hidden

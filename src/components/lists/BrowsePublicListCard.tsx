@@ -42,10 +42,10 @@ export function BrowsePublicListCard({
         CARD_PAD,
       )}
     >
-      <div className="flex items-start justify-between gap-1 sm:gap-2">
-        <div className="flex min-w-0 flex-1 items-center gap-1 sm:gap-2">
-          <Blocks className="h-5 w-5 shrink-0 text-blue-300" aria-hidden />
-          <h3 className="text-base sm:text-lg font-medium text-white group-hover:text-blue-400 transition-colors line-clamp-2">
+      <div className="flex w-full min-w-0 items-start justify-between gap-1 sm:gap-2">
+        <div className="flex min-w-0 flex-1 items-start gap-1 sm:gap-2">
+          <Blocks className="mt-0.5 h-5 w-5 shrink-0 self-start text-blue-300" aria-hidden />
+          <h3 className="min-w-0 flex-1 break-words text-base font-medium text-white line-clamp-2 transition-colors group-hover:text-blue-400 sm:text-lg">
             {list.title}
           </h3>
         </div>

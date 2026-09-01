@@ -88,7 +88,7 @@ export function ListMetaDates({
             aria-hidden
           />
           <span className="hidden sm:inline">Created</span>
-          <span className="font-medium text-white/80">
+          <span className="font-medium text-white/80 break-words">
             {formatListDate(created)}
           </span>
         </span>
@@ -100,7 +100,7 @@ export function ListMetaDates({
             aria-hidden
           />
           <span className="hidden sm:inline">Updated</span>
-          <span className="font-medium text-white/80">
+          <span className="font-medium text-white/80 break-words">
             {formatListRelativeTime(updated)}
           </span>
         </span>

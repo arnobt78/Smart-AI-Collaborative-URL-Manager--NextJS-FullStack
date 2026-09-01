@@ -20,6 +20,7 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { UserAvatar } from "@/components/ui/UserAvatar";
+import { ListDetailSectionHeader } from "@/components/lists/ListDetailSectionHeader";
 import { SectionCountBadge } from "@/components/ui/SectionCountBadge";
 import { CARD_PAD, CARD_STACK } from "@/lib/ui-spacing";
 import { cn } from "@/lib/utils";
@@ -367,30 +368,39 @@ export function ActivityFeed({ listId, limit = 50 }: ActivityFeedProps) {
 
   return (
     <div className={CARD_STACK}>
-      <button
-        type="button"
-        onClick={() => setIsExpanded((expanded) => !expanded)}
-        aria-expanded={isExpanded}
+      <div
         className={cn(
-          "flex w-full items-center justify-between rounded-xl sm:rounded-2xl text-left transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-inset",
           CARD_PAD,
+          "rounded-t-xl sm:rounded-t-2xl transition-colors hover:bg-white/10",
         )}
       >
-        <span className="flex items-center gap-2">
-          <Activity className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white/70" aria-hidden />
-          <span className="text-xs sm:text-sm font-medium text-white/90">Activity Feed</span>
-          <SectionCountBadge count={activities.length} />
-        </span>
-        <ChevronDown className={`size-4 text-white/60 transition-transform ${isExpanded ? "rotate-180" : ""}`} aria-hidden />
-      </button>
+        <ListDetailSectionHeader
+          icon={Activity}
+          iconClassName="text-white/70"
+          title="Activity Feed"
+          badge={<SectionCountBadge count={activities.length} />}
+          subtitle="You and your collaborators' live activity"
+          collapsible
+          expanded={isExpanded}
+          onToggle={() => setIsExpanded((expanded) => !expanded)}
+          action={
+            <ChevronDown
+              className={cn(
+                "size-4 text-white/60 transition-transform",
+                isExpanded && "rotate-180",
+              )}
+              aria-hidden
+            />
+          }
+        />
+      </div>
 
       {isExpanded ? (
         <div
           className={cn(
-            CARD_STACK,
             "max-h-[400px] sm:max-h-[500px] overflow-y-auto custom-scrollbar",
-            CARD_PAD,
-            "pt-0",
+            "rounded-b-xl sm:rounded-b-2xl border-t border-white/10",
+            "px-2 pb-2 pt-1 sm:px-4",
           )}
         >
         {isLoading ? (
@@ -405,10 +415,7 @@ export function ActivityFeed({ listId, limit = 50 }: ActivityFeedProps) {
           activities.map((activity) => (
             <div
               key={activity.id}
-              className={cn(
-                "flex items-center gap-2 sm:gap-3 bg-white/5 rounded-lg border border-white/10",
-                CARD_PAD,
-              )}
+              className="flex items-center gap-2 border-b border-white/10 py-2 transition-colors last:border-0 hover:bg-white/5 sm:gap-3"
             >
               {/* Action icon — leftmost, vertically centered */}
               <div className="flex shrink-0 items-center justify-center">
