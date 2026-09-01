@@ -8,6 +8,7 @@ import {
   QuestionMarkCircleIcon,
 } from "@heroicons/react/24/outline";
 import { HoverTooltip } from "@/components/ui/HoverTooltip";
+import { cn } from "@/lib/utils";
 
 interface UrlHealthIndicatorProps {
   status?: HealthStatus;
@@ -15,6 +16,7 @@ interface UrlHealthIndicatorProps {
   responseTime?: number;
   checkedAt?: string;
   showDetails?: boolean;
+  variant?: "chip" | "inline";
 }
 
 export function UrlHealthIndicator({
@@ -23,6 +25,7 @@ export function UrlHealthIndicator({
   responseTime,
   checkedAt,
   showDetails = false,
+  variant = "chip",
 }: UrlHealthIndicatorProps) {
   const getStatusConfig = () => {
     switch (status) {
@@ -116,33 +119,49 @@ export function UrlHealthIndicator({
     return parts.join(" • ");
   };
 
+  const isInline = variant === "inline";
+
   return (
     <HoverTooltip
       message={buildTooltipMessage()}
       position="top"
       usePortal={true}
     >
-      <div
-        className={`inline-flex items-center gap-1 px-2 py-1 rounded-md ${config.bgColor} ${config.borderColor} border transition-colors cursor-help`}
+      <span
+        className={cn(
+          "inline-flex align-middle",
+          isInline
+            ? "cursor-help"
+            : cn(
+                "items-center gap-1 rounded-md border px-2 py-1 transition-colors cursor-help",
+                config.bgColor,
+                config.borderColor,
+              ),
+        )}
       >
-        <Icon className={`h-4 w-4 ${config.color}`} />
-        {showDetails && (
+        <Icon
+          className={cn(
+            config.color,
+            isInline ? "h-3.5 w-3.5 shrink-0" : "h-4 w-4",
+          )}
+        />
+        {!isInline && showDetails && (
           <span className={`text-xs font-medium ${config.color}`}>
             {config.label}
           </span>
         )}
-        {showDetails && httpStatus && (
+        {!isInline && showDetails && httpStatus && (
           <span className="text-xs text-gray-400">({httpStatus})</span>
         )}
-        {showDetails && responseTime && (
+        {!isInline && showDetails && responseTime && (
           <span className="text-xs text-gray-400">{responseTime}ms</span>
         )}
-        {showDetails && checkedAt && (
+        {!isInline && showDetails && checkedAt && (
           <span className="text-xs text-gray-500">
             • {formatCheckedAt(checkedAt)}
           </span>
         )}
-      </div>
+      </span>
     </HoverTooltip>
   );
 }

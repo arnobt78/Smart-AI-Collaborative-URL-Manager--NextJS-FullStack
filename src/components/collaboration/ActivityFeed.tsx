@@ -22,7 +22,7 @@ import {
 import { UserAvatar } from "@/components/ui/UserAvatar";
 import { ListDetailSectionHeader } from "@/components/lists/ListDetailSectionHeader";
 import { SectionCountBadge } from "@/components/ui/SectionCountBadge";
-import { CARD_PAD, CARD_STACK } from "@/lib/ui-spacing";
+import { CARD_PAD } from "@/lib/ui-spacing";
 import { cn } from "@/lib/utils";
 
 interface ActivityItem {
@@ -367,11 +367,11 @@ export function ActivityFeed({ listId, limit = 50 }: ActivityFeedProps) {
   };
 
   return (
-    <div className={CARD_STACK}>
+    <div className="flex flex-col overflow-hidden rounded-xl sm:rounded-2xl">
       <div
         className={cn(
           CARD_PAD,
-          "rounded-t-xl sm:rounded-t-2xl transition-colors hover:bg-white/10",
+          isExpanded && "border-b border-white/10",
         )}
       >
         <ListDetailSectionHeader
@@ -383,6 +383,7 @@ export function ActivityFeed({ listId, limit = 50 }: ActivityFeedProps) {
           collapsible
           expanded={isExpanded}
           onToggle={() => setIsExpanded((expanded) => !expanded)}
+          className="rounded-xl transition-colors hover:bg-white/10"
           action={
             <ChevronDown
               className={cn(
@@ -399,8 +400,7 @@ export function ActivityFeed({ listId, limit = 50 }: ActivityFeedProps) {
         <div
           className={cn(
             "max-h-[400px] sm:max-h-[500px] overflow-y-auto custom-scrollbar",
-            "rounded-b-xl sm:rounded-b-2xl border-t border-white/10",
-            "px-2 pb-2 pt-1 sm:px-4",
+            "px-2 pb-2 sm:px-4",
           )}
         >
         {isLoading ? (
@@ -415,7 +415,7 @@ export function ActivityFeed({ listId, limit = 50 }: ActivityFeedProps) {
           activities.map((activity) => (
             <div
               key={activity.id}
-              className="flex items-center gap-2 border-b border-white/10 py-2 transition-colors last:border-0 hover:bg-white/5 sm:gap-3"
+              className="flex items-center gap-2 border-b border-white/10 py-1.5 transition-colors last:border-0 hover:bg-white/5 sm:gap-3"
             >
               {/* Action icon — leftmost, vertically centered */}
               <div className="flex shrink-0 items-center justify-center">

@@ -1,5 +1,13 @@
 # CHANGELOG.md
 
+## CR-0031 — C7.16 mobile Wave 2 regression fixes
+
+- **Cycle:** C7.16 mobile Wave 2
+- **Change:** PM blue shield icon; ActivityFeed overflow/hover/divider tightening; UrlCard centered placeholder; `UrlHealthIndicator` inline variant; UrlCard skeleton/imageLoading scroll-flicker fix + mobile blur compositing fallback.
+- **Rationale:** Post-deploy screenshot regressions — icon color, Activity hover bleed, placeholder alignment, inline health status, empty cards on scroll.
+- **Impact:** PermissionManager, ActivityFeed, UrlCard, UrlHealthIndicator, docs.
+- **Requested by / approval:** Mobile Polish Wave 2 plan; verify-deep PASS WITH WARNINGS.
+
 ## CR-0030 — C7.16 mobile polish (list detail + list cards)
 
 - **Cycle:** C7.16 mobile polish (Wave 0 follow-up)

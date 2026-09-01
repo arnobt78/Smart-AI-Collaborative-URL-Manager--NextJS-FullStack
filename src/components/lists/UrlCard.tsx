@@ -90,7 +90,7 @@ export const UrlCard: React.FC<UrlCardProps> = ({
   canEdit = true, // Default to true for backward compatibility
 }) => {
   const [imageError, setImageError] = React.useState(false);
-  const [imageLoading, setImageLoading] = React.useState(true);
+  const [imageLoading, setImageLoading] = React.useState(false);
   const [currentImageUrl, setCurrentImageUrl] = React.useState<
     string | undefined
   >(undefined);
@@ -265,12 +265,11 @@ export const UrlCard: React.FC<UrlCardProps> = ({
         setImageLoading(!isCached);
       }
     } else {
-      // Only update if we're currently showing an image (prevent unnecessary state changes)
       if (currentImageUrl !== undefined) {
         setCurrentImageUrl(undefined);
-        setImageError(true);
-        setImageLoading(false);
       }
+      setImageError(true);
+      setImageLoading(false);
     }
   }, [primaryImage, isOwnUrl, currentImageUrl, checkImageCache]);
 
@@ -305,15 +304,13 @@ export const UrlCard: React.FC<UrlCardProps> = ({
   // Only show skeleton if we truly don't have ANY data to display
   // Don't show skeleton if we have cached metadata, URL title, or image URL (for instant display)
   const hasCachedData = metadata !== undefined && metadata !== null;
-  const hasTitle = !!url.title;
+  const hasDisplayableText = !!(url.title || url.url);
   const hasPrimaryImage = !!primaryImage;
-  const hasAnyData = hasCachedData || hasTitle || hasPrimaryImage;
+  const hasAnyData = hasCachedData || hasDisplayableText || hasPrimaryImage;
 
-  // Only show skeleton if:
-  // 1. We're actively loading AND don't have any data at all
-  // 2. No metadata, no title, no image, AND still loading
-  // This ensures cards display instantly when cached data exists
-  const shouldShowSkeleton = isLoadingMetadata && !hasAnyData && imageLoading;
+  // Only show skeleton if we truly don't have any data at all
+  const shouldShowSkeleton =
+    isLoadingMetadata && !hasAnyData && imageLoading && !url.url;
 
   // Check if we have an actual image to display
   // For own URLs, logoPath is valid. For external URLs, only metadata?.image counts
@@ -337,7 +334,7 @@ export const UrlCard: React.FC<UrlCardProps> = ({
   const isNoPreview = !hasImage && !description;
 
   return (
-    <div className="group relative overflow-hidden rounded-2xl border border-white/20 bg-white/5 backdrop-blur-md shadow-lg hover:shadow-xl transition-all duration-300 hover:border-blue-400/30 cursor-default">
+    <div className="group relative overflow-hidden rounded-2xl border border-white/20 bg-white/5 backdrop-blur-md max-sm:bg-white/[0.08] max-sm:backdrop-blur-none shadow-lg hover:shadow-xl transition-all duration-300 hover:border-blue-400/30 cursor-default [transform:translateZ(0)]">
       {/* Drag handle in top-right corner */}
       {dragHandleProps && (
         <div
@@ -360,9 +357,11 @@ export const UrlCard: React.FC<UrlCardProps> = ({
               {shouldShowSkeleton ? (
                 <div className="absolute inset-0 bg-gray-800/40 rounded-xl animate-pulse" />
               ) : !currentImageUrl || imageError ? (
-                <div className="flex flex-col items-center justify-center h-full w-full text-white/40">
-                  <GlobeAltIcon className="h-12 w-12 " />
-                  <span className="text-sm">No image available</span>
+                <div className="flex h-full w-full flex-col items-center justify-center gap-1 px-1 text-center text-white/40">
+                  <GlobeAltIcon className="h-8 w-8 shrink-0 sm:h-10 sm:w-10" />
+                  <span className="w-full text-center text-[10px] leading-tight sm:text-xs">
+                    No image available
+                  </span>
                 </div>
               ) : (
                 <div className="relative w-full h-full">
@@ -449,7 +448,7 @@ export const UrlCard: React.FC<UrlCardProps> = ({
               <>
                 <div className="flex-1 min-w-0">
                   {/* Title with health status — inline after last line when space allows */}
-                  <p className="min-w-0 text-base sm:text-lg xl:text-xl">
+                  <p className="min-w-0 text-base leading-snug sm:text-lg xl:text-xl">
                     <button
                       type="button"
                       onClick={() => {
@@ -461,15 +460,15 @@ export const UrlCard: React.FC<UrlCardProps> = ({
                     >
                       {title}
                     </button>
-                    <span className="inline-flex shrink-0 align-middle ml-0.5">
-                      <UrlHealthIndicator
-                        status={url.healthStatus}
-                        httpStatus={url.healthLastStatus}
-                        responseTime={url.healthResponseTime}
-                        checkedAt={url.healthCheckedAt}
-                        showDetails={false}
-                      />
-                    </span>
+                    {"\u00A0"}
+                    <UrlHealthIndicator
+                      variant="inline"
+                      status={url.healthStatus}
+                      httpStatus={url.healthLastStatus}
+                      responseTime={url.healthResponseTime}
+                      checkedAt={url.healthCheckedAt}
+                      showDetails={false}
+                    />
                   </p>
 
                   {/* Pinned Badge */}

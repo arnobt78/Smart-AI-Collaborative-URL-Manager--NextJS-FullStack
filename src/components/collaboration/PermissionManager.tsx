@@ -269,6 +269,7 @@ export function PermissionManager({
   const headerLeft = (
     <ListDetailSectionHeader
       icon={Shield}
+      iconClassName="text-blue-400"
       title="Collaborators"
       badge={
         isLoading || collaborators.length > 0 ? (

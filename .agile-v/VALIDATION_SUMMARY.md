@@ -527,3 +527,13 @@ Gate 2: BLOCKED — RISK-0016 is accepted; `EVAL_RESULTS.md` PASS/WAIVED evidenc
 | Controls | `UI_CONTROL_ICON_GAP` `gap-1` | PASS | Global via `Button` / triggers. |
 | Validation | `tsc`; `eslint .`; Jest 123; `build`; verify-deep | PASS | lint 0; build exit 0; verifier PASS WITH WARNINGS. |
 | Browser | 320/390 list detail + cards | PENDING USER | TASK-0039 after deploy. |
+
+## 2026-09-01 — C7.16 mobile Wave 2 (regression fixes)
+
+| Scope | Command / evidence | Result | Notes |
+|---|---|---|---|
+| PM icon | Shield `text-blue-400` on `ListDetailSectionHeader` | PASS | Matches Smart Collections icon color. |
+| ActivityFeed | `overflow-hidden`; hover on button; `py-1.5` rows; no list `pt-1` | PASS | Collapsed hover clipped to card radius. |
+| UrlCard | Placeholder center; `UrlHealthIndicator` inline variant; skeleton gate | PASS | `hasDisplayableText`; `imageLoading` init false; blur fallback on mobile. |
+| Validation | `tsc`; `eslint .`; Jest 123; `build`; verify-deep | PASS | lint 0; build exit 0. |
+| Browser | Scroll flicker stress test | PENDING USER | TASK-0039 after deploy. |
