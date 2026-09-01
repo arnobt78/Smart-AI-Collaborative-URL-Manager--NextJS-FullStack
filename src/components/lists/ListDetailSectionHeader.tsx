@@ -84,21 +84,15 @@ export function ListDetailSectionHeader({
         aria-labelledby={subtitle ? `${titleId} ${subtitleId}` : titleId}
         className={cn(
           "flex w-full min-w-0 items-center justify-between gap-2 text-left sm:gap-3",
+          "transition-colors hover:bg-white/10",
+          expanded
+            ? "rounded-t-xl sm:rounded-t-2xl rounded-b-none"
+            : "rounded-xl sm:rounded-2xl",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-inset",
           className,
         )}
       >
-        <span
-          className={cn(
-            "flex w-full min-w-0 items-center justify-between gap-2 transition-colors hover:bg-white/10 sm:gap-3",
-            "-mx-1 px-1 sm:-mx-2 sm:px-2",
-            expanded
-              ? "rounded-t-xl sm:rounded-t-2xl rounded-b-none"
-              : "rounded-xl sm:rounded-2xl",
-          )}
-        >
-          {content}
-        </span>
+        {content}
       </button>
     );
   }

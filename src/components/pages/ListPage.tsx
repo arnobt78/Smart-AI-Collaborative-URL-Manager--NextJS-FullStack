@@ -14,9 +14,6 @@ import {
   resolveListShareUrl,
 } from "@/components/lists/ListDetailShareRow";
 import { useToast } from "@/components/ui/Toaster";
-import { ActivityFeed } from "@/components/collaboration/ActivityFeed";
-import { PermissionManager } from "@/components/collaboration/PermissionManager";
-import { SmartCollections } from "@/components/collections/SmartCollections";
 import { useListPermissions } from "@/hooks/useListPermissions";
 import { useSession } from "@/hooks/useSession";
 import {
@@ -30,14 +27,14 @@ import { Dialog } from "@/components/ui/Dialog";
 import EditListPageClient from "@/components/pages/EditListPage";
 import { ListDetailRouteSkeleton } from "@/components/ui/RoutePageSkeleton";
 import {
+  ListDetailBodySections,
   ListDetailBodySkeletons,
   ListDetailHeaderChrome,
-  ListDetailSection,
 } from "@/components/lists/ListDetailHeaderChrome";
 import { HEADING_STACK, PAGE_STACK } from "@/lib/ui-spacing";
 import { invalidateMutationImpact } from "@/utils/queryInvalidation";
 import { useListDialogRouteState } from "@/hooks/useListDialogRouteState";
-import { isSoftNavThinSeed } from "@/lib/soft-nav-cache";
+import { isUnifiedListHydrated } from "@/lib/soft-nav-cache";
 import { cn } from "@/lib/utils";
 import { useWarmSoftNav } from "@/hooks/useWarmSoftNav";
 
@@ -548,14 +545,17 @@ export default function ListPageClient() {
   const hasAnyData = !!(list && list.id && list.slug === listSlug);
 
   // C7.9/C7.10.1: thin soft-nav seed keeps body skeletons until hydrate clears marker.
-  // Ignore stuck thin flag when unified query errored but we still have list data.
+  const unifiedForGate =
+    unifiedData?.list?.slug === listSlug
+      ? unifiedData
+      : cachedUnified?.list?.slug === listSlug
+        ? cachedUnified
+        : undefined;
   const showThinBodySkeletons =
     hasAnyData &&
     !isUnifiedError &&
-    (isSoftNavThinSeed(unifiedData) ||
-      isSoftNavThinSeed(
-        cachedUnified as { _softNavThinSeed?: boolean } | undefined,
-      ));
+    Boolean(listSlug) &&
+    !isUnifiedListHydrated(unifiedForGate, listSlug);
 
   // C6.9: paint immediately when RQ/store has this slug; skeleton only when cold
   const shouldShowLoading =
@@ -879,34 +879,18 @@ export default function ListPageClient() {
 
       {/* C7.10: UrlList paints from thin seed; only collab / SC / activity stay skeleton */}
       {showThinBodySkeletons ? (
-        <ListDetailBodySkeletons />
+        <ListDetailBodySkeletons
+          urlCount={Array.isArray(list.urls) ? list.urls.length : 0}
+        />
       ) : (
-        <>
-          {list.id && list.slug && (
-            <ListDetailSection>
-              <PermissionManager
-                listId={list.id}
-                listTitle={list.title || "Untitled List"}
-                listSlug={list.slug}
-              />
-            </ListDetailSection>
-          )}
-
-          {list.id &&
-            list.slug &&
-            Array.isArray(list.urls) &&
-            list.urls.length >= 2 && (
-              <ListDetailSection>
-                <SmartCollections listId={list.id} listSlug={list.slug} />
-              </ListDetailSection>
-            )}
-
-          {list.id && (
-            <ListDetailSection className="p-0 sm:p-0">
-              <ActivityFeed listId={list.id} limit={30} />
-            </ListDetailSection>
-          )}
-        </>
+        <ListDetailBodySections
+          list={{
+            id: list.id,
+            slug: list.slug!,
+            title: list.title,
+            urls: list.urls,
+          }}
+        />
       )}
 
       <UrlList />

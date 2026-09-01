@@ -52,6 +52,28 @@ export function isSoftNavThinSeed(
   return Boolean(data?.[SOFT_NAV_THIN_SEED]);
 }
 
+/** Full unified fetch completed for this slug (not a thin soft-nav seed). */
+export function isUnifiedListHydrated(
+  data: UnifiedCacheShape | null | undefined,
+  slug: string,
+): boolean {
+  return Boolean(data?.list?.slug === slug && !isSoftNavThinSeed(data));
+}
+
+/** Seed collaborators sub-cache from hydrated unified data (PermissionManager reads this key). */
+export function syncUnifiedSubCachesFromUnified(
+  queryClient: QueryClient,
+  data: UnifiedCacheShape | null | undefined,
+): void {
+  if (!data || !Array.isArray(data.collaborators)) return;
+  const list = data.list;
+  if (!list || typeof list !== "object" || !("id" in list) || !list.id) return;
+
+  queryClient.setQueryData(listQueryKeys.collaborators(list.id), {
+    collaborators: data.collaborators,
+  });
+}
+
 /** Map allLists / unified list row → UrlList and sync nanostore when slug differs. */
 export function syncCurrentListFromSeedRow(
   row: SeedableListRow | null | undefined,

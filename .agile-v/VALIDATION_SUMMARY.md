@@ -538,6 +538,17 @@ Gate 2: BLOCKED — RISK-0016 is accepted; `EVAL_RESULTS.md` PASS/WAIVED evidenc
 | Validation | `tsc`; `eslint .`; Jest 123; `build`; verify-deep | PASS | lint 0; build exit 0. |
 | Browser | Scroll flicker stress test | PENDING USER | TASK-0039 after deploy. |
 
+## 2026-09-01 — C7.16 skeleton parity + warm cache paint
+
+| Scope | Command / evidence | Result | Notes |
+|---|---|---|---|
+| Skeletons | `ListDetailBodySkeletons` + `ListDetailSection` collapsed rows | PASS | SC skeleton when `urlCount >= 2`; cold route omits urlCount (accepted OOS). |
+| Warm cache | `isUnifiedListHydrated` + `syncUnifiedSubCachesFromUnified` | PASS | +2 tests in `soft-nav-cache.test.ts`; ListPage + OptimisticSoftNavSurface gate. |
+| Shared sections | `ListDetailBodySections`; RoutePageSkeleton DRY | PASS | PM / SC / Activity extracted; cold skeleton reuses body skeletons. |
+| Activity polish | overlay scrollbar; full-width section header hover | PASS | `custom-scrollbar-overlay` in globals.css. |
+| Validation | `tsc`; `eslint .`; Jest 130; `build`; verify-deep | PASS WITH WARNINGS | lint 0; build exit 0; spacing/module-coupling warnings non-blocking. |
+| Browser | warm revisit + Activity hover/scroll | PENDING USER | TASK-0039 after deploy. |
+
 ## 2026-09-01 — C7.16 Wave 3 (jobs auth + UX polish)
 
 | Scope | Command / evidence | Result | Notes |

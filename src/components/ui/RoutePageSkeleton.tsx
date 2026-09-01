@@ -4,6 +4,7 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { DataSurfaceSlot } from "@/components/ui/DataSurfaceSlot";
 import { CARD_PAD, HEADING_STACK, PAGE_HEADER, PAGE_STACK } from "@/lib/ui-spacing";
 import { GLASS_LIST_CARD } from "@/lib/ui/glass-card-styles";
+import { ListDetailBodySkeletons } from "@/components/lists/ListDetailHeaderChrome";
 import { cn } from "@/lib/utils";
 
 type RoutePageSkeletonProps = {
@@ -122,15 +123,8 @@ export function ListDetailRouteSkeleton() {
           <div className="h-3 w-2/3 max-w-md rounded bg-white/5 mt-2" />
         </div>
       </div>
-      <div className="flex flex-col gap-4 sm:gap-6" aria-hidden>
-        <div className={cn(GLASS_LIST_CARD, "animate-pulse", CARD_PAD)}>
-          <div className="h-4 w-28 rounded bg-white/10 mb-3" />
-          <div className="h-12 rounded-lg bg-white/5" />
-        </div>
-        <div className={cn(GLASS_LIST_CARD, "animate-pulse h-24", CARD_PAD)} />
-        <div className={cn(GLASS_LIST_CARD, "animate-pulse h-10", CARD_PAD)} />
-        <div className="h-16 rounded-xl border border-dashed border-white/20 bg-white/5 animate-pulse" />
-      </div>
+      <ListDetailBodySkeletons />
+      <div className="h-16 rounded-xl border border-dashed border-white/20 bg-white/5 animate-pulse" aria-hidden />
     </div>
   );
 }

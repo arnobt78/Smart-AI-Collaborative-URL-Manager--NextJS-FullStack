@@ -393,23 +393,23 @@ export function ActivityFeed({ listId, limit = 50 }: ActivityFeedProps) {
       {isExpanded ? (
         <div
           className={cn(
-            "max-h-[400px] sm:max-h-[500px] overflow-y-auto custom-scrollbar",
-            "px-2 pb-2 sm:px-4",
+            "max-h-[400px] sm:max-h-[500px] overflow-y-auto custom-scrollbar-overlay",
+            "pb-2",
           )}
         >
           {isLoading ? (
-            <div className="text-xs sm:text-sm text-white/50 text-center py-3 sm:py-4">
+            <div className="text-xs sm:text-sm text-white/50 text-center py-3 sm:py-4 px-2 sm:px-4">
               Loading activities...
             </div>
           ) : activities.length === 0 ? (
-            <div className="text-xs sm:text-sm text-white/50 text-center py-3 sm:py-4 px-2">
+            <div className="text-xs sm:text-sm text-white/50 text-center py-3 sm:py-4 px-2 sm:px-4">
               No activity yet. Start adding URLs to see activity here!
             </div>
           ) : (
             activities.map((activity) => (
               <div
                 key={activity.id}
-                className="flex items-center gap-2 border-b border-white/10 py-1.5 transition-colors last:border-0 hover:bg-white/5 sm:gap-3"
+                className="flex items-center gap-2 border-b border-white/10 px-2 py-1.5 transition-colors last:border-0 hover:bg-white/5 sm:gap-3 sm:px-4"
               >
                 {/* Action icon — leftmost, vertically centered */}
                 <div className="flex shrink-0 items-center justify-center">

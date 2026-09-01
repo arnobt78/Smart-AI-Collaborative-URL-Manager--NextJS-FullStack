@@ -107,6 +107,34 @@
     background-clip: padding-box;
   }
 
+  /* Overlay scrollbar — transparent track, thin thumb (Activity Feed lists) */
+  .custom-scrollbar-overlay {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.35) transparent;
+  }
+
+  .custom-scrollbar-overlay::-webkit-scrollbar {
+    width: 6px;
+    display: block;
+  }
+
+  .custom-scrollbar-overlay::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .custom-scrollbar-overlay::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.35);
+    border-radius: 3px;
+  }
+
+  .custom-scrollbar-overlay::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.55);
+  }
+
+  .custom-scrollbar-overlay::-webkit-scrollbar-thumb:active {
+    background: rgba(255, 255, 255, 0.65);
+  }
+
   .btn {
     @apply inline-flex items-center justify-center px-4 py-2 rounded-lg font-medium transition-all duration-200;
   }

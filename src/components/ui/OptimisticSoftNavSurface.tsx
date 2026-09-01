@@ -23,6 +23,7 @@ import { MyListsCard } from "@/components/lists/MyListsCard";
 import { BrowsePublicListCard } from "@/components/lists/BrowsePublicListCard";
 import { BrowseSearchField } from "@/components/lists/BrowseSearchField";
 import {
+  ListDetailBodySections,
   ListDetailBodySkeletons,
   ListDetailHeaderChrome,
 } from "@/components/lists/ListDetailHeaderChrome";
@@ -33,7 +34,7 @@ import type { UserList } from "@/hooks/useListQueries";
 import { useWarmSoftNav } from "@/hooks/useWarmSoftNav";
 import { LIST_STACK, PAGE_STACK } from "@/lib/ui-spacing";
 import { cn } from "@/lib/utils";
-import { syncCurrentListFromSeedRow } from "@/lib/soft-nav-cache";
+import { syncCurrentListFromSeedRow, isUnifiedListHydrated, syncUnifiedSubCachesFromUnified } from "@/lib/soft-nav-cache";
 
 /**
  * C7.0: Warm soft-nav paints full chrome + cards from RQ (parity with real pages).
@@ -84,6 +85,9 @@ type UnifiedCache = {
     collaborators?: string[];
     collaboratorRoles?: unknown;
   };
+  collaborators?: unknown[];
+  activities?: unknown[];
+  _softNavThinSeed?: boolean;
 };
 
 function ListsOptimisticSurface() {
@@ -225,6 +229,8 @@ function ListDetailOptimisticSurface() {
   const list =
     data?.list?.slug && data.list.slug === slug ? data.list : undefined;
 
+  const hydrated = isUnifiedListHydrated(data, slug);
+
   useLayoutEffect(() => {
     if (!list?.id || !list.slug) return;
     syncCurrentListFromSeedRow({
@@ -239,13 +245,17 @@ function ListDetailOptimisticSurface() {
       collaborators: list.collaborators,
       collaboratorRoles: list.collaboratorRoles,
     });
-  }, [list]);
+    if (hydrated) {
+      syncUnifiedSubCachesFromUnified(queryClient, data);
+    }
+  }, [list, hydrated, data, queryClient]);
 
   if (!slug || !list?.slug) {
     return <ListDetailRouteSkeleton />;
   }
 
   const listSlug = list.slug;
+  const urlCount = Array.isArray(list.urls) ? list.urls.length : 0;
 
   return (
     <div className={cn("w-full", PAGE_STACK)} aria-busy="true">
@@ -265,7 +275,7 @@ function ListDetailOptimisticSurface() {
         actions={
           <ListDetailJobsMenu
             busy
-            hasUrls={Array.isArray(list.urls) ? list.urls.length > 0 : false}
+            hasUrls={urlCount > 0}
           />
         }
         shareRow={
@@ -277,7 +287,18 @@ function ListDetailOptimisticSurface() {
           />
         }
       />
-      <ListDetailBodySkeletons />
+      {hydrated && list.id ? (
+        <ListDetailBodySections
+          list={{
+            id: list.id,
+            slug: listSlug,
+            title: list.title,
+            urls: list.urls,
+          }}
+        />
+      ) : (
+        <ListDetailBodySkeletons urlCount={urlCount} />
+      )}
       {/* C7.10.1: paint UrlList during soft-nav (parity with ListPage thin seed) */}
       <UrlList />
     </div>

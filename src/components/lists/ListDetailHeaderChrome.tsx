@@ -8,8 +8,11 @@ import { Switch } from "@/components/ui/Switch";
 import { ArrowLeft, Blocks, Globe2, GlobeLock } from "lucide-react";
 import { GLASS_LIST_CARD } from "@/lib/ui/glass-card-styles";
 import { UI_LIST_CARD_META_BADGE } from "@/lib/ui/control-styles";
-import { CARD_PAD, CARD_STACK } from "@/lib/ui-spacing";
+import { CARD_PAD, CARD_STACK, HEADING_STACK, LIST_STACK } from "@/lib/ui-spacing";
 import { cn } from "@/lib/utils";
+import { ActivityFeed } from "@/components/collaboration/ActivityFeed";
+import { PermissionManager } from "@/components/collaboration/PermissionManager";
+import { SmartCollections } from "@/components/collections/SmartCollections";
 
 
 export type ListDetailHeaderList = {
@@ -190,31 +193,112 @@ export function ListDetailSection({
   );
 }
 
-/** Skeletons for Collaborators / SC / Activity while thin soft-nav awaits hydrate (UrlList paints live). */
-export function ListDetailBodySkeletons() {
+/** Pulse bar for section skeleton rows. */
+function SkeletonBar({
+  className,
+}: {
+  className?: string;
+}) {
   return (
-    <>
-      <div
-        className={cn(GLASS_LIST_CARD, "animate-pulse", CARD_PAD)}
-        aria-hidden
-      >
-        <div className="h-4 w-32 rounded bg-white/10 mb-3" />
-        <div className="space-y-2">
-          <div className="h-12 rounded-lg bg-white/5 border border-white/10" />
-          <div className="h-12 rounded-lg bg-white/5 border border-white/10" />
+    <div
+      className={cn("rounded bg-white/10 animate-pulse", className)}
+      aria-hidden
+    />
+  );
+}
+
+/** Header row skeleton: icon + title/badge/subtitle + optional trailing action. */
+function SectionHeaderRowSkeleton({
+  actionClassName,
+}: {
+  actionClassName?: string;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-2 sm:gap-3">
+      <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-2">
+        <SkeletonBar className="h-4 w-4 shrink-0 rounded-full" />
+        <div className={cn(HEADING_STACK, "min-w-0 flex-1")}>
+          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+            <SkeletonBar className="h-4 w-28 sm:w-32" />
+            <SkeletonBar className="h-5 w-6 rounded-full" />
+          </div>
+          <SkeletonBar className="mt-1 h-3 w-40 sm:w-52 max-w-full" />
         </div>
       </div>
-      <div
-        className={cn(GLASS_LIST_CARD, "animate-pulse", CARD_PAD)}
-        aria-hidden
-      >
-        <div className="h-4 w-40 rounded bg-white/10 mb-3" />
-        <div className="h-16 rounded-lg bg-white/5" />
-      </div>
-      <div
-        className={cn(GLASS_LIST_CARD, "animate-pulse h-10", CARD_PAD)}
-        aria-hidden
-      />
+      {actionClassName ? (
+        <SkeletonBar className={cn("shrink-0", actionClassName)} />
+      ) : null}
+    </div>
+  );
+}
+
+export type ListDetailBodyList = {
+  id: string;
+  slug: string;
+  title?: string | null;
+  urls?: unknown[] | null;
+};
+
+/** Live Collaborators / Smart Collections / Activity sections (ListPage + warm soft-nav). */
+export function ListDetailBodySections({ list }: { list: ListDetailBodyList }) {
+  const urlCount = Array.isArray(list.urls) ? list.urls.length : 0;
+
+  return (
+    <>
+      <ListDetailSection>
+        <PermissionManager
+          listId={list.id}
+          listTitle={list.title || "Untitled List"}
+          listSlug={list.slug}
+        />
+      </ListDetailSection>
+
+      {urlCount >= 2 ? (
+        <ListDetailSection>
+          <SmartCollections listId={list.id} listSlug={list.slug} />
+        </ListDetailSection>
+      ) : null}
+
+      <ListDetailSection className="p-0 sm:p-0">
+        <ActivityFeed listId={list.id} limit={30} />
+      </ListDetailSection>
     </>
+  );
+}
+
+/** Skeletons for Collaborators / SC / Activity while thin soft-nav awaits hydrate. */
+export function ListDetailBodySkeletons({
+  urlCount,
+}: {
+  /** When set, Smart Collections skeleton only renders when urlCount >= 2. */
+  urlCount?: number;
+} = {}) {
+  const showSmartCollections =
+    urlCount === undefined ? true : urlCount >= 2;
+
+  return (
+    <div className={LIST_STACK} aria-hidden>
+      <ListDetailSection className="animate-pulse">
+        <div className={CARD_STACK}>
+          <SectionHeaderRowSkeleton actionClassName="h-8 w-28 sm:w-36 rounded-lg" />
+          <div className="space-y-2 pt-1">
+            <SkeletonBar className="h-14 w-full rounded-lg border border-white/10 bg-white/5" />
+            <SkeletonBar className="h-14 w-full rounded-lg border border-white/10 bg-white/5" />
+          </div>
+        </div>
+      </ListDetailSection>
+
+      {showSmartCollections ? (
+        <ListDetailSection className="animate-pulse">
+          <SectionHeaderRowSkeleton actionClassName="h-8 w-24 sm:w-32 rounded-lg" />
+        </ListDetailSection>
+      ) : null}
+
+      <ListDetailSection className="animate-pulse p-0 sm:p-0">
+        <div className={CARD_PAD}>
+          <SectionHeaderRowSkeleton actionClassName="h-4 w-4 rounded" />
+        </div>
+      </ListDetailSection>
+    </div>
   );
 }

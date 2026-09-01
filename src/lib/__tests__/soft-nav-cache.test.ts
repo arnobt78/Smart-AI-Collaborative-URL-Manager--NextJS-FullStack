@@ -5,12 +5,14 @@ import {
   clearWarmSoftNav,
   consumeWarmSoftNav,
   isDestinationCacheWarm,
+  isUnifiedListHydrated,
   markWarmSoftNav,
   peekWarmSoftNav,
   prepareWarmSoftNav,
   resetWarmSoftNavForTests,
   seedUnifiedFromAllLists,
   shouldPaintWarmSoftNav,
+  syncUnifiedSubCachesFromUnified,
 } from "@/lib/soft-nav-cache";
 import { currentList } from "@/stores/urlListStore";
 
@@ -140,5 +142,34 @@ describe("C6.9 soft-nav-cache", () => {
     expect(peekWarmSoftNav()).toBe(false);
     expect(shouldPaintWarmSoftNav(client, "/lists")).toBe(true);
     expect(peekWarmSoftNav()).toBe(false);
+  });
+
+  it("isUnifiedListHydrated is false for thin seed and true after full fetch shape", () => {
+    const thin = {
+      list: { id: "1", slug: "my-list" },
+      _softNavThinSeed: true,
+    };
+    expect(isUnifiedListHydrated(thin, "my-list")).toBe(false);
+
+    const hydrated = {
+      list: { id: "1", slug: "my-list" },
+      collaborators: [],
+      activities: [],
+    };
+    expect(isUnifiedListHydrated(hydrated, "my-list")).toBe(true);
+    expect(isUnifiedListHydrated(hydrated, "other")).toBe(false);
+  });
+
+  it("syncUnifiedSubCachesFromUnified seeds collaborators key", () => {
+    const client = new QueryClient();
+    syncUnifiedSubCachesFromUnified(client, {
+      list: { id: "list-1", slug: "slug" },
+      collaborators: [{ email: "a@test.com", role: "viewer" }],
+    });
+    expect(
+      client.getQueryData<{ collaborators: unknown[] }>(
+        listQueryKeys.collaborators("list-1"),
+      )?.collaborators,
+    ).toHaveLength(1);
   });
 });
