@@ -368,18 +368,13 @@ export function ActivityFeed({ listId, limit = 50 }: ActivityFeedProps) {
 
   return (
     <div className="flex flex-col overflow-hidden rounded-xl sm:rounded-2xl">
-      <div
-        className={cn(
-          CARD_PAD,
-          isExpanded && "border-b border-white/10",
-        )}
-      >
+      <div className={cn(CARD_PAD, isExpanded && "border-b border-white/10")}>
         <ListDetailSectionHeader
           icon={Activity}
           iconClassName="text-white/70"
           title="Activity Feed"
           badge={<SectionCountBadge count={activities.length} />}
-          subtitle="You and your collaborators' live activity"
+          subtitle="You & your collaborators' live activity"
           collapsible
           expanded={isExpanded}
           onToggle={() => setIsExpanded((expanded) => !expanded)}
@@ -403,48 +398,48 @@ export function ActivityFeed({ listId, limit = 50 }: ActivityFeedProps) {
             "px-2 pb-2 sm:px-4",
           )}
         >
-        {isLoading ? (
-          <div className="text-xs sm:text-sm text-white/50 text-center py-3 sm:py-4">
-            Loading activities...
-          </div>
-        ) : activities.length === 0 ? (
-          <div className="text-xs sm:text-sm text-white/50 text-center py-3 sm:py-4 px-2">
-            No activity yet. Start adding URLs to see activity here!
-          </div>
-        ) : (
-          activities.map((activity) => (
-            <div
-              key={activity.id}
-              className="flex items-center gap-2 border-b border-white/10 py-1.5 transition-colors last:border-0 hover:bg-white/5 sm:gap-3"
-            >
-              {/* Action icon — leftmost, vertically centered */}
-              <div className="flex shrink-0 items-center justify-center">
-                {getActionIcon(activity.action)}
-              </div>
-              {/* Avatar beside email */}
-              <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-2.5">
-                <UserAvatar
-                  seed={activity.user.email}
-                  size={28}
-                  className="shrink-0"
-                />
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    <span className="text-xs font-medium text-white/90 truncate">
-                      {activity.user.email}
-                    </span>
-                    <span className="text-xs text-white/60">
-                      {getActionLabel(activity)}
-                    </span>
-                  </div>
-                  <div className="text-xs text-white/50 mt-0.5 sm:mt-1">
-                    {formatDate(activity.createdAt)}
+          {isLoading ? (
+            <div className="text-xs sm:text-sm text-white/50 text-center py-3 sm:py-4">
+              Loading activities...
+            </div>
+          ) : activities.length === 0 ? (
+            <div className="text-xs sm:text-sm text-white/50 text-center py-3 sm:py-4 px-2">
+              No activity yet. Start adding URLs to see activity here!
+            </div>
+          ) : (
+            activities.map((activity) => (
+              <div
+                key={activity.id}
+                className="flex items-center gap-2 border-b border-white/10 py-1.5 transition-colors last:border-0 hover:bg-white/5 sm:gap-3"
+              >
+                {/* Action icon — leftmost, vertically centered */}
+                <div className="flex shrink-0 items-center justify-center">
+                  {getActionIcon(activity.action)}
+                </div>
+                {/* Avatar beside email */}
+                <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-2.5">
+                  <UserAvatar
+                    seed={activity.user.email}
+                    size={28}
+                    className="shrink-0"
+                  />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="text-xs font-medium text-white/90 truncate">
+                        {activity.user.email}
+                      </span>
+                      <span className="text-xs text-white/60">
+                        {getActionLabel(activity)}
+                      </span>
+                    </div>
+                    <div className="text-xs text-white/50 mt-0.5 sm:mt-1">
+                      {formatDate(activity.createdAt)}
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ))
-        )}
+            ))
+          )}
         </div>
       ) : null}
     </div>

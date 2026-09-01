@@ -808,13 +808,11 @@ export default function ListPageClient() {
             if (!open) setPendingVisibility(null);
           }
         }}
-        title={
-          pendingVisibility ? "Make list public?" : "Make list private?"
-        }
+        title={pendingVisibility ? "Make list public?" : "Make list private?"}
         description={
           pendingVisibility
             ? "Anyone with the link will be able to view this list."
-            : "Only you and collaborators will be able to view this list."
+            : "Only you & collaborators will be able to view this list."
         }
         confirmText={pendingVisibility ? "Make Public" : "Make Private"}
         cancelText="Cancel"

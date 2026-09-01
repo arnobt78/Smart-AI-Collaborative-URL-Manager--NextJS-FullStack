@@ -18,10 +18,17 @@ interface ListVisibilityFieldProps {
   onChange: (event: ChangeEvent<HTMLInputElement>) => void;
 }
 
-export function ListVisibilityField({ checked, id, onChange }: ListVisibilityFieldProps) {
+export function ListVisibilityField({
+  checked,
+  id,
+  onChange,
+}: ListVisibilityFieldProps) {
   return (
     <div className="rounded-xl border border-white/10 bg-white/5 p-3 sm:p-4">
-      <label htmlFor={id} className="flex cursor-pointer items-center gap-2 text-sm font-medium text-white sm:text-base">
+      <label
+        htmlFor={id}
+        className="flex cursor-pointer items-center gap-2 text-sm font-medium text-white sm:text-base"
+      >
         <input
           id={id}
           type="checkbox"
@@ -32,7 +39,8 @@ export function ListVisibilityField({ checked, id, onChange }: ListVisibilityFie
         <span>Make this list public</span>
       </label>
       <p className="pl-6 text-xs text-white/60 sm:text-sm">
-        Public lists can be viewed by anyone with the link. Private lists are only visible to you and collaborators.
+        Public lists can be viewed by anyone with the link. Private lists are
+        only visible to you & collaborators.
       </p>
     </div>
   );
