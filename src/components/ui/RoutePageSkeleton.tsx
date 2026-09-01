@@ -2,7 +2,8 @@ import type { LucideIcon } from "lucide-react";
 import { BarChart3, BookOpen, Globe, LayoutList, Link2 } from "lucide-react";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { DataSurfaceSlot } from "@/components/ui/DataSurfaceSlot";
-import { HEADING_STACK, PAGE_HEADER, PAGE_STACK } from "@/lib/ui-spacing";
+import { CARD_PAD, HEADING_STACK, PAGE_HEADER, PAGE_STACK } from "@/lib/ui-spacing";
+import { GLASS_LIST_CARD } from "@/lib/ui/glass-card-styles";
 import { cn } from "@/lib/utils";
 
 type RoutePageSkeletonProps = {
@@ -107,12 +108,7 @@ export function ApiDocsRouteSkeleton() {
 export function ListDetailRouteSkeleton() {
   return (
     <div className={cn("w-full", PAGE_STACK)} aria-busy="true">
-      <div
-        className={cn(
-          "bg-white/5 backdrop-blur-md border border-white/10 rounded-xl sm:rounded-2xl shadow-xl animate-pulse",
-          "p-2 sm:p-4",
-        )}
-      >
+      <div className={cn(GLASS_LIST_CARD, "animate-pulse", CARD_PAD)}>
         <div className={HEADING_STACK}>
           <div className="flex items-center gap-2">
             <Link2 className="h-5 w-5 text-blue-300/50 shrink-0" aria-hidden />
@@ -127,12 +123,12 @@ export function ListDetailRouteSkeleton() {
         </div>
       </div>
       <div className="flex flex-col gap-4 sm:gap-6" aria-hidden>
-        <div className="bg-white/5 border border-white/10 rounded-xl sm:rounded-2xl p-2 sm:p-4 animate-pulse">
+        <div className={cn(GLASS_LIST_CARD, "animate-pulse", CARD_PAD)}>
           <div className="h-4 w-28 rounded bg-white/10 mb-3" />
           <div className="h-12 rounded-lg bg-white/5" />
         </div>
-        <div className="bg-white/5 border border-white/10 rounded-xl sm:rounded-2xl p-2 sm:p-4 animate-pulse h-24" />
-        <div className="bg-white/5 border border-white/10 rounded-xl sm:rounded-2xl p-2 sm:p-4 animate-pulse h-10" />
+        <div className={cn(GLASS_LIST_CARD, "animate-pulse h-24", CARD_PAD)} />
+        <div className={cn(GLASS_LIST_CARD, "animate-pulse h-10", CARD_PAD)} />
         <div className="h-16 rounded-xl border border-dashed border-white/20 bg-white/5 animate-pulse" />
       </div>
     </div>

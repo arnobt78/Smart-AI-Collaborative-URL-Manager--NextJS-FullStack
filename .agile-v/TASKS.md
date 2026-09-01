@@ -358,5 +358,16 @@ RSC shells · densify/Zod/SHA/Next16
 
 **Dependencies:** User plans + GATE-0035; C7.9 soft-nav base.
 
+### TASK-0057 — C7.16 list-detail glass contract + polish — **BASELINE COMPLETE**
+
+1. ~~**Wave 0 (user input):**~~ Deferred — user chose baseline-only.
+2. ~~**Wave 1 (tokens):**~~ `GLASS_LIST_CARD` + `GLASS_CARD` split; chip export; shell migration.
+3. ~~**Wave 2 (sections):**~~ `ListDetailSection`; PM/Activity/SC parity; skeleton fragment.
+4. ~~**Wave 3 (optional):**~~ UrlFilterBar → Radix glass menu.
+5. **Wave 4 (user defects):** Pending user defect list.
+6. ~~Validate tsc/lint/Jest/build/audit; update VALIDATION_SUMMARY + STATE; commit when user requests.~~ Done 2026-09-01.
+
+**Dependencies:** REQ-0051; GATE-0036 approved (baseline waves); C7.15 Radix menu base.
+
 
 

@@ -748,3 +748,16 @@ Append-only. Newest entries at bottom.
 | Rationale | Custom portal flip/clamp duplicated Radix positioning; blue rings fought glass chrome; list cards needed one dense stack token; UrlCard note/chips needed one pad rhythm; immutable static headers broke Turbopack HMR in dev. |
 | Linked REQs | C7.15 UX |
 | Status | Implemented and locally validated 2026-08-31. |
+
+---
+
+## DEC-0055 — C7.16 shared glass list-card shell (proposed)
+
+| Field | Value |
+|---|---|
+| Timestamp | 2026-09-01 |
+| Agent | Cursor (Agile V analysis) |
+| Decision | Propose `GLASS_LIST_CARD` token consolidating the repeated neutral glass shell used on list-detail header, ListPage section wrappers, MyLists/Browse cards, and skeleton presets — distinct from hue-tinted `GLASS_PANEL_CARD` marketing tiles. |
+| Rationale | C7.15 added `CARD_STACK`/`CARD_PAD` but left ~8 duplicated full shell class strings; PermissionManager uses gradient wrapper while Activity uses flat shell; collaborator/activity inner rows use ad-hoc `p-3 sm:p-4`. |
+| Linked REQs | REQ-0051 |
+| Status | **Implemented** 2026-09-01 — `GLASS_LIST_CARD` for list surfaces; `GLASS_CARD` for generic `Card` primitive. |

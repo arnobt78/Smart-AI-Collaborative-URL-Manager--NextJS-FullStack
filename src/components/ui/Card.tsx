@@ -1,4 +1,5 @@
 import * as React from "react";
+import { GLASS_CARD } from "@/lib/ui/glass-card-styles";
 import { HEADING_STACK } from "@/lib/ui-spacing";
 import { cn } from "@/lib/utils";
 
@@ -8,10 +9,7 @@ const Card = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn(
-      "rounded-xl border border-white/10 bg-white/5 backdrop-blur-md text-white shadow-lg",
-      className,
-    )}
+    className={cn(GLASS_CARD, "text-white", className)}
     {...props}
   />
 ));

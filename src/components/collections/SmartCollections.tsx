@@ -5,10 +5,8 @@ import { useStore } from "@nanostores/react";
 import { currentList, removeUrlFromList } from "@/stores/urlListStore";
 import { Button } from "@/components/ui/Button";
 import {
-  Card,
   CardTitle,
   CardDescription,
-  CardContent,
 } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Skeleton } from "@/components/ui/Skeleton";
@@ -34,7 +32,8 @@ import {
 } from "lucide-react";
 import { useWarmSoftNav } from "@/hooks/useWarmSoftNav";
 import { AlertDialog } from "@/components/ui/AlertDialog";
-import { HEADING_STACK } from "@/lib/ui-spacing";
+import { CARD_STACK, HEADING_STACK } from "@/lib/ui-spacing";
+import { cn } from "@/lib/utils";
 import { invalidateMutationImpact } from "@/utils/queryInvalidation";
 
 interface SmartCollectionsProps {
@@ -448,40 +447,35 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
 
   if (!isExpanded) {
     return (
-      <Card className="">
-        <CardContent className="p-2 sm:p-4">
-          <div className="flex items-center justify-between gap-2 sm:gap-2">
-            <div className="flex items-center gap-2 sm:gap-2 min-w-0 flex-1">
-              <Sparkles className="h-4 w-4  text-blue-400 flex-shrink-0" />
-              <div className={`${HEADING_STACK} min-w-0`}>
-                <h3 className="font-medium text-white text-sm sm:text-base truncate">
-                  Smart Collections
-                </h3>
-                <p className="text-xs sm:text-sm text-white/60 truncate">
-                  Get AI-powered collection suggestions
-                </p>
-              </div>
-            </div>
-            <Button
-              variant="outline"
-              onClick={() => setIsExpanded(true)}
-              className="border-white/20 text-white hover:bg-white/10 text-xs sm:text-sm flex-shrink-0"
-              aria-expanded={false}
-              aria-controls="smart-collections-content"
-            >
-              <Telescope className="h-4 w-4 shrink-0" aria-hidden />
-              View Suggestions
-            </Button>
+      <div className="flex items-center justify-between gap-2 sm:gap-2">
+        <div className="flex items-center gap-2 sm:gap-2 min-w-0 flex-1">
+          <Sparkles className="h-4 w-4  text-blue-400 flex-shrink-0" />
+          <div className={`${HEADING_STACK} min-w-0`}>
+            <h3 className="font-medium text-white text-sm sm:text-base truncate">
+              Smart Collections
+            </h3>
+            <p className="text-xs sm:text-sm text-white/60 truncate">
+              Get AI-powered collection suggestions
+            </p>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+        <Button
+          variant="outline"
+          onClick={() => setIsExpanded(true)}
+          className="border-white/20 text-white hover:bg-white/10 text-xs sm:text-sm flex-shrink-0"
+          aria-expanded={false}
+          aria-controls="smart-collections-content"
+        >
+          <Telescope className="h-4 w-4 shrink-0" aria-hidden />
+          View Suggestions
+        </Button>
+      </div>
     );
   }
 
   return (
-    <Card className="">
-      {/* Single pad shell — title + body share one p-2 sm:p-4 (no Header+Content double pad) */}
-      <div className="p-2 sm:p-4 space-y-2 sm:space-y-3">
+    <>
+      <div className={cn(CARD_STACK, "space-y-2 sm:space-y-3")}>
         <div className="flex items-center justify-between gap-2 sm:gap-2 ">
           <div className="flex items-center gap-2 sm:gap-2 min-w-0 flex-1">
             <Sparkles className="h-4 w-4  text-blue-400 flex-shrink-0" />
@@ -914,6 +908,6 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
           }
         }}
       />
-    </Card>
+    </>
   );
 }

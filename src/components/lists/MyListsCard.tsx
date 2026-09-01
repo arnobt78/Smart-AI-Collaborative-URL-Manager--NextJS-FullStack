@@ -20,6 +20,10 @@ import {
   Users,
 } from "lucide-react";
 import type { UserList } from "@/hooks/useListQueries";
+import {
+  GLASS_LIST_CARD,
+  GLASS_LIST_CARD_INTERACTIVE,
+} from "@/lib/ui/glass-card-styles";
 import { CARD_PAD, CARD_STACK } from "@/lib/ui-spacing";
 import { cn } from "@/lib/utils";
 
@@ -107,7 +111,10 @@ export function MyListsCard({
   return (
     <div
       className={cn(
-        "group relative overflow-hidden bg-white/5 backdrop-blur-md border border-white/10 rounded-xl sm:rounded-2xl shadow-xl transition-all duration-300 hover:border-blue-400/40 hover:bg-white/10",
+        "group relative overflow-hidden",
+        GLASS_LIST_CARD,
+        GLASS_LIST_CARD_INTERACTIVE,
+        "duration-300 hover:border-blue-400/40",
         CARD_PAD,
       )}
     >

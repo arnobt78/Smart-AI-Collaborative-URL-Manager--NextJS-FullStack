@@ -4,12 +4,12 @@
 **The Daily Urlist** (`urlist` v0.2.1) — AI collaborative URL lists.  
 Live: https://daily-urlist.vercel.app/ · Resume: `.agile-v/STATE.md`
 
-## Status (C7.15)
-Done: C7.8–C7.14 · **C7.15** Radix glass `DropdownMenu` (replaces `GlassPortalMenu`); menu focus rings glass-only; `CARD_STACK` + list/browse/detail card chrome; UrlCard unified `CARD_PAD` note + `URL_META_CHIP` tokens; prod-only `/_next/static` immutable cache (dev HMR safe).
+## Status (C7.16)
+Done: C7.8–C7.15 · **C7.16** `GLASS_LIST_CARD` + `GLASS_CARD` split; `ListDetailSection`; PM/Activity/SC section parity; `URL_META_CHIP_*` in `glass-badge-styles`; UrlFilterBar Radix; soft-nav skeleton fragment; UrlFilterBar tests.
 Stack: Next **16.3.3** · React **19.2.8** · Node **24.x** (`.nvmrc` / `engines`; use nvm 24 — shell may still be 22); **`src/proxy.ts`** (Next 16+; not `middleware.ts`); flat ESLint; audit **0**; Prisma **6.19.3**.
 Nav: warm Lists/Browse/Insights; api-status chrome+refresh; api-docs skeleton.
 Data: densifyBrowse + dropUnified tombstone + invalidateMutationImpact + SSE. Full densify/JWT-null SSR OOS.
-Defer: `(auth)` route-group (optional); lists/browse cold API slim; status API speed OOS; full metadata rewrite OOS; Prisma 7/8; UrlFilterBar portal OOS.
+Defer: C7.16 Wave 0 user defects; `(auth)` route-group (optional); lists/browse cold API slim; status API speed OOS; full metadata rewrite OOS; Prisma 7/8.
 Human: HA-0001; TASK-0039 after deploy.
 Validate: Jest · lint 0 · tsc · build · audit 0.
 
@@ -24,7 +24,8 @@ Sentry upload only if `SENTRY_UPLOAD_SOURCEMAPS=1` · `prisma.config.ts` seed
 `useUnifiedListQuery` placeholder same-slug only · ListPage syncs `currentList` via `useLayoutEffect` · Smart Collections create stays on page  
 C7.9–C7.15: thin seed + soft-nav UrlList/Copy/`ListDetailJobsMenu` + Radix glass menus; `listShareUrl`/`NEXT_PUBLIC_BASE_URL`; Back `warmRouterPush("/lists")`; `shouldPaintWarmSoftNav` for history.  
 Visit: `openExternalUrl` / `ensureAbsoluteHttpUrl` in `lib/utils.ts` (title, Visit, Similar)  
-UrlCard: single `CARD_PAD` column (body + inset `h-px` + italic note); local `URL_META_CHIP` tones for category/tags/pinned/reminder/similar.
+UrlCard: single `CARD_PAD` column (body + inset `h-px` + italic note); shared `URL_META_CHIP_*` from `glass-badge-styles`.
+List detail: `ListDetailSection` wraps PM/SC (urls≥2)/Activity; `GLASS_LIST_CARD` on header/browse/MyLists/skeletons; generic `Card` uses `GLASS_CARD`.
 
 ## Insights
 `ActivityChartSkeleton` on soft-nav · single `LineChart` + non-zero `LabelList` (7/30) · pie slice-colored labels · `InsightsChartTooltip` · Popular/Global icon gaps via `UI_CONTROL_ICON_GAP`
@@ -40,7 +41,7 @@ Home: `WAS_AUTHED_COOKIE`+`session_token` SSR Marketing; guests redirect `/login
 `src/components/ui/dropdown-menu.tsx` — Radix `@radix-ui/react-dropdown-menu` + glass chrome (`modal={false}`); jobs, collab, profile, Auth guest, bulk import/export
 
 ## Glass UI
-`src/lib/ui/glass-button-styles.ts` · `glass-badge-styles.ts` · `glass-card-styles.ts`
+`src/lib/ui/glass-button-styles.ts` · `glass-badge-styles.ts` (`URL_META_CHIP_*`) · `glass-card-styles.ts` (`GLASS_CARD` generic · `GLASS_LIST_CARD` list/browse/detail)
 
 ## Validate
 `tsc` · `lint` (`eslint .`, 0) · Jest · `prisma generate` · `build` → `.agile-v/VALIDATION_SUMMARY.md`

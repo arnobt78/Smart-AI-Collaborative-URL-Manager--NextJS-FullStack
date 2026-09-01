@@ -7,6 +7,10 @@
 import { Badge } from "@/components/ui/Badge";
 import { WarmSoftNavLink } from "@/components/ui/WarmSoftNavLink";
 import { AlignLeft, Blocks, Eye, Globe2, Users } from "lucide-react";
+import {
+  GLASS_LIST_CARD,
+  GLASS_LIST_CARD_INTERACTIVE,
+} from "@/lib/ui/glass-card-styles";
 import { CARD_PAD, CARD_STACK } from "@/lib/ui-spacing";
 import { cn } from "@/lib/utils";
 
@@ -30,7 +34,9 @@ export function BrowsePublicListCard({
     <WarmSoftNavLink
       href={`/list/${list.slug}`}
       className={cn(
-        "group bg-white/5 backdrop-blur-md border border-white/10 rounded-xl sm:rounded-2xl shadow-xl hover:bg-white/10 hover:border-blue-400/30 transition-all duration-200 cursor-pointer",
+        "group",
+        GLASS_LIST_CARD,
+        GLASS_LIST_CARD_INTERACTIVE,
         CARD_STACK,
         CARD_PAD,
       )}

@@ -28,8 +28,9 @@ import { ListDetailRouteSkeleton } from "@/components/ui/RoutePageSkeleton";
 import {
   ListDetailBodySkeletons,
   ListDetailHeaderChrome,
+  ListDetailSection,
 } from "@/components/lists/ListDetailHeaderChrome";
-import { CARD_PAD, HEADING_STACK, PAGE_STACK } from "@/lib/ui-spacing";
+import { HEADING_STACK, PAGE_STACK } from "@/lib/ui-spacing";
 import { invalidateMutationImpact } from "@/utils/queryInvalidation";
 import { useListDialogRouteState } from "@/hooks/useListDialogRouteState";
 import { isSoftNavThinSeed } from "@/lib/soft-nav-cache";
@@ -827,33 +828,28 @@ export default function ListPageClient() {
       ) : (
         <>
           {list.id && list.slug && (
-            <div
-              className={cn(
-                "bg-gradient-to-br from-white/5 to-white/3 backdrop-blur-md border border-white/10 rounded-xl sm:rounded-2xl shadow-xl",
-                CARD_PAD,
-              )}
-            >
+            <ListDetailSection>
               <PermissionManager
                 listId={list.id}
                 listTitle={list.title || "Untitled List"}
                 listSlug={list.slug}
               />
-            </div>
+            </ListDetailSection>
           )}
 
-          {list.id && list.slug && (
-            <SmartCollections listId={list.id} listSlug={list.slug} />
-          )}
+          {list.id &&
+            list.slug &&
+            Array.isArray(list.urls) &&
+            list.urls.length >= 2 && (
+              <ListDetailSection>
+                <SmartCollections listId={list.id} listSlug={list.slug} />
+              </ListDetailSection>
+            )}
 
           {list.id && (
-            <div
-              className={cn(
-                "bg-white/5 backdrop-blur-md border border-white/10 rounded-xl sm:rounded-2xl shadow-xl",
-                CARD_PAD,
-              )}
-            >
+            <ListDetailSection className="p-0 sm:p-0">
               <ActivityFeed listId={list.id} limit={30} />
-            </div>
+            </ListDetailSection>
           )}
         </>
       )}

@@ -490,3 +490,16 @@ Gate 2: BLOCKED — RISK-0016 is accepted; `EVAL_RESULTS.md` PASS/WAIVED evidenc
 | Deps | `@radix-ui/react-dropdown-menu` · `tailwindcss-animate` | PASS | audit 0. |
 | Tests | Jest UrlBulkImportExport via `userEvent` open menu | PASS | fireEvent insufficient for Radix. |
 | Validation | `tsc`; `eslint .`; Jest; `npm run build`; audit | PASS | BUILD exit 0; lint 0. |
+
+## 2026-09-01 — C7.16 list-detail glass contract (baseline)
+
+| Scope | Command / evidence | Result | Notes |
+|---|---|---|---|
+| Tokens | `GLASS_LIST_CARD` + `GLASS_CARD` split | PASS | List surfaces vs generic `Card` (insights/API unchanged). |
+| Sections | `ListDetailSection`; PM/Activity/SC parity | PASS | SC wrapped when `urls.length >= 2`; content-only SC. |
+| Chips | `URL_META_CHIP_*` in `glass-badge-styles` | PASS | UrlCard imports shared tones. |
+| UrlFilterBar | Radix `DropdownMenu` + 4 Jest tests | PASS | Open-menu active parity; filter/sort radio group. |
+| Skeleton | `ListDetailBodySkeletons` fragment | PASS | `PAGE_STACK` spacing parity; SC block OOS when urls&lt;2 (accepted). |
+| Browser | 320/768/1440 + SC collapsed/expanded | PASS | `/list/test`; `/list/my-private-url-list` (2 URLs). |
+| Validation | `tsc`; `eslint .`; Jest 118; build; audit; verify-deep | PASS | lint 0; audit 0. |
+| OOS | Wave 0 user defects; conditional SC skeleton | — | Deferred. |

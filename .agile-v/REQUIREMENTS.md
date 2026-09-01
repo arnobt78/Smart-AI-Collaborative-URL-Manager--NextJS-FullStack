@@ -983,3 +983,37 @@ These describe the current product as verified in code. They are **Accepted as b
 **Affected:** utils, soft-nav-cache, SoftNavLoading, OptimisticSoftNavSurface, ListPage, ListDetailHeaderChrome, UrlList, PermissionManager, Insights charts/Popular/Global.
 **Trace:** DEC-0051, CR-0028, GATE-0035.
 **Status:** Completed and locally validated [C7.11] on 2026-08-25.
+
+---
+
+### REQ-0051 — C7.16 list-detail glass contract + section polish (proposed 2026-09-01)
+
+**Priority:** P1  
+**Type:** UI consistency / list-detail UX  
+**Statement:** List detail (`/list/[slug]`) MUST use one shared glass list-card shell and spacing contract across header, collaborators, Smart Collections, Activity, and UrlList toolbar/cards. Residual inline Tailwind duplicates MUST consolidate into existing tokens (`ui-spacing`, `control-styles`, `glass-*-styles`) without changing mutation, cache, SSE, or soft-nav behavior. User-reported list-detail defects supplied in-session MUST be addressed in approved sub-waves.
+
+**Acceptance criteria (baseline — refine after user instructions):**
+
+- [x] Introduce `GLASS_LIST_CARD` (or equivalent) in `src/lib/ui/glass-card-styles.ts` or `ui-spacing.ts`; consume in `ListDetailHeaderChrome`, `ListPage` section wrappers, `MyListsCard`, `BrowsePublicListCard`, and `RoutePageSkeleton` list-detail presets (replace duplicated `bg-white/5 backdrop-blur-md border border-white/10 rounded-xl sm:rounded-2xl shadow-xl` strings).
+- [x] List-detail section headers (Collaborators, Smart Collections, Activity) use `HEADING_STACK` + `CARD_STACK` where title owns subtitle; inner row pads align to `CARD_PAD` (`p-2 sm:p-4`).
+- [x] `PermissionManager` / `ActivityFeed` / `SmartCollections` on list detail share the same outer shell pattern as header chrome (no mixed gradient-only wrapper on PM only).
+- [x] Promote `URL_META_CHIP` tones from UrlCard-local constants to shared `glass-badge-styles` (or documented chip module) when reused outside UrlCard.
+- [x] `UrlFilterBar` migrates to Radix glass `DropdownMenu` **only if** included in approved scope (currently OOS per C7.14/15 defer).
+- [ ] User-supplied defect list from next message is mapped to sub-waves with pass/fail evidence. *(Wave 0 deferred)*
+- [x] `tsc`, lint 0, focused Jest (list detail / UrlList / menus), build, audit 0; manual 320/768/1440 list-detail checklist recorded.
+
+**Affected (initial inventory):** `src/lib/ui/{glass-card-styles,ui-spacing,glass-badge-styles}.ts`; `ListPage.tsx`; `ListDetailHeaderChrome.tsx`; `PermissionManager.tsx`; `ActivityFeed.tsx`; `SmartCollections.tsx`; `UrlList.tsx`; `UrlCard.tsx`; `UrlFilterBar.tsx` (optional wave); `RoutePageSkeleton.tsx`; `MyListsCard.tsx`; `BrowsePublicListCard.tsx`.  
+**Trace:** TASK-0057, DEC-0055, RISK-0032, GATE-0036.  
+**Status:** **Baseline complete** 2026-09-01 — Wave 0 user defects deferred.
+
+---
+
+## C7.12–C7.15 baseline (implemented, REQ backfill deferred)
+
+| Cycle | Summary | Evidence |
+|-------|---------|----------|
+| C7.12 | `ListDetailJobsMenu`; chart labels; Visit `openExternalUrl` | DEC-0052 |
+| C7.13 | Next 16 + React 19 + Node 24 + `proxy.ts` | DEC-0053 |
+| C7.14 | Share/header/UrlCard date polish; GlassPortalMenu (superseded) | VALIDATION 2026-08-31 |
+| C7.15 | Radix menus; `CARD_STACK`; UrlCard note/chips | DEC-0054; commit `b9bdfdc` |
+| C7.16 | List-detail glass contract; token split; UrlFilterBar Radix | DEC-0055; REQ-0051 baseline |

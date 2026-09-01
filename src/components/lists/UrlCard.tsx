@@ -31,6 +31,13 @@ import { UrlHealthIndicator } from "@/components/urls/UrlHealthIndicator";
 import { Comments } from "@/components/collaboration/Comments";
 import { MessageSquare } from "lucide-react";
 import { CARD_PAD } from "@/lib/ui-spacing";
+import {
+  URL_META_CHIP_BLUE,
+  URL_META_CHIP_ORANGE,
+  URL_META_CHIP_PURPLE,
+  URL_META_CHIP_RED,
+  URL_META_CHIP_YELLOW,
+} from "@/lib/ui/glass-badge-styles";
 import { cn, ensureAbsoluteHttpUrl, openExternalUrl } from "@/lib/utils";
 // Using public path instead of import
 const logoPath = "/favicon.ico";
@@ -65,15 +72,6 @@ const TimeInfo = ({ icon, label, date }: TimeInfoProps) => (
     <span className="text-white/40">{date.toLocaleDateString()}</span>
   </div>
 );
-
-/** Even meta-chip rhythm (category / tags / pinned / reminder / similar). */
-const URL_META_CHIP =
-  "inline-flex items-center px-2 py-0.5 rounded-md text-xs font-normal border whitespace-nowrap";
-const URL_META_CHIP_BLUE = `${URL_META_CHIP} bg-blue-500/20 border-blue-400/30 text-blue-300`;
-const URL_META_CHIP_PURPLE = `${URL_META_CHIP} bg-purple-500/20 border-purple-400/30 text-purple-300`;
-const URL_META_CHIP_YELLOW = `${URL_META_CHIP} bg-yellow-500/20 border-yellow-400/30 text-yellow-300`;
-const URL_META_CHIP_RED = `${URL_META_CHIP} bg-red-500/20 border-red-400/30 text-red-300`;
-const URL_META_CHIP_ORANGE = `${URL_META_CHIP} bg-orange-500/20 border-orange-400/30 text-orange-300`;
 
 export const UrlCard: React.FC<UrlCardProps> = ({
   url,

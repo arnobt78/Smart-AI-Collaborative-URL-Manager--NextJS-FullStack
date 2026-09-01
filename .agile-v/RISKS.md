@@ -33,3 +33,4 @@
 | RISK-0029 | Keepalive logout + immediate replace races httpOnly session → Marketing+avatar flash | Medium | Closed | C7.7 forceGuest + instant Auth; await path superseded | REQ-0048 |
 | RISK-0030 | Await-signout logout feels slow (~500–600ms Marketing wait) | Medium | Closed | C7.7 optimistic Auth + background keepalive signout | REQ-0048 |
 | RISK-0031 | Clear forceGuest on brief empty session → Auth↔Marketing flicker | Medium | Closed | Keep forceGuest until login; disable session query while forceGuest | REQ-0048 |
+| RISK-0032 | C7.16 token migration touches many list/browse/card call sites → unintended layout shift or soft-nav skeleton drift | Medium | Medium | Vertical slice list-detail first; snapshot key viewports; keep `RoutePageSkeleton` parity with page chrome; no mutation/cache changes | REQ-0051 |

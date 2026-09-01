@@ -38,7 +38,7 @@ import {
 } from "@/hooks/useListQueries";
 import { glassPrimaryButtonClass } from "@/lib/ui/glass-button-styles";
 import { UI_ICON_MENU_TRIGGER } from "@/lib/ui/control-styles";
-import { LIST_STACK } from "@/lib/ui-spacing";
+import { CARD_PAD, CARD_STACK, HEADING_STACK } from "@/lib/ui-spacing";
 import { Dialog } from "@/components/ui/Dialog";
 import { cn } from "@/lib/utils";
 
@@ -266,7 +266,7 @@ export function PermissionManager({
   const isEmpty = !isLoading && collaborators.length === 0;
 
   const headerLeft = (
-    <div className="min-w-0 flex-1">
+    <div className={cn(HEADING_STACK, "min-w-0 flex-1")}>
       <div className="flex items-center gap-2">
         <Shield className="h-4 w-4 text-white shrink-0" aria-hidden />
         <h3 className="text-base sm:text-lg font-medium text-white">
@@ -290,7 +290,7 @@ export function PermissionManager({
   );
 
   return (
-    <div className={cn(LIST_STACK, "gap-2 sm:gap-3")}>
+    <div className={CARD_STACK}>
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-3">
         {headerLeft}
         {addCollaboratorButton}
@@ -324,7 +324,10 @@ export function PermissionManager({
               return (
                 <div
                   key={`${collaborator.email.toLowerCase()}-${index}`}
-                  className="bg-white/5 border border-white/10 rounded-lg p-3 sm:p-4 hover:bg-white/10 transition-colors"
+                  className={cn(
+                    "bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 transition-colors",
+                    CARD_PAD,
+                  )}
                 >
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2 flex-1 min-w-0">

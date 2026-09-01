@@ -5,7 +5,8 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Switch } from "@/components/ui/Switch";
 import { AlignLeft, ArrowLeft, Blocks, Globe2, GlobeLock } from "lucide-react";
-import { CARD_PAD, CARD_STACK, LIST_STACK } from "@/lib/ui-spacing";
+import { GLASS_LIST_CARD } from "@/lib/ui/glass-card-styles";
+import { CARD_PAD, CARD_STACK } from "@/lib/ui-spacing";
 import { cn } from "@/lib/utils";
 
 
@@ -52,11 +53,7 @@ export function ListDetailHeaderChrome({
 
   return (
     <div
-      className={cn(
-        "bg-white/5 backdrop-blur-md border border-white/10 rounded-xl sm:rounded-2xl shadow-xl",
-        CARD_PAD,
-        className,
-      )}
+      className={cn(GLASS_LIST_CARD, CARD_PAD, className)}
     >
       <div className={cn(CARD_STACK, "min-w-0")}>
         <div className="flex items-center justify-between gap-2 min-w-0">
@@ -148,15 +145,26 @@ export function ListDetailHeaderChrome({
   );
 }
 
+/** Shared list-detail section shell (Collaborators, Activity, etc.). */
+export function ListDetailSection({
+  className,
+  children,
+}: {
+  className?: string;
+  children: ReactNode;
+}) {
+  return (
+    <div className={cn(GLASS_LIST_CARD, CARD_PAD, className)}>{children}</div>
+  );
+}
+
 /** Skeletons for Collaborators / SC / Activity while thin soft-nav awaits hydrate (UrlList paints live). */
 export function ListDetailBodySkeletons() {
   return (
-    <div className={LIST_STACK} aria-hidden>
+    <>
       <div
-        className={cn(
-          "bg-white/5 border border-white/10 rounded-xl sm:rounded-2xl animate-pulse",
-          CARD_PAD,
-        )}
+        className={cn(GLASS_LIST_CARD, "animate-pulse", CARD_PAD)}
+        aria-hidden
       >
         <div className="h-4 w-32 rounded bg-white/10 mb-3" />
         <div className="space-y-2">
@@ -165,20 +173,16 @@ export function ListDetailBodySkeletons() {
         </div>
       </div>
       <div
-        className={cn(
-          "bg-white/5 border border-white/10 rounded-xl sm:rounded-2xl animate-pulse",
-          CARD_PAD,
-        )}
+        className={cn(GLASS_LIST_CARD, "animate-pulse", CARD_PAD)}
+        aria-hidden
       >
         <div className="h-4 w-40 rounded bg-white/10 mb-3" />
         <div className="h-16 rounded-lg bg-white/5" />
       </div>
       <div
-        className={cn(
-          "bg-white/5 border border-white/10 rounded-xl sm:rounded-2xl animate-pulse h-10",
-          CARD_PAD,
-        )}
+        className={cn(GLASS_LIST_CARD, "animate-pulse h-10", CARD_PAD)}
+        aria-hidden
       />
-    </div>
+    </>
   );
 }

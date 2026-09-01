@@ -381,6 +381,19 @@ Implementation is locally verified. Production check remains with TASK-0039. Gat
 
 ---
 
+## GATE-0036 — Human Gate 1 (C7.16 list-detail glass contract + polish)
+
+| Field | Value |
+|-------|-------|
+| Type | Human-Decision |
+| Status | **APPROVED (baseline waves)** |
+| Checkpoint | `C7.16-HG1-LIST-DETAIL-GLASS-2026-09-01` |
+| Evidence | REQ-0051 baseline; TASK-0057 Waves 1–3 + fixes A–D; VALIDATION_SUMMARY 2026-09-01 |
+| Required human action | Wave 0 defect list when ready for Wave 4. |
+| Scope | Shared glass list-card token; section header/pad parity; UrlFilterBar Radix; `GLASS_CARD`/`GLASS_LIST_CARD` split. Wave 0 user defects deferred. |
+
+---
+
 ## GATE-0002 — Human Gate 2 (release / acceptance)
 
 | Field | Value |
