@@ -4,7 +4,7 @@
 
 ## Reconciled (repo = docs)
 
-- **Git:** `main` @ `bc8748e` — C7.16 baseline committed; C7.15 @ `b9bdfdc`.
+- **Git:** `main` — C7.16 baseline committed (ahead of `origin/main`); C7.15 @ `b9bdfdc`.
 - **C7.16 shipped (baseline):** `GLASS_LIST_CARD` + `GLASS_CARD` token split; `ListDetailSection`; PM/Activity/SC section parity; `URL_META_CHIP_*` shared; UrlFilterBar → Radix; skeleton `PAGE_STACK` fragment; UrlFilterBar tests (4).
 - **C7.15:** Radix glass `DropdownMenu`; `CARD_STACK`; UrlCard polish; prod-only immutable `/_next/static`.
 - **Stack verified:** Next 16.3.3 · React 19.2.8 · Node 24.x · Prisma 6.19.3 · audit 0.
@@ -22,7 +22,7 @@
 
 ## Current checkpoint
 
-- **Stage:** C7.16 baseline committed @ `bc8748e` — locally validated.
+- **Stage:** C7.16 baseline committed — locally validated.
 - **Scope:** REQ-0051 baseline (Waves 1–3 + remaining fixes A–D). Wave 0 / Wave 4 user defects deferred.
 - **Validation:** tsc · lint 0 · Jest 118 pass · build · audit 0 · verify-deep PASS WITH WARNINGS.
 
