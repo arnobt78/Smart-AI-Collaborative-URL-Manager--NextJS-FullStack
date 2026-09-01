@@ -5,11 +5,11 @@
 Live: https://daily-urlist.vercel.app/ · Resume: `.agile-v/STATE.md`
 
 ## Status (C7.16)
-Done: C7.8–C7.15 · **C7.16** `GLASS_LIST_CARD` + `GLASS_CARD` split; `ListDetailSection`; PM/Activity/SC section parity; `URL_META_CHIP_*` in `glass-badge-styles`; UrlFilterBar Radix; soft-nav skeleton fragment; UrlFilterBar tests.
+Done: C7.8–C7.15 · **C7.16** `GLASS_LIST_CARD` + `GLASS_CARD` split; `ListDetailSection`; PM/Activity/SC section parity; `URL_META_CHIP_*` in `glass-badge-styles`; UrlFilterBar Radix; soft-nav skeleton fragment; UrlFilterBar tests · **C7.16 Wave 0** shared `DescriptionRow`/`ListMetaDates`/`SectionCountBadge`/`CharacterCounter`; MyListsCard unified metadata; list-detail share+dates row; form counters 200/5000; pessimistic list/URL delete; visibility confirm dialog; SC/Activity/tab badges; AI collection naming fallback; PM inline empty state; BrowsePublicListCard `DescriptionRow`.
 Stack: Next **16.3.3** · React **19.2.8** · Node **24.x** (`.nvmrc` / `engines`; use nvm 24 — shell may still be 22); **`src/proxy.ts`** (Next 16+; not `middleware.ts`); flat ESLint; audit **0**; Prisma **6.19.3**.
 Nav: warm Lists/Browse/Insights; api-status chrome+refresh; api-docs skeleton.
 Data: densifyBrowse + dropUnified tombstone + invalidateMutationImpact + SSE. Full densify/JWT-null SSR OOS.
-Defer: C7.16 Wave 0 user defects; `(auth)` route-group (optional); lists/browse cold API slim; status API speed OOS; full metadata rewrite OOS; Prisma 7/8.
+Defer: `(auth)` route-group (optional); lists/browse cold API slim; status API speed OOS; full metadata rewrite OOS; Prisma 7/8; conditional SC soft-nav skeleton when urls&lt;2.
 Human: HA-0001; TASK-0039 after deploy.
 Validate: Jest · lint 0 · tsc · build · audit 0.
 
@@ -26,6 +26,7 @@ C7.9–C7.15: thin seed + soft-nav UrlList/Copy/`ListDetailJobsMenu` + Radix gla
 Visit: `openExternalUrl` / `ensureAbsoluteHttpUrl` in `lib/utils.ts` (title, Visit, Similar)  
 UrlCard: single `CARD_PAD` column (body + inset `h-px` + italic note); shared `URL_META_CHIP_*` from `glass-badge-styles`.
 List detail: `ListDetailSection` wraps PM/SC (urls≥2)/Activity; `GLASS_LIST_CARD` on header/browse/MyLists/skeletons; generic `Card` uses `GLASS_CARD`.
+C7.16 Wave 0: `DescriptionRow` (cards + detail); `ListMetaDates` + `ListDetailShareRow`; `SectionCountBadge` (PM/Activity/tabs/SC); char counters `form-limits`; `useDeleteList` `deferOptimistic`; `removeUrlFromList` `{ optimistic: false }`; visibility `AlertDialog`; `collection-naming` heuristic fallback.
 
 ## Insights
 `ActivityChartSkeleton` on soft-nav · single `LineChart` + non-zero `LabelList` (7/30) · pie slice-colored labels · `InsightsChartTooltip` · Popular/Global icon gaps via `UI_CONTROL_ICON_GAP`
@@ -37,7 +38,7 @@ Home: `WAS_AUTHED_COOKIE`+`session_token` SSR Marketing; guests redirect `/login
 
 ## Spacing
 `src/lib/ui-spacing.ts` — `PAGE_STACK` / `SECTION_STACK` / `MARKETING_STACK` / `FORM_STACK` / `LIST_STACK` / `HEADING_STACK` / `PAGE_HEADER` / `CARD_STACK` / `CARD_PAD`  
-`src/lib/ui/control-styles.ts` — `UI_CONTROL_ICON_GAP` · `UI_ICON_MENU_TRIGGER` · `UI_GLASS_MENU_PANEL` / `ITEM` / `SEPARATOR` / `TRIGGER_FOCUS`  
+`src/lib/ui/control-styles.ts` — `UI_CONTROL_ICON_GAP` · `UI_ICON_MENU_TRIGGER` · `UI_SECTION_COUNT_BADGE` · `UI_GLASS_MENU_PANEL` / `ITEM` / `SEPARATOR` / `TRIGGER_FOCUS`  
 `src/components/ui/dropdown-menu.tsx` — Radix `@radix-ui/react-dropdown-menu` + glass chrome (`modal={false}`); jobs, collab, profile, Auth guest, bulk import/export
 
 ## Glass UI

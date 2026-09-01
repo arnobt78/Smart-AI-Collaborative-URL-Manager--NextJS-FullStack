@@ -2,67 +2,23 @@
  * C7.0: Full My Lists card from UserList props — title, visibility, description,
  * stats/dates with icons, and view/edit/delete actions. Shared by ListsPage and
  * OptimisticSoftNavSurface so warm soft-nav paints complete cards (no late catch-up).
- * Chrome aligned with ListDetailHeaderChrome (Blocks / Badge / AlignLeft + CARD_STACK).
+ * Chrome aligned with ListDetailHeaderChrome (Blocks / Badge / DescriptionRow + CARD_STACK).
  */
 "use client";
 
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
-import {
-  AlignLeft,
-  Blocks,
-  Calendar,
-  Clock,
-  Eye,
-  Globe2,
-  GlobeLock,
-  Users,
-} from "lucide-react";
+import { Blocks, Eye, Globe2, GlobeLock, Users } from "lucide-react";
 import type { UserList } from "@/hooks/useListQueries";
+import { DescriptionRow } from "@/components/ui/DescriptionRow";
+import { ListMetaDates } from "@/lib/ui/list-meta-dates";
 import {
   GLASS_LIST_CARD,
   GLASS_LIST_CARD_INTERACTIVE,
 } from "@/lib/ui/glass-card-styles";
 import { CARD_PAD, CARD_STACK } from "@/lib/ui-spacing";
 import { cn } from "@/lib/utils";
-
-function formatDate(date: string | Date | null | undefined): string {
-  if (!date) return "Unknown";
-  try {
-    const dateObj = typeof date === "string" ? new Date(date) : date;
-    if (isNaN(dateObj.getTime())) return "Invalid Date";
-    return dateObj.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
-  } catch {
-    return "Invalid Date";
-  }
-}
-
-function formatRelativeTime(date: string | Date | null | undefined): string {
-  if (!date) return "Unknown";
-  try {
-    const dateObj = typeof date === "string" ? new Date(date) : date;
-    if (isNaN(dateObj.getTime())) return "Unknown";
-    const now = new Date();
-    const diffMs = now.getTime() - dateObj.getTime();
-    const diffSeconds = Math.floor(diffMs / 1000);
-    const diffMinutes = Math.floor(diffSeconds / 60);
-    const diffHours = Math.floor(diffMinutes / 60);
-    const diffDays = Math.floor(diffHours / 24);
-
-    if (diffSeconds < 60) return "Just now";
-    if (diffMinutes < 60) return `${diffMinutes}m ago`;
-    if (diffHours < 24) return `${diffHours}h ago`;
-    if (diffDays < 7) return `${diffDays}d ago`;
-    return formatDate(dateObj);
-  } catch {
-    return "Unknown";
-  }
-}
 
 function getListDate(
   list: UserList,
@@ -125,13 +81,13 @@ export function MyListsCard({
             <button
               type="button"
               onClick={onView}
-              className="max-w-full min-w-0 truncate text-left text-sm font-medium text-white transition-colors hover: -offset-2 group-hover:text-blue-300 sm:text-base"
+              className="max-w-full min-w-0 truncate text-left text-sm font-medium text-white transition-colors group-hover:text-blue-300 sm:text-base"
             >
               {list.title || `List: ${list.slug}`}
             </button>
           </div>
 
-          <div className="flex flex-wrap items-center gap-1 sm:gap-2">
+          <div className="flex flex-wrap items-center gap-1 sm:gap-2 text-xs sm:text-sm text-white/60">
             <Badge
               variant="secondary"
               className={cn(badgeTextClass, "inline-flex items-center w-fit")}
@@ -159,65 +115,28 @@ export function MyListsCard({
                 )}
               </Badge>
             )}
+            <span className="inline-flex items-center gap-1">
+              <Users
+                className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-purple-400 shrink-0"
+                aria-hidden
+              />
+              <span className="font-medium text-white/80">
+                {collaboratorCount}
+              </span>
+              <span className="hidden sm:inline">
+                {collaboratorCount === 1 ? "Collaborator" : "Collaborators"}
+              </span>
+            </span>
+            <ListMetaDates
+              createdAt={createdDate}
+              updatedAt={updatedDate}
+              className="text-xs sm:text-sm"
+            />
           </div>
 
           {description ? (
-            <div className="flex items-center gap-1 sm:gap-2 min-w-0">
-              <AlignLeft
-                className="h-4 w-4 shrink-0 text-white/50"
-                aria-hidden
-              />
-              <p className="min-w-0 text-xs sm:text-sm text-white/60 line-clamp-2">
-                {description}
-              </p>
-            </div>
+            <DescriptionRow text={description} lineClamp />
           ) : null}
-
-          <div className="flex flex-wrap items-center gap-1 sm:gap-2 text-xs sm:text-sm text-white/60">
-            {collaboratorCount > 0 && (
-              <span className="inline-flex items-center gap-1">
-                <Users
-                  className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-purple-400"
-                  aria-hidden
-                />
-                <span className="font-medium text-white/80">
-                  {collaboratorCount}
-                </span>
-                <span className="hidden sm:inline">
-                  {collaboratorCount === 1 ? "Collaborator" : "Collaborators"}
-                </span>
-              </span>
-            )}
-
-            {createdDate && (
-              <span className="inline-flex items-center gap-1">
-                <Calendar
-                  className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-green-400"
-                  aria-hidden
-                />
-                <span className="hidden sm:inline">Created</span>
-                <span className="font-medium text-white/80">
-                  {formatDate(createdDate)}
-                </span>
-              </span>
-            )}
-
-            {updatedDate &&
-              createdDate &&
-              new Date(updatedDate).getTime() !==
-                new Date(createdDate).getTime() && (
-                <span className="inline-flex items-center gap-1">
-                  <Clock
-                    className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-orange-400"
-                    aria-hidden
-                  />
-                  <span className="hidden sm:inline">Updated</span>
-                  <span className="font-medium text-white/80">
-                    {formatRelativeTime(updatedDate)}
-                  </span>
-                </span>
-              )}
-          </div>
         </div>
 
         <div className="flex w-full shrink-0 items-center justify-end gap-1 sm:w-auto">

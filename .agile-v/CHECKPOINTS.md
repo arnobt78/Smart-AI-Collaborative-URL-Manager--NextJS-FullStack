@@ -68,5 +68,6 @@
 | 2026-08-31 | C7.15 complete | Auto | DONE | — | Commit `b9bdfdc` on `main`; Radix menus + CARD_STACK + UrlCard polish validated. |
 | 2026-09-01 | C7.16 planning | Human-Decision | APPROVED | `C7.16-HG1-LIST-DETAIL-GLASS-2026-09-01` | Baseline waves approved; Wave 0 deferred. |
 | 2026-09-01 | C7.16 baseline complete | Auto | DONE | — | REQ-0051 baseline validated; commit-ready. |
+| 2026-09-01 | C7.16 Wave 0 complete | Auto | DONE | — | REQ-0051 Wave 0 validated; commit-ready. |
 | 2026-08-18 | GATE-0012 complete: responsive header/footer chrome alignment; zero lint, typecheck, Jest, and production build pass. Prisma CLI audit remains RISK-0016. |
 | 2026-08-18 | User accepted RISK-0016: retain Prisma 6.19.3; no forced downgrade or breaking upgrade. Gate 2 still needs EvalGate and human acceptance. |

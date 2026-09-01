@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/Button";
 import { CancelButton } from "@/components/ui/ActionButtons";
 import { Input } from "@/components/ui/Input";
-import { Badge } from "@/components/ui/Badge";
+import { SectionCountBadge } from "@/components/ui/SectionCountBadge";
 import { AlertDialog } from "@/components/ui/AlertDialog";
 import { useToast } from "@/components/ui/Toaster";
 import { UserAvatar } from "@/components/ui/UserAvatar";
@@ -267,25 +267,33 @@ export function PermissionManager({
 
   const headerLeft = (
     <div className={cn(HEADING_STACK, "min-w-0 flex-1")}>
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
         <Shield className="h-4 w-4 text-white shrink-0" aria-hidden />
         <h3 className="text-base sm:text-lg font-medium text-white">
           Collaborators
         </h3>
         {(isLoading || collaborators.length > 0) && (
-          <Badge
-            variant="secondary"
-            className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-blue-500/30 text-blue-200 border-blue-400/50 px-1.5 text-xs text-center"
-          >
-            {isLoading ? "…" : collaborators.length}
-          </Badge>
+          <SectionCountBadge
+            count={collaborators.length}
+            loading={isLoading}
+          />
         )}
+        {isEmpty ? (
+          <>
+            <span className="text-white/40" aria-hidden>
+              ·
+            </span>
+            <span className="text-xs sm:text-sm text-white/60">
+              No collaborators yet · Invite others to collaborate on this list
+            </span>
+          </>
+        ) : null}
       </div>
-      <p className="text-xs sm:text-sm text-white/60">
-        {isEmpty
-          ? "No collaborators yet · Invite others to collaborate on this list"
-          : "People with access to this list"}
-      </p>
+      {!isEmpty ? (
+        <p className="text-xs sm:text-sm text-white/60">
+          People with access to this list
+        </p>
+      ) : null}
     </div>
   );
 

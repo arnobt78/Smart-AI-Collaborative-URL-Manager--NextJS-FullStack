@@ -921,7 +921,11 @@ export async function updateUrlInList(
   }
 }
 
-export async function removeUrlFromList(urlId: string) {
+export async function removeUrlFromList(
+  urlId: string,
+  options?: { optimistic?: boolean },
+) {
+  const optimistic = options?.optimistic !== false;
   const current = currentList.get();
   if (!current.id || !current.urls) return;
   const snapshot = current;
@@ -933,18 +937,13 @@ export async function removeUrlFromList(urlId: string) {
     const currentUrls = current.urls as unknown as UrlItem[];
     const updatedUrls = currentUrls.filter((url) => url.id !== urlId);
 
-    // CRITICAL: Clear cache IMMEDIATELY before optimistic update
-    // This prevents component render from seeing stale cache (7 URLs when server has 6)
-    // Must happen BEFORE store update to ensure cache is clean when component renders
-    // Preserves drag operations, HMR, and SSE by clearing only when URLs actually change
     if (updatedUrls.length !== currentUrls.length && current.id) {
       clearDragOrderCache(current.id);
     }
 
-    // Optimistic update - remove immediately (no need to re-fetch metadata on delete)
-    // We keep the existing URLs with their metadata, just remove the deleted one
-    // Update store immediately (optimistic)
-    currentList.set({ ...current, urls: updatedUrls });
+    if (optimistic) {
+      currentList.set({ ...current, urls: updatedUrls });
+    }
 
     // Use unified DELETE endpoint that handles delete, order update, activity, and real-time updates
     // Support both /urls/[urlId] and /urls?urlId= for backward compatibility

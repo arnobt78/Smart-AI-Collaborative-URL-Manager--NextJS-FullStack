@@ -360,7 +360,7 @@ RSC shells · densify/Zod/SHA/Next16
 
 ### TASK-0057 — C7.16 list-detail glass contract + polish — **BASELINE COMPLETE**
 
-1. ~~**Wave 0 (user input):**~~ Deferred — user chose baseline-only.
+1. ~~**Wave 0 (user input):**~~ **DONE** 2026-09-01 — 10 UI polish items + BrowsePublicListCard `DescriptionRow`.
 2. ~~**Wave 1 (tokens):**~~ `GLASS_LIST_CARD` + `GLASS_CARD` split; chip export; shell migration.
 3. ~~**Wave 2 (sections):**~~ `ListDetailSection`; PM/Activity/SC parity; skeleton fragment.
 4. ~~**Wave 3 (optional):**~~ UrlFilterBar → Radix glass menu.

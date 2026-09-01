@@ -41,6 +41,7 @@ import {
   getDragOrderStorageKey,
 } from "@/stores/dragOrderCache";
 import { Button } from "@/components/ui/Button";
+import { SectionCountBadge } from "@/components/ui/SectionCountBadge";
 import { Input } from "@/components/ui/Input";
 import { useUrlMetadata } from "@/hooks/useUrlMetadata";
 import { useQueryClient } from "@tanstack/react-query";
@@ -2399,7 +2400,10 @@ export function UrlList() {
             className="flex-1 sm:flex-none"
           >
             <Link2 className="h-4 w-4 shrink-0" aria-hidden />
-            Active URLs ({list.urls?.length || 0})
+            <span className="inline-flex items-center gap-1.5">
+              Active URLs
+              <SectionCountBadge count={list.urls?.length || 0} />
+            </span>
           </Button>
           <Button
             type="button"
@@ -2409,7 +2413,10 @@ export function UrlList() {
             className="flex-1 sm:flex-none"
           >
             <Archive className="h-4 w-4 shrink-0" aria-hidden />
-            Archived ({archivedUrls.length})
+            <span className="inline-flex items-center gap-1.5">
+              Archived
+              <SectionCountBadge count={archivedUrls.length} />
+            </span>
           </Button>
         </div>
 
@@ -2630,7 +2637,7 @@ export function UrlList() {
                       }
 
                       try {
-                        await removeUrlFromList(urlId);
+                        await removeUrlFromList(urlId, { optimistic: false });
                       } finally {
                         setTimeout(() => {
                           isLocalOperationRef.current = false;

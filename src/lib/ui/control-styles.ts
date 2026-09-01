@@ -37,3 +37,7 @@ export const UI_GLASS_MENU_TRIGGER_FOCUS =
 
 /** Glass menu separator. */
 export const UI_GLASS_MENU_SEPARATOR = "-mx-1 my-1 h-px bg-white/10";
+
+/** Section header count pill (Collaborators, Activity, Smart Collections, tabs). */
+export const UI_SECTION_COUNT_BADGE =
+  "inline-flex h-5 min-w-5 items-center justify-center rounded-full border border-blue-400/50 bg-blue-500/30 px-1.5 text-xs text-center text-blue-200";

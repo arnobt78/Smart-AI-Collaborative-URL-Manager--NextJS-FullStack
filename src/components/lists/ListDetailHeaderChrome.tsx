@@ -3,8 +3,9 @@
 import type { ReactNode } from "react";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
+import { DescriptionRow } from "@/components/ui/DescriptionRow";
 import { Switch } from "@/components/ui/Switch";
-import { AlignLeft, ArrowLeft, Blocks, Globe2, GlobeLock } from "lucide-react";
+import { ArrowLeft, Blocks, Globe2, GlobeLock } from "lucide-react";
 import { GLASS_LIST_CARD } from "@/lib/ui/glass-card-styles";
 import { CARD_PAD, CARD_STACK } from "@/lib/ui-spacing";
 import { cn } from "@/lib/utils";
@@ -16,6 +17,8 @@ export type ListDetailHeaderList = {
   description?: string | null;
   isPublic?: boolean;
   urls?: unknown[] | null;
+  createdAt?: string | Date | null;
+  updatedAt?: string | Date | null;
 };
 
 export type ListDetailHeaderChromeProps = {
@@ -128,15 +131,7 @@ export function ListDetailHeaderChrome({
         </div>
 
         {list.description ? (
-          <div className="flex items-center gap-1 sm:gap-2 min-w-0">
-            <AlignLeft
-              className="h-4 w-4 shrink-0 text-white/50"
-              aria-hidden
-            />
-            <p className="text-xs sm:text-sm text-white/60 line-clamp-2 min-w-0">
-              {list.description}
-            </p>
-          </div>
+          <DescriptionRow text={list.description} />
         ) : null}
 
         {shareRow}

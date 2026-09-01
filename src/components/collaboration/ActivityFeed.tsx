@@ -20,6 +20,7 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { UserAvatar } from "@/components/ui/UserAvatar";
+import { SectionCountBadge } from "@/components/ui/SectionCountBadge";
 import { CARD_PAD, CARD_STACK } from "@/lib/ui-spacing";
 import { cn } from "@/lib/utils";
 
@@ -377,7 +378,8 @@ export function ActivityFeed({ listId, limit = 50 }: ActivityFeedProps) {
       >
         <span className="flex items-center gap-2">
           <Activity className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white/70" aria-hidden />
-          <span className="text-xs sm:text-sm font-medium text-white/90">Activity Feed ({activities.length})</span>
+          <span className="text-xs sm:text-sm font-medium text-white/90">Activity Feed</span>
+          <SectionCountBadge count={activities.length} />
         </span>
         <ChevronDown className={`size-4 text-white/60 transition-transform ${isExpanded ? "rotate-180" : ""}`} aria-hidden />
       </button>

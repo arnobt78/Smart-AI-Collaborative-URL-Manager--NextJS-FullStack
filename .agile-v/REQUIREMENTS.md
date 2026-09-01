@@ -999,12 +999,12 @@ These describe the current product as verified in code. They are **Accepted as b
 - [x] `PermissionManager` / `ActivityFeed` / `SmartCollections` on list detail share the same outer shell pattern as header chrome (no mixed gradient-only wrapper on PM only).
 - [x] Promote `URL_META_CHIP` tones from UrlCard-local constants to shared `glass-badge-styles` (or documented chip module) when reused outside UrlCard.
 - [x] `UrlFilterBar` migrates to Radix glass `DropdownMenu` **only if** included in approved scope (currently OOS per C7.14/15 defer).
-- [ ] User-supplied defect list from next message is mapped to sub-waves with pass/fail evidence. *(Wave 0 deferred)*
+- [x] User-supplied defect list mapped to Wave 0 sub-waves with pass/fail evidence. *(Wave 0 complete 2026-09-01)*
 - [x] `tsc`, lint 0, focused Jest (list detail / UrlList / menus), build, audit 0; manual 320/768/1440 list-detail checklist recorded.
 
 **Affected (initial inventory):** `src/lib/ui/{glass-card-styles,ui-spacing,glass-badge-styles}.ts`; `ListPage.tsx`; `ListDetailHeaderChrome.tsx`; `PermissionManager.tsx`; `ActivityFeed.tsx`; `SmartCollections.tsx`; `UrlList.tsx`; `UrlCard.tsx`; `UrlFilterBar.tsx` (optional wave); `RoutePageSkeleton.tsx`; `MyListsCard.tsx`; `BrowsePublicListCard.tsx`.  
 **Trace:** TASK-0057, DEC-0055, RISK-0032, GATE-0036.  
-**Status:** **Baseline complete** 2026-09-01 — Wave 0 user defects deferred.
+**Status:** **Complete** 2026-09-01 — baseline + Wave 0 validated.
 
 ---
 

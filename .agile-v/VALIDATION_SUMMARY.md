@@ -503,3 +503,16 @@ Gate 2: BLOCKED — RISK-0016 is accepted; `EVAL_RESULTS.md` PASS/WAIVED evidenc
 | Browser | 320/768/1440 + SC collapsed/expanded | PASS | `/list/test`; `/list/my-private-url-list` (2 URLs). |
 | Validation | `tsc`; `eslint .`; Jest 118; build; audit; verify-deep | PASS | lint 0; audit 0. |
 | OOS | Wave 0 user defects; conditional SC skeleton | — | Deferred. |
+
+## 2026-09-01 — C7.16 Wave 0 list-card + detail UI polish
+
+| Scope | Command / evidence | Result | Notes |
+|---|---|---|---|
+| Primitives | `DescriptionRow`, `ListMetaDates`, `SectionCountBadge`, `CharacterCounter`, `form-limits` | PASS | Shared tokens; `UI_SECTION_COUNT_BADGE`. |
+| Layout | MyListsCard metadata; `ListDetailShareRow`; BrowsePublicListCard `DescriptionRow` | PASS | Detail desc unclamped; card previews `lineClamp`. |
+| Forms | NewListPage + EditListPage counters 200/5000 | PASS | `maxLength` aligned with API validation. |
+| Delete / visibility | `deferOptimistic` list delete; URL `{ optimistic: false }`; visibility AlertDialog | PASS | SC duplicate delete also pessimistic. |
+| SC / badges / AI | SectionCountBadge surfaces; `collection-naming` + tests | PASS | `ChevronsUp` View Less; `Link2` Also-in. |
+| PM empty | Inline empty copy beside shield | PASS | Badge hidden at 0. |
+| Validation | `tsc`; `eslint .`; Jest 123; build; audit; verify-deep | PASS | lint 0; audit 0. |
+| Browser | 320/768/1440 Wave 0 smoke | PENDING USER | TASK-0039 after deploy. |

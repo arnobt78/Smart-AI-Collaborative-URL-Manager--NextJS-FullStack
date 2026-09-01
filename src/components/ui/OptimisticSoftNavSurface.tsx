@@ -3,7 +3,8 @@
 import { useState, useLayoutEffect } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
-import { BarChart3, Copy, Globe } from "lucide-react";
+import { ListDetailShareRow } from "@/components/lists/ListDetailShareRow";
+import { BarChart3, Globe } from "lucide-react";
 import { ListDetailJobsMenu } from "@/components/lists/ListDetailJobsMenu";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { CreateNewListButton } from "@/components/ui/CreateNewListButton";
@@ -31,7 +32,7 @@ import { listQueryKeys } from "@/lib/query-keys";
 import type { UserList } from "@/hooks/useListQueries";
 import { useWarmSoftNav } from "@/hooks/useWarmSoftNav";
 import { LIST_STACK, PAGE_STACK } from "@/lib/ui-spacing";
-import { cn, listShareUrl } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { syncCurrentListFromSeedRow } from "@/lib/soft-nav-cache";
 
 /**
@@ -255,6 +256,8 @@ function ListDetailOptimisticSurface() {
           description: list.description,
           isPublic: list.isPublic,
           urls: Array.isArray(list.urls) ? list.urls : [],
+          createdAt: list.createdAt,
+          updatedAt: list.updatedAt,
         }}
         busy
         canInvite={false}
@@ -266,23 +269,12 @@ function ListDetailOptimisticSurface() {
           />
         }
         shareRow={
-          <div className="flex items-center gap-1.5 min-w-0 text-xs">
-            <span className="inline-flex items-center gap-1.5 font-light text-white/70 whitespace-nowrap shrink-0">
-              <Globe className="h-3.5 w-3.5 shrink-0" aria-hidden />
-              Shareable Link:
-            </span>
-            <span className="text-white/90 truncate min-w-0">
-              {listShareUrl(listSlug)}
-            </span>
-            <button
-              type="button"
-              disabled
-              className="inline-flex shrink-0 items-center p-0.5 rounded opacity-50 cursor-not-allowed"
-              aria-label="Copy link"
-            >
-              <Copy className="h-3.5 w-3.5 text-white/70" />
-            </button>
-          </div>
+          <ListDetailShareRow
+            slug={listSlug}
+            createdAt={list.createdAt}
+            updatedAt={list.updatedAt}
+            copyDisabled
+          />
         }
       />
       <ListDetailBodySkeletons />

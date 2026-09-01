@@ -9,6 +9,7 @@ import {
   CardDescription,
 } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
+import { SectionCountBadge } from "@/components/ui/SectionCountBadge";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { useToast } from "@/components/ui/Toaster";
 import { useListPermissions } from "@/hooks/useListPermissions";
@@ -22,13 +23,14 @@ import {
   Sparkles,
   FolderPlus,
   ListPlus,
-  Copy,
+  Link2,
   AlertTriangle,
   Loader2,
   CheckCircle2,
   Search,
   Trash2,
   Telescope,
+  ChevronsUp,
 } from "lucide-react";
 import { useWarmSoftNav } from "@/hooks/useWarmSoftNav";
 import { AlertDialog } from "@/components/ui/AlertDialog";
@@ -451,9 +453,14 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
         <div className="flex items-center gap-2 sm:gap-2 min-w-0 flex-1">
           <Sparkles className="h-4 w-4  text-blue-400 flex-shrink-0" />
           <div className={`${HEADING_STACK} min-w-0`}>
-            <h3 className="font-medium text-white text-sm sm:text-base truncate">
-              Smart Collections
-            </h3>
+            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+              <h3 className="font-medium text-white text-sm sm:text-base truncate">
+                Smart Collections
+              </h3>
+              {hasSuggestions ? (
+                <SectionCountBadge count={suggestions.length} loading={isLoading} />
+              ) : null}
+            </div>
             <p className="text-xs sm:text-sm text-white/60 truncate">
               Get AI-powered collection suggestions
             </p>
@@ -480,7 +487,7 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
           <div className="flex items-center gap-2 sm:gap-2 min-w-0 flex-1">
             <Sparkles className="h-4 w-4  text-blue-400 flex-shrink-0" />
             <div className={`${HEADING_STACK} min-w-0`}>
-              <CardTitle className="text-sm sm:text-base">
+              <CardTitle className="text-sm sm:text-base font-medium text-white">
                 Smart Collections
               </CardTitle>
               <CardDescription className="text-xs sm:text-sm">
@@ -497,7 +504,7 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
             aria-expanded={true}
             aria-controls="smart-collections-content"
           >
-            <ListPlus className="h-4 w-4 shrink-0" aria-hidden />
+            <ChevronsUp className="h-4 w-4 shrink-0" aria-hidden />
             View Less
           </Button>
         </div>
@@ -519,7 +526,8 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
             <div className="flex flex-col gap-3 sm:gap-4">
               <h4 className="text-xs sm:text-sm font-medium text-white flex items-center gap-2">
                 <FolderPlus className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
-                <span>Suggested Collections ({suggestions.length})</span>
+                <span>Suggested Collections</span>
+                <SectionCountBadge count={suggestions.length} />
               </h4>
               <div className="flex flex-col gap-3 sm:gap-4">
                 {suggestions.map((suggestion) => (
@@ -581,12 +589,12 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
                         {isCreating === suggestion.id ? (
                           <>
                             <Loader2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0 animate-spin" />
-                            Creating...
+                            Creating…
                           </>
                         ) : (
                           <>
                             <ListPlus className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
-                            Create collection
+                            Create Collection
                           </>
                         )}
                       </Button>
@@ -607,9 +615,12 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
                     {isLoadingDuplicates
                       ? "Checking for duplicates..."
                       : hasDuplicates
-                        ? `Duplicate URLs (${duplicates.length})`
+                        ? "Duplicate URLs"
                         : "No duplicates found"}
                   </span>
+                  {!isLoadingDuplicates && hasDuplicates ? (
+                    <SectionCountBadge count={duplicates.length} />
+                  ) : null}
                 </h4>
                 {!isLoadingDuplicates && hasDuplicates && (
                   <button
@@ -655,7 +666,7 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
                                     key={i}
                                     className="text-[10px] sm:text-xs text-white/70 flex items-start gap-1.5 flex-wrap"
                                   >
-                                    <Copy className="h-3 w-3 shrink-0 mt-0.5" />
+                                    <Link2 className="h-3 w-3 shrink-0 mt-0.5" />
                                     <span className="break-words flex-1 min-w-0">
                                       Also in:{" "}
                                       {d.listSlug ? (
@@ -850,7 +861,7 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
           setDeletingDuplicateIds((prev) => new Set(prev).add(dup.url.id));
 
           try {
-            await removeUrlFromList(dup.url.id);
+            await removeUrlFromList(dup.url.id, { optimistic: false });
 
             // Invalidate immediately for responsive UI, but use deduplication to prevent duplicate calls
             // Update lastInvalidationRef so unified-update event (which fires after SSE) won't duplicate this

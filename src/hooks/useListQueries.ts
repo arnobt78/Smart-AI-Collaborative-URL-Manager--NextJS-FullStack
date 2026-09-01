@@ -658,12 +658,18 @@ export function useAllListsQuery() {
 // ============================================
 // DELETE LIST MUTATION
 // ============================================
+export type DeleteListVariables = {
+  listId: string;
+  /** When true, cache removal waits until network success (dialog UX). */
+  deferOptimistic?: boolean;
+};
+
 export function useDeleteList() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async (listId: string) => {
+    mutationFn: async ({ listId }: DeleteListVariables) => {
       const response = await fetch(`/api/lists/${listId}`, {
         method: "DELETE",
       });
@@ -673,8 +679,7 @@ export function useDeleteList() {
       }
       return response.json();
     },
-    onMutate: async (listId) => {
-      // Optimistic update - remove from cache immediately
+    onMutate: async ({ listId, deferOptimistic }) => {
       const previous = queryClient.getQueryData<{ lists: UserList[] }>(
         listQueryKeys.allLists(),
       );
@@ -686,7 +691,6 @@ export function useDeleteList() {
           : []),
       ]);
 
-      // Get list details before removing from cache (needed for invalidation and toast)
       const listTitle = deletedList?.title || deletedList?.slug || "List";
       const listSlug = deletedList?.slug;
       const previousBrowse = snapshotBrowsePublicCaches(queryClient);
@@ -694,22 +698,23 @@ export function useDeleteList() {
         ? queryClient.getQueryData<UnifiedListData>(listQueryKeys.unified(listSlug))
         : undefined;
 
-      queryClient.setQueryData<{ lists: UserList[] }>(
-        listQueryKeys.allLists(),
-        (old) => {
-          if (!old?.lists) return old;
-          return {
-            lists: old.lists.filter((list) => list.id !== listId),
-          };
-        }
-      );
+      if (!deferOptimistic) {
+        queryClient.setQueryData<{ lists: UserList[] }>(
+          listQueryKeys.allLists(),
+          (old) => {
+            if (!old?.lists) return old;
+            return {
+              lists: old.lists.filter((list) => list.id !== listId),
+            };
+          },
+        );
 
-      // C7.1: densify-empty browse + drop unified so warm soft-nav cannot paint a ghost
-      if (deletedList) {
-        densifyBrowsePublicLists(queryClient, deletedList, { remove: true });
-      }
-      if (listSlug) {
-        dropUnifiedListCache(queryClient, listSlug);
+        if (deletedList) {
+          densifyBrowsePublicLists(queryClient, deletedList, { remove: true });
+        }
+        if (listSlug) {
+          dropUnifiedListCache(queryClient, listSlug);
+        }
       }
 
       return {
@@ -718,12 +723,29 @@ export function useDeleteList() {
         previousUnified,
         deletedListTitle: listTitle,
         deletedListSlug: listSlug,
+        deletedList,
+        deferOptimistic: Boolean(deferOptimistic),
+        listId,
       };
     },
-    onSuccess: (_data, listId, context) => {
-      // REQ-0027: A list deletion reconciles through the same typed impact map
-      // as create/update/visibility and never issues caller-specific duplicate invalidations.
-      if (context?.deletedListSlug) {
+    onSuccess: (_data, { listId }, context) => {
+      if (context?.deferOptimistic && context.deletedList) {
+        queryClient.setQueryData<{ lists: UserList[] }>(
+          listQueryKeys.allLists(),
+          (old) => {
+            if (!old?.lists) return old;
+            return {
+              lists: old.lists.filter((list) => list.id !== listId),
+            };
+          },
+        );
+        densifyBrowsePublicLists(queryClient, context.deletedList, {
+          remove: true,
+        });
+        if (context.deletedListSlug) {
+          dropUnifiedListCache(queryClient, context.deletedListSlug);
+        }
+      } else if (context?.deletedListSlug) {
         densifyBrowsePublicLists(
           queryClient,
           { id: listId, slug: context.deletedListSlug },
@@ -747,7 +769,7 @@ export function useDeleteList() {
         variant: "success",
       });
     },
-    onError: (error, _listId, context) => {
+    onError: (error, _variables, context) => {
       // Rollback optimistic update
       if (context?.previous) {
         queryClient.setQueryData(listQueryKeys.allLists(), context.previous);

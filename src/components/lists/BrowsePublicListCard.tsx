@@ -1,12 +1,13 @@
 /**
  * C7.0: Browse public-list card — title click opens detail; no late “View List” row.
- * Chrome aligned with ListDetailHeaderChrome (Blocks / AlignLeft / CARD_STACK).
+ * Chrome aligned with ListDetailHeaderChrome / MyListsCard (Blocks / DescriptionRow / CARD_STACK).
  */
 "use client";
 
 import { Badge } from "@/components/ui/Badge";
+import { DescriptionRow } from "@/components/ui/DescriptionRow";
 import { WarmSoftNavLink } from "@/components/ui/WarmSoftNavLink";
-import { AlignLeft, Blocks, Eye, Globe2, Users } from "lucide-react";
+import { Blocks, Eye, Globe2, Users } from "lucide-react";
 import {
   GLASS_LIST_CARD,
   GLASS_LIST_CARD_INTERACTIVE,
@@ -58,12 +59,7 @@ export function BrowsePublicListCard({
       </div>
 
       {list.description ? (
-        <div className="flex items-center gap-1 sm:gap-2 min-w-0">
-          <AlignLeft className="h-4 w-4 shrink-0 text-white/50" aria-hidden />
-          <p className="min-w-0 text-xs sm:text-sm text-white/60 line-clamp-2">
-            {list.description}
-          </p>
-        </div>
+        <DescriptionRow text={list.description} lineClamp />
       ) : null}
 
       <div className="flex flex-wrap items-center gap-1 sm:gap-2 text-xs text-white/50">

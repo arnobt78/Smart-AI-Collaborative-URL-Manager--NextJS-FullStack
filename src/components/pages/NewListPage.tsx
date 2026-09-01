@@ -8,12 +8,17 @@ import { Textarea } from "@/components/ui/Textarea";
 import { Button } from "@/components/ui/Button";
 import { CancelButton } from "@/components/ui/ActionButtons";
 import { UrlEnhancer } from "@/components/ai/UrlEnhancer";
+import { CharacterCounter } from "@/components/ui/CharacterCounter";
 import { ListFormCard, ListVisibilityField } from "@/components/lists/ListFormPrimitives";
 import { useToast } from "@/components/ui/Toaster";
 import { useCreateList } from "@/hooks/useListQueries";
 import { useWarmSoftNav } from "@/hooks/useWarmSoftNav";
 import { FORM_STACK } from "@/lib/ui-spacing";
 import { UI_FORM_CONTROL } from "@/lib/ui/control-styles";
+import {
+  LIST_DESCRIPTION_MAX,
+  LIST_TITLE_MAX,
+} from "@/lib/ui/form-limits";
 
 interface NewListPageClientProps {
   onClose?: () => void;
@@ -98,9 +103,12 @@ export default function NewListPageClient({ onClose, onPendingChange }: NewListP
     <ListFormCard>
       <form onSubmit={handleSubmit} className={FORM_STACK}>
         <div className="space-y-2">
-          <label className="flex items-center gap-2 text-sm font-medium text-white sm:text-base">
-            <span className="h-1.5 w-1.5 rounded-full bg-blue-400" />
-            Title <span className="text-red-400">*</span>
+          <label className="flex items-center justify-between gap-2 text-sm font-medium text-white sm:text-base">
+            <span className="flex items-center gap-2">
+              <span className="h-1.5 w-1.5 rounded-full bg-blue-400" />
+              Title <span className="text-red-400">*</span>
+            </span>
+            <CharacterCounter current={formData.title.length} max={LIST_TITLE_MAX} />
           </label>
           <input
             type="text"
@@ -108,6 +116,7 @@ export default function NewListPageClient({ onClose, onPendingChange }: NewListP
             onChange={(event) => setFormData((current) => ({ ...current, title: event.target.value }))}
             className={UI_FORM_CONTROL}
             placeholder="e.g., My Favorite Resources"
+            maxLength={LIST_TITLE_MAX}
             required
           />
           <p className="text-xs text-white/50 sm:text-sm">Give your list a memorable name</p>
@@ -164,13 +173,21 @@ export default function NewListPageClient({ onClose, onPendingChange }: NewListP
             <span className="h-1.5 w-1.5 rounded-full bg-pink-400" />
             Description <span className="text-xs font-normal text-white/50">(optional)</span>
           </label>
-          <Textarea
-            value={formData.description}
-            onChange={(event) => setFormData((current) => ({ ...current, description: event.target.value }))}
-            className="min-h-28 rounded-xl border-white/20 bg-white/10 px-3 py-2 text-sm shadow-inner placeholder:text-sm focus:border-pink-400/50 focus:ring-2 focus:ring-pink-500 sm:text-sm"
-            placeholder="Describe what this list is about..."
-            rows={4}
-          />
+          <div className="relative">
+            <Textarea
+              value={formData.description}
+              onChange={(event) => setFormData((current) => ({ ...current, description: event.target.value }))}
+              className="min-h-28 rounded-xl border-white/20 bg-white/10 px-3 py-2 pb-8 text-sm shadow-inner placeholder:text-sm focus:border-pink-400/50 focus:ring-2 focus:ring-pink-500 sm:text-sm"
+              placeholder="Describe what this list is about..."
+              rows={4}
+              maxLength={LIST_DESCRIPTION_MAX}
+            />
+            <CharacterCounter
+              current={formData.description.length}
+              max={LIST_DESCRIPTION_MAX}
+              className="absolute bottom-2 right-3 pointer-events-none"
+            />
+          </div>
           <p className="text-xs text-white/50 sm:text-sm">Help others understand what this list contains</p>
         </div>
 

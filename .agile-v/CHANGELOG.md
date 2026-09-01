@@ -1,5 +1,13 @@
 # CHANGELOG.md
 
+## CR-0029 — C7.16 Wave 0 list-card + detail UI polish
+
+- **Cycle:** C7.16 Wave 0
+- **Change:** Shared description/meta/badge/counter primitives; MyListsCard unified metadata; list-detail share+dates row; create/edit char limits; pessimistic delete flows; visibility confirm; Smart Collections + Activity/tab badge parity; AI collection naming fallback; collaborators inline empty; BrowsePublicListCard `DescriptionRow`.
+- **Rationale:** User screenshot-driven polish — alignment, counters, dialog UX, section badges, consistent card chrome.
+- **Impact:** list/browse/detail components, `useListQueries`, `urlListStore`, `collections.ts`, `collection-naming.ts`, soft-nav surface, docs.
+- **Requested by / approval:** C7.16 Wave 0 plan; verify-deep PASS.
+
 ## CR-0028 — C7.10 / C7.10.1 list-detail UX + flash · C7.11 Insights
 
 - **Cycle:** C7.10–C7.11

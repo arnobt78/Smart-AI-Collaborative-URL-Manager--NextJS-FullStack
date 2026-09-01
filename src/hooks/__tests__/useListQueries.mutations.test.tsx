@@ -52,10 +52,13 @@ function VisibilityHarness() {
   );
 }
 
-function DeleteHarness() {
+function DeleteHarness({ deferOptimistic = false }: { deferOptimistic?: boolean }) {
   const remove = useDeleteList();
   return (
-    <button type="button" onClick={() => remove.mutate(list.id)}>
+    <button
+      type="button"
+      onClick={() => remove.mutate({ listId: list.id, deferOptimistic })}
+    >
       Delete
     </button>
   );
@@ -174,5 +177,35 @@ describe("REQ-0021 list mutation surfaces", () => {
 
     resolveRequest({ ok: true, json: async () => ({ success: true }) } as Response);
     await waitFor(() => expect(invalidate).toHaveBeenCalled());
+  });
+
+  it("keeps the list in cache until delete succeeds when deferOptimistic is true", async () => {
+    const queryClient = makeClient();
+    queryClient.setQueryData(listQueryKeys.allLists(), { lists: [list] });
+    let resolveRequest: (response: Response) => void = () => {};
+    (global.fetch as jest.Mock).mockReturnValue(
+      new Promise<Response>((resolve) => {
+        resolveRequest = resolve;
+      }),
+    );
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <DeleteHarness deferOptimistic />
+      </QueryClientProvider>,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Delete" }));
+    await waitFor(() => expect(global.fetch).toHaveBeenCalled());
+    expect(
+      queryClient.getQueryData<{ lists: typeof list[] }>(listQueryKeys.allLists())?.lists,
+    ).toEqual([list]);
+
+    resolveRequest({ ok: true, json: async () => ({ success: true }) } as Response);
+    await waitFor(() => {
+      expect(
+        queryClient.getQueryData<{ lists: typeof list[] }>(listQueryKeys.allLists())?.lists,
+      ).toEqual([]);
+    });
   });
 });

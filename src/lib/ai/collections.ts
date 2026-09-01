@@ -6,6 +6,7 @@ import { AI_PROVIDERS, type AIProvider } from "./providers";
 import { callProviderWithModelChain } from "./client";
 import { findSimilarUrls } from "@/lib/vector";
 import { redis } from "@/lib/redis";
+import { resolveCollectionName } from "@/lib/ai/collection-naming";
 import type { UrlItem } from "@/stores/urlListStore";
 
 export interface CollectionSuggestion {
@@ -302,11 +303,11 @@ class SmartCollectionsService {
       );
 
       if (validGroups.length === 0 && urls.length >= minGroupSize) {
-        // Fallback: Create one collection with all URLs
+        const heuristic = this.generateHeuristicMetadata(urls, "all");
         const aiResult = await this.generateCollectionMetadata(urls, provider);
         collections.push({
           id: `collection-all-${Date.now()}`,
-          name: aiResult.name || "All URLs",
+          name: resolveCollectionName(aiResult.name, heuristic.name) || "All URLs",
           description: aiResult.description || `Collection of ${urls.length} URLs from this list`,
           urls: urls,
           category: aiResult.category || "General",
@@ -316,10 +317,8 @@ class SmartCollectionsService {
       } else {
         // OPTIMIZATION: Generate all metadata in parallel (not sequentially)
         const metadataPromises = validGroups.map(async ([key, groupUrls]) => {
-          // First, generate a simple heuristic-based name/description (fast)
           const heuristic = this.generateHeuristicMetadata(groupUrls, key);
-          
-          // Then enhance with AI in parallel
+
           try {
             const aiResult = await this.generateCollectionMetadata(
               groupUrls,
@@ -328,10 +327,12 @@ class SmartCollectionsService {
             return {
               key,
               groupUrls,
-              metadata: aiResult,
+              metadata: {
+                ...aiResult,
+                name: resolveCollectionName(aiResult.name, heuristic.name),
+              },
             };
           } catch {
-            // If AI fails, use heuristic
             return {
               key,
               groupUrls,
@@ -558,6 +559,11 @@ class SmartCollectionsService {
     const prompt = `Analyze these URLs and suggest a collection name and description:
 
 ${urlInfo}
+
+Rules:
+- Do NOT use generic names like "Related URLs", "Untitled Collection", "Miscellaneous", or "All URLs".
+- The name MUST reflect the specific topic inferred from URL titles, descriptions, and domains (2-4 words).
+- Prefer concrete topics (e.g. "React Dev Tools", "Design Inspiration") over vague labels.
 
 Provide a JSON response:
 {

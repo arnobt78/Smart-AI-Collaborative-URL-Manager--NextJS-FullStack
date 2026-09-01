@@ -56,7 +56,9 @@ export default function ListsPageClient() {
     if (!listToDelete) return;
 
     const id = listToDelete.id;
-    deleteListMutation.mutate(id, {
+    deleteListMutation.mutate(
+      { listId: id, deferOptimistic: true },
+      {
       onSuccess: () => {
         requestAnimationFrame(() => {
           setDeleteDialogOpen(false);

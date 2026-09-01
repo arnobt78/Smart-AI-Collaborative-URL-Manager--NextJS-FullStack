@@ -7,8 +7,12 @@ import { useStore } from "@nanostores/react";
 import { currentList } from "@/stores/urlListStore";
 import { UrlList } from "@/components/lists/UrlList";
 import { Button } from "@/components/ui/Button";
-import { Copy, Check, Globe } from "lucide-react";
+import { AlertDialog } from "@/components/ui/AlertDialog";
 import { ListDetailJobsMenu } from "@/components/lists/ListDetailJobsMenu";
+import {
+  ListDetailShareRow,
+  resolveListShareUrl,
+} from "@/components/lists/ListDetailShareRow";
 import { useToast } from "@/components/ui/Toaster";
 import { ActivityFeed } from "@/components/collaboration/ActivityFeed";
 import { PermissionManager } from "@/components/collaboration/PermissionManager";
@@ -34,7 +38,7 @@ import { HEADING_STACK, PAGE_STACK } from "@/lib/ui-spacing";
 import { invalidateMutationImpact } from "@/utils/queryInvalidation";
 import { useListDialogRouteState } from "@/hooks/useListDialogRouteState";
 import { isSoftNavThinSeed } from "@/lib/soft-nav-cache";
-import { cn, listShareUrl, resolveListShareUrl } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { useWarmSoftNav } from "@/hooks/useWarmSoftNav";
 
 export default function ListPageClient() {
@@ -88,6 +92,10 @@ export default function ListPageClient() {
   const [isLoading, setIsLoading] = useState(false);
   const [mounted, setMounted] = useState(false); // Track if component is mounted (prevents hydration errors)
   const [isCopied, setIsCopied] = useState(false);
+  const [visibilityDialogOpen, setVisibilityDialogOpen] = useState(false);
+  const [pendingVisibility, setPendingVisibility] = useState<boolean | null>(
+    null,
+  );
   const visibilityMutation = useUpdateListVisibility();
   // inviteDialogOpen removed - PermissionManager handles dialogs internally
   const [isCheckingHealth, setIsCheckingHealth] = useState(false);
@@ -585,32 +593,16 @@ export default function ListPageClient() {
           description: list.description,
           isPublic: list.isPublic,
           urls: list.urls ?? [],
+          createdAt: list.createdAt,
+          updatedAt: list.updatedAt,
         }}
         canInvite={permissions.canInvite}
         visibilityPending={visibilityMutation.isPending}
         onBack={() => warmRouterPush("/lists")}
         onVisibilityChange={(newValue) => {
-          if (!list.id || !list.slug) return;
-          visibilityMutation.mutate(
-            { id: list.id, slug: list.slug, isPublic: newValue },
-            {
-              onSuccess: () =>
-                toast({
-                  title: newValue ? "Made Public" : "Made Private",
-                  description: `List is now ${newValue ? "public" : "private"}`,
-                  variant: "success",
-                }),
-              onError: (error) =>
-                toast({
-                  title: "Visibility Update Failed",
-                  description:
-                    error instanceof Error
-                      ? error.message
-                      : "Please try again.",
-                  variant: "error",
-                }),
-            },
-          );
+          if (!list.id || !list.slug || !permissions.canInvite) return;
+          setPendingVisibility(newValue);
+          setVisibilityDialogOpen(true);
         }}
         actions={
           <ListDetailJobsMenu
@@ -779,47 +771,85 @@ export default function ListPageClient() {
           />
         }
         shareRow={
-          <div className="flex items-center gap-1.5 min-w-0 text-xs">
-            <span className="inline-flex items-center gap-1.5 font-light text-white/70 whitespace-nowrap shrink-0">
-              <Globe className="h-3.5 w-3.5 shrink-0" aria-hidden />
-              Shareable Link:
-            </span>
-            <span className="text-white/90 truncate min-w-0">
-              {list?.slug ? listShareUrl(list.slug) : ""}
-            </span>
-            <button
-              type="button"
-              onClick={async () => {
-                const url = list?.slug ? resolveListShareUrl(list.slug) : "";
-                if (!url) return;
-                try {
-                  await navigator.clipboard.writeText(url);
-                  setIsCopied(true);
-                  toast({
-                    title: "Copied!",
-                    description: "Link copied to clipboard",
-                    variant: "success",
-                  });
-                  setTimeout(() => setIsCopied(false), 2000);
-                } catch {
-                  toast({
-                    title: "Failed",
-                    description: "Failed to copy link",
-                    variant: "error",
-                  });
-                }
-              }}
-              className="inline-flex shrink-0 items-center p-0.5 rounded hover:bg-white/10 transition-colors duration-200 group"
-              aria-label="Copy link"
-            >
-              {isCopied ? (
-                <Check className="h-3.5 w-3.5 text-green-400 group-hover:scale-110 transition-transform duration-200" />
-              ) : (
-                <Copy className="h-3.5 w-3.5 text-white/70 group-hover:text-white group-hover:scale-110 transition-all duration-200" />
-              )}
-            </button>
-          </div>
+          <ListDetailShareRow
+            slug={list.slug!}
+            createdAt={list.createdAt}
+            updatedAt={list.updatedAt}
+            isCopied={isCopied}
+            onCopy={async () => {
+              const url = list?.slug ? resolveListShareUrl(list.slug) : "";
+              if (!url) return;
+              try {
+                await navigator.clipboard.writeText(url);
+                setIsCopied(true);
+                toast({
+                  title: "Copied!",
+                  description: "Link copied to clipboard",
+                  variant: "success",
+                });
+                setTimeout(() => setIsCopied(false), 2000);
+              } catch {
+                toast({
+                  title: "Failed",
+                  description: "Failed to copy link",
+                  variant: "error",
+                });
+              }
+            }}
+          />
         }
+      />
+
+      <AlertDialog
+        open={visibilityDialogOpen}
+        onOpenChange={(open) => {
+          if (!visibilityMutation.isPending) {
+            setVisibilityDialogOpen(open);
+            if (!open) setPendingVisibility(null);
+          }
+        }}
+        title={
+          pendingVisibility ? "Make list public?" : "Make list private?"
+        }
+        description={
+          pendingVisibility
+            ? "Anyone with the link will be able to view this list."
+            : "Only you and collaborators will be able to view this list."
+        }
+        confirmText={pendingVisibility ? "Make Public" : "Make Private"}
+        cancelText="Cancel"
+        pending={visibilityMutation.isPending}
+        pendingText="Updating…"
+        closeOnConfirm={false}
+        onConfirm={() => {
+          if (!list.id || !list.slug || pendingVisibility === null) return;
+          visibilityMutation.mutate(
+            { id: list.id, slug: list.slug, isPublic: pendingVisibility },
+            {
+              onSuccess: () => {
+                toast({
+                  title: pendingVisibility ? "Made Public" : "Made Private",
+                  description: `List is now ${pendingVisibility ? "public" : "private"}`,
+                  variant: "success",
+                });
+                requestAnimationFrame(() => {
+                  setVisibilityDialogOpen(false);
+                  setPendingVisibility(null);
+                });
+              },
+              onError: (error) => {
+                toast({
+                  title: "Visibility Update Failed",
+                  description:
+                    error instanceof Error
+                      ? error.message
+                      : "Please try again.",
+                  variant: "error",
+                });
+              },
+            },
+          );
+        }}
       />
 
       {/* C7.10: UrlList paints from thin seed; only collab / SC / activity stay skeleton */}
