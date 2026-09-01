@@ -378,7 +378,6 @@ export function ActivityFeed({ listId, limit = 50 }: ActivityFeedProps) {
           collapsible
           expanded={isExpanded}
           onToggle={() => setIsExpanded((expanded) => !expanded)}
-          className="rounded-xl transition-colors hover:bg-white/10"
           action={
             <ChevronDown
               className={cn(

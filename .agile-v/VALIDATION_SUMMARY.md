@@ -537,3 +537,15 @@ Gate 2: BLOCKED — RISK-0016 is accepted; `EVAL_RESULTS.md` PASS/WAIVED evidenc
 | UrlCard | Placeholder center; `UrlHealthIndicator` inline variant; skeleton gate | PASS | `hasDisplayableText`; `imageLoading` init false; blur fallback on mobile. |
 | Validation | `tsc`; `eslint .`; Jest 123; `build`; verify-deep | PASS | lint 0; build exit 0. |
 | Browser | Scroll flicker stress test | PENDING USER | TASK-0039 after deploy. |
+
+## 2026-09-01 — C7.16 Wave 3 (jobs auth + UX polish)
+
+| Scope | Command / evidence | Result | Notes |
+|---|---|---|---|
+| Job auth | `isAuthorizedManualListJob` / `isAuthorizedManualScheduleSetup`; routes + 7 auth tests | PASS | REQ-0025; session cookie only on client; no secret exposure. |
+| Loading toasts | `Toast.loading` + `updateToast`; ListPage refresh + health check | PASS | Persistent `duration:0` until success/error. |
+| Health badge | Lucide `CircleHelp`/`CircleCheck`/`CircleX`/`AlertTriangle` inline badge | PASS | UrlCard flex title row. |
+| Hydration | `HoverTooltip` trigger `span`; UrlCard title `div` flex | PASS | Fixes p>div console error. |
+| Activity hover | `ListDetailSectionHeader` inset hover; `ListDetailSection` `overflow-hidden` | PASS | Corner clip expanded/collapsed. |
+| Validation | `tsc`; `eslint .`; Jest 128; `build`; verify-deep | PASS WITH WARNINGS | No Toast UI tests; setup-schedule no loading toast (OOS). |
+| Browser | Jobs menu prod + loading toasts + health badge | PENDING USER | TASK-0039 after deploy. |

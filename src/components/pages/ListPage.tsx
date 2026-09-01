@@ -42,7 +42,7 @@ import { cn } from "@/lib/utils";
 import { useWarmSoftNav } from "@/hooks/useWarmSoftNav";
 
 export default function ListPageClient() {
-  const { toast } = useToast();
+  const { toast, updateToast } = useToast();
   const router = useRouter();
   const { warmRouterPush } = useWarmSoftNav();
   const { slug } = useParams();
@@ -654,6 +654,14 @@ export default function ListPageClient() {
             onRefreshMetadata={async () => {
               if (!list.id) return;
               setIsRefreshingMetadata(true);
+              const urlCount = list.urls?.length ?? 0;
+              const toastId = toast({
+                title: "Refreshing Metadata",
+                description: `Updating metadata for ${urlCount} URL${urlCount === 1 ? "" : "s"}…`,
+                variant: "info",
+                loading: true,
+                duration: 0,
+              });
               try {
                 const response = await fetch("/api/jobs/refresh-metadata", {
                   method: "POST",
@@ -677,25 +685,30 @@ export default function ListPageClient() {
                       list.id,
                     );
                   }
-                  toast({
+                  const refreshed = data.refreshed ?? urlCount;
+                  updateToast(toastId, {
                     title: "Metadata Refresh Complete!",
-                    description: `Refreshed metadata for ${
-                      data.refreshed || list.urls?.length || 0
-                    } URLs using improved extractor.`,
+                    description: `Refreshed metadata for ${refreshed} URL${refreshed === 1 ? "" : "s"} using improved extractor.`,
                     variant: "success",
+                    loading: false,
+                    duration: 5000,
                   });
                 } else {
-                  toast({
+                  updateToast(toastId, {
                     title: "Refresh Failed",
                     description: data.error || "Failed to refresh metadata",
                     variant: "error",
+                    loading: false,
+                    duration: 5000,
                   });
                 }
               } catch {
-                toast({
+                updateToast(toastId, {
                   title: "Error",
                   description: "An unexpected error occurred",
                   variant: "error",
+                  loading: false,
+                  duration: 5000,
                 });
               } finally {
                 setIsRefreshingMetadata(false);
@@ -704,6 +717,14 @@ export default function ListPageClient() {
             onHealthCheck={async () => {
               if (!list.id) return;
               setIsCheckingHealth(true);
+              const urlCount = list.urls?.length ?? 0;
+              const toastId = toast({
+                title: "Health Check Running",
+                description: `Checking ${urlCount} URL${urlCount === 1 ? "" : "s"} for availability…`,
+                variant: "info",
+                loading: true,
+                duration: 0,
+              });
               try {
                 const response = await fetch("/api/jobs/check-urls", {
                   method: "POST",
@@ -742,27 +763,33 @@ export default function ListPageClient() {
                       list.id,
                     );
                   }
-                  toast({
+                  const checked = data.checked ?? 0;
+                  const healthy = data.results?.healthy ?? 0;
+                  const warning = data.results?.warning ?? 0;
+                  const broken = data.results?.broken ?? 0;
+                  updateToast(toastId, {
                     title: "Health Check Complete!",
-                    description: `Checked ${data.checked || 0} URLs. Healthy: ${
-                      data.results?.healthy || 0
-                    }, Warning: ${data.results?.warning || 0}, Broken: ${
-                      data.results?.broken || 0
-                    }`,
+                    description: `Checked ${checked} URL${checked === 1 ? "" : "s"}. Healthy: ${healthy}, Warning: ${warning}, Broken: ${broken}`,
                     variant: "success",
+                    loading: false,
+                    duration: 5000,
                   });
                 } else {
-                  toast({
+                  updateToast(toastId, {
                     title: "Health Check Failed",
                     description: data.error || "Failed to check URL health",
                     variant: "error",
+                    loading: false,
+                    duration: 5000,
                   });
                 }
               } catch {
-                toast({
+                updateToast(toastId, {
                   title: "Error",
                   description: "An unexpected error occurred",
                   variant: "error",
+                  loading: false,
+                  duration: 5000,
                 });
               } finally {
                 setIsCheckingHealth(false);

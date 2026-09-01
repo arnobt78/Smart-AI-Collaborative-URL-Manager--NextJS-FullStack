@@ -1,7 +1,14 @@
 "use client";
 
 import React, { useEffect } from "react";
-import { X } from "lucide-react";
+import {
+  AlertTriangle,
+  CheckCircle2,
+  Info,
+  Loader2,
+  X,
+  XCircle,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export interface Toast {
@@ -10,6 +17,8 @@ export interface Toast {
   description: string;
   variant?: "default" | "success" | "error" | "warning" | "info";
   duration?: number;
+  /** When true, shows a spinner and skips auto-dismiss until cleared. */
+  loading?: boolean;
 }
 
 interface ToastProps {
@@ -17,14 +26,44 @@ interface ToastProps {
   onClose: (id: string) => void;
 }
 
+function ToastStatusIcon({
+  variant,
+  loading,
+}: {
+  variant: Toast["variant"];
+  loading?: boolean;
+}) {
+  if (loading) {
+    return <Loader2 className="h-5 w-5 shrink-0 animate-spin" aria-hidden />;
+  }
+
+  switch (variant) {
+    case "success":
+      return <CheckCircle2 className="h-5 w-5 shrink-0" aria-hidden />;
+    case "error":
+      return <XCircle className="h-5 w-5 shrink-0" aria-hidden />;
+    case "warning":
+      return <AlertTriangle className="h-5 w-5 shrink-0" aria-hidden />;
+    case "info":
+      return <Info className="h-5 w-5 shrink-0" aria-hidden />;
+    default:
+      return <Info className="h-5 w-5 shrink-0" aria-hidden />;
+  }
+}
+
 export function ToastComponent({ toast, onClose }: ToastProps) {
+  const duration = toast.duration ?? 5000;
+  const isPersistent = duration === 0 || toast.loading;
+
   useEffect(() => {
+    if (isPersistent) return;
+
     const timer = setTimeout(() => {
       onClose(toast.id);
-    }, toast.duration || 5000);
+    }, duration);
 
     return () => clearTimeout(timer);
-  }, [toast.id, toast.duration, onClose]);
+  }, [toast.id, duration, isPersistent, onClose]);
 
   const variantStyles = {
     default: "bg-white/10 border-white/20 text-white",
@@ -34,12 +73,23 @@ export function ToastComponent({ toast, onClose }: ToastProps) {
     info: "bg-blue-500/20 border-blue-500/30 text-blue-100",
   };
 
+  const iconStyles = {
+    default: "text-white/80",
+    success: "text-green-300",
+    error: "text-red-300",
+    warning: "text-yellow-300",
+    info: "text-blue-300",
+  };
+
+  const variant = toast.variant || "default";
+
   return (
     <div
       role="status"
+      aria-busy={toast.loading || undefined}
       className={cn(
         "toast-slide-in group relative w-full max-w-md rounded-lg border bg-white/5 p-4 shadow-lg backdrop-blur-md",
-        variantStyles[toast.variant || "default"],
+        variantStyles[variant],
       )}
     >
       <button
@@ -50,10 +100,17 @@ export function ToastComponent({ toast, onClose }: ToastProps) {
         <X className="h-4 w-4" />
       </button>
 
-      {toast.title && (
-        <div className="font-medium text-sm mb-1 pr-6">{toast.title}</div>
-      )}
-      <div className="text-sm pr-6">{toast.description}</div>
+      <div className="flex items-start gap-3 pr-6">
+        <div className={cn("mt-0.5", iconStyles[variant])}>
+          <ToastStatusIcon variant={variant} loading={toast.loading} />
+        </div>
+        <div className="min-w-0 flex-1">
+          {toast.title ? (
+            <div className="font-medium text-sm mb-1">{toast.title}</div>
+          ) : null}
+          <div className="text-sm">{toast.description}</div>
+        </div>
+      </div>
     </div>
   );
 }

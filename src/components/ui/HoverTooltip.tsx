@@ -18,7 +18,7 @@ export function HoverTooltip({
 }: HoverTooltipProps) {
   const [isVisible, setIsVisible] = useState(false);
   const [tooltipPosition, setTooltipPosition] = useState({ top: 0, left: 0 });
-  const triggerRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLElement>(null);
   const [isMounted, setIsMounted] = useState(false);
 
   // Track mount state to prevent portal rendering during SSR or after unmount
@@ -147,7 +147,7 @@ export function HoverTooltip({
 
   return (
     <>
-      <div
+      <span
         ref={triggerRef}
         className="relative inline-block"
         onMouseEnter={() => setIsVisible(true)}
@@ -155,7 +155,7 @@ export function HoverTooltip({
       >
         {children}
         {!usePortal && isVisible && tooltipContent}
-      </div>
+      </span>
       {isVisible &&
         usePortal &&
         isMounted &&

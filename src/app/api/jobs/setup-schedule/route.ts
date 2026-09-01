@@ -3,7 +3,7 @@ import {
   scheduleDailyHealthChecks,
   scheduleWeeklyMetadataRefresh,
 } from "@/lib/jobs/qstash";
-import { isAuthorizedInternalJob } from "@/lib/jobs/authorization";
+import { isAuthorizedManualScheduleSetup } from "@/lib/jobs/authorization";
 
 /**
  * Get the base URL for the application
@@ -38,7 +38,7 @@ function isLocalDevelopment(): boolean {
  */
 export async function POST(request: NextRequest) {
   try {
-    if (!(await isAuthorizedInternalJob(request))) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!(await isAuthorizedManualScheduleSetup(request))) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     // Check if we're in local development
     if (isLocalDevelopment()) {
       return NextResponse.json(

@@ -1,5 +1,7 @@
 import { Receiver } from "@upstash/qstash";
 import { timingSafeEqual } from "crypto";
+import { getCurrentUser } from "@/lib/auth";
+import { resolveAuthorizedList } from "@/lib/list-route-access";
 
 /** REQ-0025: Internal jobs accept only a verified delivery or server-held secret. */
 function matchesSecret(candidate: string | null, expected: string | undefined): boolean {
@@ -37,4 +39,22 @@ export async function isAuthorizedInternalJob(request: Request): Promise<boolean
   }
 
   return hasVerifiedQStashSignature(request);
+}
+
+/** QStash/internal OR authenticated user with list edit access (manual jobs menu). */
+export async function isAuthorizedManualListJob(
+  request: Request,
+  listId: string,
+): Promise<boolean> {
+  if (await isAuthorizedInternalJob(request)) return true;
+  const access = await resolveAuthorizedList(listId, "edit");
+  return access.ok;
+}
+
+/** QStash/internal OR any authenticated user (global schedule setup). */
+export async function isAuthorizedManualScheduleSetup(
+  request: Request,
+): Promise<boolean> {
+  if (await isAuthorizedInternalJob(request)) return true;
+  return (await getCurrentUser()) !== null;
 }

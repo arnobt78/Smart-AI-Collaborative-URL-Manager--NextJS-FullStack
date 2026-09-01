@@ -3,8 +3,12 @@
 import React, { createContext, useContext, useState, useCallback } from "react";
 import { ToastComponent, type Toast } from "./Toast";
 
+export type ToastInput = Omit<Toast, "id">;
+
 interface ToastContextType {
-  toast: (toast: Omit<Toast, "id">) => void;
+  toast: (toast: ToastInput) => string;
+  updateToast: (id: string, updates: Partial<ToastInput>) => void;
+  dismissToast: (id: string) => void;
 }
 
 const ToastContext = createContext<ToastContextType | undefined>(undefined);
@@ -20,9 +24,16 @@ export function useToast() {
 export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([]);
 
-  const addToast = useCallback((newToast: Omit<Toast, "id">) => {
+  const addToast = useCallback((newToast: ToastInput) => {
     const id = Math.random().toString(36).substring(2, 9);
     setToasts((prev) => [...prev, { ...newToast, id }]);
+    return id;
+  }, []);
+
+  const updateToast = useCallback((id: string, updates: Partial<ToastInput>) => {
+    setToasts((prev) =>
+      prev.map((toast) => (toast.id === id ? { ...toast, ...updates } : toast)),
+    );
   }, []);
 
   const removeToast = useCallback((id: string) => {
@@ -30,7 +41,9 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <ToastContext.Provider value={{ toast: addToast }}>
+    <ToastContext.Provider
+      value={{ toast: addToast, updateToast, dismissToast: removeToast }}
+    >
       {children}
       {/* Bottom-right stack — enter via toast-slide-in (globals.css) */}
       <div

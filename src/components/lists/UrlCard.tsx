@@ -447,20 +447,19 @@ export const UrlCard: React.FC<UrlCardProps> = ({
             ) : (
               <>
                 <div className="flex-1 min-w-0">
-                  {/* Title with health status — inline after last line when space allows */}
-                  <p className="min-w-0 text-base leading-snug sm:text-lg xl:text-xl">
+                  {/* Title with health status badge — same row, vertically centered */}
+                  <div className="flex min-w-0 items-center gap-1.5 text-base leading-snug sm:text-lg xl:text-xl">
                     <button
                       type="button"
                       onClick={() => {
                         onUrlClick?.(url.id);
                         openExternalUrl(url.url);
                       }}
-                      className="inline break-words align-baseline font-medium text-white hover:text-blue-400 transition-colors font-joti text-left cursor-pointer"
+                      className="min-w-0 inline break-words align-baseline font-medium text-white hover:text-blue-400 transition-colors font-joti text-left cursor-pointer"
                       title={title}
                     >
                       {title}
                     </button>
-                    {"\u00A0"}
                     <UrlHealthIndicator
                       variant="inline"
                       status={url.healthStatus}
@@ -469,7 +468,7 @@ export const UrlCard: React.FC<UrlCardProps> = ({
                       checkedAt={url.healthCheckedAt}
                       showDetails={false}
                     />
-                  </p>
+                  </div>
 
                   {/* Pinned Badge */}
                   {url.isPinned && (

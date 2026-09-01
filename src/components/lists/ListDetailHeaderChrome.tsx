@@ -177,7 +177,16 @@ export function ListDetailSection({
   children: ReactNode;
 }) {
   return (
-    <div className={cn(GLASS_LIST_CARD, CARD_PAD, className)}>{children}</div>
+    <div
+      className={cn(
+        GLASS_LIST_CARD,
+        "overflow-hidden max-sm:bg-white/[0.08] max-sm:backdrop-blur-none [transform:translateZ(0)]",
+        CARD_PAD,
+        className,
+      )}
+    >
+      {children}
+    </div>
   );
 }
 

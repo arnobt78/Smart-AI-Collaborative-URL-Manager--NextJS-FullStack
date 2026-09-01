@@ -1,12 +1,13 @@
 "use client";
 
-import type { HealthStatus } from "@/lib/jobs/url-health";
+import type { LucideIcon } from "lucide-react";
 import {
-  CheckCircleIcon,
-  ExclamationTriangleIcon,
-  XCircleIcon,
-  QuestionMarkCircleIcon,
-} from "@heroicons/react/24/outline";
+  AlertTriangle,
+  CircleCheck,
+  CircleHelp,
+  CircleX,
+} from "lucide-react";
+import type { HealthStatus } from "@/lib/jobs/url-health";
 import { HoverTooltip } from "@/components/ui/HoverTooltip";
 import { cn } from "@/lib/utils";
 
@@ -19,6 +20,14 @@ interface UrlHealthIndicatorProps {
   variant?: "chip" | "inline";
 }
 
+type StatusConfig = {
+  icon: LucideIcon;
+  color: string;
+  bgColor: string;
+  borderColor: string;
+  label: string;
+};
+
 export function UrlHealthIndicator({
   status = "unknown",
   httpStatus,
@@ -27,43 +36,39 @@ export function UrlHealthIndicator({
   showDetails = false,
   variant = "chip",
 }: UrlHealthIndicatorProps) {
-  const getStatusConfig = () => {
+  const getStatusConfig = (): StatusConfig => {
     switch (status) {
       case "healthy":
         return {
-          icon: CheckCircleIcon,
-          color: "text-green-500",
-          bgColor: "bg-green-500/10",
-          borderColor: "border-green-500/20",
+          icon: CircleCheck,
+          color: "text-green-400",
+          bgColor: "bg-green-500/15",
+          borderColor: "border-green-400/40",
           label: "Healthy",
-          tooltip: `URL is working properly${httpStatus ? ` (${httpStatus})` : ""}${responseTime ? ` - ${responseTime}ms` : ""}`,
         };
       case "warning":
         return {
-          icon: ExclamationTriangleIcon,
-          color: "text-yellow-500",
-          bgColor: "bg-yellow-500/10",
-          borderColor: "border-yellow-500/20",
+          icon: AlertTriangle,
+          color: "text-amber-400",
+          bgColor: "bg-amber-500/15",
+          borderColor: "border-amber-400/40",
           label: "Warning",
-          tooltip: `URL has issues${httpStatus ? ` (${httpStatus})` : ""}${responseTime ? ` - ${responseTime}ms` : ""}`,
         };
       case "broken":
         return {
-          icon: XCircleIcon,
-          color: "text-red-500",
-          bgColor: "bg-red-500/10",
-          borderColor: "border-red-500/20",
+          icon: CircleX,
+          color: "text-red-400",
+          bgColor: "bg-red-500/15",
+          borderColor: "border-red-400/40",
           label: "Broken",
-          tooltip: `URL is not accessible${httpStatus ? ` (${httpStatus})` : ""}`,
         };
       default:
         return {
-          icon: QuestionMarkCircleIcon,
-          color: "text-gray-400",
-          bgColor: "bg-gray-500/10",
-          borderColor: "border-gray-500/20",
+          icon: CircleHelp,
+          color: "text-white/50",
+          bgColor: "bg-white/10",
+          borderColor: "border-white/25",
           label: "Unknown",
-          tooltip: "Health status not checked yet",
         };
     }
   };
@@ -91,29 +96,15 @@ export function UrlHealthIndicator({
     }
   };
 
-  // Build detailed tooltip message
   const buildTooltipMessage = () => {
-    const parts: string[] = [];
+    const parts: string[] = [`Status: ${config.label}`];
 
-    // Status label
-    parts.push(`Status: ${config.label}`);
+    if (httpStatus) parts.push(`HTTP ${httpStatus}`);
+    if (responseTime) parts.push(`${responseTime}ms`);
 
-    // HTTP status code
-    if (httpStatus) {
-      parts.push(`HTTP ${httpStatus}`);
-    }
-
-    // Response time
-    if (responseTime) {
-      parts.push(`${responseTime}ms`);
-    }
-
-    // Last checked
     if (checkedAt) {
       const checkedTime = formatCheckedAt(checkedAt);
-      if (checkedTime) {
-        parts.push(`Checked: ${checkedTime}`);
-      }
+      if (checkedTime) parts.push(`Checked: ${checkedTime}`);
     }
 
     return parts.join(" • ");
@@ -129,11 +120,15 @@ export function UrlHealthIndicator({
     >
       <span
         className={cn(
-          "inline-flex align-middle",
+          "inline-flex shrink-0 cursor-help align-middle",
           isInline
-            ? "cursor-help"
+            ? cn(
+                "h-5 min-w-5 items-center justify-center rounded-full border px-1",
+                config.bgColor,
+                config.borderColor,
+              )
             : cn(
-                "items-center gap-1 rounded-md border px-2 py-1 transition-colors cursor-help",
+                "items-center gap-1 rounded-md border px-2 py-1 transition-colors",
                 config.bgColor,
                 config.borderColor,
               ),
@@ -142,8 +137,10 @@ export function UrlHealthIndicator({
         <Icon
           className={cn(
             config.color,
-            isInline ? "h-3.5 w-3.5 shrink-0" : "h-4 w-4",
+            isInline ? "h-3.5 w-3.5" : "h-4 w-4",
           )}
+          strokeWidth={2.25}
+          aria-hidden
         />
         {!isInline && showDetails && (
           <span className={`text-xs font-medium ${config.color}`}>

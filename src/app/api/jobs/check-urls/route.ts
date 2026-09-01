@@ -8,7 +8,7 @@ import {
 import { getCurrentUser } from "@/lib/auth";
 import { createActivity } from "@/lib/db/activities";
 import { publishMessage, CHANNELS } from "@/lib/realtime/redis";
-import { isAuthorizedInternalJob } from "@/lib/jobs/authorization";
+import { isAuthorizedManualListJob } from "@/lib/jobs/authorization";
 import { jobListSchema, parseJsonBody } from "@/lib/api-validation";
 
 /**
@@ -21,8 +21,8 @@ export async function POST(request: NextRequest) {
     // Validate a clone so QStash verification can still sign the untouched body.
     const parsed = await parseJsonBody(request.clone(), jobListSchema);
     if (!parsed.success) return parsed.response;
-    if (!(await isAuthorizedInternalJob(request))) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     const { listId } = parsed.data;
+    if (!(await isAuthorizedManualListJob(request, listId))) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
 
     // Get the list

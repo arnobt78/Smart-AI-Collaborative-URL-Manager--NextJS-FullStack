@@ -88,7 +88,17 @@ export function ListDetailSectionHeader({
           className,
         )}
       >
-        {content}
+        <span
+          className={cn(
+            "flex w-full min-w-0 items-center justify-between gap-2 transition-colors hover:bg-white/10 sm:gap-3",
+            "-mx-1 px-1 sm:-mx-2 sm:px-2",
+            expanded
+              ? "rounded-t-xl sm:rounded-t-2xl rounded-b-none"
+              : "rounded-xl sm:rounded-2xl",
+          )}
+        >
+          {content}
+        </span>
       </button>
     );
   }
