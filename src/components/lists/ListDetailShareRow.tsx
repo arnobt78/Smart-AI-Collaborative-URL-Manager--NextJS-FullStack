@@ -27,23 +27,23 @@ export function ListDetailShareRow({
   return (
     <div
       className={cn(
-        "flex flex-col gap-2 min-w-0 text-xs sm:flex-row sm:items-start sm:justify-between",
+        "flex flex-col gap-2 min-w-0 text-xs sm:flex-row sm:items-center sm:justify-between",
         className,
       )}
     >
-      <div className="min-w-0 w-full sm:flex-1">
-        <span className="inline-flex items-center gap-1.5 font-light text-white/70">
+      <div className="flex min-w-0 w-full flex-wrap items-center gap-x-1.5 gap-y-1 sm:flex-1">
+        <span className="inline-flex shrink-0 items-center gap-1.5 font-light text-white/70">
           <Globe className="h-3.5 w-3.5 shrink-0 text-blue-400" aria-hidden />
           Shareable Link:
-        </span>{" "}
-        <span className="break-words text-white/90">
+        </span>
+        <span className="inline-flex min-w-0 flex-wrap items-center break-words text-white/90">
           {listShareUrl(slug)}
           <button
             type="button"
             onClick={onCopy}
             disabled={copyDisabled || !onCopy}
             className={cn(
-              "inline-flex shrink-0 items-center align-middle ml-1 p-0.5 rounded transition-colors duration-200 group",
+              "inline-flex shrink-0 items-center ml-1 p-0.5 rounded transition-colors duration-200 group",
               copyDisabled || !onCopy
                 ? "opacity-50 cursor-not-allowed"
                 : "hover:bg-white/10",
@@ -58,7 +58,11 @@ export function ListDetailShareRow({
           </button>
         </span>
       </div>
-      <ListMetaDates createdAt={createdAt} updatedAt={updatedAt} />
+      <ListMetaDates
+        createdAt={createdAt}
+        updatedAt={updatedAt}
+        className="shrink-0 [&_svg]:size-3.5"
+      />
     </div>
   );
 }
