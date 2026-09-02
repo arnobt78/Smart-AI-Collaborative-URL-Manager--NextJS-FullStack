@@ -1,18 +1,18 @@
 # STATE.md
 
-**C7.17 List detail polish** | 2026-09-02
+**REQ-AI-0001 free-tier LLM refresh** | 2026-09-02
 
 ## Reconciled (repo = docs)
 
-- **Git:** commit landing with this `/commit-ready` (C7.17).
-- **Prior on main:** `51a3ad0` Activity full-bleed hover + Insights chart labels.
-- **C7.17 (REQ-0052 / TASK-0058):** collaborator navbar rings; vertical-only URL drag (`@dnd-kit/modifiers` + `verticalOnlyTransform`); real Visit/Similar anchors + empty-href guards; Dialog `headerMode="scroll"` parity; client-side UrlList search; Comments `knownCount===0` + Similar RQ warm cache; Button `loadingText` contract.
+- **Git:** commit landing with this `/commit-ready` (LLM model chain refresh).
+- **Prior on main:** `b0ca7a9` C7.17 list-detail polish.
+- **This change (REQ-AI-0001 / DEC-AI-0002):** Groq `qwen/qwen3.8-27b`; Gemini drop `2.0-flash`, add `3.5-flash`/`3.5-flash-lite`; OpenRouter gpt-oss `:free` first + gemma/nemotron/north/glm + `openrouter/free`; HF `Qwen/Qwen3-8B`; `client.ts` 404/410 retriable; `docs/LLM_MODEL_SELECTION.md` verified 2026-09-02.
 - **Stack:** Next 16.3.3 · React 19.2.8 · Node 24.x · Prisma 6.19.3.
 
 ## Human
 
 - HA-0001 Firewall
-- TASK-0039 production verify (C7.17 smoke: rings, drag Y-only, Visit, dialogs, search, loaders) — still open
+- TASK-0039 production verify (C7.17 smoke still open after prior commit)
 - Further UrlCard action bugs deferred (user will list later)
 
 ## Backlog (unchanged)
@@ -22,18 +22,20 @@
 - Skeleton vs live spacing parity
 - Toast unit tests; viewer jobs-menu UI gate
 - Optional `(auth)` route-group; lists/browse cold API slim; status API speed OOS; full metadata/AI rewrite OOS; Prisma 7/8 OOS
+- New providers (Cerebras/NIM/etc.) stay doc-only until new env keys / REQ
 
 ## Current checkpoint
 
-- **Stage:** C7.17 — committed via `/commit-ready`.
+- **Stage:** REQ-AI-0001 refresh — committed via `/commit-ready`.
 - **Cycle:** C7
-- **Status:** Verified (PASS WITH WARNINGS: optional Comments knownCount test + title referrerPolicy parity left intentionally).
-- **Validation:** tsc · lint 0 · focused Jest 27 · build · verify-deep PASS WITH WARNINGS.
-- **Trace:** REQ-0052, TASK-0058.
+- **Status:** Verified (PASS).
+- **Validation:** tsc · lint · Jest · build (see VALIDATION_SUMMARY).
+- **Trace:** REQ-AI-0001, DEC-AI-0002.
 
 ## Next
 
 ```text
-1. Push when user requests; TASK-0039 production browser smoke for C7.17.
-2. User supplies next polish/fix list → plan → implement.
+1. Push when user requests.
+2. TASK-0039 production smoke (C7.17) still open.
+3. User supplies next polish/fix list → plan → implement.
 ```

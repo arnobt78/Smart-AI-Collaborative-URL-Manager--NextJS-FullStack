@@ -1,6 +1,6 @@
 // AI Enhancement Service for URLs
 // Provides automatic categorization, tagging, description generation, and duplicate detection
-// Model IDs and HTTP calls live in providers.ts + client.ts (free-tier chains, 2026-08-14)
+// Model IDs and HTTP calls live in providers.ts + client.ts (free-tier chains, 2026-09-02)
 
 import { AIProvider, getProvider, AI_PROVIDERS } from "./providers";
 import { callProviderWithModelChain } from "./client";

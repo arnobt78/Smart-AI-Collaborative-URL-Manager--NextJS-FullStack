@@ -4,8 +4,9 @@
  * - Gemini: native generateContent endpoint (model ID in URL path)
  * - Groq / OpenRouter / Hugging Face: OpenAI-compatible /chat/completions
  *
- * Retriable failures advance to the next model; HTTP 429 skips the rest of
- * that provider's models so the outer caller can try the next provider.
+ * Retriable failures (404/410 model missing, 408, 5xx, network) advance to the
+ * next model; HTTP 429 skips the rest of that provider's models so the outer
+ * caller can try the next provider.
  * See docs/LLM_MODEL_SELECTION.md — Generic automatic fallback chain.
  */
 
@@ -21,7 +22,16 @@ export interface ChatCallOptions {
 }
 
 /** Status codes treated as retriable (try next model / provider). */
-const RETRIABLE_STATUSES = new Set([408, 429, 500, 502, 503, 504]);
+const RETRIABLE_STATUSES = new Set([
+  404, // model not found / rotated off free roster
+  408,
+  410, // model gone
+  429,
+  500,
+  502,
+  503,
+  504,
+]);
 
 export class ProviderRateLimitedError extends Error {
   readonly provider: AIProvider;

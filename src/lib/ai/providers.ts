@@ -1,9 +1,10 @@
 /**
  * AI provider registry (Layer 1 — data, not logic).
  *
- * Free-tier model chains verified 2026-08-14 against docs/LLM_MODEL_SELECTION.md
- * and live provider docs. Order within `models` is the inner fallback chain;
- * callers walk providers in their own outer priority order.
+ * Free-tier model chains verified 2026-09-02 against docs/LLM_MODEL_SELECTION.md,
+ * Groq models/deprecation email (Qwen3.6→3.8), Gemini pricing, and OpenRouter
+ * model pages / free collection (not `max_price=0` alone). Order within `models`
+ * is the inner fallback chain; callers walk providers in their own outer priority order.
  *
  * Env keys are unchanged so existing deployments keep working.
  */
@@ -32,29 +33,37 @@ export interface ProviderConfig {
 const GEMINI_MODELS = [
   "gemini-2.5-flash",
   "gemini-2.5-flash-lite",
-  "gemini-2.0-flash", // last-resort still-free Flash
+  "gemini-3.5-flash",
+  "gemini-3.5-flash-lite",
 ] as const;
 
-// Groq: llama-3.1-8b-instant / llama-3.3-70b-versatile shut down 2026-08-16
+// Groq: Llama Instant/Versatile free shutdown 2026-08-16; Qwen3.6 decommission 2026-09-14
 const GROQ_MODELS = [
   "openai/gpt-oss-20b",
   "openai/gpt-oss-120b",
-  "qwen/qwen3.6-27b",
+  "qwen/qwen3.8-27b",
 ] as const;
 
-// OpenRouter: only :free IDs or openrouter/free (live free list 2026-08-14)
+// OpenRouter: preferred free IDs first (model pages / free collection); max_price=0
+// snapshots can omit gpt-oss:free. openrouter/free = dynamic last-rung router.
+// 404/410 already retries next model in client.ts.
 const OPENROUTER_MODELS = [
+  "openai/gpt-oss-120b:free",
   "openai/gpt-oss-20b:free",
   "google/gemma-4-31b-it:free",
-  "nvidia/nemotron-nano-9b-v2:free",
+  "google/gemma-4-26b-a4b-it:free",
+  "nvidia/nemotron-3.5-lightning:free",
+  "nvidia/nemotron-3-super-120b-a12b:free",
+  "cohere/north-mini-code:free",
+  "z-ai/glm-5.2:free",
   "openrouter/free",
 ] as const;
 
-// Hugging Face Inference Providers router — prefer gpt-oss + Qwen fallbacks
+// Hugging Face Inference Providers router — prefer gpt-oss + Qwen3 fallback
 const HUGGINGFACE_MODELS = [
   "openai/gpt-oss-20b:fastest",
   "openai/gpt-oss-120b:fastest",
-  "Qwen/Qwen2.5-7B-Instruct",
+  "Qwen/Qwen3-8B",
 ] as const;
 
 export const AI_PROVIDERS: Record<AIProvider, ProviderConfig> = {

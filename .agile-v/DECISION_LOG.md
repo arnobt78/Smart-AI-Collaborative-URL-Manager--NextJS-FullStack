@@ -80,6 +80,19 @@ Append-only. Newest entries at bottom.
 
 ---
 
+## DEC-AI-0002 — Free-tier chain refresh (Qwen 3.8 + OpenRouter gpt-oss)
+
+| Field | Value |
+|-------|-------|
+| Timestamp | 2026-09-02 |
+| Agent | Agile V Build (REQ-AI-0001 refresh) |
+| Decision | Refresh `providers.ts` chains: Groq Qwen3.6→3.8; drop Gemini 2.0 Flash; add Gemini 3.5 Flash/Lite; OpenRouter prefer gpt-oss `:free` + gemma/nemotron/north/glm + `openrouter/free` (model pages authoritative over incomplete `max_price=0`); HF Qwen3-8B; treat HTTP 404/410 as retriable in `client.ts` |
+| Rationale | Groq decommission email 2026-09-14; Gemini 2.0 shut down; OpenRouter free roster rotated; `max_price=0` alone omitted still-listed gpt-oss free IDs |
+| Linked REQs | REQ-AI-0001 |
+| Status | Implemented |
+
+---
+
 ## DEC-0004 — REQ-0002 guardrails without feature/performance impact
 
 | Field | Value |

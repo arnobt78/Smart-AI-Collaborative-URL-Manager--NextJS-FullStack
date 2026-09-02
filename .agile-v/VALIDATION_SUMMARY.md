@@ -558,6 +558,16 @@ Gate 2: BLOCKED — RISK-0016 is accepted; `EVAL_RESULTS.md` PASS/WAIVED evidenc
 | Validation | `tsc`; `eslint .`; Jest 27 focused; `build`; verify-deep | PASS WITH WARNINGS | Optional Comments knownCount test + title referrerPolicy left intentionally. |
 | Browser | C7.17 smoke | PENDING USER | TASK-0039 after deploy. |
 
+## 2026-09-02 — REQ-AI-0001 free-tier LLM refresh (DEC-AI-0002)
+
+| Scope | Command / evidence | Result | Notes |
+|---|---|---|---|
+| Groq / Gemini | `qwen/qwen3.8-27b`; drop `gemini-2.0-flash`; add `gemini-3.5-flash`/`lite` | PASS | Production gpt-oss ahead of Preview Qwen. |
+| OpenRouter / HF | gpt-oss `:free` first + gemma/nemotron/north/glm + `openrouter/free`; HF `Qwen/Qwen3-8B` | PASS | Model pages authoritative vs incomplete `max_price=0`. |
+| Client | 404/410 added to `RETRIABLE_STATUSES` | PASS | Missing free variants advance to next model. |
+| Docs | `docs/LLM_MODEL_SELECTION.md` last verified 2026-09-02 | PASS | Deprecation watch + re-verify checklist. |
+| Validation | `tsc --noEmit`; `eslint .`; Jest; `build` | PASS | See commit-ready run. |
+
 ## 2026-09-01 — C7.16 skeleton parity + warm cache paint
 
 | Scope | Command / evidence | Result | Notes |

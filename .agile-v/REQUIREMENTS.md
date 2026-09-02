@@ -27,20 +27,20 @@ These describe the current product as verified in code. They are **Accepted as b
 
 ## C1 proposed requirements (new / remediation)
 
-### REQ-AI-0001 — Free-tier AI model chains (implemented 2026-08-14)
+### REQ-AI-0001 — Free-tier AI model chains (implemented 2026-08-14; refreshed 2026-09-02)
 
 **Priority:** P0  
 **Type:** Reliability / free-tier continuity  
-**Statement:** AI enhancement, smart collections, and semantic search MUST use current free-tier model IDs with per-provider model chains and silent fallback (Gemini → Groq → OpenRouter → Hugging Face as applicable). Groq MUST NOT use Llama Instant / 70B Versatile after 2026-08-16. OpenRouter IDs MUST use `:free` (or `openrouter/free`).  
+**Statement:** AI enhancement, smart collections, and semantic search MUST use current free-tier model IDs with per-provider model chains and silent fallback (Gemini → Groq → OpenRouter → Hugging Face as applicable). Groq MUST NOT use Llama Instant / 70B Versatile after 2026-08-16, and MUST use `qwen/qwen3.8-27b` (not `qwen/qwen3.6-27b`) before the 2026-09-14 decommission. Gemini MUST NOT use shut-down `gemini-2.0-flash`. OpenRouter IDs MUST use `:free` (or `openrouter/free`); preferred gpt-oss `:free` IDs may remain even when `max_price=0` snapshots omit them.  
 **Acceptance:**
 
-- [x] `providers.ts` exposes `models[]` chains for gemini / groq / openrouter / huggingface
-- [x] Shared `client.ts` walks model chain; 429 skips remaining models on that provider
+- [x] `providers.ts` exposes `models[]` chains for gemini / groq / openrouter / huggingface (verified 2026-09-02)
+- [x] Shared `client.ts` walks model chain; 429 skips remaining models on that provider; 404/410 retry next model
 - [x] enhancement / collections / search use shared client (no hardcoded deprecated IDs)
 - [x] `docs/LLM_MODEL_SELECTION.md` verified date and OpenRouter examples refreshed
 - [x] typecheck recorded in VALIDATION_SUMMARY.md (`tsc --noEmit` PASS)
 
-**Trace:** TASK-AI-0001, DEC-AI-0001
+**Trace:** TASK-AI-0001, DEC-AI-0001, DEC-AI-0002
 
 ---
 
