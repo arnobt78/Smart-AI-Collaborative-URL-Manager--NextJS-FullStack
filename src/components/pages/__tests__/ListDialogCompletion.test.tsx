@@ -45,7 +45,7 @@ describe("list dialog completion", () => {
     fireEvent.change(screen.getByPlaceholderText("e.g., My Favorite Resources"), { target: { value: "Created List" } });
     fireEvent.click(screen.getByRole("button", { name: "Create List" }));
 
-    await waitFor(() => expect(screen.getByRole("button", { name: "Creating..." })).toBeDisabled());
+    await waitFor(() => expect(screen.getByRole("button", { name: "Creating…" })).toBeDisabled());
     resolveRequest({ ok: true, json: async () => ({ list: { ...list, slug: "created-list" } }) } as Response);
 
     await waitFor(() => expect(replace).toHaveBeenCalledWith("/list/created-list", { scroll: false }));
@@ -67,7 +67,7 @@ describe("list dialog completion", () => {
     renderWithQueryClient(<EditListPageClient list={list} onClose={onClose} onPendingChange={pending} />);
     fireEvent.click(screen.getByRole("button", { name: "Save Changes" }));
 
-    await waitFor(() => expect(screen.getByRole("button", { name: "Saving..." })).toBeDisabled());
+    await waitFor(() => expect(screen.getByRole("button", { name: "Saving…" })).toBeDisabled());
     resolveRequest({ ok: true, json: async () => ({ list: { ...list, title: "Cached List" } }) } as Response);
 
     await waitFor(() => expect(onClose).toHaveBeenCalledTimes(1));

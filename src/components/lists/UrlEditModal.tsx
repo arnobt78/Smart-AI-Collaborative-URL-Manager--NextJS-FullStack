@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/Button";
 import { CancelButton } from "@/components/ui/ActionButtons";
 import { Dialog } from "@/components/ui/Dialog";
 import React, { useEffect, useRef } from "react";
+import { Save } from "lucide-react";
 import type { UrlItem } from "@/stores/urlListStore";
 import { UrlEnhancer } from "@/components/ai/UrlEnhancer";
 import { queryClient } from "@/lib/react-query";
@@ -169,6 +170,7 @@ export function UrlEditModal({
       description="Update this saved URL and its organization details."
       size="form"
       pending={isEditing}
+      headerMode="scroll"
     >
       <form
         onSubmit={(e) => {
@@ -189,7 +191,7 @@ export function UrlEditModal({
             editingReminder || undefined,
           );
         }}
-        className="mt-4 sm:mt-6 lg:mt-8 space-y-2 sm:space-y-4"
+        className="space-y-2 sm:space-y-4"
       >
         <div>
           <label className="block text-sm sm:text-base font-medium text-white">
@@ -280,7 +282,7 @@ export function UrlEditModal({
             className="mt-2 text-sm sm:text-base shadow-sm"
           />
         </div>
-        <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-2 mt-6 sm:mt-8">
+        <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-2">
           <CancelButton
             onClick={() => setEditingUrl(null)}
             disabled={isEditing}
@@ -290,10 +292,13 @@ export function UrlEditModal({
           </CancelButton>
           <Button
             type="submit"
-            disabled={isEditing}
-            className="bg-blue-600 hover:bg-blue-700 text-white text-sm sm:text-base font-medium px-4 sm:px-6 py-2 sm:py-2 rounded-lg sm:rounded-xl shadow-md hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto"
+            isLoading={isEditing}
+            loadingText="Saving…"
+            variant="glass"
+            className="w-full sm:w-auto"
           >
-            {isEditing ? "Saving..." : "Save Changes"}
+            <Save className="h-4 w-4 shrink-0" aria-hidden />
+            Save Changes
           </Button>
         </div>
       </form>

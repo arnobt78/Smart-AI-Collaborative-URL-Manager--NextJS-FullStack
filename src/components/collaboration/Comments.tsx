@@ -10,7 +10,7 @@ import { CancelButton } from "@/components/ui/ActionButtons";
 import { Textarea } from "@/components/ui/Textarea";
 import { useToast } from "@/components/ui/Toaster";
 import { AlertDialog } from "@/components/ui/AlertDialog";
-import { Trash2, Edit2, Check } from "lucide-react";
+import { Trash2, Edit2, Check, MessageSquarePlus } from "lucide-react";
 import { invalidateMutationImpact } from "@/utils/queryInvalidation";
 
 interface Comment {
@@ -28,9 +28,11 @@ interface CommentsProps {
   listId: string;
   urlId: string;
   currentUserId?: string;
+  /** Unified comment count — skip fetch and paint empty when 0. */
+  knownCount?: number;
 }
 
-export function Comments({ listId, urlId, currentUserId }: CommentsProps) {
+export function Comments({ listId, urlId, currentUserId, knownCount }: CommentsProps) {
   const [newComment, setNewComment] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editContent, setEditContent] = useState("");
@@ -42,6 +44,7 @@ export function Comments({ listId, urlId, currentUserId }: CommentsProps) {
   const params = useParams();
   const slug = typeof params?.slug === "string" ? params.slug : null;
   const list = useStore(currentList);
+  const skipFetch = knownCount === 0;
 
   const updateVisibleCommentCount = (delta: number) => {
     const current = currentList.get();
@@ -74,6 +77,8 @@ export function Comments({ listId, urlId, currentUserId }: CommentsProps) {
       }
       return response.json();
     },
+    enabled: !skipFetch,
+    initialData: skipFetch ? { comments: [] } : undefined,
     // CRITICAL: Cache forever until invalidated (after comment add/update/delete)
     // With staleTime: Infinity, data never becomes stale automatically
     // Only becomes stale when manually invalidated, then refetches once
@@ -94,13 +99,13 @@ export function Comments({ listId, urlId, currentUserId }: CommentsProps) {
   // Cached comments stay visible; an uncached dialog only shows feedback when
   // the request is genuinely slow, preventing an opening-state spinner flash.
   useEffect(() => {
-    if (!isLoading || commentsData) {
+    if (skipFetch || !isLoading || commentsData) {
       setShowColdLoading(false);
       return;
     }
     const timeout = setTimeout(() => setShowColdLoading(true), 200);
     return () => clearTimeout(timeout);
-  }, [commentsData, isLoading]);
+  }, [commentsData, isLoading, skipFetch]);
 
   // Listen for real-time comment updates (from other clients)
   useEffect(() => {
@@ -462,9 +467,12 @@ export function Comments({ listId, urlId, currentUserId }: CommentsProps) {
             <Button
               type="submit"
               disabled={!newComment.trim() || createMutation.isPending}
+              isLoading={createMutation.isPending}
+              loadingText="Posting…"
               className="px-2 sm:px-3 py-1 text-xs"
             >
-              {createMutation.isPending ? "Posting..." : "Post Comment"}
+              <MessageSquarePlus className="w-3 h-3" aria-hidden />
+              Post Comment
             </Button>
           </div>
         </form>
@@ -508,10 +516,12 @@ export function Comments({ listId, urlId, currentUserId }: CommentsProps) {
                         type="button"
                         onClick={handleSaveEdit}
                         disabled={updateMutation.isPending}
+                        isLoading={updateMutation.isPending}
+                        loadingText="Saving…"
                         className="px-2 sm:px-3 py-1 text-xs"
                       >
-                        <Check className="w-3 h-3 mr-1" />
-                        {updateMutation.isPending ? "Saving..." : "Save"}
+                        <Check className="w-3 h-3" aria-hidden />
+                        Save
                       </Button>
                     </div>
                   </div>

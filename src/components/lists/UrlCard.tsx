@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useSession } from "@/hooks/useSession";
 import { SafeImage } from "@/components/ui/safe-image";
 import {
@@ -38,7 +39,7 @@ import {
   URL_META_CHIP_RED,
   URL_META_CHIP_YELLOW,
 } from "@/lib/ui/glass-badge-styles";
-import { cn, ensureAbsoluteHttpUrl, openExternalUrl } from "@/lib/utils";
+import { cn, ensureAbsoluteHttpUrl } from "@/lib/utils";
 // Using public path instead of import
 const logoPath = "/favicon.ico";
 
@@ -116,12 +117,38 @@ export const UrlCard: React.FC<UrlCardProps> = ({
   const [deletePending, setDeletePending] = React.useState(false);
   const [archivePending, setArchivePending] = React.useState(false);
   const [similarUrlsOpen, setSimilarUrlsOpen] = React.useState(false);
-  const [similarUrls, setSimilarUrls] = React.useState<SearchResult[]>([]);
-  const [loadingSimilarUrls, setLoadingSimilarUrls] = React.useState(false);
   const [commentsOpen, setCommentsOpen] = React.useState(false);
   const { toast } = useToast();
   const { user: sessionUser } = useSession();
   const currentUserId = sessionUser?.id;
+  const listIdForSimilar = currentList.get()?.id;
+
+  const {
+    data: similarResults = [],
+    isLoading: loadingSimilarUrls,
+    isError: similarError,
+  } = useQuery<{ results: SearchResult[] }, Error, SearchResult[]>({
+    queryKey: ["similar", listIdForSimilar, url.id],
+    queryFn: async () => {
+      const response = await fetch(
+        `/api/search/smart?listId=${listIdForSimilar}&urlId=${url.id}`,
+      );
+      if (!response.ok) {
+        throw new Error("Failed to find similar URLs");
+      }
+      return response.json();
+    },
+    enabled: similarUrlsOpen && Boolean(listIdForSimilar),
+    select: (data) => data.results || [],
+    staleTime: 1000 * 60 * 30,
+    gcTime: 1000 * 60 * 60 * 2,
+    refetchOnWindowFocus: false,
+    retry: 1,
+  });
+
+  const similarUrls = similarResults;
+  // isLoading = cold miss only; warm RQ cache paints instantly (no spinner)
+  const showSimilarLoading = loadingSimilarUrls;
 
   // Copy URL to clipboard
   const handleCopyUrl = async () => {
@@ -146,35 +173,10 @@ export const UrlCard: React.FC<UrlCardProps> = ({
     setTimeout(() => setToastMessage(null), 3000);
   };
 
-  // Find similar URLs
-  const handleFindSimilar = async () => {
-    const current = currentList.get();
-    if (!current.id) return;
-
+  // Find similar URLs — open dialog; RQ cache paints instantly on revisit
+  const handleFindSimilar = () => {
+    if (!currentList.get()?.id) return;
     setSimilarUrlsOpen(true);
-    setLoadingSimilarUrls(true);
-    setSimilarUrls([]);
-
-    try {
-      const response = await fetch(
-        `/api/search/smart?listId=${current.id}&urlId=${url.id}`,
-      );
-
-      if (response.ok) {
-        const data = await response.json();
-        setSimilarUrls(data.results || []);
-        // Don't show toast for empty results - modal will show empty state
-      } else {
-        const _errorData = await response.json().catch(() => ({}));
-        // Don't show toast - modal will show error state
-        setSimilarUrls([]);
-      }
-    } catch (_error) {
-      // Don't show toast - modal will show error state
-      setSimilarUrls([]);
-    } finally {
-      setLoadingSimilarUrls(false);
-    }
   };
 
   // Confirm delete only after the store mutation settles, then close on the next paint.
@@ -297,6 +299,7 @@ export const UrlCard: React.FC<UrlCardProps> = ({
   // This ensures data is displayed even if metadata hasn't loaded yet
   const title = metadata?.title || url.title || url.url;
   const description = metadata?.description || url.description; // Fallback to url.description from database
+  const visitHref = ensureAbsoluteHttpUrl(url.url);
   // Reserved for richer card chrome (site label); keep derived so metadata path stays warm
   const _siteName = metadata?.siteName || url.category;
 
@@ -449,17 +452,27 @@ export const UrlCard: React.FC<UrlCardProps> = ({
                 <div className="flex-1 min-w-0">
                   {/* Title with health status badge — same row, vertically centered */}
                   <div className="flex min-w-0 items-center gap-1.5 text-base leading-snug sm:text-lg xl:text-xl">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        onUrlClick?.(url.id);
-                        openExternalUrl(url.url);
-                      }}
-                      className="min-w-0 inline break-words align-baseline font-medium text-white hover:text-blue-400 transition-colors font-joti text-left cursor-pointer"
-                      title={title}
-                    >
-                      {title}
-                    </button>
+                    {visitHref ? (
+                      <a
+                        href={visitHref}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={() => {
+                          onUrlClick?.(url.id);
+                        }}
+                        className="min-w-0 inline break-words align-baseline font-medium text-white hover:text-blue-400 transition-colors font-joti text-left cursor-pointer"
+                        title={title}
+                      >
+                        {title}
+                      </a>
+                    ) : (
+                      <span
+                        className="min-w-0 inline break-words align-baseline font-medium text-white font-joti text-left"
+                        title={title}
+                      >
+                        {title}
+                      </span>
+                    )}
                     <UrlHealthIndicator
                       variant="inline"
                       status={url.healthStatus}
@@ -544,12 +557,16 @@ export const UrlCard: React.FC<UrlCardProps> = ({
                   <div className="flex items-center gap-2 flex-wrap">
                     <IconButton
                       icon={<ArrowTopRightOnSquareIcon />}
+                      href={visitHref}
                       onClick={() => {
                         onUrlClick?.(url.id);
-                        openExternalUrl(url.url);
                       }}
                       tooltip="Visit Site"
-                      className="hover:translate-x-0.5 hover:-translate-y-0.5 transition-transform cursor-pointer"
+                      className={
+                        visitHref
+                          ? "hover:translate-x-0.5 hover:-translate-y-0.5 transition-transform cursor-pointer"
+                          : undefined
+                      }
                     />
                     <IconButton
                       icon={<PencilIcon />}
@@ -735,14 +752,24 @@ export const UrlCard: React.FC<UrlCardProps> = ({
         title={`Similar URLs to “${url.title || url.url}”`}
         description="AI-powered similarity search"
         size="wide"
+        headerMode="scroll"
       >
-        <div className="space-y-3 custom-scrollbar">
-          {loadingSimilarUrls ? (
+        <div className="space-y-3">
+          {showSimilarLoading ? (
             <div className="flex items-center justify-center py-12">
               <div className="flex flex-col items-center gap-2">
                 <div className="w-8 h-8 border-4 border-blue-400 border-t-transparent rounded-full animate-spin" />
                 <p className="text-white/60">Finding similar URLs...</p>
               </div>
+            </div>
+          ) : similarError ? (
+            <div className="text-center py-12">
+              <p className="text-white/60 text-sm sm:text-base font-medium">
+                Couldn’t load similar URLs
+              </p>
+              <p className="text-sm text-white/40 mt-2 max-w-md mx-auto">
+                Try again in a moment.
+              </p>
             </div>
           ) : similarUrls.length === 0 ? (
             <div className="text-center py-12">
@@ -756,11 +783,13 @@ export const UrlCard: React.FC<UrlCardProps> = ({
               </p>
             </div>
           ) : (
-            <div className="space-y-3 pb-2">
-              {similarUrls.map((result) => (
+            <div className="space-y-3">
+              {similarUrls.map((result) => {
+                const visitHref = ensureAbsoluteHttpUrl(result.url.url);
+                return (
                 <div
                   key={result.url.id}
-                  className="bg-white/5 backdrop-blur-md rounded-xl border border-white/10 p-4 hover:border-blue-400/30 transition-colors"
+                  className="rounded-xl border border-white/10 bg-white/5 p-3 hover:border-blue-400/30 transition-colors"
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
@@ -791,16 +820,29 @@ export const UrlCard: React.FC<UrlCardProps> = ({
                         </p>
                       )}
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => openExternalUrl(result.url.url)}
-                      className="flex-shrink-0 rounded-lg bg-blue-600 px-4 py-2 text-white whitespace-nowrap transition-colors hover:bg-blue-700 cursor-pointer"
-                    >
-                      Visit
-                    </button>
+                    {visitHref ? (
+                      <a
+                        href={visitHref}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex flex-shrink-0 items-center gap-1.5 rounded-lg bg-blue-600 px-4 py-2 text-white whitespace-nowrap transition-colors hover:bg-blue-700 cursor-pointer"
+                      >
+                        <ArrowTopRightOnSquareIcon className="h-4 w-4" aria-hidden />
+                        Visit
+                      </a>
+                    ) : (
+                      <button
+                        type="button"
+                        disabled
+                        className="flex-shrink-0 rounded-lg bg-blue-600/40 px-4 py-2 text-white/60 whitespace-nowrap cursor-not-allowed"
+                      >
+                        Visit
+                      </button>
+                    )}
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
@@ -813,12 +855,14 @@ export const UrlCard: React.FC<UrlCardProps> = ({
           title="Comments"
           description={url.title || url.url}
           size="wide"
+          headerMode="scroll"
         >
-          <div className="custom-scrollbar">
+          <div>
             <Comments
               listId={currentList.get()!.id!}
               urlId={url.id}
               currentUserId={currentUserId}
+              knownCount={url.commentCount}
             />
           </div>
         </Dialog>

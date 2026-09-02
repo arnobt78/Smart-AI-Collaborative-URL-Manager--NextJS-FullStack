@@ -18,6 +18,7 @@ import {
   DragEndEvent,
   DragOverEvent,
 } from "@dnd-kit/core";
+import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
 import {
   arrayMove,
   SortableContext,
@@ -26,6 +27,7 @@ import {
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { verticalOnlyTransform } from "@/lib/dnd-vertical";
 import { useStore } from "@nanostores/react";
 import {
   currentList,
@@ -53,8 +55,6 @@ import { UrlEditModal } from "./UrlEditModal";
 import { LinkIcon, ArchiveBoxIcon } from "@heroicons/react/24/outline";
 import { Archive, Link2, Search, WandSparkles } from "lucide-react";
 import type { EnhancementResult } from "@/lib/ai";
-import { useDebounce } from "@/hooks/useDebounce";
-import type { SearchResult } from "@/lib/ai/search";
 import { useToast } from "@/components/ui/Toaster";
 import { useRealtimeList } from "@/hooks/useRealtimeList";
 import { useListPermissions } from "@/hooks/useListPermissions";
@@ -104,7 +104,7 @@ function UrlCardWrapper({
   // When drag ends, dnd-kit uses transform to animate items
   // By controlling transition timing, we ensure smooth drag and prevent bounce-back
   const style = {
-    transform: CSS.Transform.toString(transform),
+    transform: CSS.Transform.toString(verticalOnlyTransform(transform)),
     // Only allow transitions during drag (isDragging = true)
     // After drag ends (isDragging = false), transition is disabled to prevent bounce-back
     // The transform is already set to final position by dnd-kit, so no animation needed
@@ -240,12 +240,6 @@ export function UrlList() {
   const [enhancementResult, setEnhancementResult] =
     useState<EnhancementResult | null>(null);
   const [showArchived, setShowArchived] = useState(false);
-  const [isSearching, setIsSearching] = useState(false);
-  const [smartSearchResults, setSmartSearchResults] = useState<
-    SearchResult[] | null
-  >(null);
-  const [searchCacheIndicator, setSearchCacheIndicator] = useState(false);
-  const [lastSearchedQuery, setLastSearchedQuery] = useState<string>("");
   const [isAddUrlFormExpanded, setIsAddUrlFormExpanded] = useState(false);
 
   // CRITICAL: Track sortable context version to force remount after drag ends
@@ -901,66 +895,8 @@ export function UrlList() {
     };
   }, [queryClient]);
 
-  // Debounce search query for smart search (only trigger after 500ms of no typing)
-  const debouncedSearch = useDebounce(search, 500);
-
-  // Smart search with AI + Redis caching
-  useEffect(() => {
-    const performSmartSearch = async () => {
-      const current = currentList.get();
-      if (!current.id || !debouncedSearch.trim()) {
-        setSmartSearchResults(null);
-        setIsSearching(false);
-        return;
-      }
-
-      // Clear previous results immediately when starting new search
-      // This prevents showing stale results from previous search
-      setSmartSearchResults(null);
-      setIsSearching(true);
-      setSearchCacheIndicator(false);
-      const currentSearchQuery = debouncedSearch.trim();
-
-      try {
-        const response = await fetch(
-          `/api/search/smart?q=${encodeURIComponent(
-            currentSearchQuery,
-          )}&listId=${current.id}`,
-        );
-
-        if (response.ok) {
-          const data = await response.json();
-          // Only set results if the debounced search hasn't changed
-          // (race condition protection)
-          setSmartSearchResults(data.results || []);
-          setSearchCacheIndicator(data.cached || false);
-          setLastSearchedQuery(currentSearchQuery);
-        } else {
-          // On error, set empty array (not null) so we know search completed with no results
-          setSmartSearchResults([]);
-          setLastSearchedQuery(currentSearchQuery);
-        }
-      } catch {
-        // On error, set empty array (not null) so we know search completed with no results
-        setSmartSearchResults([]);
-        setLastSearchedQuery(currentSearchQuery);
-      } finally {
-        setIsSearching(false);
-      }
-    };
-
-    performSmartSearch();
-  }, [debouncedSearch]);
-
-  // Reset smart search when search is cleared
-  useEffect(() => {
-    if (!search.trim()) {
-      setSmartSearchResults(null);
-      setIsSearching(false);
-      setSearchCacheIndicator(false);
-      setLastSearchedQuery("");
-    }
-  }, [search]);
+  // Instant client-side filter (title / URL / description / tags / category)
+  // Find-similar remains a separate vector API action on UrlCard.
 
   // Track URL clicks
   const handleUrlClick = async (urlId: string) => {
@@ -2180,54 +2116,21 @@ export function UrlList() {
 
   const filteredAndSortedUrls = useMemo(() => {
     if (!urlsToUse || urlsToUse.length === 0) return [];
-    let urls: UrlItem[] = [];
+    let urls: UrlItem[] = urlsToUse;
 
-    const currentSearch = search.trim();
-    const normalizedCurrentSearch = currentSearch.toLowerCase();
-
-    // Use smart search results if available
+    const currentSearch = search.trim().toLowerCase();
     if (currentSearch) {
-      const normalizedDebouncedSearch = debouncedSearch.trim().toLowerCase();
-
-      // Only use smartSearchResults if they match the current search query exactly
-      // This prevents showing stale results from previous searches
-      const resultsMatchCurrentSearch =
-        smartSearchResults !== null &&
-        lastSearchedQuery.toLowerCase() === normalizedCurrentSearch;
-
-      if (resultsMatchCurrentSearch) {
-        // Use AI-powered semantic search results (empty array means no matches)
-        urls = smartSearchResults.map((result) => result.url);
-      } else if (
-        !isSearching &&
-        normalizedDebouncedSearch !== normalizedCurrentSearch &&
-        normalizedDebouncedSearch.length > 0 &&
-        normalizedCurrentSearch.startsWith(normalizedDebouncedSearch)
-      ) {
-        // Only show keyword fallback if:
-        // 1. Not currently searching
-        // 2. Debounced search doesn't match current search (user typed more)
-        // 3. Debounced search has content (not empty)
-        // 4. Current search is an extension of debounced search (user is still typing)
-        // This provides intermediate results while waiting for debounce
-        const q = normalizedCurrentSearch;
-        urls = urlsToUse.filter((u) => {
-          return (
-            (u.title && u.title.toLowerCase().includes(q)) ||
-            (u.url && u.url.toLowerCase().includes(q)) ||
-            (u.description && u.description.toLowerCase().includes(q)) ||
-            u.tags?.some((tag) => tag.toLowerCase().includes(q)) ||
-            (u.category && u.category.toLowerCase().includes(q))
-          );
-        });
-      }
-      // Otherwise: isSearching is true OR debouncedSearch matches currentSearch OR
-      // user deleted characters (currentSearch doesn't start with debouncedSearch)
-      // In these cases, don't show keyword fallback - wait for smart search or show nothing
-      // This prevents showing all URLs when smart search is about to return results
-    } else {
-      // No search - use all URLs (from optimistic or store)
-      urls = urlsToUse;
+      urls = urlsToUse.filter((u) => {
+        return (
+          (u.title && u.title.toLowerCase().includes(currentSearch)) ||
+          (u.url && u.url.toLowerCase().includes(currentSearch)) ||
+          (u.description &&
+            u.description.toLowerCase().includes(currentSearch)) ||
+          u.tags?.some((tag) => tag.toLowerCase().includes(currentSearch)) ||
+          (u.category && u.category.toLowerCase().includes(currentSearch)) ||
+          (u.notes && u.notes.toLowerCase().includes(currentSearch))
+        );
+      });
     }
 
     // Favourites filter
@@ -2318,10 +2221,6 @@ export function UrlList() {
     list?.urls, // Store state - all updates go through store
     sortOption,
     search,
-    smartSearchResults,
-    isSearching,
-    lastSearchedQuery,
-    debouncedSearch,
   ]);
 
   if (!list.id || !list.urls) return null;
@@ -2487,29 +2386,9 @@ export function UrlList() {
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search URLs, titles, or descriptions... (AI-powered)"
-              className="min-w-[180px] bg-transparent pl-9 pr-16 font-delicious text-sm sm:pr-20 sm:text-base lg:text-lg"
+              placeholder="Search URLs, titles, or descriptions…"
+              className="min-w-[180px] bg-transparent pl-9 font-delicious text-sm sm:text-base lg:text-lg"
             />
-            {search.trim() && (
-              <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
-                {isSearching ? (
-                  <div className="flex items-center gap-2 text-blue-400">
-                    <div className="w-4 h-4 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
-                    <span className="text-xs font-medium">AI Search...</span>
-                  </div>
-                ) : searchCacheIndicator ? (
-                  <span className="text-xs text-green-400 font-medium flex items-center gap-1">
-                    <span className="w-2 h-2 bg-green-400 rounded-full" />
-                    Cached
-                  </span>
-                ) : smartSearchResults ? (
-                  <span className="text-xs text-blue-400 font-medium flex items-center gap-1">
-                    <span className="w-2 h-2 bg-blue-400 rounded-full" />
-                    AI
-                  </span>
-                ) : null}
-              </div>
-            )}
           </div>
 
           {/* Filter Dropdown */}
@@ -2537,6 +2416,7 @@ export function UrlList() {
         <DndContext
           sensors={sensors}
           collisionDetection={closestCenter}
+          modifiers={[restrictToVerticalAxis]}
           onDragEnd={handleDragEnd}
           onDragOver={(event: DragOverEvent) => {
             // Update store during drag so order is correct when drag ends
@@ -2604,7 +2484,7 @@ export function UrlList() {
             items={filteredAndSortedUrls.map((u) => u.id)}
             strategy={verticalListSortingStrategy}
           >
-            <div className="space-y-8">
+            <div className="space-y-8 overflow-x-hidden">
               {filteredAndSortedUrls.map((url) => {
                 return (
                   <UrlCardWrapper

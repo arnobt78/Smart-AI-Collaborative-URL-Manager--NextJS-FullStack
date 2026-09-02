@@ -31,6 +31,6 @@ describe("UrlAddForm pending overlay", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Close dialog" }));
     expect(onCancel).not.toHaveBeenCalled();
-    expect(screen.getByRole("button", { name: /Add URL/i })).toBeDisabled();
+    expect(screen.getByRole("button", { name: /Adding/i })).toBeDisabled();
   });
 });

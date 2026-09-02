@@ -39,12 +39,22 @@ export function AlertDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange} title={title} description={description} pending={pending}>
+    <Dialog open={open} onOpenChange={onOpenChange} title={title} description={description} pending={pending} headerMode="scroll">
       <div className="flex justify-end gap-2">
         <CancelButton onClick={() => onOpenChange(false)} disabled={pending}>{cancelText}</CancelButton>
-        <Button type="button" variant={variant === "destructive" ? "destructive" : "primary"} onClick={handleConfirm} isLoading={pending}>
-          {variant === "destructive" ? <Trash2 className="h-4 w-4 shrink-0" aria-hidden /> : <Check className="h-4 w-4 shrink-0" aria-hidden />}
-          {pending ? pendingText ?? `${confirmText}…` : confirmText}
+        <Button
+          type="button"
+          variant={variant === "destructive" ? "destructive" : "primary"}
+          onClick={handleConfirm}
+          isLoading={pending}
+          loadingText={pendingText ?? `${confirmText}…`}
+        >
+          {variant === "destructive" ? (
+            <Trash2 className="h-4 w-4 shrink-0" aria-hidden />
+          ) : (
+            <Check className="h-4 w-4 shrink-0" aria-hidden />
+          )}
+          {confirmText}
         </Button>
       </div>
     </Dialog>

@@ -197,7 +197,12 @@ export function IconButton({
       "bg-red-500/20 hover:bg-red-500/30 text-red-400 hover:text-red-300 border border-red-500/30 hover:border-red-500/50",
   };
 
-  const disabledClasses = disabled
+  const safeHref = typeof href === "string" ? href.trim() : "";
+  // Empty/whitespace href is not a navigable link — disable instead of a silent no-op button.
+  const missingHref = href !== undefined && !safeHref;
+  const isDisabled = disabled || missingHref;
+
+  const disabledClasses = isDisabled
     ? "opacity-40 cursor-not-allowed hover:scale-100 hover:shadow-sm"
     : "hover:scale-110 active:scale-95";
 
@@ -213,9 +218,9 @@ export function IconButton({
   );
 
   const buttonClassName = `relative w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200 ${disabledClasses} shadow-sm hover:shadow-md ${variantClasses[variant]} ${className}`;
-  const buttonContent = href && !disabled ? (
+  const buttonContent = safeHref && !isDisabled ? (
     <a
-      href={href}
+      href={safeHref}
       target="_blank"
       rel="noopener noreferrer"
       referrerPolicy="no-referrer"
@@ -228,8 +233,8 @@ export function IconButton({
   ) : (
     <button
       type="button"
-      onClick={disabled ? undefined : onClick}
-      disabled={disabled}
+      onClick={isDisabled ? undefined : onClick}
+      disabled={isDisabled}
       aria-label={tooltip}
       className={buttonClassName}
     >
@@ -238,7 +243,7 @@ export function IconButton({
   );
 
   // Don't show tooltip if disabled (to prevent hover confusion)
-  if (disabled) {
+  if (isDisabled) {
     return buttonContent;
   }
 

@@ -548,6 +548,16 @@ Gate 2: BLOCKED — RISK-0016 is accepted; `EVAL_RESULTS.md` PASS/WAIVED evidenc
 | Validation | `tsc`; `eslint .`; Jest 130; `build`; verify-deep | PASS WITH WARNINGS | lint 0; build exit 0; 90-day labels OOS. |
 | Browser | Activity hover + Insights labels | PENDING USER | TASK-0039 after deploy. |
 
+## 2026-09-02 — C7.17 list-detail polish (REQ-0052 / TASK-0058)
+
+| Scope | Command / evidence | Result | Notes |
+|---|---|---|---|
+| Avatars + drag | PM navbar ring; `restrictToVerticalAxis` + `verticalOnlyTransform` + `overflow-x-hidden` | PASS | `@dnd-kit/modifiers`; active UrlList.drag tests. |
+| Visit + dialogs | Real Visit/Similar anchors; empty href disabled; `headerMode="scroll"` | PASS | IconButton.href tests; CreateList shell parity. |
+| Search + loaders | Lucide client filter; Comments knownCount=0; Similar RQ warm; Button `loadingText` | PASS | No AI smart-search bar. |
+| Validation | `tsc`; `eslint .`; Jest 27 focused; `build`; verify-deep | PASS WITH WARNINGS | Optional Comments knownCount test + title referrerPolicy left intentionally. |
+| Browser | C7.17 smoke | PENDING USER | TASK-0039 after deploy. |
+
 ## 2026-09-01 — C7.16 skeleton parity + warm cache paint
 
 | Scope | Command / evidence | Result | Notes |

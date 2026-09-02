@@ -1,37 +1,39 @@
 # STATE.md
 
-**C7.16 Activity hover + Insights chart labels** | 2026-09-01
+**C7.17 List detail polish** | 2026-09-02
 
 ## Reconciled (repo = docs)
 
-- **Git:** `main` — Activity full-bleed hover + Insights chart labels pending commit; prior: share row align (`0c25d96`), skeleton parity (`f8a5e32`), Wave 3 (`3832c60`).
-- **C7.16 Activity + Insights:** ActivityFeed full-bleed header/row hover (`CARD_PAD` on button; no collapsed `pb-2`; body `border-t`; expand flash fix); ActivityChart peak label margin + clamp; PerformanceMetrics bar `LabelList`.
-- **C7.16 skeleton + warm cache (prior):** `ListDetailBodySections`; `isUnifiedListHydrated`; overlay scrollbar.
-- **Stack verified:** Next 16.3.3 · React 19.2.8 · Node 24.x · Prisma 6.19.3 · audit 0.
+- **Git:** commit landing with this `/commit-ready` (C7.17).
+- **Prior on main:** `51a3ad0` Activity full-bleed hover + Insights chart labels.
+- **C7.17 (REQ-0052 / TASK-0058):** collaborator navbar rings; vertical-only URL drag (`@dnd-kit/modifiers` + `verticalOnlyTransform`); real Visit/Similar anchors + empty-href guards; Dialog `headerMode="scroll"` parity; client-side UrlList search; Comments `knownCount===0` + Similar RQ warm cache; Button `loadingText` contract.
+- **Stack:** Next 16.3.3 · React 19.2.8 · Node 24.x · Prisma 6.19.3.
 
 ## Human
 
 - HA-0001 Firewall
-- TASK-0039 production verify (Activity full-bleed hover; Insights chart labels; warm revisit; jobs menu prod)
+- TASK-0039 production verify (C7.17 smoke: rings, drag Y-only, Visit, dialogs, search, loaders) — still open
+- Further UrlCard action bugs deferred (user will list later)
 
 ## Backlog (unchanged)
 
-- SC → `ListDetailSectionHeader` migration (optional follow-up)
-- SC soft-nav skeleton when `urls < 2` (accepted minor drift)
-- Skeleton vs live spacing parity (`LIST_STACK` vs `PAGE_STACK`)
-- 90-day line chart peak labels OOS (`showDots` false — intentional)
+- SC → `ListDetailSectionHeader` migration (optional)
+- SC soft-nav skeleton when `urls < 2`
+- Skeleton vs live spacing parity
 - Toast unit tests; viewer jobs-menu UI gate
 - Optional `(auth)` route-group; lists/browse cold API slim; status API speed OOS; full metadata/AI rewrite OOS; Prisma 7/8 OOS
 
 ## Current checkpoint
 
-- **Stage:** C7.16 Activity hover + Insights labels — commit-ready.
-- **Scope:** ActivityFeed full-bleed hover; chart label clipping; share row align on `main`.
-- **Validation:** tsc · lint 0 · Jest 130 pass · build · verify-deep PASS WITH WARNINGS.
+- **Stage:** C7.17 — committed via `/commit-ready`.
+- **Cycle:** C7
+- **Status:** Verified (PASS WITH WARNINGS: optional Comments knownCount test + title referrerPolicy parity left intentionally).
+- **Validation:** tsc · lint 0 · focused Jest 27 · build · verify-deep PASS WITH WARNINGS.
+- **Trace:** REQ-0052, TASK-0058.
 
 ## Next
 
 ```text
-1. Push → deploy → TASK-0039 (Activity hover, Insights labels, warm revisit).
-2. Optional: spacing parity; Toast tests; viewer jobs-menu UI gate.
+1. Push when user requests; TASK-0039 production browser smoke for C7.17.
+2. User supplies next polish/fix list → plan → implement.
 ```

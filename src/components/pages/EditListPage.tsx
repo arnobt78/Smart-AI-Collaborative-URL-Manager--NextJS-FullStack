@@ -130,9 +130,9 @@ export default function EditListPageClient({ list, onClose, onPendingChange }: E
 
         <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
           <CancelButton onClick={onClose} disabled={isPending}>Cancel</CancelButton>
-          <Button type="submit" variant="primary" isLoading={isPending}>
+          <Button type="submit" variant="primary" isLoading={isPending} loadingText="Saving…">
             <Save className="h-4 w-4 shrink-0" aria-hidden />
-            {isPending ? "Saving..." : "Save Changes"}
+            Save Changes
           </Button>
         </div>
       </form>

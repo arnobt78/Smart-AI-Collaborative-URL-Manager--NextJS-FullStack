@@ -1,167 +1,36 @@
-import {
-  render,
-  screen,
-  act,
-  waitFor,
-} from "@testing-library/react";
+import React from "react";
+import { render, screen } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ToastProvider } from "@/components/ui/Toaster";
 import { UrlList } from "../UrlList";
 import { currentList } from "@/stores/urlListStore";
+import { verticalOnlyTransform } from "@/lib/dnd-vertical";
+import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
 
-// Mock useRealtimeList hook
 jest.mock("@/hooks/useRealtimeList", () => ({
   useRealtimeList: jest.fn(() => ({ isConnected: false })),
 }));
 
-// Mock nanostores and @nanostores/react to avoid ESM issues
-jest.mock("nanostores", () => ({
-  atom: jest.fn((initial) => {
-    let value = initial;
-    const listeners = new Set<(newValue: any) => void>();
-    return {
-      get: jest.fn(() => value),
-      set: jest.fn((newValue) => {
-        value = newValue;
-        listeners.forEach((listener) => listener(newValue));
-      }),
-      subscribe: jest.fn((listener) => {
-        listeners.add(listener);
-        return () => listeners.delete(listener);
-      }),
-      listen: jest.fn((listener) => {
-        listeners.add(listener);
-        return () => listeners.delete(listener);
-      }),
-    };
-  }),
-  map: jest.fn((initial) => {
-    let value = initial || {};
-    const listeners = new Set<(newValue: any) => void>();
-    return {
-      get: jest.fn(() => value),
-      set: jest.fn((newValue) => {
-        value = newValue;
-        listeners.forEach((listener) => listener(newValue));
-      }),
-      subscribe: jest.fn((listener) => {
-        listeners.add(listener);
-        return () => listeners.delete(listener);
-      }),
-      listen: jest.fn((listener) => {
-        listeners.add(listener);
-        return () => listeners.delete(listener);
-      }),
-    };
-  }),
-}));
-
-// Mock @nanostores/react - need to use actual store functionality
-jest.mock("@nanostores/react", () => {
-  const React = jest.requireActual("react");
-  return {
-    useStore: (store: any) => {
-      const [value, setValue] = React.useState(() => store.get());
-      React.useEffect(() => {
-        const unsubscribe = store.listen(setValue);
-        return unsubscribe;
-      }, [store]);
-      return value;
-    },
-  };
-});
-
-// Mock fetch API
-global.fetch = jest.fn();
-
-// Mock EventSource for useRealtimeList
 global.EventSource = jest.fn().mockImplementation(() => ({
   addEventListener: jest.fn(),
   removeEventListener: jest.fn(),
   close: jest.fn(),
   readyState: 1,
-  url: "",
-  withCredentials: false,
-})) as any;
+})) as unknown as typeof EventSource;
 
-// Mock next/image
-jest.mock("next/image", () => ({
-  __esModule: true,
-  default: (props: any) => {
-    // eslint-disable-next-line @next/next/no-img-element, jsx-a11y/alt-text
-    return <img {...props} />;
-  },
-}));
-
-// Create a test wrapper with all necessary providers
-function TestWrapper({ children }: { children: React.ReactNode }) {
+function renderWithProviders(ui: React.ReactElement) {
   const queryClient = new QueryClient({
-    defaultOptions: {
-      queries: {
-        retry: false,
-        refetchOnWindowFocus: false,
-      },
-    },
+    defaultOptions: { queries: { retry: false, refetchOnWindowFocus: false } },
   });
-
-  return (
+  return render(
     <QueryClientProvider client={queryClient}>
-      <ToastProvider>{children}</ToastProvider>
-    </QueryClientProvider>
+      <ToastProvider>{ui}</ToastProvider>
+    </QueryClientProvider>,
   );
 }
 
-describe.skip("UrlList Drag-and-Drop Diagnostic Tests", () => {
+describe("UrlList vertical drag constraints", () => {
   beforeEach(() => {
-    // Clear localStorage before each test
-    localStorage.clear();
-    (window as any).__dragOrderCache = {};
-
-    // Reset mocks
-    jest.clearAllMocks();
-    (global.fetch as jest.Mock).mockImplementation((url: string) => {
-      // Mock API response that returns the same order (simulating bounce-back)
-      if (url.includes("/api/lists/") && url.includes("/urls")) {
-        const method = (global.fetch as jest.Mock).mock.calls.find(
-          (call) => call[0] === url
-        )?.[1]?.method;
-
-        if (method === "PATCH") {
-          // Get the body sent to API
-          const bodyCall = (global.fetch as jest.Mock).mock.calls.find(
-            (call) => call[0] === url && call[1]?.body
-          );
-          const body = bodyCall ? JSON.parse(bodyCall[1].body) : null;
-
-          return Promise.resolve({
-            ok: true,
-            json: async () => {
-              // DIAGNOSTIC: Return what was sent (should preserve order)
-              // If order bounces back, it means client-side state is wrong
-              const returnedUrls = body?.urls || [];
-              return {
-                success: true,
-                list: {
-                  id: "test-list",
-                  slug: "test-list",
-                  urls: returnedUrls,
-                },
-              };
-            },
-          });
-        }
-      }
-      // Default metadata fetch response
-      return Promise.resolve({
-        ok: true,
-        json: async () => ({
-          title: "Test Title",
-          description: "Test Description",
-        }),
-      });
-    });
-
-    // Reset currentList store with test data
     currentList.set({
       id: "test-list",
       slug: "test-list",
@@ -182,185 +51,28 @@ describe.skip("UrlList Drag-and-Drop Diagnostic Tests", () => {
           isFavorite: false,
           position: 1,
         },
-        {
-          id: "3",
-          url: "https://example.com/3",
-          title: "Example 3",
-          createdAt: new Date().toISOString(),
-          isFavorite: false,
-          position: 2,
-        },
       ],
     });
   });
 
-  it("diagnoses drag-and-drop bounce-back issue", async () => {
-    render(
-      <TestWrapper>
-        <UrlList />
-      </TestWrapper>
-    );
-
-    // Wait for initial render
-    await waitFor(() => {
-      expect(screen.getByText("Example 1")).toBeInTheDocument();
-      expect(screen.getByText("Example 2")).toBeInTheDocument();
-      expect(screen.getByText("Example 3")).toBeInTheDocument();
-    });
-
-    // Get initial order from DOM
-    const initialItems = screen.getAllByText(/Example \d/);
-    const initialOrder = initialItems.map((item) => item.textContent);
-
-    // Find draggable elements - dnd-kit uses data-id attribute or aria-describedby
-    // The items are rendered within SortableContext
-    const allTextElements = screen.getAllByText(/Example \d/);
-    expect(allTextElements.length).toBeGreaterThanOrEqual(3);
-
-    // Find parent elements that contain the draggable items
-    const firstItem = screen
-      .getByText("Example 1")
-      .closest('[role="button"], [role="listitem"], div');
-    const secondItem = screen
-      .getByText("Example 2")
-      .closest('[role="button"], [role="listitem"], div');
-
-    expect(firstItem).toBeTruthy();
-    expect(secondItem).toBeTruthy();
-
-    // Simulate drag operation: move item "1" to position of item "2"
-    // This should result in order: 2, 1, 3
-    // Note: We're not actually using a DragEndEvent since we can't easily access internal handlers
-    // Instead, we simulate the drag by directly updating the store as handleDragEnd would
-    act(() => {
-      // Simulate the drag by directly updating store as handleDragEnd would
-      const current = currentList.get();
-      if (current?.urls && current.id) {
-        const urls = current.urls as any[];
-        // Move item 1 to position 2 (swap 1 and 2)
-        const oldIndex = urls.findIndex((u) => u.id === "1");
-        const newIndex = urls.findIndex((u) => u.id === "2");
-
-        const reordered = [...urls];
-        const [moved] = reordered.splice(oldIndex, 1);
-        reordered.splice(newIndex, 0, moved);
-
-        // Update positions
-        const reorderedWithPositions = reordered.map((url, idx) => ({
-          ...url,
-          position: idx,
-        }));
-
-        currentList.set({ ...current, urls: reorderedWithPositions });
-      }
-    });
-
-    // Wait a bit for store update to propagate
-    await act(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 100));
-    });
-
-    // Check store order immediately after update
-    const _storeAfterUpdate = currentList.get().urls?.map((u: any) => u.id);
-
-    // Wait for re-render after store update
-    await waitFor(
-      () => {
-        const newItems = screen.getAllByText(/Example/);
-        const newOrder = newItems
-          .map((item) => item.textContent?.trim())
-          .filter(Boolean);
-
-        // Check if we have items
-        if (newOrder.length >= 3) {
-          return true;
-        }
-        return false;
-      },
-      { timeout: 3000 }
-    );
-
-    // Get final order after wait
-    const finalItems = screen.getAllByText(/Example/);
-    const finalOrder = finalItems
-      .map((item) => item.textContent?.trim())
-      .filter(Boolean);
-    const finalStoreOrder = currentList.get().urls?.map((u: any) => u.id);
-
-
-    // Check localStorage for preserved order
-    const storageKey = "drag-order:test-list";
-    const _stored = localStorage.getItem(storageKey);
-
-    // DIAGNOSIS: Check if order changed
-    const orderChanged =
-      JSON.stringify(initialOrder) !== JSON.stringify(finalOrder);
-    const expectedStoreOrder = ["2", "1", "3"]; // After moving item 1 to position of item 2
-    const storeOrderCorrect =
-      JSON.stringify(finalStoreOrder) === JSON.stringify(expectedStoreOrder);
-
-
-    if (!orderChanged && storeOrderCorrect) {
-    } else if (orderChanged && !storeOrderCorrect) {
-    } else if (!orderChanged && !storeOrderCorrect) {
-    } else {
-    }
-
-    // Check if positions were updated correctly
-    const _positions = finalStoreOrder?.map((id, idx) => {
-      const url = currentList.get().urls?.find((u: any) => u.id === id);
-      return { id, position: url?.position, expectedPosition: idx };
-    });
-
-    // At minimum, verify store has correct order
-    // If DOM doesn't update, that's the issue we're diagnosing
-    expect(finalStoreOrder).toEqual(["2", "1", "3"]);
+  it("clamps sortable transforms to Y axis only", () => {
+    expect(verticalOnlyTransform(null)).toBeNull();
+    expect(verticalOnlyTransform(undefined)).toBeNull();
+    expect(
+      verticalOnlyTransform({ x: 40, y: -12, scaleX: 1, scaleY: 1 }),
+    ).toEqual({ x: 0, y: -12, scaleX: 1, scaleY: 1 });
   });
 
-  it("checks if sortableContextKey remount is causing issues", async () => {
-    render(
-      <TestWrapper>
-        <UrlList />
-      </TestWrapper>
-    );
-
-    await waitFor(() => {
-      expect(screen.getByText("Example 1")).toBeInTheDocument();
-    });
-
-    // Check if component structure supports drag
-    // dnd-kit renders items within SortableContext, which may not have explicit data-id
-    const items = screen.getAllByText(/Example \d/);
-
-    // Verify items are rendered (component structure supports drag)
-    expect(items.length).toBeGreaterThanOrEqual(3);
+  it("exports dnd-kit vertical axis modifier used by UrlList", () => {
+    expect(typeof restrictToVerticalAxis).toBe("function");
   });
 
-  it("checks if urlsToUse memo is using correct source", async () => {
-    render(
-      <TestWrapper>
-        <UrlList />
-      </TestWrapper>
-    );
-
-    await waitFor(() => {
-      expect(screen.getByText("Example 1")).toBeInTheDocument();
-    });
-
-    // Check initial state
-    const _storeUrls = currentList.get().urls;
-
-    // Check localStorage
-    const storageKey = "drag-order:test-list";
-    const _stored = localStorage.getItem(storageKey);
-
-    // Check global cache
-    const _globalCache = (window as any).__dragOrderCache;
-
-    // The urlsToUse memo should prefer:
-    // 1. finalDragOrderRef.current
-    // 2. localStorage/globalCache
-    // 3. store
-    // If items bounce back, the memo might be using the store instead of ref/cache
+  it("wraps sortable URL cards in overflow-x-hidden", () => {
+    const { container } = renderWithProviders(<UrlList />);
+    expect(screen.getByText("Example 1")).toBeInTheDocument();
+    const stack = container.querySelector(".overflow-x-hidden");
+    expect(stack).toBeTruthy();
+    expect(stack?.textContent).toContain("Example 1");
+    expect(stack?.textContent).toContain("Example 2");
   });
 });

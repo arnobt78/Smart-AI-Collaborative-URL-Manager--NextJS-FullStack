@@ -1017,3 +1017,27 @@ These describe the current product as verified in code. They are **Accepted as b
 | C7.14 | Share/header/UrlCard date polish; GlassPortalMenu (superseded) | VALIDATION 2026-08-31 |
 | C7.15 | Radix menus; `CARD_STACK`; UrlCard note/chips | DEC-0054; commit `b9bdfdc` |
 | C7.16 | List-detail glass contract; token split; UrlFilterBar Radix | DEC-0055; REQ-0051 baseline |
+
+---
+
+### REQ-0052 — C7.17 list-detail polish (avatars, drag, Visit, dialogs, search, loaders) (approved 2026-09-02)
+
+**Priority:** P1  
+**Type:** UX / list-detail polish  
+
+**Statement:** List detail MUST match collaborator avatar rings to navbar profile (`border border-white/20`); URL reorder MUST lock to vertical axis; Visit/Similar Visit MUST use real `<a target="_blank">` with `ensureAbsoluteHttpUrl`; Similar/Comments/Edit/Add/Collaborator dialogs MUST use create-list `Dialog` `headerMode="scroll"` shell without double padding; list search MUST be instant client-side filter with Lucide Search (no AI smart-search bar); Comments with `commentCount===0` and warm Similar RQ cache MUST open without spinner; Button `isLoading` MUST show spinner + `loadingText` only (hide children).
+
+**Acceptance criteria:**
+
+- [x] Collaborator avatars match ProfileDropdown ring weight (no double ring/glow).
+- [x] DnD uses `restrictToVerticalAxis` + overflow-x guard; no horizontal page scroll while dragging.
+- [x] Card title, Visit Site, Similar Visit are real anchors; empty href disables Visit.
+- [x] Dialogs listed above use `headerMode="scroll"` parity with CreateListDialog.
+- [x] UrlList search filters title/url/description/tags client-side; no `/api/search/smart` from the bar; Find Similar stays separate.
+- [x] Comments `knownCount===0` skips fetch; Similar uses RQ key `["similar", listId, urlId]` with staleTime; cold-miss spinner only.
+- [x] Button `loadingText` contract migrated on dialog/confirm actions; idle Lucide icons where missing.
+- [x] tsc, lint 0, focused Jest pass.
+
+**Affected:** PermissionManager, UrlList, UrlCard, UrlEditModal, UrlAddForm, Comments, Button, AlertDialog, Dialog consumers.  
+**Trace:** TASK-0058.  
+**Status:** Completed and locally validated [C7.17] on 2026-09-02.

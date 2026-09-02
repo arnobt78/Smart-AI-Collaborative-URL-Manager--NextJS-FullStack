@@ -201,9 +201,9 @@ export default function NewListPageClient({ onClose, onPendingChange }: NewListP
 
         <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
           <CancelButton onClick={close} disabled={isPending}>Cancel</CancelButton>
-          <Button type="submit" variant="glassPurple" isLoading={isPending}>
+          <Button type="submit" variant="glassPurple" isLoading={isPending} loadingText="Creating…">
             <ListPlus className="h-4 w-4 shrink-0" aria-hidden />
-            {isPending ? "Creating..." : "Create List"}
+            Create List
           </Button>
         </div>
       </form>

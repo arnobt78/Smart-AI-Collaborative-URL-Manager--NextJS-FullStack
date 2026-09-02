@@ -369,5 +369,16 @@ RSC shells · densify/Zod/SHA/Next16
 
 **Dependencies:** REQ-0051; GATE-0036 approved (baseline waves); C7.15 Radix menu base.
 
+### TASK-0058 — C7.17 list-detail polish — **DONE**
+
+1. ~~Wave 1: Collaborator avatar = navbar border ring; dnd `restrictToVerticalAxis` + overflow-x guard.~~
+2. ~~Wave 2: Real `<a>` Visit links; unify Similar/Comments/Edit/Add/Collab dialogs to create-list Dialog scroll shell.~~
+3. ~~Wave 3: Lucide Search + client-side UrlList filter; remove AI bar API/placeholder.~~
+4. ~~Wave 4: Instant empty/warm Similar+Comments; Button `isLoading` = spinner+`loadingText` only; dialog action icons.~~
+5. ~~Empty-href IconButton/title guards; `verticalOnlyTransform` + active drag tests.~~
+6. ~~Validate tsc/lint/Jest/build; docs sync at commit-ready.~~
+
+**Dependencies:** REQ-0052; plan approved 2026-09-02.
+
 
 

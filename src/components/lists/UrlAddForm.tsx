@@ -214,6 +214,7 @@ export function UrlAddForm({
       title="Add URL"
       description="Save a URL, tags, and an optional note to this collection."
       pending={isLoading}
+      headerMode="scroll"
     >
       <form
         onSubmit={handleSubmit}
@@ -277,8 +278,8 @@ export function UrlAddForm({
             <ClearButton onClick={handleClear} disabled={isLoading}>Clear</ClearButton>
           )}
           <CancelButton onClick={onCancel} disabled={isLoading}>Cancel</CancelButton>
-          <Button type="submit" isLoading={isLoading} variant="glassEmerald">
-            <WandSparkles className="h-4 w-4  shrink-0" aria-hidden />
+          <Button type="submit" isLoading={isLoading} loadingText="Adding…" variant="glassEmerald">
+            <WandSparkles className="h-4 w-4 shrink-0" aria-hidden />
             Add URL
           </Button>
         </div>
