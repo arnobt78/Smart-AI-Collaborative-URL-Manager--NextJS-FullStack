@@ -4,12 +4,11 @@
  * ProfileDropdown — PORTABLE_AUTH_UI_GUIDE §2.2
  * Radix DropdownMenu modal={false} — sticky Navbar does not scroll-lock.
  * Order: name+email → separator → utility links → separator → Logout.
- * C7.7: Optimistic logout — queue goodbye, force-guest, clear caches, keepalive
- * signout in background, immediate replace("/login") → chrome-free Auth.
+ * C7.7: Optimistic logout — queue goodbye, force-guest, keepalive signout,
+ * immediate replace("/login"). Do not clear RQ before nav (avoids avatar flash).
  */
 import { useRef } from "react";
 import Link from "next/link";
-import { useQueryClient } from "@tanstack/react-query";
 import { Activity, FileText, LogOut } from "lucide-react";
 import { UserAvatar } from "@/components/ui/UserAvatar";
 import {
@@ -23,9 +22,8 @@ import {
 import { UTILITY_NAVIGATION_ITEMS } from "@/constants/auth";
 import { displayNameFromEmail } from "@/lib/robohash";
 import { queueAuthToast } from "@/lib/auth-toast";
-import { setWasAuthedHintClient } from "@/lib/was-authed";
 import { UI_GLASS_MENU_TRIGGER_FOCUS, UI_ICON_CONTROL } from "@/lib/ui/control-styles";
-import { markForceGuest } from "@/lib/logout-client";
+import { markForceGuest, hardNavigateToLogin } from "@/lib/logout-client";
 
 export type ProfileDropdownProps = {
   email: string;
@@ -43,30 +41,17 @@ export function ProfileDropdown({
   onNavigate,
 }: ProfileDropdownProps) {
   const logoutInFlightRef = useRef(false);
-  const queryClient = useQueryClient();
   const name = fullName || displayNameFromEmail(email);
 
   const handleLogout = () => {
     if (logoutInFlightRef.current) return;
     logoutInFlightRef.current = true;
 
-    // Toast first — survives hard nav via sessionStorage + AuthToastBridge
-    queueAuthToast({ kind: "goodbye", name });
-    setWasAuthedHintClient(false);
-
-    void queryClient.cancelQueries();
-    queryClient.setQueryData(["session"], { user: null });
-    queryClient.clear();
-
     if (typeof window === "undefined") return;
 
-    Object.keys(localStorage).forEach((key) => {
-      if (key.startsWith("react-query:")) {
-        localStorage.removeItem(key);
-      }
-    });
-
-    // Mark force-guest LAST so cookie is on the next document request
+    // Toast first — survives hard nav via sessionStorage + AuthToastBridge
+    queueAuthToast({ kind: "goodbye", name });
+    // Force-guest before replace so /login SSR sees guest immediately
     markForceGuest();
 
     // Background: clear httpOnly session_token + DB session (do not await)
@@ -76,8 +61,8 @@ export function ProfileDropdown({
       keepalive: true,
     });
 
-    // Chrome-free Auth lives on /login (one document scrollbar; no overlay)
-    window.location.replace("/login");
+    // Navigate immediately — do not clear RQ first (avoids profile-gone / page-stays flash)
+    hardNavigateToLogin();
   };
 
   return (

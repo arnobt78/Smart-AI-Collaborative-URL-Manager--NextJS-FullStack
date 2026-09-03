@@ -1,19 +1,20 @@
 /**
- * C7.0: Full My Lists card from UserList props — title, visibility, description,
- * stats/dates with icons, and view/edit/delete actions. Shared by ListsPage and
- * OptimisticSoftNavSurface so warm soft-nav paints complete cards (no late catch-up).
- * Chrome aligned with ListDetailHeaderChrome (Blocks / Badge / DescriptionRow + CARD_STACK).
+ * C7.0: Full My Lists card — title pointer only; sticky meta footer.
  */
 "use client";
 
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
+import { DescriptionRow } from "@/components/ui/DescriptionRow";
+import { ListTitleRow } from "@/components/lists/ListTitleRow";
 import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
 import { Blocks, Eye, Globe2, GlobeLock, Users } from "lucide-react";
 import type { UserList } from "@/hooks/useListQueries";
-import { DescriptionRow } from "@/components/ui/DescriptionRow";
 import { ListMetaDates } from "@/lib/ui/list-meta-dates";
-import { UI_ICON_CONTROL, UI_LIST_CARD_META_BADGE } from "@/lib/ui/control-styles";
+import {
+  UI_ICON_CONTROL,
+  UI_LIST_CARD_META_BADGE,
+} from "@/lib/ui/control-styles";
 import {
   GLASS_LIST_CARD,
   GLASS_LIST_CARD_INTERACTIVE,
@@ -62,127 +63,123 @@ export function MyListsCard({
   const updatedDate = getListDate(list, "updated");
   const urlCount = list.urls?.length || 0;
   const collaboratorCount = list.collaborators?.length || 0;
-  const description = list.description || "";
+  const description = list.description?.trim() || "No description yet";
   const isPublic = list.isPublic ?? false;
 
   return (
     <div
       className={cn(
-        "group relative overflow-hidden",
+        "group relative h-full cursor-default overflow-hidden",
         GLASS_LIST_CARD,
         GLASS_LIST_CARD_INTERACTIVE,
         "duration-300 hover:border-blue-400/40",
         CARD_PAD,
+        CARD_STACK,
       )}
     >
-      <div className="flex flex-col items-start justify-between gap-2 sm:flex-row sm:items-start sm:gap-4">
-        <div className={cn(CARD_STACK, "min-w-0 w-full flex-1")}>
-          <div className="flex w-full min-w-0 items-start gap-1 sm:gap-2">
-            <Blocks
-              className={cn(UI_ICON_CONTROL, "mt-0.5 self-start text-blue-300")}
-              aria-hidden
-            />
-            <button
-              type="button"
-              onClick={onView}
-              className="min-w-0 flex-1 break-words text-left text-sm font-medium text-white line-clamp-2 transition-colors group-hover:text-blue-300 sm:text-base"
-            >
-              {list.title || `List: ${list.slug}`}
-            </button>
-          </div>
-
-          <div className="flex w-full min-w-0 flex-wrap items-center gap-1 sm:gap-2 text-xs sm:text-sm text-white/60">
-            <Badge
-              variant="secondary"
-              className={cn(
-                badgeTextClass,
-                UI_LIST_CARD_META_BADGE,
-                "w-fit border",
-              )}
-            >
-              {urlCount} {urlCount === 1 ? "URL" : "URLs"}
-            </Badge>
-            {list.isPublic !== undefined && (
-              <Badge
-                variant={isPublic ? "success" : "secondary"}
-                className={cn(
-                  badgeTextClass,
-                  UI_LIST_CARD_META_BADGE,
-                  "w-fit min-w-6 border sm:min-w-0",
-                )}
-              >
-                {isPublic ? (
-                  <>
-                    <Globe2 className={UI_ICON_CONTROL} aria-hidden />
-                    <span className="hidden sm:inline">Public</span>
-                  </>
-                ) : (
-                  <>
-                    <GlobeLock className={UI_ICON_CONTROL} aria-hidden />
-                    <span className="hidden sm:inline">Private</span>
-                  </>
-                )}
-              </Badge>
-            )}
-            <span className="inline-flex items-center gap-1">
-              <Users
-                className={cn(UI_ICON_CONTROL, "text-purple-400")}
-                aria-hidden
-              />
-              <span className="font-medium text-white/80">
-                {collaboratorCount}
-              </span>
-              <span className="hidden sm:inline">
-                {collaboratorCount === 1 ? "Collaborator" : "Collaborators"}
-              </span>
-            </span>
-            <ListMetaDates
-              createdAt={createdDate}
-              updatedAt={updatedDate}
-              className="text-xs sm:text-sm"
-            />
-          </div>
-
-          {description ? (
-            <DescriptionRow text={description} lineClamp />
-          ) : null}
-        </div>
-
-        <div className="flex w-full shrink-0 items-center justify-end gap-1 sm:w-auto">
-          <Button
+      <ListTitleRow
+        icon={Blocks}
+        hue="blue"
+        title={
+          <button
+            type="button"
             onClick={onView}
-            variant="ghost"
-            className="p-2 text-white/80 transition-colors hover:border-blue-400/30 hover:bg-blue-500/20 hover:text-blue-400"
-            title="View List"
-            aria-label={`View ${list.title || list.slug}`}
+            className="min-w-0 w-full cursor-pointer break-words text-left text-sm font-medium leading-[1.15] text-white line-clamp-2 transition-colors hover:text-blue-300 sm:text-base"
           >
-            <Eye className={UI_ICON_CONTROL} aria-hidden />
-          </Button>
-          <Button
-            onClick={() => {
-              if (!actionsDisabled) onEdit?.();
-            }}
-            variant="ghost"
-            disabled={actionsDisabled || !onEdit}
-            className="border border-transparent p-2 text-white/80 transition-colors hover:border-blue-400/30 hover:bg-blue-500/20 hover:text-blue-400 disabled:opacity-60"
-            title="Edit List"
-            aria-label={`Edit ${list.title || list.slug}`}
+            {list.title || `List: ${list.slug}`}
+          </button>
+        }
+        trailing={
+          <>
+            <Button
+              onClick={onView}
+              variant="ghost"
+              className="p-2 text-white/80 transition-colors hover:border-blue-400/30 hover:bg-blue-500/20 hover:text-blue-400"
+              title="View List"
+              aria-label={`View ${list.title || list.slug}`}
+            >
+              <Eye className={UI_ICON_CONTROL} aria-hidden />
+            </Button>
+            <Button
+              onClick={() => {
+                if (!actionsDisabled) onEdit?.();
+              }}
+              variant="ghost"
+              disabled={actionsDisabled || !onEdit}
+              className="border border-transparent p-2 text-white/80 transition-colors hover:border-blue-400/30 hover:bg-blue-500/20 hover:text-blue-400 disabled:opacity-60"
+              title="Edit List"
+              aria-label={`Edit ${list.title || list.slug}`}
+            >
+              <PencilIcon className={UI_ICON_CONTROL} aria-hidden />
+            </Button>
+            <Button
+              onClick={() => {
+                if (!actionsDisabled) onDelete?.();
+              }}
+              variant="ghost"
+              disabled={actionsDisabled || deletePending || !onDelete}
+              className="border border-transparent p-2 text-white/80 transition-colors hover:border-red-400/30 hover:bg-red-500/20 hover:text-red-400 disabled:opacity-60"
+              title="Delete List"
+              aria-label={`Delete ${list.title || list.slug}`}
+            >
+              <TrashIcon className={UI_ICON_CONTROL} aria-hidden />
+            </Button>
+          </>
+        }
+      />
+
+      <DescriptionRow text={description} lineClamp />
+
+      <div className="mt-auto flex w-full min-w-0 flex-wrap items-center gap-1 sm:gap-2 text-xs sm:text-sm text-white/60">
+        <Badge
+          variant="secondary"
+          className={cn(
+            badgeTextClass,
+            UI_LIST_CARD_META_BADGE,
+            "w-fit border",
+          )}
+        >
+          {urlCount} {urlCount === 1 ? "URL" : "URLs"}
+        </Badge>
+        {list.isPublic !== undefined && (
+          <Badge
+            variant={isPublic ? "success" : "secondary"}
+            className={cn(
+              badgeTextClass,
+              UI_LIST_CARD_META_BADGE,
+              "w-fit min-w-6 border sm:min-w-0",
+            )}
           >
-            <PencilIcon className={UI_ICON_CONTROL} aria-hidden />
-          </Button>
-          <Button
-            onClick={() => {
-              if (!actionsDisabled) onDelete?.();
-            }}
-            variant="ghost"
-            disabled={actionsDisabled || deletePending || !onDelete}
-            className="border border-transparent p-2 text-white/80 transition-colors hover:border-red-400/30 hover:bg-red-500/20 hover:text-red-400 disabled:opacity-60"
-            title="Delete List"
-            aria-label={`Delete ${list.title || list.slug}`}
-          >
-            <TrashIcon className={UI_ICON_CONTROL} aria-hidden />
-          </Button>
-        </div>
+            {isPublic ? (
+              <>
+                <Globe2 className={UI_ICON_CONTROL} aria-hidden />
+                <span className="hidden sm:inline">Public</span>
+              </>
+            ) : (
+              <>
+                <GlobeLock className={UI_ICON_CONTROL} aria-hidden />
+                <span className="hidden sm:inline">Private</span>
+              </>
+            )}
+          </Badge>
+        )}
+        <span className="inline-flex items-center gap-1">
+          <Users
+            className={cn(UI_ICON_CONTROL, "text-purple-400")}
+            aria-hidden
+          />
+          <span className="font-medium text-white/80">
+            {collaboratorCount}
+          </span>
+          <span className="hidden sm:inline">
+            {collaboratorCount === 1 ? "Collaborator" : "Collaborators"}
+          </span>
+        </span>
+        <ListMetaDates
+          createdAt={createdDate}
+          updatedAt={updatedDate}
+          className="text-xs sm:text-sm"
+        />
       </div>
     </div>
   );

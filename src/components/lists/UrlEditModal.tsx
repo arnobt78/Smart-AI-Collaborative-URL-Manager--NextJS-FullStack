@@ -12,6 +12,7 @@ import { queryClient } from "@/lib/react-query";
 import type { UrlMetadata } from "@/utils/urlMetadata";
 import { saveQueryDataToLocalStorage } from "@/lib/react-query";
 import { UI_ICON_CONTROL } from "@/lib/ui/control-styles";
+import { parseUserEnteredUrl } from "@/lib/utils";
 
 interface UrlEditModalProps {
   editingUrl: UrlItem | null;
@@ -78,9 +79,10 @@ export function UrlEditModal({
     // Skip if URL hasn't changed or is empty/invalid
     if (editingUrl.url === previousUrlRef.current) return;
 
-    // Validate URL format
+    // Validate + normalize so prefetch keys match edit/submit https:// hosts
+    let normalizedUrl: string;
     try {
-      new URL(editingUrl.url);
+      normalizedUrl = parseUserEnteredUrl(editingUrl.url).toString();
     } catch {
       return; // Invalid URL, skip prefetch
     }
@@ -97,7 +99,7 @@ export function UrlEditModal({
         return;
       }
 
-      const queryKey = ["url-metadata", editingUrl.url] as const;
+      const queryKey = ["url-metadata", normalizedUrl] as const;
 
       // Check if already cached (might have been cached by PATCH response)
       const cached = queryClient.getQueryData<UrlMetadata>(queryKey);
@@ -115,7 +117,7 @@ export function UrlEditModal({
         const baseUrl =
           typeof window !== "undefined" ? window.location.origin : "";
         const response = await fetch(
-          `${baseUrl}/api/metadata?url=${encodeURIComponent(editingUrl.url)}`,
+          `${baseUrl}/api/metadata?url=${encodeURIComponent(normalizedUrl)}`,
           { signal: abortController.signal },
         );
 
@@ -183,10 +185,16 @@ export function UrlEditModal({
             .split(",")
             .map((tag) => tag.trim())
             .filter((tag) => tag.length > 0);
+          let normalizedUrl = editingUrl.url;
+          try {
+            normalizedUrl = parseUserEnteredUrl(editingUrl.url).toString();
+          } catch {
+            // Parent handleEditUrl also validates; keep raw so error toast can fire
+          }
           handleEditUrl(
             editingUrl.id,
             editingUrl.title || "",
-            editingUrl.url,
+            normalizedUrl,
             tagsArray.length > 0 ? tagsArray : undefined,
             editingNotes || undefined,
             editingReminder || undefined,

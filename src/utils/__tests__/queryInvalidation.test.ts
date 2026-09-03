@@ -2,6 +2,7 @@ import { QueryClient } from "@tanstack/react-query";
 import { browseQueryKeys } from "@/lib/browse-query-keys";
 import { listQueryKeys } from "@/lib/query-keys";
 import {
+  densifyAllLists,
   densifyBrowsePublicLists,
   dropUnifiedListCache,
   invalidateBrowseQueries,
@@ -58,6 +59,74 @@ describe("C7.1 densify browse + insights invalidation", () => {
 
     densifyBrowsePublicLists(client, { id: "a", slug: "a" }, { remove: true });
     expect(client.getQueryData<{ lists: { id: string }[] }>(key)?.lists).toEqual([]);
+  });
+
+  it("densifyAllLists inserts, upserts by temporaryId, and removes", () => {
+    const client = new QueryClient();
+    const key = listQueryKeys.allLists();
+    client.setQueryData(key, {
+      lists: [
+        {
+          id: "src",
+          slug: "src",
+          title: "Source",
+          urls: [{ id: "u1", url: "https://a.com" }],
+          collaborators: [],
+          createdAt: "2025-01-01T00:00:00.000Z",
+        },
+      ],
+    });
+
+    densifyAllLists(client, {
+      id: "temp-c",
+      slug: "temp-c",
+      title: "New Collection",
+      urls: [{ id: "u1", url: "https://a.com" }],
+      isPublic: false,
+      collaborators: [],
+      createdAt: "2025-01-02T00:00:00.000Z",
+      updatedAt: "2025-01-02T00:00:00.000Z",
+    });
+    expect(
+      client.getQueryData<{ lists: { id: string }[] }>(key)?.lists.map((l) => l.id),
+    ).toEqual(["temp-c", "src"]);
+
+    densifyAllLists(
+      client,
+      {
+        id: "real-c",
+        slug: "real-c",
+        title: "New Collection",
+        urls: [{ id: "u1", url: "https://a.com" }],
+        isPublic: false,
+        collaborators: [],
+        createdAt: "2025-01-02T00:00:00.000Z",
+        updatedAt: "2025-01-02T00:00:00.000Z",
+      },
+      { temporaryId: "temp-c" },
+    );
+    expect(
+      client
+        .getQueryData<{ lists: { id: string; slug: string }[] }>(key)
+        ?.lists.map((l) => `${l.id}:${l.slug}`),
+    ).toEqual(["real-c:real-c", "src:src"]);
+
+    densifyAllLists(client, {
+      id: "src",
+      slug: "src",
+      urls: [],
+      updatedAt: "2025-01-02T00:00:00.000Z",
+    });
+    expect(
+      client
+        .getQueryData<{ lists: { id: string; urls?: unknown[] }[] }>(key)
+        ?.lists.find((l) => l.id === "src")?.urls,
+    ).toEqual([]);
+
+    densifyAllLists(client, { id: "real-c", slug: "real-c" }, { remove: true });
+    expect(
+      client.getQueryData<{ lists: { id: string }[] }>(key)?.lists.map((l) => l.id),
+    ).toEqual(["src"]);
   });
 
   it("dropUnifiedListCache tombs unified so soft-nav cannot reseed a ghost", () => {

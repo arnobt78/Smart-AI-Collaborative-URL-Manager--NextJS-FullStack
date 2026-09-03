@@ -4,15 +4,15 @@
 
 /** Generic Card primitive (insights, API docs, and other non-list-detail surfaces). */
 export const GLASS_CARD =
-  "rounded-xl border border-white/10 bg-white/5 backdrop-blur-md shadow-lg";
+  "rounded-xl border border-white/20 bg-white/5 backdrop-blur-md shadow-lg";
 
 /** List/browse/detail contract — stronger shadow + sm:rounded-2xl (not for generic Card). */
 export const GLASS_LIST_CARD =
-  "bg-white/5 backdrop-blur-md border border-white/10 rounded-xl sm:rounded-2xl shadow-xl";
+  "bg-white/5 backdrop-blur-md border border-white/20 rounded-xl sm:rounded-2xl shadow-xl";
 
 /** Clickable list/browse cards — compose with GLASS_LIST_CARD. */
 export const GLASS_LIST_CARD_INTERACTIVE =
-  "transition-all duration-200 hover:bg-white/10 hover:border-blue-400/30 cursor-pointer";
+  "transition-all duration-200 hover:bg-white/10 hover:border-blue-400/30";
 
 export type GlassCardHue =
   | "blue"

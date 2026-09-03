@@ -59,6 +59,23 @@ export function ensureAbsoluteHttpUrl(raw: string): string {
 }
 
 /**
+ * Parse a user-entered URL for add/edit/prefetch.
+ * Accepts bare hosts (`example.com`) via ensureAbsoluteHttpUrl; rejects empty /
+ * scheme-only values (`https://`) that have no hostname.
+ */
+export function parseUserEnteredUrl(raw: string): URL {
+  const absolute = ensureAbsoluteHttpUrl(raw);
+  if (!absolute) {
+    throw new TypeError("Empty URL");
+  }
+  const url = new URL(absolute);
+  if (!url.hostname) {
+    throw new TypeError("URL missing hostname");
+  }
+  return url;
+}
+
+/**
  * Open an external URL in a new tab via a temporary <a target=_blank>.
  * Prefer this over window.open(..., "noopener") which breaks schemeless URLs / feature strings.
  */

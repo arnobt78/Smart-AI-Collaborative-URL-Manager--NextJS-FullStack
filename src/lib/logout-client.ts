@@ -54,3 +54,9 @@ export function clearForceGuest(): void {
     // ignore
   }
 }
+
+/** Hard nav to chrome-free Auth — isolated for tests (jsdom Location is non-writable). */
+export function hardNavigateToLogin(): void {
+  if (typeof window === "undefined") return;
+  window.location.replace("/login");
+}

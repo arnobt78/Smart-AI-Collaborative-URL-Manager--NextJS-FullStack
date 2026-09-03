@@ -46,7 +46,9 @@ import {
   UI_FORM_CONTROL,
   UI_GLASS_MENU_TRIGGER_FOCUS,
   UI_ICON_CONTROL,
+  UI_IDENTITY_GAP,
 } from "@/lib/ui/control-styles";
+import { GlassIconTile } from "@/components/ui/GlassIconTile";
 
 /** Left-panel process blurb — mirrors Home marketing features */
 const ABOUT_PROCESS = [
@@ -467,7 +469,8 @@ export default function Auth() {
                   <li
                     key={item.title}
                     className={cn(
-                      "flex items-start gap-3 rounded-xl border border-white/15 bg-white/5 backdrop-blur-md p-3 sm:p-4",
+                      "flex items-center rounded-xl border border-white/20 bg-white/5 backdrop-blur-md p-3 sm:p-4",
+                      UI_IDENTITY_GAP,
                       showAbout ? "animate-slide-up" : "opacity-0",
                     )}
                     style={
@@ -482,10 +485,8 @@ export default function Auth() {
                         : undefined
                     }
                   >
-                    <span className="flex size-9 shrink-0 items-center justify-center rounded-lg border border-blue-400/30 bg-blue-500/20 text-blue-300">
-                      <Icon className={UI_ICON_CONTROL} aria-hidden />
-                    </span>
-                    <span className="min-w-0">
+                    <GlassIconTile icon={Icon} hue="blue" />
+                    <span className={cn(HEADING_STACK, "min-w-0")}>
                       <span className="block text-sm font-medium text-white">
                         {item.title}
                       </span>

@@ -34,10 +34,15 @@ import {
 } from "lucide-react";
 import { useWarmSoftNav } from "@/hooks/useWarmSoftNav";
 import { AlertDialog } from "@/components/ui/AlertDialog";
+import { GlassIconTile } from "@/components/ui/GlassIconTile";
 import { CARD_STACK, HEADING_STACK } from "@/lib/ui-spacing";
-import { UI_ICON_CONTROL, UI_ICON_DECORATIVE } from "@/lib/ui/control-styles";
+import {
+  UI_ICON_CONTROL,
+  UI_ICON_DECORATIVE,
+  UI_IDENTITY_GAP,
+} from "@/lib/ui/control-styles";
 import { cn } from "@/lib/utils";
-import { invalidateMutationImpact } from "@/utils/queryInvalidation";
+import { invalidateMutationImpact, densifyAllLists } from "@/utils/queryInvalidation";
 
 interface SmartCollectionsProps {
   listId: string;
@@ -148,6 +153,8 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
   const [duplicateDeletePending, setDuplicateDeletePending] = useState(false);
   const [pendingDeleteDuplicate, setPendingDeleteDuplicate] =
     useState<DuplicateDetection | null>(null);
+  const [pendingCreateSuggestion, setPendingCreateSuggestion] =
+    useState<CollectionSuggestion | null>(null);
 
   // Track last invalidation time and event IDs to prevent duplicate API calls
   const lastInvalidationRef = useRef<number>(0);
@@ -333,6 +340,7 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
     const previousUnified = queryClient.getQueryData<{
       list?: typeof previousList;
     }>(listQueryKeys.unified(listSlug));
+    const previousAllLists = queryClient.getQueryData(listQueryKeys.allLists());
     const previousSuggestions = queryClient.getQueryData<{
       suggestions: CollectionSuggestion[];
     }>(suggestionKey);
@@ -350,6 +358,13 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
     const nextSuggestions = (
       previousSuggestions?.suggestions || suggestions
     ).filter((item) => item.id !== suggestion.id);
+    const nowIso = new Date().toISOString();
+    const temporaryId = `temporary-collection-${suggestion.id}`;
+    const collectionUrls = suggestion.urls.map((url) => ({
+      id: url.id,
+      url: url.url,
+      title: url.title,
+    }));
 
     // Commit the source-list change in both render surfaces before the request starts.
     currentList.set({ ...previousList, urls: optimisticUrls });
@@ -370,6 +385,34 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
       suggestions: nextSuggestions,
     });
 
+    // Warm My Lists immediately: new collection + source URL/date patch
+    densifyAllLists(queryClient, {
+      id: temporaryId,
+      slug: temporaryId,
+      title: suggestion.name,
+      description:
+        suggestion.description ||
+        `Collection created from ${previousList.title || listSlug}`,
+      urls: collectionUrls,
+      isPublic: false,
+      collaborators: [],
+      createdAt: nowIso,
+      updatedAt: nowIso,
+    });
+    densifyAllLists(queryClient, {
+      id: previousList.id || listId,
+      slug: previousList.slug || listSlug,
+      title: previousList.title,
+      description: previousList.description,
+      urls: optimisticUrls.map((url) => ({
+        id: url.id,
+        url: url.url,
+        title: url.title,
+      })),
+      isPublic: previousList.isPublic,
+      updatedAt: nowIso,
+    });
+
     try {
       const response = await fetch(`/api/lists/${listSlug}/collections`, {
         method: "POST",
@@ -387,7 +430,17 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
         throw new Error(error.error || "Failed to create collection");
       }
 
-      await response.json();
+      const data = (await response.json()) as {
+        list?: Parameters<typeof densifyAllLists>[1];
+        source?: Parameters<typeof densifyAllLists>[1];
+      };
+
+      if (data.list) {
+        densifyAllLists(queryClient, data.list, { temporaryId });
+      }
+      if (data.source) {
+        densifyAllLists(queryClient, data.source);
+      }
 
       toast({
         title: "Collection Created",
@@ -395,6 +448,7 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
         variant: "success",
       });
 
+      setPendingCreateSuggestion(null);
       invalidateMutationImpact(queryClient, "collection", listSlug, listId);
     } catch (error) {
       currentList.set(previousList);
@@ -402,6 +456,9 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
         listQueryKeys.unified(listSlug),
         previousUnified,
       );
+      if (previousAllLists) {
+        queryClient.setQueryData(listQueryKeys.allLists(), previousAllLists);
+      }
       queryClient.setQueryData(suggestionKey, previousSuggestions);
       if (previousOptimisticSuggestions) {
         queryClient.setQueryData(
@@ -451,8 +508,8 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
   if (!isExpanded) {
     return (
       <div className="flex items-center justify-between gap-2 sm:gap-2">
-        <div className="flex items-center gap-2 sm:gap-2 min-w-0 flex-1">
-          <Sparkles className={cn(UI_ICON_CONTROL, "text-blue-400")} />
+        <div className={cn("flex min-w-0 flex-1 items-center", UI_IDENTITY_GAP)}>
+          <GlassIconTile icon={Sparkles} hue="violet" />
           <div className={`${HEADING_STACK} min-w-0`}>
             <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
               <h3 className="font-medium text-white text-sm sm:text-base truncate">
@@ -485,8 +542,8 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
     <>
       <div className={cn(CARD_STACK, "space-y-2 sm:space-y-3")}>
         <div className="flex items-center justify-between gap-2 sm:gap-2 ">
-          <div className="flex items-center gap-2 sm:gap-2 min-w-0 flex-1">
-            <Sparkles className={cn(UI_ICON_CONTROL, "text-blue-400")} />
+          <div className={cn("flex min-w-0 flex-1 items-center", UI_IDENTITY_GAP)}>
+            <GlassIconTile icon={Sparkles} hue="violet" />
             <div className={`${HEADING_STACK} min-w-0`}>
               <CardTitle className="text-sm sm:text-base font-medium text-white">
                 Smart Collections
@@ -569,9 +626,8 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
                         size="sm"
                         variant="primary"
                         onClick={() => {
-                          // Prevent action if viewer (disabled state)
                           if (!permissions.canEdit) return;
-                          createCollection(suggestion);
+                          setPendingCreateSuggestion(suggestion);
                         }}
                         disabled={
                           isCreating === suggestion.id || !permissions.canEdit
@@ -853,6 +909,32 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
           </div>
         </div>
       </div>
+
+      {/* Create Collection Confirmation Dialog */}
+      <AlertDialog
+        open={pendingCreateSuggestion != null}
+        onOpenChange={(open) => {
+          if (!open && !isCreating) setPendingCreateSuggestion(null);
+        }}
+        title="Create Collection"
+        description={
+          pendingCreateSuggestion
+            ? `Create "${pendingCreateSuggestion.name}" as a new private list? ${pendingCreateSuggestion.urls.length} URL${pendingCreateSuggestion.urls.length === 1 ? "" : "s"} will leave this list and move into the new collection.`
+            : ""
+        }
+        confirmText="Create Collection"
+        cancelText="Cancel"
+        pending={Boolean(
+          pendingCreateSuggestion &&
+            isCreating === pendingCreateSuggestion.id,
+        )}
+        pendingText="Creating…"
+        closeOnConfirm={false}
+        onConfirm={async () => {
+          if (!pendingCreateSuggestion) return;
+          await createCollection(pendingCreateSuggestion);
+        }}
+      />
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog

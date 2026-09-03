@@ -373,7 +373,7 @@ export function ActivityFeed({ listId, limit = 50 }: ActivityFeedProps) {
     <div className="flex flex-col overflow-hidden rounded-xl sm:rounded-2xl">
       <ListDetailSectionHeader
         icon={Activity}
-        iconClassName="text-white/70"
+        hue="sky"
         title="Activity Feed"
         badge={<SectionCountBadge count={activities.length} />}
         subtitle="You & your collaborators' live activity"

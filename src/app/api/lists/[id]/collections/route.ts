@@ -198,7 +198,7 @@ export async function POST(
     // Remove URLs from original list
     const remainingUrls = urls.filter((url) => !urlIds.includes(url.id));
     const { updateList } = await import("@/lib/db");
-    await updateList(list.id, { urls: remainingUrls });
+    const updatedSource = await updateList(list.id, { urls: remainingUrls });
 
     // Create activity for both lists
     const { createActivity } = await import("@/lib/db/activities");
@@ -233,6 +233,23 @@ export async function POST(
       }),
     ]);
 
+    const toIso = (value: Date | string | null | undefined) => {
+      if (!value) return new Date().toISOString();
+      return value instanceof Date ? value.toISOString() : String(value);
+    };
+
+    const densifyList = {
+      id: newList.id,
+      slug: newList.slug,
+      title: newList.title,
+      description: newList.description,
+      urls: collectionUrls,
+      isPublic: false,
+      collaborators: [] as string[],
+      createdAt: toIso(newList.createdAt),
+      updatedAt: toIso(newList.updatedAt),
+    };
+
     return NextResponse.json({
       success: true,
       collection: {
@@ -240,6 +257,16 @@ export async function POST(
         slug: newList.slug,
         title: newList.title,
         urlCount: collectionUrls.length,
+      },
+      list: densifyList,
+      source: {
+        id: list.id,
+        slug: list.slug,
+        title: list.title,
+        description: list.description,
+        urls: remainingUrls,
+        isPublic: list.isPublic,
+        updatedAt: toIso(updatedSource?.updatedAt),
       },
     });
   } catch (error) {

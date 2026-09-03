@@ -5,6 +5,7 @@ import { currentList, type UrlList } from "@/stores/urlListStore";
 import { queryClient } from "@/lib/react-query";
 import { useToast } from "@/components/ui/Toaster";
 import {
+  densifyAllLists,
   densifyBrowsePublicLists,
   dropUnifiedListCache,
   invalidateMutationImpact,
@@ -152,10 +153,14 @@ export function useAddCollaborator(listId: string, listSlug?: string) {
       // Optimistic update
       const queryKey = listQueryKeys.collaborators(listId);
       await queryClient.cancelQueries({ queryKey });
+      await queryClient.cancelQueries({ queryKey: listQueryKeys.allLists() });
 
       const previous = queryClient.getQueryData<{
         collaborators: Array<{ email: string; role: string }>;
       }>(queryKey);
+      const previousAllLists = queryClient.getQueryData<{ lists: UserList[] }>(
+        listQueryKeys.allLists(),
+      );
 
       queryClient.setQueryData<{
         collaborators: Array<{ email: string; role: string }>;
@@ -179,7 +184,15 @@ export function useAddCollaborator(listId: string, listSlug?: string) {
         };
       });
 
-      return { previous };
+      const trimmed = email.trim();
+      patchAllListsCollaboratorEmails(queryClient, listId, (emails) => {
+        const exists = emails.some(
+          (e) => e.toLowerCase() === trimmed.toLowerCase(),
+        );
+        return exists ? emails : [...emails, trimmed];
+      });
+
+      return { previous, previousAllLists };
     },
     onSuccess: (data, variables) => {
       toast({
@@ -209,6 +222,12 @@ export function useAddCollaborator(listId: string, listSlug?: string) {
         queryClient.setQueryData(
           listQueryKeys.collaborators(listId),
           context.previous
+        );
+      }
+      if (context?.previousAllLists) {
+        queryClient.setQueryData(
+          listQueryKeys.allLists(),
+          context.previousAllLists,
         );
       }
 
@@ -330,10 +349,14 @@ export function useRemoveCollaborator(listId: string, listSlug?: string) {
     onMutate: async (email) => {
       const queryKey = listQueryKeys.collaborators(listId);
       await queryClient.cancelQueries({ queryKey });
+      await queryClient.cancelQueries({ queryKey: listQueryKeys.allLists() });
 
       const previous = queryClient.getQueryData<{
         collaborators: Array<{ email: string; role: string }>;
       }>(queryKey);
+      const previousAllLists = queryClient.getQueryData<{ lists: UserList[] }>(
+        listQueryKeys.allLists(),
+      );
 
       queryClient.setQueryData<{
         collaborators: Array<{ email: string; role: string }>;
@@ -347,7 +370,12 @@ export function useRemoveCollaborator(listId: string, listSlug?: string) {
         };
       });
 
-      return { previous };
+      const emailLower = email.toLowerCase();
+      patchAllListsCollaboratorEmails(queryClient, listId, (emails) =>
+        emails.filter((e) => e.toLowerCase() !== emailLower),
+      );
+
+      return { previous, previousAllLists };
     },
     onSuccess: (data, email) => {
       toast({
@@ -374,6 +402,12 @@ export function useRemoveCollaborator(listId: string, listSlug?: string) {
         queryClient.setQueryData(
           listQueryKeys.collaborators(listId),
           context.previous
+        );
+      }
+      if (context?.previousAllLists) {
+        queryClient.setQueryData(
+          listQueryKeys.allLists(),
+          context.previousAllLists,
         );
       }
 
@@ -432,14 +466,28 @@ export interface UpdateListInput {
 
 type ListMutationResponse = { list: UrlList & UserList };
 
-function patchAllListsCache(queryClient: ReturnType<typeof useQueryClient>, list: UserList, temporaryId?: string): void {
-  queryClient.setQueryData<{ lists: UserList[] }>(listQueryKeys.allLists(), (current) => {
-    if (!current) return current;
-    const exists = current.lists.some((item) => item.id === list.id || item.id === temporaryId);
-    const lists = exists
-      ? current.lists.map((item) => (item.id === list.id || item.id === temporaryId ? { ...item, ...list } : item))
-      : [list, ...current.lists];
-    return { ...current, lists };
+function patchAllListsCache(
+  queryClient: ReturnType<typeof useQueryClient>,
+  list: UserList,
+  temporaryId?: string,
+): void {
+  densifyAllLists(queryClient, list, temporaryId ? { temporaryId } : undefined);
+}
+
+/** Optimistic My Lists collaborator emails so soft-nav badges update instantly. */
+function patchAllListsCollaboratorEmails(
+  queryClient: ReturnType<typeof useQueryClient>,
+  listId: string,
+  updater: (emails: string[]) => string[],
+): void {
+  const current = queryClient.getQueryData<{ lists: UserList[] }>(
+    listQueryKeys.allLists(),
+  );
+  const row = current?.lists.find((item) => item.id === listId);
+  if (!row) return;
+  densifyAllLists(queryClient, {
+    ...row,
+    collaborators: updater(row.collaborators ?? []),
   });
 }
 
@@ -488,6 +536,7 @@ export function useCreateList() {
       await queryClient.cancelQueries({ queryKey: listQueryKeys.allLists() });
       const previous = queryClient.getQueryData<{ lists: UserList[] }>(listQueryKeys.allLists());
       const temporaryId = `temporary-list-${input.slug}`;
+      const nowIso = new Date().toISOString();
       patchAllListsCache(queryClient, {
         id: temporaryId,
         slug: input.slug,
@@ -495,6 +544,9 @@ export function useCreateList() {
         description: input.description,
         isPublic: input.isPublic,
         urls: input.urls,
+        collaborators: [],
+        createdAt: nowIso,
+        updatedAt: nowIso,
       });
       return { previous, temporaryId };
     },
@@ -537,7 +589,10 @@ export function useUpdateList() {
       const previousLists = queryClient.getQueryData<{ lists: UserList[] }>(listQueryKeys.allLists());
       const previousUnified = queryClient.getQueryData<UnifiedListData>(listQueryKeys.unified(input.slug));
       const previousCurrent = currentList.get();
-      const optimisticList = { ...input } as UrlList & UserList;
+      const optimisticList = {
+        ...input,
+        updatedAt: new Date().toISOString(),
+      } as UrlList & UserList;
       patchAllListsCache(queryClient, optimisticList);
       patchUnifiedListCache(queryClient, optimisticList);
       return { previousLists, previousUnified, previousCurrent };
@@ -592,6 +647,7 @@ export function useUpdateListVisibility() {
       const previousBrowse = snapshotBrowsePublicCaches(queryClient);
       const previousCurrent = currentList.get();
       const fromLists = previousLists?.lists?.find((item) => item.id === id);
+      const nowIso = new Date().toISOString();
       const optimistic = {
         ...(fromLists || {}),
         id,
@@ -600,12 +656,13 @@ export function useUpdateListVisibility() {
         title: fromLists?.title ?? previousUnified?.list?.title ?? slug,
         description: fromLists?.description ?? previousUnified?.list?.description ?? null,
         urls: fromLists?.urls ?? previousUnified?.list?.urls ?? [],
+        updatedAt: nowIso,
       } as UrlList & UserList;
       patchAllListsCache(queryClient, optimistic);
       patchUnifiedListCache(queryClient, optimistic);
       densifyBrowsePublicLists(queryClient, optimistic);
       if (previousCurrent.id === id) {
-        currentList.set({ ...previousCurrent, isPublic });
+        currentList.set({ ...previousCurrent, isPublic, updatedAt: nowIso });
       }
       return { previousLists, previousUnified, previousBrowse, previousCurrent };
     },

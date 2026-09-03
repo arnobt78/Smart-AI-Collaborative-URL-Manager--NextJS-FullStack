@@ -82,7 +82,15 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     };
 
     const classes = twMerge(
-      clsx(baseStyles, UI_CONTROL_ICON_GAP, variants[variant], sizes[size], isLoading && "cursor-wait", className),
+      clsx(
+        baseStyles,
+        "inline-flex items-center justify-center",
+        variants[variant],
+        sizes[size],
+        UI_CONTROL_ICON_GAP,
+        isLoading && "cursor-wait",
+        className,
+      ),
     );
 
     if (href) {

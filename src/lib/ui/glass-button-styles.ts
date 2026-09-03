@@ -4,7 +4,7 @@
  * Recipe: border-400/30 + from-70/via-50/to-30 + shadow-[0_15px_35px] → hover 0_20px_45px.
  */
 import { cn } from "@/lib/utils";
-import { UI_CONTROL_HEIGHT } from "@/lib/ui/control-styles";
+import { UI_CONTROL_HEIGHT, UI_CONTROL_ICON_GAP } from "@/lib/ui/control-styles";
 
 export type GlassButtonHue =
   | "blue"
@@ -22,15 +22,15 @@ export const GLASS_BUTTON_DISABLED =
   "disabled:opacity-50 disabled:cursor-not-allowed";
 
 const PRIMARY_LAYOUT =
-  `${UI_CONTROL_HEIGHT} inline-flex items-center justify-center gap-2 rounded-xl backdrop-blur-md transition duration-200 !text-white font-medium`;
+  `${UI_CONTROL_HEIGHT} inline-flex items-center justify-center ${UI_CONTROL_ICON_GAP} rounded-xl backdrop-blur-md transition duration-200 !text-white font-medium`;
 
 /** Soft toolbar/action — lighter fill, still colored glow */
 const ACTION_LAYOUT =
-  "inline-flex items-center justify-center gap-2 rounded-xl backdrop-blur-md transition duration-200 font-medium !text-white";
+  `inline-flex items-center justify-center ${UI_CONTROL_ICON_GAP} rounded-xl backdrop-blur-md transition duration-200 font-medium !text-white`;
 
 /** Cancel / ghost */
 export const GLASS_GHOST_BUTTON =
-  `${UI_CONTROL_HEIGHT} inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 backdrop-blur-md shadow-[0_15px_35px_rgba(0,0,0,0.3)] transition duration-200 hover:bg-white/10 hover:border-white/20 hover:shadow-[0_20px_45px_rgba(0,0,0,0.5)] text-white/80 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed`;
+  `${UI_CONTROL_HEIGHT} inline-flex items-center justify-center ${UI_CONTROL_ICON_GAP} rounded-xl border border-white/10 bg-white/5 backdrop-blur-md shadow-[0_15px_35px_rgba(0,0,0,0.3)] transition duration-200 hover:bg-white/10 hover:border-white/20 hover:shadow-[0_20px_45px_rgba(0,0,0,0.5)] text-white/80 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed`;
 
 const PRIMARY_BLUE = `${PRIMARY_LAYOUT} border border-blue-400/30 bg-gradient-to-r from-blue-500/70 via-blue-500/50 to-blue-500/30 shadow-[0_15px_35px_rgba(59,130,246,0.45)] hover:border-blue-300/40 hover:from-blue-500/80 hover:via-blue-500/60 hover:to-blue-500/40 hover:shadow-[0_20px_45px_rgba(59,130,246,0.6)]`;
 

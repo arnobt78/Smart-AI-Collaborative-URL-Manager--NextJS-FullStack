@@ -66,7 +66,7 @@ import {
   UI_ICON_CONTROL,
   UI_ICON_DECORATIVE,
 } from "@/lib/ui/control-styles";
-import { cn } from "@/lib/utils";
+import { cn, parseUserEnteredUrl } from "@/lib/utils";
 
 // Component wrapper that fetches metadata using React Query for each URL
 function UrlCardWrapper({
@@ -1038,7 +1038,7 @@ export function UrlList() {
     window.dispatchEvent(new CustomEvent("local-operation"));
 
     try {
-      const url = new URL(newUrl);
+      const url = parseUserEnteredUrl(newUrl);
 
       // Check if we already have metadata in React Query cache (from AI enhancement)
       const queryKey = ["url-metadata", url.toString()] as const;
@@ -1101,14 +1101,15 @@ export function UrlList() {
     try {
       // Get the current URL to check if it changed
       const currentUrl = list?.urls?.find((u) => u.id === id);
-      const urlChanged = currentUrl && currentUrl.url !== url;
+      const normalizedUrl = parseUserEnteredUrl(url).toString();
+      const urlChanged = currentUrl && currentUrl.url !== normalizedUrl;
 
       // Check if we have metadata in React Query cache (from prefetch while typing)
       // This prevents redundant metadata fetch in PATCH endpoint
       let existingMetadata: UrlMetadata | undefined;
-      if (urlChanged && url) {
+      if (urlChanged && normalizedUrl) {
         try {
-          const queryKey = listQueryKeys.urlMetadata(url);
+          const queryKey = listQueryKeys.urlMetadata(normalizedUrl);
           existingMetadata = queryClient.getQueryData<UrlMetadata>(queryKey);
           if (existingMetadata) {
             //   `✅ [EDIT] Found cached metadata from prefetch for: ${url.slice(
@@ -1123,7 +1124,7 @@ export function UrlList() {
       }
 
       // Prepare updates
-      const updates: Partial<UrlItem> = { title, url };
+      const updates: Partial<UrlItem> = { title, url: normalizedUrl };
       if (tags !== undefined) updates.tags = tags;
       if (notes !== undefined) updates.notes = notes;
       if (reminder !== undefined) updates.reminder = reminder;
@@ -1145,7 +1146,7 @@ export function UrlList() {
       // Show success toast
       toast({
         title: "URL Updated",
-        description: `"${title || url}" has been updated successfully.`,
+        description: `"${title || normalizedUrl}" has been updated successfully.`,
         variant: "success",
       });
 
@@ -1157,8 +1158,14 @@ export function UrlList() {
         setEditingReminder("");
       });
     } catch (err) {
-      const errorMessage =
-        err instanceof Error ? err.message : "Failed to update URL";
+      const isUrlParse =
+        err instanceof TypeError &&
+        /URL|hostname|Empty/i.test(err.message);
+      const errorMessage = isUrlParse
+        ? "Please enter a valid URL"
+        : err instanceof Error
+          ? err.message
+          : "Failed to update URL";
       setError(errorMessage);
       toast({
         title: "Update Failed",
@@ -2382,11 +2389,11 @@ export function UrlList() {
         {/* Row 1 on phone: Search and Filter */}
         <div className="flex items-center gap-2 sm:contents">
           {/* Search Input */}
-          <div className="relative flex-1 min-w-0">
+          <div className="relative flex h-10 min-w-0 flex-1 items-center">
             <Search
               className={cn(
                 UI_ICON_CONTROL,
-                "pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-white/45",
+                "pointer-events-none absolute left-3 z-10 text-white/45",
               )}
               aria-hidden
             />
@@ -2395,7 +2402,7 @@ export function UrlList() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search URLs, titles, or descriptions…"
-              className="min-w-[180px] bg-transparent pl-9 font-delicious text-sm sm:text-base lg:text-lg"
+              className="h-10 min-w-[180px] bg-transparent pl-10 font-delicious text-sm placeholder:text-sm sm:text-base sm:placeholder:text-base"
             />
           </div>
 

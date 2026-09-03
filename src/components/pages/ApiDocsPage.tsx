@@ -5,9 +5,10 @@ import { Badge } from "@/components/ui/Badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/Tabs";
 import { BookOpen, Code, Lock, Globe, Link2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { PAGE_STACK, CARD_PAD } from "@/lib/ui-spacing";
+import { PAGE_STACK, CARD_PAD, HEADING_STACK } from "@/lib/ui-spacing";
 import { PageHeader } from "@/components/ui/PageHeader";
-import { UI_ICON_CONTROL } from "@/lib/ui/control-styles";
+import { GlassIconTile } from "@/components/ui/GlassIconTile";
+import { UI_ICON_CONTROL, UI_IDENTITY_GAP } from "@/lib/ui/control-styles";
 
 interface ApiEndpoint {
   method: "GET" | "POST" | "PATCH" | "DELETE";
@@ -365,9 +366,14 @@ export default function ApiDocsPage() {
       {/* Authentication Info — C7.3 CARD_PAD */}
       <Card className={cn(CARD_PAD, "border-blue-400/30")}>
         <CardHeader>
-          <div className="flex items-center gap-2">
-            <Lock className={cn(UI_ICON_CONTROL, "text-blue-400")} />
-            <CardTitle>Authentication</CardTitle>
+          <div className={cn("flex items-center", UI_IDENTITY_GAP)}>
+            <GlassIconTile icon={Lock} hue="blue" />
+            <div className={cn(HEADING_STACK, "min-w-0")}>
+              <CardTitle>Authentication</CardTitle>
+              <p className="text-sm text-white/70">
+                Session cookie required for most endpoints
+              </p>
+            </div>
           </div>
         </CardHeader>
         <CardContent className="flex flex-col gap-2">
@@ -481,7 +487,7 @@ export default function ApiDocsPage() {
 
                     {endpoint.params !== undefined && (
                       <TabsContent value="params" className="mt-4">
-                        <div className="bg-white/5 rounded-lg p-4 border border-white/10">
+                        <div className="bg-white/5 rounded-lg p-4 border border-white/20">
                           <pre className="text-sm text-white/80 font-mono overflow-x-auto">
                             {JSON.stringify(endpoint.params, null, 2)}
                           </pre>
@@ -491,7 +497,7 @@ export default function ApiDocsPage() {
 
                     {endpoint.body !== undefined && (
                       <TabsContent value="body" className="mt-4">
-                        <div className="bg-white/5 rounded-lg p-4 border border-white/10">
+                        <div className="bg-white/5 rounded-lg p-4 border border-white/20">
                           <pre className="text-sm text-white/80 font-mono overflow-x-auto">
                             {JSON.stringify(endpoint.body, null, 2)}
                           </pre>
@@ -500,7 +506,7 @@ export default function ApiDocsPage() {
                     )}
 
                     <TabsContent value="response" className="mt-4">
-                      <div className="bg-white/5 rounded-lg p-4 border border-white/10">
+                      <div className="bg-white/5 rounded-lg p-4 border border-white/20">
                         <pre className="text-sm text-white/80 font-mono overflow-x-auto">
                           {JSON.stringify(endpoint.response, null, 2)}
                         </pre>

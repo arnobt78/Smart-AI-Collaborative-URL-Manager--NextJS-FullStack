@@ -2,6 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
+import { GlassIconTile } from "@/components/ui/GlassIconTile";
 import {
   LineChart,
   Line,
@@ -22,9 +23,13 @@ import {
   UserPlus,
   List,
 } from "lucide-react";
-import { CARD_PAD } from "@/lib/ui-spacing";
+import { CARD_PAD, HEADING_STACK } from "@/lib/ui-spacing";
 import { InsightsChartTooltip } from "@/components/business-insights/InsightsChartTooltip";
-import { UI_CONTROL_ICON_GAP, UI_ICON_CONTROL } from "@/lib/ui/control-styles";
+import {
+  UI_ICON_CONTROL,
+  UI_IDENTITY_GAP,
+} from "@/lib/ui/control-styles";
+import { GLASS_PANEL_CARD } from "@/lib/ui/glass-card-styles";
 import { cn } from "@/lib/utils";
 
 interface GlobalStatsData {
@@ -88,142 +93,143 @@ export function GlobalStats({ data, isLoading }: GlobalStatsProps) {
     <div className="space-y-6">
       {/* Main Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className={CARD_PAD}>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
-            <CardTitle className="text-xs sm:text-sm font-medium text-white/70">
-              Total Users
-            </CardTitle>
-            <Users className={cn(UI_ICON_CONTROL, "text-blue-400")} />
-          </CardHeader>
-          <CardContent>
-            <div className="text-xl sm:text-2xl font-medium text-white">
-              {data.totalUsers.toLocaleString()}
+        <div className={cn(GLASS_PANEL_CARD.blue, CARD_PAD)}>
+          <div className={cn("flex items-center", UI_IDENTITY_GAP)}>
+            <GlassIconTile icon={Users} hue="blue" />
+            <div className={cn(HEADING_STACK, "min-w-0")}>
+              <h3 className="text-xs sm:text-sm font-medium text-white/80">
+                Total Users
+              </h3>
+              <p className="text-xs text-white/60">
+                <span className="text-green-400">+{data.newUsersLast7Days}</span>{" "}
+                new in last 7 days
+              </p>
             </div>
-            <p className="text-xs text-white/60 mt-1">
-              <span className="text-green-400">+{data.newUsersLast7Days}</span>{" "}
-              new in last 7 days
-            </p>
-          </CardContent>
-        </Card>
+          </div>
+          <div className="mt-3 text-lg sm:text-xl font-medium text-white">
+            {data.totalUsers.toLocaleString()}
+          </div>
+        </div>
 
-        <Card className={CARD_PAD}>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
-            <CardTitle className="text-xs sm:text-sm font-medium text-white/70">
-              Live Users Now
-            </CardTitle>
-            <Activity className={cn(UI_ICON_CONTROL, "text-green-400")} />
-          </CardHeader>
-          <CardContent>
-            <div className="text-xl sm:text-2xl font-medium text-white">
-              {data.liveUsersNow}
+        <div className={cn(GLASS_PANEL_CARD.emerald, CARD_PAD)}>
+          <div className={cn("flex items-center", UI_IDENTITY_GAP)}>
+            <GlassIconTile icon={Activity} hue="emerald" />
+            <div className={cn(HEADING_STACK, "min-w-0")}>
+              <h3 className="text-xs sm:text-sm font-medium text-white/80">
+                Live Users Now
+              </h3>
+              <p className="text-xs text-white/60">Active in last 15 minutes</p>
             </div>
-            <p className="text-xs text-white/60 mt-1">
-              Active in last 15 minutes
-            </p>
-          </CardContent>
-        </Card>
+          </div>
+          <div className="mt-3 text-lg sm:text-xl font-medium text-white">
+            {data.liveUsersNow}
+          </div>
+        </div>
 
-        <Card className={CARD_PAD}>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
-            <CardTitle className="text-xs sm:text-sm font-medium text-white/70">
-              Total Lists
-            </CardTitle>
-            <List className={cn(UI_ICON_CONTROL, "text-purple-400")} />
-          </CardHeader>
-          <CardContent>
-            <div className="text-xl sm:text-2xl font-medium text-white">
-              {data.totalLists.toLocaleString()}
+        <div className={cn(GLASS_PANEL_CARD.violet, CARD_PAD)}>
+          <div className={cn("flex items-center", UI_IDENTITY_GAP)}>
+            <GlassIconTile icon={List} hue="violet" />
+            <div className={cn(HEADING_STACK, "min-w-0")}>
+              <h3 className="text-xs sm:text-sm font-medium text-white/80">
+                Total Lists
+              </h3>
+              <p className="text-xs text-white/60">
+                <span className="text-green-400">+{data.newListsLast7Days}</span>{" "}
+                created in last 7 days
+              </p>
             </div>
-            <p className="text-xs text-white/60 mt-1">
-              <span className="text-green-400">+{data.newListsLast7Days}</span>{" "}
-              created in last 7 days
-            </p>
-          </CardContent>
-        </Card>
+          </div>
+          <div className="mt-3 text-lg sm:text-xl font-medium text-white">
+            {data.totalLists.toLocaleString()}
+          </div>
+        </div>
 
-        <Card className={CARD_PAD}>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
-            <CardTitle className="text-xs sm:text-sm font-medium text-white/70">
-              Total URLs
-            </CardTitle>
-            <Link2 className={cn(UI_ICON_CONTROL, "text-green-400")} />
-          </CardHeader>
-          <CardContent>
-            <div className="text-xl sm:text-2xl font-medium text-white">
-              {data.totalUrls.toLocaleString()}
+        <div className={cn(GLASS_PANEL_CARD.sky, CARD_PAD)}>
+          <div className={cn("flex items-center", UI_IDENTITY_GAP)}>
+            <GlassIconTile icon={Link2} hue="sky" />
+            <div className={cn(HEADING_STACK, "min-w-0")}>
+              <h3 className="text-xs sm:text-sm font-medium text-white/80">
+                Total URLs
+              </h3>
+              <p className="text-xs text-white/60">
+                <span className="text-green-400">+{data.newUrlsLast7Days}</span>{" "}
+                added in last 7 days
+              </p>
             </div>
-            <p className="text-xs text-white/60 mt-1">
-              <span className="text-green-400">+{data.newUrlsLast7Days}</span>{" "}
-              added in last 7 days
-            </p>
-          </CardContent>
-        </Card>
+          </div>
+          <div className="mt-3 text-lg sm:text-xl font-medium text-white">
+            {data.totalUrls.toLocaleString()}
+          </div>
+        </div>
       </div>
 
       {/* Secondary Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className={CARD_PAD}>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
-            <CardTitle className="text-xs sm:text-sm font-medium text-white/70">
-              Avg URLs per List
-            </CardTitle>
-            <TrendingUp className={cn(UI_ICON_CONTROL, "text-blue-400")} />
-          </CardHeader>
-          <CardContent>
-            <div className="text-xl sm:text-2xl font-medium text-white">
-              {data.avgUrlsPerList}
+        <div className={cn(GLASS_PANEL_CARD.blue, CARD_PAD)}>
+          <div className={cn("flex items-center", UI_IDENTITY_GAP)}>
+            <GlassIconTile icon={TrendingUp} hue="blue" />
+            <div className={cn(HEADING_STACK, "min-w-0")}>
+              <h3 className="text-xs sm:text-sm font-medium text-white/80">
+                Avg URLs per List
+              </h3>
+              <p className="text-xs text-white/60">Platform-wide mean</p>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+          <div className="mt-3 text-lg sm:text-xl font-medium text-white">
+            {data.avgUrlsPerList}
+          </div>
+        </div>
 
-        <Card className={CARD_PAD}>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
-            <CardTitle className="text-xs sm:text-sm font-medium text-white/70">
-              List Distribution
-            </CardTitle>
-            <div className={cn("flex", UI_CONTROL_ICON_GAP)}>
-              <Globe className={cn(UI_ICON_CONTROL, "text-green-400")} />
-              <Lock className={cn(UI_ICON_CONTROL, "text-yellow-400")} />
+        <div className={cn(GLASS_PANEL_CARD.emerald, CARD_PAD)}>
+          <div className={cn("flex items-center", UI_IDENTITY_GAP)}>
+            <GlassIconTile icon={Globe} hue="emerald" />
+            <div className={cn(HEADING_STACK, "min-w-0")}>
+              <h3 className="text-xs sm:text-sm font-medium text-white/80">
+                List Distribution
+              </h3>
+              <p className="text-xs text-white/60">Public vs private</p>
             </div>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
-              <Badge variant="success" className="text-xs gap-1">
-                <Globe className={UI_ICON_CONTROL} />
-                {data.publicLists} Public
-              </Badge>
-              <Badge variant="warning" className="text-xs gap-1">
-                <Lock className={UI_ICON_CONTROL} />
-                {data.privateLists} Private
-              </Badge>
-            </div>
-          </CardContent>
-        </Card>
+          </div>
+          <div className="mt-3 flex items-center gap-2 sm:gap-4 flex-wrap">
+            <Badge variant="success" className="text-xs gap-1">
+              <Globe className={UI_ICON_CONTROL} />
+              {data.publicLists} Public
+            </Badge>
+            <Badge variant="warning" className="text-xs gap-1">
+              <Lock className={UI_ICON_CONTROL} />
+              {data.privateLists} Private
+            </Badge>
+          </div>
+        </div>
 
-        <Card className={CARD_PAD}>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
-            <CardTitle className="text-xs sm:text-sm font-medium text-white/70">
-              Lists with Collaborators
-            </CardTitle>
-            <Users className={cn(UI_ICON_CONTROL, "text-purple-400")} />
-          </CardHeader>
-          <CardContent>
-            <div className="text-xl sm:text-2xl font-medium text-white">
-              {data.listsWithCollaborators}
+        <div className={cn(GLASS_PANEL_CARD.violet, CARD_PAD)}>
+          <div className={cn("flex items-center", UI_IDENTITY_GAP)}>
+            <GlassIconTile icon={Users} hue="violet" />
+            <div className={cn(HEADING_STACK, "min-w-0")}>
+              <h3 className="text-xs sm:text-sm font-medium text-white/80">
+                Lists with Collaborators
+              </h3>
+              <p className="text-xs text-white/60">People with list access</p>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+          <div className="mt-3 text-lg sm:text-xl font-medium text-white">
+            {data.listsWithCollaborators}
+          </div>
+        </div>
       </div>
 
       {/* User Growth Chart */}
       <Card className={CARD_PAD}>
         <CardHeader className="pb-2">
-          <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
-            <UserPlus className={cn(UI_ICON_CONTROL, "text-blue-400")} />
-            <span className="text-xs sm:text-base">
-              User Growth (Last 30 Days)
-            </span>
-          </CardTitle>
+          <div className={cn("flex items-center", UI_IDENTITY_GAP)}>
+            <GlassIconTile icon={UserPlus} hue="blue" />
+            <div className={cn(HEADING_STACK, "min-w-0")}>
+              <CardTitle className="text-sm sm:text-base">
+                User Growth (Last 30 Days)
+              </CardTitle>
+              <p className="text-xs text-white/60">New accounts over time</p>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           <div

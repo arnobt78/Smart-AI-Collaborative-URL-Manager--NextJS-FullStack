@@ -84,8 +84,8 @@ export default function NewListPageClient({ onClose, onPendingChange }: NewListP
       });
 
       toast({
-        title: "List Created! 🎉",
-        description: "Your new list has been successfully created.",
+        title: "List created",
+        description: `"${list.title || list.slug}" is ready in My Lists.`,
         variant: "success",
       });
       // C6.9: warm replace so seeded unified cache paints OptimisticSoftNavSurface
@@ -95,7 +95,11 @@ export default function NewListPageClient({ onClose, onPendingChange }: NewListP
       setIsNavigating(false);
       const message = caughtError instanceof Error ? caughtError.message : "Failed to create list";
       setError(message);
-      toast({ title: "Creation Failed", description: message, variant: "error" });
+      toast({
+        title: "Could not create list",
+        description: message,
+        variant: "error",
+      });
     }
   };
 

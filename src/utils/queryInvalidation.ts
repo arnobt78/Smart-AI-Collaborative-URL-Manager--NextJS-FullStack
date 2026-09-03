@@ -39,9 +39,28 @@ export type BrowseDensifyList = {
   user?: { email: string };
 };
 
+/** My Lists / allLists densify row — full badge fields for warm soft-nav. */
+export type AllListsDensifyList = {
+  id: string;
+  slug: string;
+  title?: string | null;
+  description?: string | null;
+  urls?: Array<{ id: string; url: string; title?: string }>;
+  isPublic?: boolean;
+  collaborators?: string[];
+  createdAt?: string | Date;
+  updatedAt?: string | Date;
+  created_at?: string;
+  updated_at?: string;
+};
+
 type BrowsePublicCache = {
   lists: BrowseDensifyList[];
   pagination?: unknown;
+};
+
+type AllListsCache = {
+  lists: AllListsDensifyList[];
 };
 
 function isBrowsePublicQueryKey(queryKey: readonly unknown[]): boolean {
@@ -97,6 +116,47 @@ export function densifyBrowsePublicLists(
 
       const nextLists = current.lists.slice();
       nextLists[index] = { ...nextLists[index], ...row };
+      return { ...current, lists: nextLists };
+    },
+  );
+}
+
+/**
+ * Densify My Lists (`allLists`) — upsert/insert by id|slug (or temporaryId),
+ * remove when options.remove. Keeps warm soft-nav badges instant after CRUD.
+ */
+export function densifyAllLists(
+  queryClient: QueryClient,
+  list: AllListsDensifyList,
+  options?: { remove?: boolean; temporaryId?: string },
+): void {
+  queryClient.setQueryData<AllListsCache>(
+    listQueryKeys.allLists(),
+    (current) => {
+      if (!current?.lists) return current;
+
+      if (options?.remove) {
+        const nextLists = current.lists.filter(
+          (item) => item.id !== list.id && item.slug !== list.slug,
+        );
+        if (nextLists.length === current.lists.length) return current;
+        return { ...current, lists: nextLists };
+      }
+
+      const temporaryId = options?.temporaryId;
+      const index = current.lists.findIndex(
+        (item) =>
+          item.id === list.id ||
+          (temporaryId != null && item.id === temporaryId) ||
+          item.slug === list.slug,
+      );
+
+      if (index === -1) {
+        return { ...current, lists: [list, ...current.lists] };
+      }
+
+      const nextLists = current.lists.slice();
+      nextLists[index] = { ...nextLists[index], ...list };
       return { ...current, lists: nextLists };
     },
   );

@@ -13,38 +13,37 @@ import { Bubbles, LayoutList, ListPlus } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { CreateNewListButton } from "@/components/ui/CreateNewListButton";
 import { CreateListDialog } from "@/components/lists/CreateListDialog";
+import { GlassIconTile } from "@/components/ui/GlassIconTile";
 import { OptimizedImage } from "@/components/ui/OptimizedImage";
 import { ScrollReveal } from "@/components/ui/ScrollReveal";
 import { cn } from "@/lib/utils";
 import { CARD_PAD, HEADING_STACK, MARKETING_STACK } from "@/lib/ui-spacing";
 import {
   UI_ICON_CONTROL,
-  UI_ICON_DECORATIVE,
+  UI_IDENTITY_GAP,
+  type UIIconTileHue,
 } from "@/lib/ui/control-styles";
 import { useListDialogRouteState } from "@/hooks/useListDialogRouteState";
 import { useWarmSoftNav } from "@/hooks/useWarmSoftNav";
 
 const features = [
   {
-    icon: (
-      <LinkIcon className={cn(UI_ICON_DECORATIVE, "text-blue-400")} />
-    ),
+    icon: LinkIcon,
+    hue: "blue" as UIIconTileHue,
     title: "Easy to Create",
     description:
       "Create lists in seconds with our simple interface. Add URLs, titles, and descriptions effortlessly.",
   },
   {
-    icon: (
-      <ShareIcon className={cn(UI_ICON_DECORATIVE, "text-purple-400")} />
-    ),
+    icon: ShareIcon,
+    hue: "violet" as UIIconTileHue,
     title: "Share Instantly",
     description:
       "Share your lists with anyone using a simple URL. Perfect for sharing resources, bookmarks, and collections.",
   },
   {
-    icon: (
-      <PhotoIcon className={cn(UI_ICON_DECORATIVE, "text-indigo-400")} />
-    ),
+    icon: PhotoIcon,
+    hue: "sky" as UIIconTileHue,
     title: "Rich Previews",
     description:
       "Beautiful previews for all your saved URLs, including titles, descriptions, and images.",
@@ -130,20 +129,21 @@ function MarketingHome() {
               delay={index * 140}
               parallax
               className={cn(
-                "group rounded-xl sm:rounded-2xl border border-white/20 bg-white/5 backdrop-blur-md shadow-lg hover:shadow-xl transition-all duration-300 hover:border-blue-400/30 flex flex-col gap-2 sm:gap-3",
+                "group rounded-xl sm:rounded-2xl border border-white/20 bg-white/5 backdrop-blur-md shadow-lg hover:shadow-xl transition-all duration-300 hover:border-blue-400/30 flex flex-col",
                 CARD_PAD,
+                UI_IDENTITY_GAP,
               )}
             >
-              <div className="bg-gradient-to-br from-blue-500/20 to-purple-500/20 backdrop-blur-md rounded-lg sm:rounded-xl p-2.5 sm:p-3 inline-block w-fit group-hover:scale-110 transition-transform duration-300 border border-blue-400/30">
-                {feature.icon}
-              </div>
-              <div className={HEADING_STACK}>
-                <h3 className="text-base sm:text-lg xl:text-xl font-medium text-white group-hover:text-blue-400 transition-colors">
-                  {feature.title}
-                </h3>
-                <p className="text-sm sm:text-base text-white/60 leading-relaxed">
-                  {feature.description}
-                </p>
+              <div className={cn("flex items-center", UI_IDENTITY_GAP)}>
+                <GlassIconTile icon={feature.icon} hue={feature.hue} />
+                <div className={cn(HEADING_STACK, "min-w-0")}>
+                  <h3 className="text-base sm:text-lg xl:text-xl font-medium text-white group-hover:text-blue-400 transition-colors">
+                    {feature.title}
+                  </h3>
+                  <p className="text-sm sm:text-base text-white/60 leading-relaxed">
+                    {feature.description}
+                  </p>
+                </div>
               </div>
             </ScrollReveal>
           ))}

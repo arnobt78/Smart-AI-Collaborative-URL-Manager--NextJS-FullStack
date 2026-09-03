@@ -2,6 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
+import { GlassIconTile } from "@/components/ui/GlassIconTile";
 import { WarmSoftNavLink } from "@/components/ui/WarmSoftNavLink";
 import {
   Star,
@@ -11,8 +12,12 @@ import {
   ExternalLink,
   MousePointerClick,
 } from "lucide-react";
-import { CARD_PAD } from "@/lib/ui-spacing";
-import { UI_CONTROL_ICON_GAP, UI_ICON_CONTROL } from "@/lib/ui/control-styles";
+import { CARD_PAD, HEADING_STACK } from "@/lib/ui-spacing";
+import {
+  UI_CONTROL_ICON_GAP,
+  UI_ICON_CONTROL,
+  UI_IDENTITY_GAP,
+} from "@/lib/ui/control-styles";
 import { cn } from "@/lib/utils";
 
 interface PopularUrl {
@@ -71,15 +76,13 @@ export function PopularContent({
       {/* Popular URLs */}
       <Card className={CARD_PAD}>
         <CardHeader className="pb-2">
-          <CardTitle
-            className={cn(
-              "flex items-center text-sm sm:text-base",
-              UI_CONTROL_ICON_GAP,
-            )}
-          >
-            <Star className={cn(UI_ICON_CONTROL, "text-yellow-400")} />
-            <span>Popular URLs</span>
-          </CardTitle>
+          <div className={cn("flex items-center", UI_IDENTITY_GAP)}>
+            <GlassIconTile icon={Star} hue="amber" />
+            <div className={cn(HEADING_STACK, "min-w-0")}>
+              <CardTitle className="text-sm sm:text-base">Popular URLs</CardTitle>
+              <p className="text-xs text-white/60">Most favorited and clicked</p>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
@@ -92,7 +95,7 @@ export function PopularContent({
                 <div
                   key={url.id}
                   className={cn(
-                    "flex items-start p-2 sm:p-3 rounded-lg bg-white/5 border border-white/10 hover:border-blue-400/30 transition-all",
+                    "flex items-start p-2 sm:p-3 rounded-lg bg-white/5 border border-white/20 hover:border-blue-400/30 transition-all",
                     UI_CONTROL_ICON_GAP,
                   )}
                 >
@@ -150,15 +153,15 @@ export function PopularContent({
       {/* Active Lists */}
       <Card className={CARD_PAD}>
         <CardHeader className="pb-2">
-          <CardTitle
-            className={cn(
-              "flex items-center text-sm sm:text-base",
-              UI_CONTROL_ICON_GAP,
-            )}
-          >
-            <Users className={cn(UI_ICON_CONTROL, "text-blue-400")} />
-            <span>Most Active Lists</span>
-          </CardTitle>
+          <div className={cn("flex items-center", UI_IDENTITY_GAP)}>
+            <GlassIconTile icon={Users} hue="blue" />
+            <div className={cn(HEADING_STACK, "min-w-0")}>
+              <CardTitle className="text-sm sm:text-base">
+                Most Active Lists
+              </CardTitle>
+              <p className="text-xs text-white/60">Highest URL and collaborator counts</p>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
@@ -171,7 +174,7 @@ export function PopularContent({
                 <WarmSoftNavLink
                   key={list.id}
                   href={`/list/${list.slug}`}
-                  className="flex items-center justify-between gap-2 p-2 sm:p-3 rounded-lg bg-white/5 border border-white/10 hover:border-blue-400/30 transition-all group"
+                  className="flex items-center justify-between gap-2 p-2 sm:p-3 rounded-lg bg-white/5 border border-white/20 hover:border-blue-400/30 transition-all group"
                 >
                   <div className="flex-1 min-w-0">
                     <div className={cn("flex items-center mb-1 gap-1 min-w-0")}>

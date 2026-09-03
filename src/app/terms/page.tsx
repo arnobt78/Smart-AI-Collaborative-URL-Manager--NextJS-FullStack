@@ -12,7 +12,7 @@ export default function TermsPage() {
             Please read them carefully before using our platform.
           </p>
 
-          <h2 className="text-xl sm:text-2xl font-medium text-white mt-6 sm:mt-8  sm:mb-4">
+          <h2 className="text-lg sm:text-xl font-medium text-white mt-6 sm:mt-8  sm:mb-4">
             Acceptance of Terms
           </h2>
           <p className="text-base sm:text-lg text-white/80 ">
@@ -21,7 +21,7 @@ export default function TermsPage() {
             agree to these terms, please do not use our service.
           </p>
 
-          <h2 className="text-xl sm:text-2xl font-medium text-white mt-6 sm:mt-8  sm:mb-4">
+          <h2 className="text-lg sm:text-xl font-medium text-white mt-6 sm:mt-8  sm:mb-4">
             User Responsibilities
           </h2>
           <ul className="list-disc list-inside text-base sm:text-lg text-white/80  space-y-2">
@@ -41,7 +41,7 @@ export default function TermsPage() {
             <li>You must comply with all applicable laws and regulations</li>
           </ul>
 
-          <h2 className="text-xl sm:text-2xl font-medium text-white mt-6 sm:mt-8  sm:mb-4">
+          <h2 className="text-lg sm:text-xl font-medium text-white mt-6 sm:mt-8  sm:mb-4">
             Service Modifications
           </h2>
           <p className="text-base sm:text-lg text-white/80 ">
@@ -52,7 +52,7 @@ export default function TermsPage() {
             restrict access to parts of the service without notice.
           </p>
 
-          <h2 className="text-xl sm:text-2xl font-medium text-white mt-6 sm:mt-8  sm:mb-4">
+          <h2 className="text-lg sm:text-xl font-medium text-white mt-6 sm:mt-8  sm:mb-4">
             Limitation of Liability
           </h2>
           <p className="text-base sm:text-lg text-white/80 ">
@@ -63,7 +63,7 @@ export default function TermsPage() {
             interruptions, or security breaches.
           </p>
 
-          <h2 className="text-xl sm:text-2xl font-medium text-white mt-6 sm:mt-8  sm:mb-4">
+          <h2 className="text-lg sm:text-xl font-medium text-white mt-6 sm:mt-8  sm:mb-4">
             Content Ownership
           </h2>
           <p className="text-base sm:text-lg text-white/80 ">
@@ -74,16 +74,16 @@ export default function TermsPage() {
             share any content you post.
           </p>
 
-          <h2 className="text-xl sm:text-2xl font-medium text-white mt-6 sm:mt-8  sm:mb-4">
+          <h2 className="text-lg sm:text-xl font-medium text-white mt-6 sm:mt-8  sm:mb-4">
             Contact
           </h2>
           <p className="text-base sm:text-lg text-white/80">
             For any questions regarding these terms, please contact us at{" "}
             <a
-              href="mailto:arnob_t78@yahoo.com"
+              href="mailto:contact@arnobmahmud.com"
               className="text-blue-400 hover:text-blue-300 "
             >
-              arnob_t78@yahoo.com
+              contact@arnobmahmud.com
             </a>
           </p>
         </div>

@@ -4,7 +4,6 @@
 import { useEffect, useId, useRef } from "react";
 import ReactDOM from "react-dom";
 import { X } from "lucide-react";
-import { HEADING_STACK } from "@/lib/ui-spacing";
 import { UI_ICON_CONTROL } from "@/lib/ui/control-styles";
 import { cn } from "@/lib/utils";
 
@@ -142,34 +141,32 @@ function DialogHeader({
   className,
 }: DialogHeaderProps) {
   return (
-    <header
-      className={cn("flex items-center justify-between gap-4", className)}
-    >
-      <div className={cn(HEADING_STACK, "min-w-0")}>
+    <header className={cn(className)}>
+      <div className="flex items-center justify-between gap-1">
         <h2
           id={titleId}
-          className="text-lg font-medium leading-tight text-white sm:text-xl"
+          className="min-w-0 text-lg font-medium leading-tight text-white sm:text-xl"
         >
           {title}
         </h2>
-        {description ? (
-          <p
-            id={descriptionId}
-            className="text-xs leading-snug text-white/60 sm:text-sm"
-          >
-            {description}
-          </p>
-        ) : null}
+        <button
+          type="button"
+          onClick={onClose}
+          disabled={pending}
+          aria-label="Close dialog"
+          className="shrink-0 rounded-md p-2 text-white/60 transition-colors hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          <X className={UI_ICON_CONTROL} aria-hidden />
+        </button>
       </div>
-      <button
-        type="button"
-        onClick={onClose}
-        disabled={pending}
-        aria-label="Close dialog"
-        className="shrink-0 rounded-md p-2 text-white/60 transition-colors hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 disabled:cursor-not-allowed disabled:opacity-40"
-      >
-        <X className={UI_ICON_CONTROL} aria-hidden />
-      </button>
+      {description ? (
+        <p
+          id={descriptionId}
+          className="mt-1 text-xs leading-snug text-white/60 sm:mt-2 sm:text-sm"
+        >
+          {description}
+        </p>
+      ) : null}
     </header>
   );
 }

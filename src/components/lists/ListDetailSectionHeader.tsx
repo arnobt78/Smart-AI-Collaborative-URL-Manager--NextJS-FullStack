@@ -3,13 +3,17 @@
 import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { useId } from "react";
+import { GlassIconTile } from "@/components/ui/GlassIconTile";
 import { HEADING_STACK } from "@/lib/ui-spacing";
-import { UI_ICON_CONTROL } from "@/lib/ui/control-styles";
+import {
+  UI_IDENTITY_GAP,
+  type UIIconTileHue,
+} from "@/lib/ui/control-styles";
 import { cn } from "@/lib/utils";
 
 export type ListDetailSectionHeaderProps = {
   icon: LucideIcon;
-  iconClassName?: string;
+  hue?: UIIconTileHue;
   title: string;
   badge?: ReactNode;
   subtitle?: string;
@@ -23,10 +27,10 @@ export type ListDetailSectionHeaderProps = {
 const titleClassName = "text-sm font-medium text-white sm:text-base";
 const subtitleClassName = "text-xs text-white/60 break-words sm:text-sm";
 
-/** Smart-Collections-style section header: icon left, title+badge / subtitle, optional action. */
+/** Smart-Collections-style section header: GlassIconTile left, title+badge / subtitle, optional action. */
 export function ListDetailSectionHeader({
-  icon: Icon,
-  iconClassName,
+  icon,
+  hue = "blue",
   title,
   badge,
   subtitle,
@@ -65,11 +69,8 @@ export function ListDetailSectionHeader({
 
   const content = (
     <>
-      <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-2">
-        <Icon
-          className={cn(UI_ICON_CONTROL, iconClassName)}
-          aria-hidden
-        />
+      <div className={cn("flex min-w-0 flex-1 items-center", UI_IDENTITY_GAP)}>
+        <GlassIconTile icon={icon} hue={hue} />
         {textBlock}
       </div>
       {action ? <div className="shrink-0">{action}</div> : null}

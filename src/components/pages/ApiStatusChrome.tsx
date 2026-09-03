@@ -263,7 +263,7 @@ export function ApiStatusChrome({
             {endpoints.map((endpoint) => (
               <div
                 key={endpoint.endpoint}
-                className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0 p-2 sm:p-4 rounded-lg bg-white/5 border border-white/10"
+                className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0 p-2 sm:p-4 rounded-lg bg-white/5 border border-white/20"
               >
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 sm:gap-2 mb-1 flex-wrap min-h-6">

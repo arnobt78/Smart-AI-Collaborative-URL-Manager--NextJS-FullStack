@@ -12,6 +12,34 @@ export const UI_ICON_CONTROL = "h-5 w-5 shrink-0";
 /** Page headers, feature cards, empty-state heroes, brand marks. */
 export const UI_ICON_DECORATIVE = "h-6 w-6 sm:h-8 sm:w-8 shrink-0";
 
+/** Gap between Stockly-style icon tile and title/subtitle stack. */
+export const UI_IDENTITY_GAP = "gap-2";
+
+/** Base square for leading identity icons (h-10 matches UI_CONTROL_HEIGHT). */
+export const UI_ICON_TILE =
+  "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border backdrop-blur-md";
+
+export type UIIconTileHue =
+  | "blue"
+  | "violet"
+  | "emerald"
+  | "amber"
+  | "rose"
+  | "sky";
+
+/** Tinted border + fill + glow for GlassIconTile. */
+export const UI_ICON_TILE_HUE: Record<UIIconTileHue, string> = {
+  blue: "border-blue-400/40 bg-blue-500/15 shadow-[0_0_24px_rgba(59,130,246,0.35)] text-blue-300",
+  violet:
+    "border-violet-400/40 bg-violet-500/15 shadow-[0_0_24px_rgba(139,92,246,0.35)] text-violet-300",
+  emerald:
+    "border-emerald-400/40 bg-emerald-500/15 shadow-[0_0_24px_rgba(16,185,129,0.35)] text-emerald-300",
+  amber:
+    "border-amber-400/40 bg-amber-500/15 shadow-[0_0_24px_rgba(245,158,11,0.3)] text-amber-300",
+  rose: "border-rose-400/40 bg-rose-500/15 shadow-[0_0_24px_rgba(225,29,72,0.35)] text-rose-300",
+  sky: "border-sky-400/40 bg-sky-500/15 shadow-[0_0_24px_rgba(2,132,199,0.35)] text-sky-300",
+};
+
 /** Reusable glass form-control foundation, with visible keyboard focus. */
 export const UI_FORM_CONTROL =
   "w-full h-10 min-h-10 rounded-xl border border-white/20 bg-white/10 backdrop-blur-md px-3 text-sm text-white placeholder:text-sm placeholder:text-white/60 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400/60 focus:border-blue-300/50 disabled:cursor-not-allowed disabled:opacity-50";

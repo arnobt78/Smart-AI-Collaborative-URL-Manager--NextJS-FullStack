@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Navbar — sticky glass header.
+ * Navbar — sticky header: transparent at top, contained glass on scroll.
  * Authenticated: ProfileDropdown holds API Docs / API Status / Logout (PORTABLE_AUTH_UI_GUIDE §2.2).
  * Top-level links stay: Public URL, Analytics, My Lists.
  * initialWasAuthed from SSR cookie → profile skeleton on first paint (no empty→jump).
@@ -9,7 +9,7 @@
  */
 import Link from "next/link";
 import { LinkIcon, Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { abortRegistry } from "@/utils/abortRegistry";
 import { useSession } from "@/hooks/useSession";
 import { useWasAuthedHint } from "@/hooks/useWasAuthedHint";
@@ -18,6 +18,8 @@ import { WarmSoftNavLink } from "@/components/ui/WarmSoftNavLink";
 import { UI_CHROME_ROW, UI_ICON_CONTROL, UI_ICON_DECORATIVE } from "@/lib/ui/control-styles";
 import { cn } from "@/lib/utils";
 
+const SCROLL_GLASS_THRESHOLD_PX = 8;
+
 export type NavbarProps = {
   /** From cookies() urlist_was_authed — skeleton on first paint for returning users */
   initialWasAuthed?: boolean;
@@ -25,6 +27,7 @@ export type NavbarProps = {
 
 export default function Navbar({ initialWasAuthed = false }: NavbarProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const { user, isLoading } = useSession();
   const wasAuthedHint = useWasAuthedHint(initialWasAuthed);
 
@@ -33,6 +36,17 @@ export default function Navbar({ initialWasAuthed = false }: NavbarProps) {
   // C7.7: force-guest keeps wasAuthedHint false → no avatar while signout lands
   const showProfileSkeleton =
     !showProfile && wasAuthedHint && (isLoading || !user);
+
+  useEffect(() => {
+    const updateScrolled = () => {
+      setScrolled(window.scrollY > SCROLL_GLASS_THRESHOLD_PX);
+    };
+    updateScrolled();
+    window.addEventListener("scroll", updateScrolled, { passive: true });
+    return () => window.removeEventListener("scroll", updateScrolled);
+  }, []);
+
+  const showGlass = scrolled || isMobileMenuOpen;
 
   // Handle navigation with import check
   const handleNavigation = (
@@ -105,12 +119,27 @@ export default function Navbar({ initialWasAuthed = false }: NavbarProps) {
 
   return (
     <nav
-      className={`bg-transparent backdrop-blur-md sticky top-0 z-50 shrink-0 overflow-visible ${
-        isMobileMenuOpen ? "min-h-14" : "h-14"
-      }`}
+      className={cn(
+        "sticky top-0 z-50 shrink-0 isolation-isolate bg-transparent transition-colors duration-200",
+        showGlass && "backdrop-blur-md",
+        isMobileMenuOpen
+          ? "min-h-14 overflow-visible"
+          : "h-14 overflow-hidden",
+      )}
     >
-      <div className="mx-auto flex max-w-7xl flex-col overflow-visible px-2 sm:px-4">
-        <div className={`${UI_CHROME_ROW} h-14 overflow-visible`}>
+      <div
+        className={cn(
+          "mx-auto flex max-w-7xl flex-col px-2 sm:px-4",
+          isMobileMenuOpen ? "overflow-visible" : "overflow-hidden",
+        )}
+      >
+        <div
+          className={cn(
+            UI_CHROME_ROW,
+            "h-14",
+            isMobileMenuOpen ? "overflow-visible" : "overflow-hidden",
+          )}
+        >
           <Link
             href="/"
             onClick={(e) => handleNavigation(e, "/")}
@@ -120,12 +149,12 @@ export default function Navbar({ initialWasAuthed = false }: NavbarProps) {
               <LinkIcon
                 className={cn(
                   UI_ICON_DECORATIVE,
-                  "text-blue-600 stroke-[2.5px] drop-shadow-[0_0_10px_rgba(59,130,246,0.5)]",
+                  "text-blue-600 stroke-[2.5px] drop-shadow-[0_0_6px_rgba(59,130,246,0.35)]",
                 )}
               />
             </div>
             {/* Fixed line box — font swap must not change nav / avatar vertical align */}
-            <span className="gradient-color drop-shadow-[0_0_15px_rgba(59,130,246,0.3)] text-sm lg:text-base font-medium tracking-tight leading-none inline-flex h-8 items-center">
+            <span className="gradient-color drop-shadow-[0_0_8px_rgba(59,130,246,0.2)] text-sm lg:text-base font-medium tracking-tight leading-none inline-flex h-8 items-center">
               Daily Urlist
             </span>
           </Link>

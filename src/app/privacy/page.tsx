@@ -11,7 +11,7 @@ export default function PrivacyPage() {
             policy explains how we collect, use, and protect your personal
             information.
           </p>
-          <h2 className="text-xl sm:text-2xl font-medium text-white mt-6 sm:mt-8  sm:mb-4">
+          <h2 className="text-lg sm:text-xl font-medium text-white mt-6 sm:mt-8  sm:mb-4">
             Information We Collect
           </h2>
           <ul className="list-disc list-inside text-base sm:text-lg text-white/80  space-y-2">
@@ -21,7 +21,7 @@ export default function PrivacyPage() {
             <li>Session information for authentication and security</li>
             <li>Collaboration data when you share lists with others</li>
           </ul>
-          <h2 className="text-xl sm:text-2xl font-medium text-white mt-6 sm:mt-8  sm:mb-4">
+          <h2 className="text-lg sm:text-xl font-medium text-white mt-6 sm:mt-8  sm:mb-4">
             How We Use Your Information
           </h2>
           <ul className="list-disc list-inside text-base sm:text-lg text-white/80  space-y-2">
@@ -35,7 +35,7 @@ export default function PrivacyPage() {
               possible)
             </li>
           </ul>
-          <h2 className="text-xl sm:text-2xl font-medium text-white mt-6 sm:mt-8  sm:mb-4">
+          <h2 className="text-lg sm:text-xl font-medium text-white mt-6 sm:mt-8  sm:mb-4">
             Data Security
           </h2>
           <p className="text-base sm:text-lg text-white/80 ">
@@ -45,7 +45,7 @@ export default function PrivacyPage() {
             personnel. We use secure authentication methods and regularly update
             our security practices.
           </p>
-          <h2 className="text-xl sm:text-2xl font-medium text-white mt-6 sm:mt-8  sm:mb-4">
+          <h2 className="text-lg sm:text-xl font-medium text-white mt-6 sm:mt-8  sm:mb-4">
             Data Retention
           </h2>
           <p className="text-base sm:text-lg text-white/80 ">
@@ -54,17 +54,17 @@ export default function PrivacyPage() {
             account, we will delete or anonymize your personal information in
             accordance with our data retention policies.
           </p>
-          <h2 className="text-xl sm:text-2xl font-medium text-white mt-6 sm:mt-8  sm:mb-4">
+          <h2 className="text-lg sm:text-xl font-medium text-white mt-6 sm:mt-8  sm:mb-4">
             Contact Us
           </h2>
           <p className="text-base sm:text-lg text-white/80">
             If you have any questions about our privacy policy, please contact
             us at{" "}
             <a
-              href="mailto:arnob_t78@yahoo.com"
+              href="mailto:contact@arnobmahmud.com"
               className="text-blue-400 hover:text-blue-300 "
             >
-              arnob_t78@yahoo.com
+              contact@arnobmahmud.com
             </a>
           </p>
         </div>

@@ -14,6 +14,7 @@ import { saveQueryDataToLocalStorage } from "@/lib/react-query";
 import type { UrlMetadata } from "@/utils/urlMetadata";
 import { devLog } from "@/lib/dev-log";
 import { UI_ICON_CONTROL } from "@/lib/ui/control-styles";
+import { parseUserEnteredUrl } from "@/lib/utils";
 
 interface UrlAddFormProps {
   newUrl: string;
@@ -73,9 +74,10 @@ export function UrlAddForm({
     // Skip if URL hasn't changed or is empty/invalid
     if (newUrl === previousUrlRef.current) return;
 
-    // Validate URL format
+    // Validate + normalize so prefetch keys match add/submit https:// hosts
+    let normalizedUrl: string;
     try {
-      new URL(newUrl);
+      normalizedUrl = parseUserEnteredUrl(newUrl).toString();
     } catch {
       return; // Invalid URL, skip prefetch
     }
@@ -87,7 +89,7 @@ export function UrlAddForm({
 
     // Debounce: prefetch after 1 second of no changes
     prefetchTimeoutRef.current = setTimeout(async () => {
-      const queryKey = ["url-metadata", newUrl] as const;
+      const queryKey = ["url-metadata", normalizedUrl] as const;
 
       // Check if already cached
       const cached = queryClient.getQueryData<UrlMetadata>(queryKey);
@@ -105,7 +107,7 @@ export function UrlAddForm({
         const baseUrl =
           typeof window !== "undefined" ? window.location.origin : "";
         const response = await fetch(
-          `${baseUrl}/api/metadata?url=${encodeURIComponent(newUrl)}`,
+          `${baseUrl}/api/metadata?url=${encodeURIComponent(normalizedUrl)}`,
           { signal: abortController.signal },
         );
 

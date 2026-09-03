@@ -4,7 +4,7 @@ export default function NotFound() {
   return (
     <main className="flex flex-col items-center justify-center min-h-[60vh] py-10 sm:py-16 px-4">
       <div className="text-center">
-        <h1 className="text-xl sm:text-2xl font-medium text-blue-600 mb-4">
+        <h1 className="text-lg sm:text-xl font-medium text-blue-600 mb-4">
           404
         </h1>
         <h2 className="text-sm sm:text-lg font-medium text-gray-900 ">

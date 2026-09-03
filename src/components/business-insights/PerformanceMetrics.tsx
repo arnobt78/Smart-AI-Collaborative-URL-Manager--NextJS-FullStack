@@ -15,10 +15,12 @@ import {
   CartesianGrid,
   LabelList,
 } from "recharts";
-import { TrendingUp, Link2 } from "lucide-react";
+import { TrendingUp, Link2, Users } from "lucide-react";
+import { GlassIconTile } from "@/components/ui/GlassIconTile";
 import { InsightsChartTooltip } from "@/components/business-insights/InsightsChartTooltip";
-import { CARD_PAD } from "@/lib/ui-spacing";
-import { UI_ICON_CONTROL } from "@/lib/ui/control-styles";
+import { CARD_PAD, HEADING_STACK } from "@/lib/ui-spacing";
+import { UI_IDENTITY_GAP } from "@/lib/ui/control-styles";
+import { GLASS_PANEL_CARD } from "@/lib/ui/glass-card-styles";
 import { cn } from "@/lib/utils";
 
 interface PerformanceData {
@@ -69,47 +71,50 @@ export function PerformanceMetrics({
     <div className="space-y-6">
       {/* Key Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className={CARD_PAD}>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
-            <CardTitle className="text-xs sm:text-sm font-medium text-white/70">
-              Avg URLs per List
-            </CardTitle>
-            <TrendingUp className={cn(UI_ICON_CONTROL, "text-blue-400")} />
-          </CardHeader>
-          <CardContent>
-            <div className="text-xl sm:text-2xl font-medium text-white">
-              {data.avgUrlsPerList}
+        <div className={cn(GLASS_PANEL_CARD.blue, CARD_PAD)}>
+          <div className={cn("flex items-center", UI_IDENTITY_GAP)}>
+            <GlassIconTile icon={TrendingUp} hue="blue" />
+            <div className={cn(HEADING_STACK, "min-w-0")}>
+              <h3 className="text-xs sm:text-sm font-medium text-white/80">
+                Avg URLs per List
+              </h3>
+              <p className="text-xs text-white/60">Mean URLs across your lists</p>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+          <div className="mt-3 text-lg sm:text-xl font-medium text-white">
+            {data.avgUrlsPerList}
+          </div>
+        </div>
 
-        <Card className={CARD_PAD}>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
-            <CardTitle className="text-xs sm:text-sm font-medium text-white/70">
-              Lists with Collaborators
-            </CardTitle>
-            <Link2 className={cn(UI_ICON_CONTROL, "text-purple-400")} />
-          </CardHeader>
-          <CardContent>
-            <div className="text-xl sm:text-2xl font-medium text-white">
-              {data.listsWithCollaborators}
+        <div className={cn(GLASS_PANEL_CARD.violet, CARD_PAD)}>
+          <div className={cn("flex items-center", UI_IDENTITY_GAP)}>
+            <GlassIconTile icon={Users} hue="violet" />
+            <div className={cn(HEADING_STACK, "min-w-0")}>
+              <h3 className="text-xs sm:text-sm font-medium text-white/80">
+                Lists with Collaborators
+              </h3>
+              <p className="text-xs text-white/60">Shared with at least one person</p>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+          <div className="mt-3 text-lg sm:text-xl font-medium text-white">
+            {data.listsWithCollaborators}
+          </div>
+        </div>
 
-        <Card className={CARD_PAD}>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
-            <CardTitle className="text-xs sm:text-sm font-medium text-white/70">
-              Total URLs
-            </CardTitle>
-            <Link2 className={cn(UI_ICON_CONTROL, "text-green-400")} />
-          </CardHeader>
-          <CardContent>
-            <div className="text-xl sm:text-2xl font-medium text-white">
-              {data.totalUrls}
+        <div className={cn(GLASS_PANEL_CARD.emerald, CARD_PAD)}>
+          <div className={cn("flex items-center", UI_IDENTITY_GAP)}>
+            <GlassIconTile icon={Link2} hue="emerald" />
+            <div className={cn(HEADING_STACK, "min-w-0")}>
+              <h3 className="text-xs sm:text-sm font-medium text-white/80">
+                Total URLs
+              </h3>
+              <p className="text-xs text-white/60">URLs across all lists</p>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+          <div className="mt-3 text-lg sm:text-xl font-medium text-white">
+            {data.totalUrls}
+          </div>
+        </div>
       </div>
 
       {/* Charts Grid */}

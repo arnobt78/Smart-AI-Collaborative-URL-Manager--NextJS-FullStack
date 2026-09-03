@@ -124,7 +124,7 @@ export function UrlHealthIndicator({
           "inline-flex shrink-0 cursor-help align-middle",
           isInline
             ? cn(
-                "h-5 min-w-5 items-center justify-center rounded-full border px-1",
+                "h-5 min-w-5 items-center justify-center rounded-full border px-1 py-0.5",
                 config.bgColor,
                 config.borderColor,
               )

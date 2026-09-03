@@ -70,8 +70,12 @@ export async function POST(
       },
     });
 
-    // Return the updated list without a second DB round-trip
-    const updatedList = { ...list, isPublic };
+    // Fresh updatedAt so detail/lists meta densifies during pending (not after refetch)
+    const updatedList = {
+      ...list,
+      isPublic,
+      updatedAt: new Date().toISOString(),
+    };
     return NextResponse.json({ list: updatedList });
   } catch (error) {
     const message =

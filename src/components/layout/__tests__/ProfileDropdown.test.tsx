@@ -1,12 +1,11 @@
-/** C7.7: Optimistic logout — force-guest + keepalive signout + /login. */
+/** C7.7: Optimistic logout — force-guest + keepalive signout + /login (no pre-nav RQ clear). */
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ToastProvider } from "@/components/ui/Toaster";
 import { ProfileDropdown } from "@/components/layout/ProfileDropdown";
-import { setWasAuthedHintClient } from "@/lib/was-authed";
 import { queueAuthToast } from "@/lib/auth-toast";
-import { markForceGuest } from "@/lib/logout-client";
+import { hardNavigateToLogin, markForceGuest } from "@/lib/logout-client";
 
 const mockFetch = jest.fn();
 
@@ -14,14 +13,11 @@ jest.mock("@/lib/auth-toast", () => ({
   queueAuthToast: jest.fn(),
 }));
 
-jest.mock("@/lib/was-authed", () => ({
-  setWasAuthedHintClient: jest.fn(),
-}));
-
 jest.mock("@/lib/logout-client", () => ({
   markForceGuest: jest.fn(),
   clearForceGuest: jest.fn(),
   isForceGuest: jest.fn(() => false),
+  hardNavigateToLogin: jest.fn(),
 }));
 
 describe("ProfileDropdown logout", () => {
@@ -41,9 +37,9 @@ describe("ProfileDropdown logout", () => {
     mockFetch.mockReset();
     mockFetch.mockResolvedValue({ ok: true });
     global.fetch = mockFetch;
-    (setWasAuthedHintClient as jest.Mock).mockClear();
     (queueAuthToast as jest.Mock).mockClear();
     (markForceGuest as jest.Mock).mockClear();
+    (hardNavigateToLogin as jest.Mock).mockClear();
     queryClient = new QueryClient({
       defaultOptions: { queries: { retry: false } },
     });
@@ -53,7 +49,7 @@ describe("ProfileDropdown logout", () => {
     queryClient.clear();
   });
 
-  it("queues toast, force-guest, keepalive signout, clears client (no await)", async () => {
+  it("queues toast, force-guest, keepalive signout, then hardNavigateToLogin", async () => {
     const user = userEvent.setup();
     renderDropdown();
 
@@ -68,13 +64,13 @@ describe("ProfileDropdown logout", () => {
       name: expect.any(String),
     });
     expect(markForceGuest).toHaveBeenCalled();
-    expect(setWasAuthedHintClient).toHaveBeenCalledWith(false);
     expect(mockFetch).toHaveBeenCalledTimes(1);
     expect(mockFetch).toHaveBeenCalledWith("/api/auth/signout", {
       method: "POST",
       credentials: "same-origin",
       keepalive: true,
     });
+    expect(hardNavigateToLogin).toHaveBeenCalledTimes(1);
 
     // In-flight guard
     await user.click(
@@ -82,5 +78,6 @@ describe("ProfileDropdown logout", () => {
     );
     await user.click(screen.getByRole("menuitem", { name: "Logout" }));
     expect(mockFetch).toHaveBeenCalledTimes(1);
+    expect(hardNavigateToLogin).toHaveBeenCalledTimes(1);
   });
 });

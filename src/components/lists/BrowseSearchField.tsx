@@ -20,11 +20,11 @@ export function BrowseSearchField({
   disabled = false,
 }: BrowseSearchFieldProps) {
   return (
-    <div className="relative w-full">
+    <div className="relative flex h-10 w-full items-center">
       <Search
         className={cn(
           UI_ICON_CONTROL,
-          "absolute left-3 top-1/2 -translate-y-1/2 text-white/40",
+          "pointer-events-none absolute left-3 z-10 text-white/40",
         )}
         aria-hidden
       />
@@ -34,7 +34,7 @@ export function BrowseSearchField({
         value={value}
         disabled={disabled}
         onChange={(e) => onChange(e.target.value)}
-        className="pl-9 sm:pl-10 bg-white/5 border-white/10 text-white placeholder:text-white/40 text-sm sm:text-base py-2 sm:py-2"
+        className="h-10 bg-white/5 border-white/10 pl-10 text-sm text-white placeholder:text-sm placeholder:text-white/40 sm:text-base sm:placeholder:text-base"
         aria-label="Filter public lists"
       />
     </div>

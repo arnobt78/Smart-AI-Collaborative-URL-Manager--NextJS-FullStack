@@ -1,20 +1,21 @@
 /**
- * C7.0: Browse public-list card — title click opens detail; no late “View List” row.
- * Chrome aligned with ListDetailHeaderChrome / MyListsCard (Blocks / DescriptionRow / CARD_STACK).
+ * C7.0: Browse public-list card — title link only; sticky footer + share copy.
  */
 "use client";
 
+import { useState } from "react";
 import { Badge } from "@/components/ui/Badge";
 import { DescriptionRow } from "@/components/ui/DescriptionRow";
+import { ListTitleRow } from "@/components/lists/ListTitleRow";
 import { WarmSoftNavLink } from "@/components/ui/WarmSoftNavLink";
-import { Blocks, Eye, Globe2, Users } from "lucide-react";
+import { Blocks, Check, Copy, Eye, Globe, Globe2, Users } from "lucide-react";
 import {
   GLASS_LIST_CARD,
   GLASS_LIST_CARD_INTERACTIVE,
 } from "@/lib/ui/glass-card-styles";
 import { UI_ICON_CONTROL } from "@/lib/ui/control-styles";
 import { CARD_PAD, CARD_STACK } from "@/lib/ui-spacing";
-import { cn } from "@/lib/utils";
+import { cn, listShareUrl, resolveListShareUrl } from "@/lib/utils";
 
 export type BrowsePublicListCardModel = {
   id: string;
@@ -31,55 +32,95 @@ export function BrowsePublicListCard({
   list: BrowsePublicListCardModel;
 }) {
   const urlCount = Array.isArray(list.urls) ? list.urls.length : 0;
+  const description = list.description?.trim() || "No description yet";
+  const [copied, setCopied] = useState(false);
+  const shareHref = resolveListShareUrl(list.slug);
+
+  const handleCopy = async (event: React.MouseEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+    try {
+      await navigator.clipboard.writeText(shareHref);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 2000);
+    } catch {
+      /* clipboard may be denied */
+    }
+  };
 
   return (
-    <WarmSoftNavLink
-      href={`/list/${list.slug}`}
+    <div
       className={cn(
-        "group",
+        "group h-full cursor-default",
         GLASS_LIST_CARD,
         GLASS_LIST_CARD_INTERACTIVE,
         CARD_STACK,
         CARD_PAD,
       )}
     >
-      <div className="flex w-full min-w-0 items-start justify-between gap-1 sm:gap-2">
-        <div className="flex min-w-0 flex-1 items-start gap-1 sm:gap-2">
-          <Blocks
-            className={cn(UI_ICON_CONTROL, "mt-0.5 self-start text-blue-300")}
-            aria-hidden
-          />
-          <h3 className="min-w-0 flex-1 break-words text-base font-medium text-white line-clamp-2 transition-colors group-hover:text-blue-400 sm:text-lg">
+      <ListTitleRow
+        icon={Blocks}
+        hue="blue"
+        title={
+          <WarmSoftNavLink
+            href={`/list/${list.slug}`}
+            className="min-w-0 cursor-pointer break-words text-base font-medium leading-[1.15] text-white line-clamp-2 transition-colors hover:text-blue-400 sm:text-lg"
+          >
             {list.title}
-          </h3>
-        </div>
-        <Badge
-          variant="success"
-          className="inline-flex shrink-0 items-center gap-1 text-xs"
-        >
-          <Globe2 className={UI_ICON_CONTROL} aria-hidden />
-          <span className="hidden sm:inline">Public</span>
-        </Badge>
-      </div>
+          </WarmSoftNavLink>
+        }
+        trailing={
+          <Badge
+            variant="success"
+            className="inline-flex shrink-0 items-center gap-1 text-xs"
+          >
+            <Globe2 className={UI_ICON_CONTROL} aria-hidden />
+            <span className="hidden sm:inline">Public</span>
+          </Badge>
+        }
+      />
 
-      {list.description ? (
-        <DescriptionRow text={list.description} lineClamp />
-      ) : null}
+      <DescriptionRow text={description} lineClamp />
 
-      <div className="flex flex-wrap items-center gap-1 sm:gap-2 text-xs text-white/50">
-        <div className="flex items-center gap-1">
-          <Users className={UI_ICON_CONTROL} aria-hidden />
-          <span className="truncate max-w-[100px] sm:max-w-none">
-            {list.user.email.split("@")[0]}
+      <div className="mt-auto flex flex-col gap-2">
+        <div className="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-1 text-xs text-white/50">
+          <span className="inline-flex shrink-0 items-center gap-1">
+            <Globe className={cn(UI_ICON_CONTROL, "text-blue-400")} aria-hidden />
+            <span className="truncate max-w-[10rem] sm:max-w-[14rem] text-white/70">
+              {listShareUrl(list.slug)}
+            </span>
           </span>
+          <button
+            type="button"
+            onClick={handleCopy}
+            className="inline-flex shrink-0 items-center rounded p-0.5 transition-colors hover:bg-white/10"
+            aria-label="Copy shareable link"
+          >
+            {copied ? (
+              <Check className={cn(UI_ICON_CONTROL, "text-green-400")} aria-hidden />
+            ) : (
+              <Copy
+                className={cn(UI_ICON_CONTROL, "text-white/70")}
+                aria-hidden
+              />
+            )}
+          </button>
         </div>
-        <div className="flex items-center gap-1">
-          <Eye className={UI_ICON_CONTROL} aria-hidden />
-          <span>
-            {urlCount} {urlCount === 1 ? "URL" : "URLs"}
-          </span>
+        <div className="flex flex-wrap items-center gap-1 sm:gap-2 text-xs text-white/50">
+          <div className="flex items-center gap-1">
+            <Users className={UI_ICON_CONTROL} aria-hidden />
+            <span className="truncate max-w-[100px] sm:max-w-none">
+              {list.user.email.split("@")[0]}
+            </span>
+          </div>
+          <div className="flex items-center gap-1">
+            <Eye className={UI_ICON_CONTROL} aria-hidden />
+            <span>
+              {urlCount} {urlCount === 1 ? "URL" : "URLs"}
+            </span>
+          </div>
         </div>
       </div>
-    </WarmSoftNavLink>
+    </div>
   );
 }

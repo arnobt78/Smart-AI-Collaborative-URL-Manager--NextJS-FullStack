@@ -4,11 +4,13 @@ import type { ReactNode } from "react";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { DescriptionRow } from "@/components/ui/DescriptionRow";
+import { ListTitleRow } from "@/components/lists/ListTitleRow";
 import { Switch } from "@/components/ui/Switch";
 import { ArrowLeft, Blocks, Globe2, GlobeLock } from "lucide-react";
 import { GLASS_LIST_CARD } from "@/lib/ui/glass-card-styles";
 import {
   UI_ICON_CONTROL,
+  UI_IDENTITY_GAP,
   UI_LIST_CARD_META_BADGE,
 } from "@/lib/ui/control-styles";
 import { CARD_PAD, CARD_STACK, HEADING_STACK, LIST_STACK } from "@/lib/ui-spacing";
@@ -75,42 +77,47 @@ export function ListDetailHeaderChrome({
       </Button>
     ) : null;
 
-  const titleBlock = (
-    <>
-      <Blocks
-        className={cn(UI_ICON_CONTROL, "mt-0.5 self-start text-blue-300")}
-        aria-hidden
-      />
-      <h1 className="min-w-0 flex-1 break-words text-base font-medium text-white sm:text-lg xl:text-xl">
-        {list.title || `List: ${list.slug}`}
-      </h1>
-    </>
+  const titleHeading = (
+    <h1 className="min-w-0 break-words text-base font-medium leading-[1.15] text-white sm:text-lg xl:text-xl">
+      {list.title || `List: ${list.slug}`}
+    </h1>
   );
+
+  const actionsCluster =
+    backButton || actions ? (
+      <>
+        {backButton}
+        {actions}
+      </>
+    ) : null;
 
   return (
     <div
       className={cn(GLASS_LIST_CARD, CARD_PAD, className)}
     >
       <div className={cn(CARD_STACK, "min-w-0")}>
-        {/* Mobile: actions row, then full-width title */}
+        {/* Mobile: actions row, then title-only row */}
         <div className="flex w-full items-center justify-between sm:hidden">
-          {backButton}
-          {actions}
+          <div className="flex shrink-0 items-center gap-2">{backButton}</div>
+          <div className="flex shrink-0 items-center gap-2">{actions}</div>
         </div>
-        <div className="flex w-full min-w-0 items-start gap-1 sm:hidden">
-          {titleBlock}
+        <div className="sm:hidden">
+          <ListTitleRow icon={Blocks} hue="blue" title={titleHeading} />
         </div>
 
-        {/* Desktop: title + actions on one row */}
-        <div className="hidden min-w-0 items-start justify-between gap-2 sm:flex">
-          <div className="flex min-w-0 flex-1 items-start gap-1 sm:gap-2">
-            {titleBlock}
-          </div>
-          <div className="flex shrink-0 items-center gap-2">
-            {backButton}
-            {actions}
-          </div>
+        {/* Desktop: tile+title | Back/menu in isolated trailing cluster */}
+        <div className="hidden sm:block">
+          <ListTitleRow
+            icon={Blocks}
+            hue="blue"
+            title={titleHeading}
+            trailing={actionsCluster}
+          />
         </div>
+
+        <DescriptionRow
+          text={list.description?.trim() || "No description yet"}
+        />
 
         <div className="flex flex-wrap items-center gap-1 sm:gap-2">
           <Badge
@@ -164,10 +171,6 @@ export function ListDetailHeaderChrome({
           </div>
         </div>
 
-        {list.description ? (
-          <DescriptionRow text={list.description} />
-        ) : null}
-
         {shareRow}
       </div>
     </div>
@@ -218,8 +221,8 @@ function SectionHeaderRowSkeleton({
 }) {
   return (
     <div className="flex items-center justify-between gap-2 sm:gap-3">
-      <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-2">
-        <SkeletonBar className="h-4 w-4 shrink-0 rounded-full" />
+      <div className={cn("flex min-w-0 flex-1 items-center", UI_IDENTITY_GAP)}>
+        <SkeletonBar className="h-10 w-10 shrink-0 rounded-xl" />
         <div className={cn(HEADING_STACK, "min-w-0 flex-1")}>
           <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
             <SkeletonBar className="h-4 w-28 sm:w-32" />
