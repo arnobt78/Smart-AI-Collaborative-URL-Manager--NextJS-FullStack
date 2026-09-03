@@ -787,3 +787,16 @@ Append-only. Newest entries at bottom.
 | Rationale | C7.15 added `CARD_STACK`/`CARD_PAD` but left ~8 duplicated full shell class strings; PermissionManager uses gradient wrapper while Activity uses flat shell; collaborator/activity inner rows use ad-hoc `p-3 sm:p-4`. |
 | Linked REQs | REQ-0051 |
 | Status | **Implemented** 2026-09-01 — `GLASS_LIST_CARD` for list surfaces; `GLASS_CARD` for generic `Card` primitive. |
+
+---
+
+## DEC-0056 — C7.19 known-empty thin paint + SC expand gate
+
+| Field | Value |
+|---|---|
+| Timestamp | 2026-09-03 |
+| Agent | Cursor |
+| Decision | Drive thin-body empty chrome from densified `list.collaborators` / `urlCount` only (never thin unified `collaborators:[]` / `activities:[]`); defer Smart Collections AI fetch until expand; keep Create Collection dialog mounted via `collectionCreateInFlight` until POST settles. |
+| Rationale | Soft-nav pulse flash when My Lists already knew zero collaborators; cold collections fetch on every detail visit; optimistic URL drop unmounted SC mid-create. |
+| Linked REQs | C7.19 UX / cold-path |
+| Status | Implemented and validated 2026-09-03. |

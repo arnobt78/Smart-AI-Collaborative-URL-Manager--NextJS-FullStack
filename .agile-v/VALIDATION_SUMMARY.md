@@ -600,3 +600,14 @@ Gate 2: BLOCKED — RISK-0016 is accepted; `EVAL_RESULTS.md` PASS/WAIVED evidenc
 | Activity hover | `ListDetailSectionHeader` inset hover; `ListDetailSection` `overflow-hidden` | PASS | Corner clip expanded/collapsed. |
 | Validation | `tsc`; `eslint .`; Jest 128; `build`; verify-deep | PASS WITH WARNINGS | No Toast UI tests; setup-schedule no loading toast (OOS). |
 | Browser | Jobs menu prod + loading toasts + health badge | PENDING USER | TASK-0039 after deploy. |
+
+## 2026-09-03 — C7.19 empty states / browse / SC cold-path
+
+| Scope | Command / evidence | Result | Notes |
+|---|---|---|---|
+| Known-empty | `knownCollaboratorCount`; SC thin shell; tombstone soft-nav not-found | PASS | Densified `list.collaborators` only — not thin unified `[]`. |
+| UrlList search | zero-match empty copy | PASS | Keeps “No URLs Added Yet!” for empty lists. |
+| Browse + orphan | `UserAvatar`; slug guard; `scripts/delete-orphan-list.ts` | PASS | Orphan `/plan` deleted locally; re-run no-ops. |
+| SC create/cold | expand-gated fetch; create mount lock; idle `sync-vectors` | PASS | Avoids dialog unmount mid-create; fewer cold AI calls. |
+| Validation | `tsc`; eslint affected; Jest 19 (UrlList/SoftNav/soft-nav-cache); `build` | PASS WITH WARNINGS | Optional UI unit tests deferred; verify-deep PASS WITH WARNINGS. |
+| Browser | soft-nav 0-collab + Network dups | PENDING USER | TASK-0039 after deploy. |

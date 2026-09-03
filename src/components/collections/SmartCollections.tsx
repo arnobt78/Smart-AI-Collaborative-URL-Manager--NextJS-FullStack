@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useStore } from "@nanostores/react";
-import { currentList, removeUrlFromList } from "@/stores/urlListStore";
+import { currentList, removeUrlFromList, collectionCreateInFlight } from "@/stores/urlListStore";
 import { Button } from "@/components/ui/Button";
 import {
   CardTitle,
@@ -42,7 +42,7 @@ import {
   UI_IDENTITY_GAP,
 } from "@/lib/ui/control-styles";
 import { cn } from "@/lib/utils";
-import { invalidateMutationImpact, densifyAllLists, densifyBrowsePublicLists } from "@/utils/queryInvalidation";
+import { densifyAllLists, densifyBrowsePublicLists } from "@/utils/queryInvalidation";
 
 interface SmartCollectionsProps {
   listId: string;
@@ -64,6 +64,7 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
   // First visit: Fetches in background (non-blocking with placeholderData), page shows immediately
   // Subsequent visits: Uses cache instantly (no API call)
   // After invalidation: Refetches once, then cached again
+  const [isExpanded, setIsExpanded] = useState(false);
   const { data: suggestionsData, isLoading: isLoadingSuggestions } = useQuery<{
     suggestions: CollectionSuggestion[];
   }>({
@@ -87,8 +88,9 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
       const data = await response.json();
       return { suggestions: data.suggestions || [] };
     },
-    // Enable immediately - React Query handles caching and non-blocking behavior
-    enabled: !!listSlug && !!list?.urls && list.urls.length >= 2,
+    // Defer cold-path AI cost until user expands Smart Collections
+    enabled:
+      isExpanded && !!listSlug && !!list?.urls && list.urls.length >= 2,
     // CRITICAL: Cache forever until invalidated (after mutations/SSE)
     // With staleTime: Infinity, data never becomes stale automatically
     // Only becomes stale when manually invalidated, then refetches once
@@ -148,7 +150,6 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
   const [deletingDuplicateIds, setDeletingDuplicateIds] = useState<Set<string>>(
     new Set(),
   );
-  const [isExpanded, setIsExpanded] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [duplicateDeletePending, setDuplicateDeletePending] = useState(false);
   const [pendingDeleteDuplicate, setPendingDeleteDuplicate] =
@@ -332,6 +333,9 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
     if (isCreating) return;
 
     setIsCreating(suggestion.id);
+    collectionCreateInFlight.set(true);
+    window.dispatchEvent(new CustomEvent("local-operation"));
+
     const suggestionKey = [
       ...listQueryKeys.collections(listId),
       list?.urls?.length,
@@ -366,26 +370,16 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
       title: url.title,
     }));
 
-    // Commit the source-list change in both render surfaces before the request starts.
-    currentList.set({ ...previousList, urls: optimisticUrls });
-    queryClient.setQueryData(
-      listQueryKeys.unified(listSlug),
-      (cached: typeof previousUnified) =>
-        cached?.list
-          ? { ...cached, list: { ...cached.list, urls: optimisticUrls } }
-          : cached,
-    );
+    // Keep source-list URLs intact until POST succeeds so AlertDialog cannot unmount.
+    // Still warm My Lists + hide the consumed suggestion immediately.
     queryClient.setQueryData<{ suggestions: CollectionSuggestion[] }>(
       suggestionKey,
       { suggestions: nextSuggestions },
     );
-    // The query key includes URL count; seed its post-mutation variant so the
-    // next render never falls through to an avoidable cold request.
     queryClient.setQueryData(optimisticSuggestionKey, {
       suggestions: nextSuggestions,
     });
 
-    // Warm My Lists immediately: new collection + source URL/date patch
     densifyAllLists(queryClient, {
       id: temporaryId,
       slug: temporaryId,
@@ -436,17 +430,69 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
 
       const data = (await response.json()) as {
         list?: Parameters<typeof densifyAllLists>[1];
-        source?: Parameters<typeof densifyAllLists>[1];
+        source?: Parameters<typeof densifyAllLists>[1] & {
+          urls?: typeof previousList.urls;
+        };
       };
 
       if (data.list) {
         densifyAllLists(queryClient, data.list, { temporaryId });
+        // Full unified seed (not thin soft-nav) so opening the new collection
+        // does not mount-refetch updates before SSE applies activities.
+        if (data.list.slug) {
+          queryClient.setQueryData(listQueryKeys.unified(data.list.slug), {
+            list: data.list,
+            activities: [],
+            collaborators: [],
+            commentCounts: {},
+          });
+        }
       }
       if (data.source) {
         densifyAllLists(queryClient, data.source);
         if (data.source.isPublic) {
           densifyBrowsePublicLists(queryClient, data.source);
         }
+        // Authoritative detail update while dialog still open (create lock keeps SC mounted).
+        const nextSourceUrls = Array.isArray(data.source.urls)
+          ? data.source.urls
+          : optimisticUrls;
+        currentList.set({
+          ...previousList,
+          id: data.source.id,
+          slug: data.source.slug,
+          title: data.source.title ?? previousList.title,
+          description: data.source.description ?? previousList.description,
+          isPublic: data.source.isPublic ?? previousList.isPublic,
+          updatedAt:
+            typeof data.source.updatedAt === "string"
+              ? data.source.updatedAt
+              : previousList.updatedAt,
+          urls: nextSourceUrls,
+        });
+        queryClient.setQueryData(
+          listQueryKeys.unified(listSlug),
+          (cached: typeof previousUnified) =>
+            cached?.list
+              ? {
+                  ...cached,
+                  list: {
+                    ...cached.list,
+                    id: data.source!.id,
+                    slug: data.source!.slug,
+                    title: data.source!.title ?? cached.list.title,
+                    description:
+                      data.source!.description ?? cached.list.description,
+                    isPublic: data.source!.isPublic ?? cached.list.isPublic,
+                    updatedAt:
+                      typeof data.source!.updatedAt === "string"
+                        ? data.source!.updatedAt
+                        : cached.list.updatedAt,
+                    urls: nextSourceUrls,
+                  },
+                }
+              : cached,
+        );
       }
 
       toast({
@@ -455,7 +501,13 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
         variant: "success",
       });
 
-      invalidateMutationImpact(queryClient, "collection", listSlug, listId);
+      // Collections/duplicates only — unified already patched; avoid duplicate updates refetch
+      queryClient.invalidateQueries({
+        queryKey: listQueryKeys.collections(listId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: listQueryKeys.duplicates(listId),
+      });
       setPendingCreateSuggestion(null);
     } catch (error) {
       currentList.set(previousList);
@@ -502,17 +554,25 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
       }
     } finally {
       setIsCreating(null);
+      collectionCreateInFlight.set(false);
     }
   };
 
-  if (!list?.urls || list.urls.length < 2) {
-    return null; // Don't show if not enough URLs
+  const showCreateDialog =
+    pendingCreateSuggestion != null || Boolean(isCreating);
+  const hasEnoughUrls = Boolean(list?.urls && list.urls.length >= 2);
+
+  if (!hasEnoughUrls && !showCreateDialog) {
+    return null;
   }
+
+  // When URLs drop below 2 during an in-flight create, keep AlertDialog mounted
+  // (do not early-return null) so the spinner stays until success/error.
 
   const hasSuggestions = suggestions.length > 0;
   const hasDuplicates = duplicates.length > 0;
 
-  if (!isExpanded) {
+  if (!isExpanded && !showCreateDialog) {
     return (
       <div className="flex items-center justify-between gap-2 sm:gap-2">
         <div className={cn("flex min-w-0 flex-1 items-center", UI_IDENTITY_GAP)}>
@@ -522,8 +582,9 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
               <h3 className="font-medium text-white text-sm sm:text-base truncate">
                 Smart Collections
               </h3>
+              {/* Count only after expand has warmed cache — avoid cold collections fetch */}
               {hasSuggestions ? (
-                <SectionCountBadge count={suggestions.length} loading={isLoading} />
+                <SectionCountBadge count={suggestions.length} />
               ) : null}
             </div>
             <p className="text-xs sm:text-sm text-white/60 truncate">
@@ -547,6 +608,7 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
 
   return (
     <>
+      {hasEnoughUrls ? (
       <div className={cn(CARD_STACK, "space-y-2 sm:space-y-3")}>
         <div className="flex items-center justify-between gap-2 sm:gap-2 ">
           <div className={cn("flex min-w-0 flex-1 items-center", UI_IDENTITY_GAP)}>
@@ -916,6 +978,7 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
           </div>
         </div>
       </div>
+      ) : null}
 
       {/* Create Collection Confirmation Dialog */}
       <AlertDialog

@@ -32,9 +32,10 @@ import { browseQueryKeys } from "@/lib/browse-query-keys";
 import { listQueryKeys } from "@/lib/query-keys";
 import type { UserList } from "@/hooks/useListQueries";
 import { useWarmSoftNav } from "@/hooks/useWarmSoftNav";
-import { LIST_STACK, PAGE_STACK } from "@/lib/ui-spacing";
+import { LIST_STACK, PAGE_STACK, HEADING_STACK } from "@/lib/ui-spacing";
 import { cn } from "@/lib/utils";
 import { syncCurrentListFromSeedRow, isUnifiedListHydrated, syncUnifiedSubCachesFromUnified } from "@/lib/soft-nav-cache";
+import { Button } from "@/components/ui/Button";
 
 /**
  * C7.0: Warm soft-nav paints full chrome + cards from RQ (parity with real pages).
@@ -250,12 +251,39 @@ function ListDetailOptimisticSurface() {
     }
   }, [list, hydrated, data, queryClient]);
 
-  if (!slug || !list?.slug) {
+  if (!slug) {
+    return <ListDetailRouteSkeleton />;
+  }
+
+  // Tombstoned / deleted — never paint body skeletons behind not-found
+  if (data && data.list == null) {
+    return (
+      <div className={cn("w-full", PAGE_STACK)}>
+        <div className="text-center">
+          <div className={HEADING_STACK}>
+            <h1 className="text-lg sm:text-xl font-medium">List not found</h1>
+            <p className="text-gray-600">
+              The list you&apos;re looking for doesn&apos;t exist or has been
+              deleted.
+            </p>
+          </div>
+          <Button href="/" className="mt-8">
+            Go Home
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!list?.slug) {
     return <ListDetailRouteSkeleton />;
   }
 
   const listSlug = list.slug;
   const urlCount = Array.isArray(list.urls) ? list.urls.length : 0;
+  const knownCollaboratorCount = Array.isArray(list.collaborators)
+    ? list.collaborators.length
+    : undefined;
 
   return (
     <div className={cn("w-full", PAGE_STACK)} aria-busy="true">
@@ -297,7 +325,10 @@ function ListDetailOptimisticSurface() {
           }}
         />
       ) : (
-        <ListDetailBodySkeletons urlCount={urlCount} />
+        <ListDetailBodySkeletons
+          urlCount={urlCount}
+          knownCollaboratorCount={knownCollaboratorCount}
+        />
       )}
       {/* C7.10.1: paint UrlList during soft-nav (parity with ListPage thin seed) */}
       <UrlList />

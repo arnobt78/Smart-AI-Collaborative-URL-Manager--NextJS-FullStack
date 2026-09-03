@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { DescriptionRow } from "@/components/ui/DescriptionRow";
 import { ListTitleRow } from "@/components/lists/ListTitleRow";
 import { Switch } from "@/components/ui/Switch";
-import { ArrowLeft, Blocks, Globe2, GlobeLock } from "lucide-react";
+import { ArrowLeft, Blocks, Globe2, GlobeLock, Shield, Sparkles, Telescope } from "lucide-react";
 import { GLASS_LIST_CARD } from "@/lib/ui/glass-card-styles";
 import {
   UI_ICON_CONTROL,
@@ -18,8 +18,10 @@ import { cn } from "@/lib/utils";
 import { ActivityFeed } from "@/components/collaboration/ActivityFeed";
 import { PermissionManager } from "@/components/collaboration/PermissionManager";
 import { SmartCollections } from "@/components/collections/SmartCollections";
-
-
+import { useStore } from "@nanostores/react";
+import { collectionCreateInFlight } from "@/stores/urlListStore";
+import { ListDetailSectionHeader } from "@/components/lists/ListDetailSectionHeader";
+import { GlassIconTile } from "@/components/ui/GlassIconTile";
 export type ListDetailHeaderList = {
   slug: string;
   title?: string | null;
@@ -248,6 +250,7 @@ export type ListDetailBodyList = {
 /** Live Collaborators / Smart Collections / Activity sections (ListPage + warm soft-nav). */
 export function ListDetailBodySections({ list }: { list: ListDetailBodyList }) {
   const urlCount = Array.isArray(list.urls) ? list.urls.length : 0;
+  const createInFlight = useStore(collectionCreateInFlight);
 
   return (
     <>
@@ -259,7 +262,7 @@ export function ListDetailBodySections({ list }: { list: ListDetailBodyList }) {
         />
       </ListDetailSection>
 
-      {urlCount >= 2 ? (
+      {urlCount >= 2 || createInFlight ? (
         <ListDetailSection>
           <SmartCollections listId={list.id} listSlug={list.slug} />
         </ListDetailSection>
@@ -275,28 +278,66 @@ export function ListDetailBodySections({ list }: { list: ListDetailBodyList }) {
 /** Skeletons for Collaborators / SC / Activity while thin soft-nav awaits hydrate. */
 export function ListDetailBodySkeletons({
   urlCount,
+  knownCollaboratorCount,
 }: {
-  /** When set, Smart Collections skeleton only renders when urlCount >= 2. */
+  /** When set, Smart Collections shell only renders when urlCount >= 2. */
   urlCount?: number;
+  /**
+   * From densified allLists / list.collaborators emails.
+   * 0 → empty chrome (no pulse). undefined → unknown → pulse rows.
+   */
+  knownCollaboratorCount?: number;
 } = {}) {
   const showSmartCollections =
     urlCount === undefined ? true : urlCount >= 2;
+  const collaboratorsKnownEmpty = knownCollaboratorCount === 0;
 
   return (
-    <div className={LIST_STACK} aria-hidden>
-      <ListDetailSection className="animate-pulse">
-        <div className={CARD_STACK}>
-          <SectionHeaderRowSkeleton actionClassName="h-8 w-28 sm:w-36 rounded-lg" />
-          <div className="space-y-2 pt-1">
-            <SkeletonBar className="h-14 w-full rounded-lg border border-white/10 bg-white/5" />
-            <SkeletonBar className="h-14 w-full rounded-lg border border-white/10 bg-white/5" />
+    <div className={LIST_STACK} aria-hidden={!collaboratorsKnownEmpty}>
+      <ListDetailSection>
+        {collaboratorsKnownEmpty ? (
+          <div className={CARD_STACK}>
+            <ListDetailSectionHeader
+              icon={Shield}
+              hue="blue"
+              title="Collaborators"
+              subtitle="No collaborators yet · Invite others to collaborate on this list"
+            />
           </div>
-        </div>
+        ) : (
+          <div className={cn(CARD_STACK, "animate-pulse")}>
+            <SectionHeaderRowSkeleton actionClassName="h-8 w-28 sm:w-36 rounded-lg" />
+            <div className="space-y-2 pt-1">
+              <SkeletonBar className="h-14 w-full rounded-lg border border-white/10 bg-white/5" />
+              <SkeletonBar className="h-14 w-full rounded-lg border border-white/10 bg-white/5" />
+            </div>
+          </div>
+        )}
       </ListDetailSection>
 
       {showSmartCollections ? (
-        <ListDetailSection className="animate-pulse">
-          <SectionHeaderRowSkeleton actionClassName="h-8 w-24 sm:w-32 rounded-lg" />
+        <ListDetailSection>
+          {/* Collapsed SC shell — no AI fetch / no pulse while thin */}
+          <div className="flex items-center justify-between gap-2 sm:gap-2">
+            <div className={cn("flex min-w-0 flex-1 items-center", UI_IDENTITY_GAP)}>
+              <GlassIconTile icon={Sparkles} hue="violet" />
+              <div className={`${HEADING_STACK} min-w-0`}>
+                <h3 className="font-medium text-white text-sm sm:text-base truncate">
+                  Smart Collections
+                </h3>
+                <p className="text-xs sm:text-sm text-white/60 truncate">
+                  Get AI-powered collection suggestions
+                </p>
+              </div>
+            </div>
+            <span
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-md border border-white/20 px-2 sm:px-3 py-1 text-xs sm:text-sm text-white/50"
+              aria-hidden
+            >
+              <Telescope className={UI_ICON_CONTROL} />
+              View Suggestions
+            </span>
+          </div>
         </ListDetailSection>
       ) : null}
 

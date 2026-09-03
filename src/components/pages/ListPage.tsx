@@ -531,13 +531,38 @@ export default function ListPageClient() {
       }
     }
 
-    const timeoutId = setTimeout(() => {
+    let cancelled = false;
+    const runSync = () => {
+      if (cancelled) return;
+      cancelled = true;
       if (list && !isLoading && list.id) {
         void syncVectors();
       }
-    }, 1000);
+    };
 
-    return () => clearTimeout(timeoutId);
+    let idleId: number | undefined;
+    let timeoutId: number | undefined;
+    const scheduleIdle =
+      typeof window !== "undefined" && "requestIdleCallback" in window
+        ? window.requestIdleCallback.bind(window)
+        : null;
+    const cancelIdle =
+      typeof window !== "undefined" && "cancelIdleCallback" in window
+        ? window.cancelIdleCallback.bind(window)
+        : null;
+
+    if (scheduleIdle) {
+      // timeout: 5s forces run even if the main thread stays busy
+      idleId = scheduleIdle(runSync, { timeout: 5000 });
+    } else {
+      timeoutId = window.setTimeout(runSync, 5000);
+    }
+
+    return () => {
+      cancelled = true;
+      if (idleId != null && cancelIdle) cancelIdle(idleId);
+      if (timeoutId != null) window.clearTimeout(timeoutId);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [list?.id]); // Only run when list ID changes
 
@@ -881,6 +906,11 @@ export default function ListPageClient() {
       {showThinBodySkeletons ? (
         <ListDetailBodySkeletons
           urlCount={Array.isArray(list.urls) ? list.urls.length : 0}
+          knownCollaboratorCount={
+            Array.isArray(list.collaborators)
+              ? list.collaborators.length
+              : undefined
+          }
         />
       ) : (
         <ListDetailBodySections

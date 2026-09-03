@@ -2656,6 +2656,22 @@ export function UrlList() {
         </div>
       )}
 
+      {!showArchived &&
+        list.urls.length > 0 &&
+        search.trim() !== "" &&
+        filteredAndSortedUrls.length === 0 && (
+          <div className="rounded-xl border-2 border-dashed border-white/30 p-4 sm:p-6 text-center bg-white/5 backdrop-blur-md">
+            <div className={`${HEADING_STACK}`}>
+              <h3 className="text-sm sm:text-md font-medium text-white">
+                No URLs match your search
+              </h3>
+              <p className="text-sm text-white/60">
+                Try a different term, or clear the search to see all URLs
+              </p>
+            </div>
+          </div>
+        )}
+
       {editingUrl && (
         <UrlEditModal
           editingUrl={editingUrl}

@@ -1,5 +1,13 @@
 # CHANGELOG.md
 
+## CR-0032 — C7.19 empty states / browse avatar / SC cold-path
+
+- **Cycle:** C7.19
+- **Change:** Known-empty collaborator/SC thin paint; UrlList search empty; Browse Robohash owner + malformed-slug guard; orphan list delete script; SC expand-gated fetch; Create Collection mount lock + deferred source URL drop; idle `sync-vectors`.
+- **Rationale:** Soft-nav pulse flash when already-empty; search no zero-match copy; broken browse `/list//plan`; Create Collection dialog unmounted mid-POST; unnecessary cold collections/sync traffic.
+- **Impact:** ListDetailHeaderChrome, ListPage, OptimisticSoftNavSurface, UrlList, BrowsePublicListCard, SmartCollections, urlListStore, scripts/delete-orphan-list.ts, docs.
+- **Requested by / approval:** empty_states_browse_polish plan; verify-deep PASS WITH WARNINGS; `/commit-ready`.
+
 ## CR-0031 — C7.16 mobile Wave 2 regression fixes
 
 - **Cycle:** C7.16 mobile Wave 2

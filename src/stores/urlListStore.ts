@@ -54,6 +54,8 @@ export interface UrlList {
 export const currentList = map<Partial<UrlList>>({});
 export const isLoading = atom<boolean>(false);
 export const error = atom<string | null>(null);
+/** Keeps Smart Collections mounted while Create Collection is in-flight (avoids dialog unmount). */
+export const collectionCreateInFlight = atom<boolean>(false);
 
 /**
  * Helper function to dispatch activity events for optimistic updates
