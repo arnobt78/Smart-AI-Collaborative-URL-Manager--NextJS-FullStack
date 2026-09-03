@@ -42,7 +42,7 @@ import {
   UI_IDENTITY_GAP,
 } from "@/lib/ui/control-styles";
 import { cn } from "@/lib/utils";
-import { invalidateMutationImpact, densifyAllLists } from "@/utils/queryInvalidation";
+import { invalidateMutationImpact, densifyAllLists, densifyBrowsePublicLists } from "@/utils/queryInvalidation";
 
 interface SmartCollectionsProps {
   listId: string;
@@ -399,7 +399,7 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
       createdAt: nowIso,
       updatedAt: nowIso,
     });
-    densifyAllLists(queryClient, {
+    const optimisticSource = {
       id: previousList.id || listId,
       slug: previousList.slug || listSlug,
       title: previousList.title,
@@ -411,7 +411,11 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
       })),
       isPublic: previousList.isPublic,
       updatedAt: nowIso,
-    });
+    };
+    densifyAllLists(queryClient, optimisticSource);
+    if (previousList.isPublic) {
+      densifyBrowsePublicLists(queryClient, optimisticSource);
+    }
 
     try {
       const response = await fetch(`/api/lists/${listSlug}/collections`, {
@@ -440,6 +444,9 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
       }
       if (data.source) {
         densifyAllLists(queryClient, data.source);
+        if (data.source.isPublic) {
+          densifyBrowsePublicLists(queryClient, data.source);
+        }
       }
 
       toast({
@@ -448,8 +455,8 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
         variant: "success",
       });
 
-      setPendingCreateSuggestion(null);
       invalidateMutationImpact(queryClient, "collection", listSlug, listId);
+      setPendingCreateSuggestion(null);
     } catch (error) {
       currentList.set(previousList);
       queryClient.setQueryData(
@@ -930,6 +937,7 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
         )}
         pendingText="Creating…"
         closeOnConfirm={false}
+        ensurePendingPaint
         onConfirm={async () => {
           if (!pendingCreateSuggestion) return;
           await createCollection(pendingCreateSuggestion);

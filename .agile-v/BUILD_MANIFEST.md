@@ -37,5 +37,6 @@
 | ART-0045.1 | REQ-0045 | ApiStatusChrome; api-status/loading.tsx; SoftNavLoading chrome | Soft-nav leaves previous page with matching chrome+pulses. |
 | ART-0046.1 | REQ-0046 | PageHeader action; ApiStatusRefreshControl; SoftNav static busy | Header refresh feedback while chrome stays. |
 | ART-0048.1 | REQ-0048 | logout-client forceGuest; ProfileDropdown optimistic logout | Instant `/` Auth; background signout. |
+| ART-0053.2 | REQ-0053 | cache utilities/store/hooks; SSE route/client; comments/jobs; Smart Collections/AlertDialog; Jest/Playwright | Canonical warm mutations, authorized cache-ready SSE, insight projection, pending paint, isolated browser harness, and regression coverage. |
 
 Risk level: R2 (production UI and repository-wide behavior-sensitive lint remediation). No API, database, authorization, or session contract changes are authorized.

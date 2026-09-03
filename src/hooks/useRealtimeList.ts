@@ -3,25 +3,10 @@
 import { useEffect, useRef, useState } from "react";
 import { currentList, type UrlItem } from "@/stores/urlListStore";
 import { devLog } from "@/lib/dev-log";
-
-interface RealtimeEvent {
-  type: string;
-  listId: string;
-  action?: string;
-  slug?: string;
-  timestamp?: string;
-  activity?: {
-    id: string;
-    action: string;
-    details: Record<string, unknown> | null;
-    createdAt: string;
-    user: {
-      id: string;
-      email: string;
-    };
-  };
-  [key: string]: unknown;
-}
+import {
+  getRealtimeEventKey,
+  type RealtimeChannelEvent,
+} from "@/lib/realtime/event-types";
 
 // Global connection tracker to prevent duplicate EventSource connections (Firefox compatibility)
 const activeConnections = new Map<string, EventSource>();
@@ -32,7 +17,8 @@ const activeConnections = new Map<string, EventSource>();
 export function useRealtimeList(listId: string | null) {
   const eventSourceRef = useRef<EventSource | null>(null);
   const [isConnected, setIsConnected] = useState(false);
-  const processedEventIdRef = useRef<string>("");
+  const processedEventIdsRef = useRef<string[]>([]);
+  const processedEventIdSetRef = useRef<Set<string>>(new Set());
   const lastListDispatchRef = useRef<number>(0);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const reconnectAttemptsRef = useRef<number>(0);
@@ -144,13 +130,20 @@ export function useRealtimeList(listId: string | null) {
 
       eventSource.onmessage = (event) => {
         try {
-          // Skip duplicate events
-          if (event.lastEventId === processedEventIdRef.current) {
+          const data: RealtimeChannelEvent = JSON.parse(event.data);
+          const eventKey = event.lastEventId || getRealtimeEventKey(data);
+
+          if (processedEventIdSetRef.current.has(eventKey)) {
             return;
           }
-          processedEventIdRef.current = event.lastEventId || "";
-
-          const data: RealtimeEvent = JSON.parse(event.data);
+          processedEventIdsRef.current.push(eventKey);
+          processedEventIdSetRef.current.add(eventKey);
+          if (processedEventIdsRef.current.length > 200) {
+            const removed = processedEventIdsRef.current.shift();
+            if (removed) {
+              processedEventIdSetRef.current.delete(removed);
+            }
+          }
 
           // Ignore heartbeat messages (they're just to keep connection alive)
           if (data.type === "heartbeat") {
@@ -161,6 +154,23 @@ export function useRealtimeList(listId: string | null) {
           if (data.type === "connected") {
             // Connected to list updates
             devLog(`✅ [SSE] Connected to list updates for listId: ${listId}`);
+          } else if (data.type.startsWith("comment_")) {
+            window.dispatchEvent(new CustomEvent("comment-updated", { detail: data }));
+            const slug = data.slug || currentList.get()?.slug;
+            if (slug) {
+              window.dispatchEvent(new CustomEvent("unified-update", {
+                detail: {
+                  listId,
+                  slug,
+                  eventKey,
+                  action: data.type,
+                  timestamp: data.timestamp || new Date().toISOString(),
+                  list: data.list,
+                  urlId: data.urlId,
+                  commentCount: data.commentCount,
+                },
+              }));
+            }
           } else if (data.type === "list_updated") {
             devLog(`📨 [SSE] Received list_updated event:`, {
               listId,
@@ -206,8 +216,11 @@ export function useRealtimeList(listId: string | null) {
                 const unifiedUpdateEvent = {
                   listId,
                   slug, // CRITICAL: Include slug for query invalidation
+                  eventKey,
                   timestamp: data.timestamp || new Date().toISOString(),
                   action: data.action || "list_updated",
+                  list: data.list,
+                  deleted: data.deleted,
                 };
                 
                 devLog(`🔔 [REALTIME] Dispatching unified-update for collaborator action:`, unifiedUpdateEvent);
@@ -225,7 +238,7 @@ export function useRealtimeList(listId: string | null) {
 
             // For url_clicked actions, update the store directly with click count
             // This ensures instant UI updates across all screens without full list refresh
-            if (data.action === "url_clicked" && data.urlId && typeof data.clickCount === "number") {
+            if (!data.list && data.action === "url_clicked" && data.urlId && typeof data.clickCount === "number") {
               const current = currentList.get();
               if (current?.urls && current.id === listId) {
                 const urls = (current.urls as unknown as UrlItem[]) || [];
@@ -280,8 +293,11 @@ export function useRealtimeList(listId: string | null) {
                   detail: {
                     listId,
                     slug: eventSlug,
+                    eventKey,
                     timestamp: data.timestamp || new Date().toISOString(),
                     action: data.action || "list_updated",
+                    list: data.list,
+                    deleted: data.deleted,
                   },
                 })
               );
@@ -307,7 +323,10 @@ export function useRealtimeList(listId: string | null) {
                   listId,
                   slug, // CRITICAL: Include slug for query invalidation
                   action, // Include action at top level for logging/debugging
+                  eventKey,
                   timestamp: data.timestamp || new Date().toISOString(), // CRITICAL: Include timestamp for deduplication
+                  list: data.list,
+                  deleted: data.deleted,
                   activity: activityData ? {
                     id: activityData.id,
                     action: activityData.action,

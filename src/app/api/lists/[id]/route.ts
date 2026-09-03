@@ -55,6 +55,7 @@ export async function DELETE(_req: NextRequest, context: RouteContext) {
     await publishMessage(CHANNELS.listUpdate(access.list.id), {
       type: "list_updated",
       listId: access.list.id,
+      eventKey: `list:${access.list.id}:list_deleted:${Date.now()}`,
       slug: access.list.slug,
       action: "list_deleted",
       timestamp: new Date().toISOString(),
@@ -97,6 +98,7 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
       await publishMessage(CHANNELS.listUpdate(access.list.id), {
         type: "list_updated",
         listId: access.list.id,
+        eventKey: `activity:${activity.id}`,
         slug: access.list.slug,
         action: activityAction,
         timestamp: new Date().toISOString(),
@@ -104,6 +106,7 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
       await publishMessage(CHANNELS.listActivity(access.list.id), {
         type: "activity_created",
         listId: access.list.id,
+        eventKey: `activity:${activity.id}`,
         action: activityAction,
         timestamp: new Date().toISOString(),
         activity: {

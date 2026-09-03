@@ -1,5 +1,5 @@
-// REQ-0030: Destructive dialogs may be parent-controlled through async completion.
-import { fireEvent, render, screen } from "@testing-library/react";
+// REQ-0030 / REQ-0053: Parent-controlled dialogs retain pending confirmation state.
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import { AlertDialog } from "@/components/ui/AlertDialog";
 
 describe("AlertDialog", () => {
@@ -48,4 +48,46 @@ describe("AlertDialog", () => {
     expect(onConfirm).toHaveBeenCalledTimes(1);
     expect(onOpenChange).not.toHaveBeenCalled();
   });
+
+  it("ensures pending paint before confirm when enabled", async () => {
+    const onOpenChange = jest.fn();
+    const onConfirm = jest.fn().mockResolvedValue(undefined);
+    const frameQueue: Array<FrameRequestCallback> = [];
+    const requestFrame = jest
+      .spyOn(window, "requestAnimationFrame")
+      .mockImplementation((callback) => {
+        frameQueue.push(callback);
+        return 1;
+      });
+
+    render(
+      <AlertDialog
+        open
+        onOpenChange={onOpenChange}
+        title="Create Collection"
+        description="Create this collection now."
+        confirmText="Create Collection"
+        pendingText="Creating…"
+        ensurePendingPaint
+        closeOnConfirm={false}
+        onConfirm={onConfirm}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Create Collection" }));
+    expect(screen.getByRole("button", { name: "Creating…" })).toBeDisabled();
+    expect(onConfirm).not.toHaveBeenCalled();
+
+    await act(async () => {
+      frameQueue.shift()?.(0);
+      await Promise.resolve();
+      frameQueue.shift()?.(0);
+      await Promise.resolve();
+    });
+
+    expect(onConfirm).toHaveBeenCalledTimes(1);
+    expect(onOpenChange).not.toHaveBeenCalled();
+    requestFrame.mockRestore();
+  });
+
 });

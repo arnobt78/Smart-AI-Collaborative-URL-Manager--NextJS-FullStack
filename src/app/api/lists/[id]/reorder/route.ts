@@ -147,6 +147,7 @@ export async function POST(
     await publishMessage(CHANNELS.listUpdate(id), {
       type: "list_updated",
       listId: id,
+      eventKey: `activity:${activity.id}`,
       action: activityAction,
       timestamp: new Date().toISOString(),
       urlCount: newUrls.length,
@@ -156,6 +157,7 @@ export async function POST(
     await publishMessage(CHANNELS.listActivity(id), {
       type: "activity_created",
       listId: id,
+      eventKey: `activity:${activity.id}`,
       action: activityAction,
       timestamp: new Date().toISOString(),
       activity: {

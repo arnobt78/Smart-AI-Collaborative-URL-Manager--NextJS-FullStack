@@ -7,6 +7,7 @@ import {
   updateUrlsWithHealthResults,
 } from "@/lib/jobs/url-health";
 import { isAuthorizedInternalJob } from "@/lib/jobs/authorization";
+import { publishMessage, CHANNELS } from "@/lib/realtime/redis";
 
 /**
  * POST /api/jobs/check-all-urls
@@ -56,6 +57,15 @@ export async function POST(request: NextRequest) {
 
         // Update the list in database
         await updateList(list.id, { urls: updatedUrls });
+        // Deliver scheduled health mutations through the same authorized SSE
+        // cache synchronizer used by interactive mutations.
+        await publishMessage(CHANNELS.listUpdate(list.id), {
+          type: "list_updated",
+          listId: list.id,
+          eventKey: `job:${list.id}:health_check_completed:${Date.now()}`,
+          action: "health_check_completed",
+          timestamp: new Date().toISOString(),
+        });
 
         totalChecked += urls.length;
         totalHealthy += healthyCount;

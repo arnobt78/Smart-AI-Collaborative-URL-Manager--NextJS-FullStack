@@ -106,6 +106,7 @@ export async function POST(req: NextRequest, context: RouteContext) {
       publishMessage(CHANNELS.listUpdate(listId), {
         type: "list_updated",
         listId: listId,
+        eventKey: `activity:${activity.id}`,
         action: "bulk_import",
         timestamp: new Date().toISOString(),
         urlCount: updatedUrls.length,
@@ -113,6 +114,7 @@ export async function POST(req: NextRequest, context: RouteContext) {
       publishMessage(CHANNELS.listActivity(listId), {
         type: "activity_created",
         listId: listId,
+        eventKey: `activity:${activity.id}`,
         action: "bulk_import",
         timestamp: new Date().toISOString(),
         activity,

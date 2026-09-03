@@ -35,3 +35,6 @@ Append-only record of Human Gate decisions.
 | 2026-08-19 | GATE-0015 | APPROVED | User | `C2-HG1-HOME-HERO-2026-08-19` | User explicitly approved implementation of the C2 homepage hero mount-stagger plan (REQ-0024). |
 | 2026-08-19 | GATE-0016 | APPROVED | User | `C3-HG1-VALIDATION-SESSION-CACHE-2026-08-19` | User explicitly approved C3: shared mutation validation, graceful SHA-256 session-token persistence transition, and mutation cache integrity coverage; Prisma 6 remains unchanged. |
 | 2026-08-19 | GATE-0017 | APPROVED | User | `C6-HG1-DATA-SURFACE-POLISH-2026-08-19` | User explicitly approved REQ-0028: stable data surfaces, protected SSR pages, immediate summary-cache updates, collapsible activity, and compact List/Insights polish. |
+| 2026-09-03 | GATE-0037 | PENDING | — | `C7.18-HG1-WARM-MUTATION-DENSIFY-2026-09-03` | Scope: REQ-0053 field-level warm mutation densification and Smart Collections pending paint only. |
+| 2026-09-03 | GATE-0037 | APPROVED | User | `C7.18-HG1-WARM-MUTATION-DENSIFY-2026-09-03` | User explicitly requested implementation of the approved C7.18 plan (REQ-0053). |
+| 2026-09-03 | GATE-0037 | SCOPE CONFIRMED | User | `C7.18-HG1-WARM-MUTATION-DENSIFY-2026-09-03` | User approved authenticated SSE payloads and isolated Playwright history/cross-tab coverage under REQ-0053. |

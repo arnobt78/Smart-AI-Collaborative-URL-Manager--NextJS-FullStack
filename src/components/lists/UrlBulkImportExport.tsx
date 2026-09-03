@@ -23,7 +23,11 @@ import { addUrlToList, cancelPendingGetList } from "@/stores/urlListStore";
 import { abortRegistry } from "@/utils/abortRegistry";
 import { fetchUrlMetadata, type UrlMetadata } from "@/utils/urlMetadata";
 import { useQueryClient } from "@tanstack/react-query";
-import { invalidateMutationImpact } from "@/utils/queryInvalidation";
+import {
+  densifyAllLists,
+  densifyBrowsePublicLists,
+  invalidateMutationImpact,
+} from "@/utils/queryInvalidation";
 import {
   parseChromeBookmarks,
   parsePocketExport,
@@ -669,6 +673,24 @@ export function UrlBulkImportExport({
           }
 
           const result = await response.json();
+
+          // Densify My Lists + browse before reload so soft-nav paints fresh data
+          if (result.list) {
+            const { currentList } = await import("@/stores/urlListStore");
+            const cur = currentList.get();
+            densifyAllLists(queryClient, {
+              id: result.list.id ?? cur.id,
+              slug: result.list.slug ?? cur.slug,
+              title: result.list.title ?? cur.title,
+              description: result.list.description ?? cur.description,
+              urls: result.list.urls ?? result.urls,
+              isPublic: result.list.isPublic ?? cur.isPublic,
+              updatedAt: result.list.updatedAt ?? new Date().toISOString(),
+            });
+            if (result.list.isPublic ?? cur.isPublic) {
+              densifyBrowsePublicLists(queryClient, result.list);
+            }
+          }
 
           if (process.env.NODE_ENV === "development") {
             devLog(

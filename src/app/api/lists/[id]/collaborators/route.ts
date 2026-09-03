@@ -95,7 +95,8 @@ export async function POST(
     await publishMessage(CHANNELS.listUpdate(listId), {
       type: "list_updated",
       listId: listId,
-      slug: list.slug, // CRITICAL: Include slug for query invalidation on collaborator screens
+      eventKey: `activity:${activity.id}`,
+      slug: list.slug,
       action: "collaborator_added",
       timestamp: new Date().toISOString(),
     });
@@ -104,6 +105,7 @@ export async function POST(
     await publishMessage(CHANNELS.listActivity(listId), {
       type: "activity_created",
       listId: listId,
+      eventKey: `activity:${activity.id}`,
       action: "collaborator_added",
       timestamp: new Date().toISOString(),
       activity: {
@@ -207,8 +209,9 @@ export async function PUT(
     // Include slug in SSE event data so collaborator screens can invalidate unified query
     await publishMessage(CHANNELS.listUpdate(listId), {
       type: "list_updated",
-      listId: listId, // Use UUID, not slug
-      slug: list.slug, // CRITICAL: Include slug in event data for query invalidation on collaborator screens
+      listId: listId,
+      eventKey: `activity:${activity.id}`,
+      slug: list.slug,
       action: "collaborator_role_updated",
       timestamp: new Date().toISOString(),
     });
@@ -217,7 +220,8 @@ export async function PUT(
     // CRITICAL: Use listId (UUID) for channel, not slug
     await publishMessage(CHANNELS.listActivity(listId), {
       type: "activity_created",
-      listId: listId, // Use UUID, not slug
+      listId: listId,
+      eventKey: `activity:${activity.id}`,
       action: "collaborator_role_updated",
       timestamp: new Date().toISOString(),
       activity: {
@@ -297,7 +301,8 @@ export async function DELETE(
     await publishMessage(CHANNELS.listUpdate(listId), {
       type: "list_updated",
       listId: listId,
-      slug: list.slug, // CRITICAL: Include slug for query invalidation on collaborator screens
+      eventKey: `activity:${activity.id}`,
+      slug: list.slug,
       action: "collaborator_removed",
       timestamp: new Date().toISOString(),
     });
@@ -306,6 +311,7 @@ export async function DELETE(
     await publishMessage(CHANNELS.listActivity(listId), {
       type: "activity_created",
       listId: listId,
+      eventKey: `activity:${activity.id}`,
       action: "collaborator_removed",
       timestamp: new Date().toISOString(),
       activity: {

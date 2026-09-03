@@ -12,6 +12,7 @@ import { useToast } from "@/components/ui/Toaster";
 import { AlertDialog } from "@/components/ui/AlertDialog";
 import { Trash2, Edit2, Check, MessageSquarePlus } from "lucide-react";
 import { invalidateMutationImpact } from "@/utils/queryInvalidation";
+import { listQueryKeys } from "@/lib/query-keys";
 import { UI_ICON_CONTROL } from "@/lib/ui/control-styles";
 import { cn } from "@/lib/utils";
 
@@ -59,6 +60,36 @@ export function Comments({ listId, urlId, currentUserId, knownCount }: CommentsP
           : url,
       ),
     });
+
+    // Patch unified RQ cache so soft-nav detail paints the correct badge
+    const currentSlug = slug || current.slug;
+    if (currentSlug) {
+      type UnifiedCache = {
+        list?: { urls?: Array<{ id: string; commentCount?: number }> };
+        commentCounts?: Record<string, number>;
+      };
+      queryClient.setQueryData<UnifiedCache>(
+        listQueryKeys.unified(currentSlug),
+        (cached) => {
+          if (!cached) return cached;
+          const prev = cached.commentCounts?.[urlId] ?? 0;
+          return {
+            ...cached,
+            commentCounts: { ...cached.commentCounts, [urlId]: Math.max(0, prev + delta) },
+            list: cached.list
+              ? {
+                  ...cached.list,
+                  urls: cached.list.urls?.map((u) =>
+                    u.id === urlId
+                      ? { ...u, commentCount: Math.max(0, (u.commentCount || 0) + delta) }
+                      : u,
+                  ),
+                }
+              : cached.list,
+          };
+        },
+      );
+    }
   };
 
   // React Query key for comments

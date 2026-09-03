@@ -1,4 +1,5 @@
 import { Redis } from "@upstash/redis";
+import type { RealtimeChannelEvent } from "@/lib/realtime/event-types";
 
 let redis: Redis | null = null;
 
@@ -29,7 +30,7 @@ export const CHANNELS = {
  */
 export async function publishMessage(
   channel: string,
-  message: Record<string, unknown>
+  message: RealtimeChannelEvent
 ): Promise<void> {
   if (!redis) {
     return;
@@ -59,7 +60,7 @@ export async function publishMessage(
 export async function getRecentMessages(
   channel: string,
   limit: number = 10
-): Promise<Array<Record<string, unknown>>> {
+): Promise<Array<RealtimeChannelEvent>> {
   if (!redis) {
     return [];
   }
@@ -76,7 +77,7 @@ export async function getRecentMessages(
           return null;
         }
       })
-      .filter((msg): msg is Record<string, unknown> => msg !== null);
+      .filter((msg): msg is RealtimeChannelEvent => msg !== null);
   } catch (_error) {
     return [];
   }

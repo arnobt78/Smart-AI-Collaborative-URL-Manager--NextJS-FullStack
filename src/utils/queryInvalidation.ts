@@ -12,6 +12,7 @@
  */
 
 import { QueryClient } from "@tanstack/react-query";
+import { browseQueryKeys } from "@/lib/browse-query-keys";
 import { listQueryKeys } from "@/lib/query-keys";
 
 /** REQ-0025: One typed impact contract prevents mutation families drifting apart. */
@@ -63,11 +64,233 @@ type AllListsCache = {
   lists: AllListsDensifyList[];
 };
 
+type OverviewCache = {
+  overview: {
+    totalLists: number;
+    totalUrls: number;
+    publicLists: number;
+    privateLists: number;
+    totalCollaborators: number;
+    recentLists: number;
+    recentUrls: number;
+  };
+};
+
+type PerformanceCache = {
+  performance: {
+    totalUrls: number;
+    totalLists: number;
+    avgUrlsPerList: number;
+    publicCount: number;
+    privateCount: number;
+    listsWithCollaborators: number;
+    topLists: Array<{ slug: string; title: string; urlCount: number }>;
+  };
+};
+
+type GlobalCache = {
+  global: {
+    totalLists: number;
+    totalUrls: number;
+    publicLists: number;
+    privateLists: number;
+    listsWithCollaborators: number;
+    avgUrlsPerList: number;
+  };
+};
+
+type PopularCache = {
+  activeLists: Array<{
+    id: string;
+    slug: string;
+    title: string;
+    urlCount: number;
+    isPublic: boolean;
+    collaborators: number;
+  }>;
+};
+
+type ActivityPoint = { date: string; lists: number; urls: number };
+type ActivityCache = { activity: ActivityPoint[] };
+
 function isBrowsePublicQueryKey(queryKey: readonly unknown[]): boolean {
   return (
     Array.isArray(queryKey) &&
     queryKey[0] === "browse" &&
     queryKey[1] === "public"
+  );
+}
+
+function toDateString(value: string | Date | undefined): string | null {
+  if (!value) return null;
+  const date = typeof value === "string" ? new Date(value) : value;
+  if (Number.isNaN(date.getTime())) return null;
+  return date.toISOString().split("T")[0] ?? null;
+}
+
+/** Apply cached Business Insights deltas from one list-row transition. */
+export function projectBusinessInsightsFromListDelta(
+  queryClient: QueryClient,
+  previous: AllListsDensifyList | undefined,
+  next: AllListsDensifyList | undefined,
+): void {
+  if (!previous && !next) return;
+
+  const prevUrls = previous?.urls?.length ?? 0;
+  const nextUrls = next?.urls?.length ?? 0;
+  const deltaUrls = nextUrls - prevUrls;
+  const deltaLists = previous ? (next ? 0 : -1) : 1;
+  const deltaPublic = (next?.isPublic ? 1 : 0) - (previous?.isPublic ? 1 : 0);
+  const deltaPrivate = deltaLists - deltaPublic;
+  const prevCollabs = previous?.collaborators?.length ?? 0;
+  const nextCollabs = next?.collaborators?.length ?? 0;
+  const deltaCollabs = nextCollabs - prevCollabs;
+  const deltaListsWithCollabs = (nextCollabs > 0 ? 1 : 0) - (prevCollabs > 0 ? 1 : 0);
+
+  queryClient.setQueryData<OverviewCache>(
+    browseQueryKeys.businessInsights.overview(),
+    (current) => {
+      if (!current?.overview) return current;
+      return {
+        ...current,
+        overview: {
+          ...current.overview,
+          totalLists: Math.max(0, current.overview.totalLists + deltaLists),
+          totalUrls: Math.max(0, current.overview.totalUrls + deltaUrls),
+          publicLists: Math.max(0, current.overview.publicLists + deltaPublic),
+          privateLists: Math.max(0, current.overview.privateLists + deltaPrivate),
+          totalCollaborators: Math.max(0, current.overview.totalCollaborators + deltaCollabs),
+        },
+      };
+    },
+  );
+
+  queryClient.setQueryData<PerformanceCache>(
+    browseQueryKeys.businessInsights.performance(),
+    (current) => {
+      if (!current?.performance) return current;
+      const totalLists = Math.max(0, current.performance.totalLists + deltaLists);
+      const totalUrls = Math.max(0, current.performance.totalUrls + deltaUrls);
+      return {
+        ...current,
+        performance: {
+          ...current.performance,
+          totalLists,
+          totalUrls,
+          publicCount: Math.max(0, current.performance.publicCount + deltaPublic),
+          privateCount: Math.max(0, current.performance.privateCount + deltaPrivate),
+          listsWithCollaborators: Math.max(
+            0,
+            current.performance.listsWithCollaborators + deltaListsWithCollabs,
+          ),
+          avgUrlsPerList: totalLists > 0 ? totalUrls / totalLists : 0,
+          topLists: current.performance.topLists.map((item) => {
+            if (
+              (next && (item.slug === next.slug || item.slug === previous?.slug)) ||
+              (!next && previous && item.slug === previous.slug)
+            ) {
+              return {
+                ...item,
+                slug: next?.slug ?? item.slug,
+                title: next?.title ?? item.title,
+                urlCount: nextUrls,
+              };
+            }
+            return item;
+          }),
+        },
+      };
+    },
+  );
+
+  queryClient.setQueryData<GlobalCache>(
+    browseQueryKeys.businessInsights.global(),
+    (current) => {
+      if (!current?.global) return current;
+      const totalLists = Math.max(0, current.global.totalLists + deltaLists);
+      const totalUrls = Math.max(0, current.global.totalUrls + deltaUrls);
+      return {
+        ...current,
+        global: {
+          ...current.global,
+          totalLists,
+          totalUrls,
+          publicLists: Math.max(0, current.global.publicLists + deltaPublic),
+          privateLists: Math.max(0, current.global.privateLists + deltaPrivate),
+          listsWithCollaborators: Math.max(
+            0,
+            current.global.listsWithCollaborators + deltaListsWithCollabs,
+          ),
+          avgUrlsPerList: totalLists > 0 ? totalUrls / totalLists : 0,
+        },
+      };
+    },
+  );
+
+  queryClient.setQueryData<PopularCache>(
+    browseQueryKeys.businessInsights.popular(),
+    (current) => {
+      if (!current?.activeLists) return current;
+
+      if (!next && previous) {
+        return {
+          ...current,
+          activeLists: current.activeLists.filter((item) => item.id !== previous.id),
+        };
+      }
+
+      if (!next) return current;
+      const row = {
+        id: next.id,
+        slug: next.slug,
+        title: next.title ?? next.slug,
+        urlCount: nextUrls,
+        isPublic: Boolean(next.isPublic),
+        collaborators: nextCollabs,
+      };
+      const index = current.activeLists.findIndex(
+        (item) => item.id === row.id || item.slug === row.slug,
+      );
+      if (index === -1) {
+        return { ...current, activeLists: [row, ...current.activeLists].slice(0, 10) };
+      }
+      const nextActive = current.activeLists.slice();
+      nextActive[index] = { ...nextActive[index], ...row };
+      return { ...current, activeLists: nextActive };
+    },
+  );
+
+  const today = toDateString(new Date())!;
+  queryClient.setQueriesData<ActivityCache>(
+    {
+      predicate: (query) =>
+        Array.isArray(query.queryKey) &&
+        query.queryKey[0] === "business-insights" &&
+        query.queryKey[1] === "activity",
+    },
+    (current) => {
+      if (!current?.activity?.length) return current;
+      const prevCreated = toDateString(previous?.createdAt ?? previous?.created_at);
+      const nextCreated = toDateString(next?.createdAt ?? next?.created_at);
+
+      return {
+        ...current,
+        activity: current.activity.map((point) => {
+          let lists = point.lists;
+          let urls = point.urls;
+          if (point.date === today) {
+            urls = Math.max(0, urls + deltaUrls);
+          }
+          if (prevCreated && point.date === prevCreated && !next) {
+            lists = Math.max(0, lists - 1);
+          }
+          if (nextCreated && point.date === nextCreated && !previous) {
+            lists = Math.max(0, lists + 1);
+          }
+          return { ...point, lists, urls };
+        }),
+      };
+    },
   );
 }
 
@@ -130,12 +353,18 @@ export function densifyAllLists(
   list: AllListsDensifyList,
   options?: { remove?: boolean; temporaryId?: string },
 ): void {
+  let previousRow: AllListsDensifyList | undefined;
+  let projectedNext: AllListsDensifyList | undefined;
+
   queryClient.setQueryData<AllListsCache>(
     listQueryKeys.allLists(),
     (current) => {
       if (!current?.lists) return current;
 
       if (options?.remove) {
+        previousRow = current.lists.find(
+          (item) => item.id === list.id || item.slug === list.slug,
+        );
         const nextLists = current.lists.filter(
           (item) => item.id !== list.id && item.slug !== list.slug,
         );
@@ -152,13 +381,22 @@ export function densifyAllLists(
       );
 
       if (index === -1) {
+        projectedNext = list;
         return { ...current, lists: [list, ...current.lists] };
       }
 
+      previousRow = current.lists[index];
       const nextLists = current.lists.slice();
-      nextLists[index] = { ...nextLists[index], ...list };
+      projectedNext = { ...nextLists[index], ...list };
+      nextLists[index] = projectedNext;
       return { ...current, lists: nextLists };
     },
+  );
+
+  projectBusinessInsightsFromListDelta(
+    queryClient,
+    previousRow,
+    options?.remove ? undefined : projectedNext ?? list,
   );
 }
 

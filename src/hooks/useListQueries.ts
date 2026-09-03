@@ -756,15 +756,9 @@ export function useDeleteList() {
         : undefined;
 
       if (!deferOptimistic) {
-        queryClient.setQueryData<{ lists: UserList[] }>(
-          listQueryKeys.allLists(),
-          (old) => {
-            if (!old?.lists) return old;
-            return {
-              lists: old.lists.filter((list) => list.id !== listId),
-            };
-          },
-        );
+        if (deletedList) {
+          densifyAllLists(queryClient, deletedList, { remove: true });
+        }
 
         if (deletedList) {
           densifyBrowsePublicLists(queryClient, deletedList, { remove: true });
@@ -787,15 +781,7 @@ export function useDeleteList() {
     },
     onSuccess: (_data, { listId }, context) => {
       if (context?.deferOptimistic && context.deletedList) {
-        queryClient.setQueryData<{ lists: UserList[] }>(
-          listQueryKeys.allLists(),
-          (old) => {
-            if (!old?.lists) return old;
-            return {
-              lists: old.lists.filter((list) => list.id !== listId),
-            };
-          },
-        );
+        densifyAllLists(queryClient, context.deletedList, { remove: true });
         densifyBrowsePublicLists(queryClient, context.deletedList, {
           remove: true,
         });
@@ -864,6 +850,7 @@ let globalHandler: ((event: Event) => void) | null = null;
 let globalSSEConnectedHandler: ((event: Event) => void) | null = null;
 const invalidationDelay = 300; // 300ms debounce window
 const initialLoadGracePeriod = 8000; // Ignore invalidations for 8 seconds after SSE connects (to handle slow SSE connections)
+const recentRealtimeEventWindow = 5000; // Allow clearly fresh SSE events through during initial hydration
 
 /**
  * Setup global SSE cache sync for React Query
@@ -891,12 +878,14 @@ export function setupSSECacheSync() {
         action?: string;
         slug?: string;
         timestamp?: string;
+        eventKey?: string;
       }>;
 
       const listId = customEvent.detail?.listId;
       const slug = customEvent.detail?.slug;
       const action = customEvent.detail?.action || "";
       const eventTimestamp = customEvent.detail?.timestamp;
+      const eventKey = customEvent.detail?.eventKey;
 
       const timeSinceSSEConnect = globalSSEConnectedTime
         ? Date.now() - globalSSEConnectedTime
@@ -930,6 +919,17 @@ export function setupSSECacheSync() {
 
       const now = Date.now();
       let shouldIgnoreGracePeriod = false;
+      let isRecentRealtimeEvent = false;
+
+      if (eventTimestamp) {
+        try {
+          const eventTime = new Date(eventTimestamp).getTime();
+          isRecentRealtimeEvent =
+            Math.abs(now - eventTime) < recentRealtimeEventWindow;
+        } catch {
+          isRecentRealtimeEvent = false;
+        }
+      }
 
       if (isCollaboratorAction) {
         // CRITICAL: For collaborator actions, check if event is recent based on timestamp
@@ -990,10 +990,16 @@ export function setupSSECacheSync() {
         const timeSinceSSEConnect = now - globalSSEConnectedTime;
 
         if (timeSinceSSEConnect < initialLoadGracePeriod) {
-          devLog(
-            `⏭️ [SSE CACHE SYNC] Ignoring unified-update event during initial load grace period (${timeSinceSSEConnect}ms since SSE connect, action: ${action})`
-          );
-          return;
+          if (isRecentRealtimeEvent) {
+            devLog(
+              `✅ [SSE CACHE SYNC] Recent realtime event arrived during initial grace period, processing immediately (action: ${action})`
+            );
+          } else {
+            devLog(
+              `⏭️ [SSE CACHE SYNC] Ignoring unified-update event during initial load grace period (${timeSinceSSEConnect}ms since SSE connect, action: ${action})`
+            );
+            return;
+          }
         }
       }
 
@@ -1014,23 +1020,19 @@ export function setupSSECacheSync() {
         return;
       }
 
-      // CRITICAL: Create unique invocation key to prevent duplicate invalidations
-      // Use listSlug + action + rounded timestamp to deduplicate events within 1 second
-      // This prevents duplicate invalidations from mutation dispatch + SSE events with slightly different timestamps
       let invocationKey: string;
-      if (eventTimestamp) {
+      if (eventKey) {
+        invocationKey = eventKey;
+      } else if (eventTimestamp) {
         try {
-          // Round timestamp to nearest second to deduplicate events within 1 second
           const eventTime = new Date(eventTimestamp).getTime();
-          const roundedTime = Math.floor(eventTime / 1000) * 1000; // Round to nearest second
+          const roundedTime = Math.floor(eventTime / 1000) * 1000;
           invocationKey = `${listSlug}:${action}:${roundedTime}`;
         } catch {
-          // If timestamp parsing fails, use current time rounded to nearest second
           const roundedTime = Math.floor(Date.now() / 1000) * 1000;
           invocationKey = `${listSlug}:${action}:${roundedTime}`;
         }
       } else {
-        // No timestamp - use current time rounded to nearest second
         const roundedTime = Math.floor(Date.now() / 1000) * 1000;
         invocationKey = `${listSlug}:${action}:${roundedTime}`;
       }
@@ -1038,7 +1040,7 @@ export function setupSSECacheSync() {
       // Skip if we've already processed this exact event recently (shared across all instances)
       if (globalProcessedInvocations.has(invocationKey)) {
         devLog(
-          `⏭️ [SSE CACHE SYNC] Skipping duplicate unified-update event (deduplicated by rounded timestamp): ${invocationKey}`
+          `⏭️ [SSE CACHE SYNC] Skipping duplicate unified-update event: ${invocationKey}`
         );
         return;
       }
@@ -1068,16 +1070,10 @@ export function setupSSECacheSync() {
 
         // C7.9 playbook: densify/drop on delete + visibility so thin seed cannot resurrect ghosts
         if (action === "list_deleted") {
-          queryClient.setQueryData<{ lists: UserList[] }>(
-            listQueryKeys.allLists(),
-            (old) => {
-              if (!old?.lists) return old;
-              return {
-                lists: old.lists.filter(
-                  (list) => list.id !== listId && list.slug !== listSlug,
-                ),
-              };
-            },
+          densifyAllLists(
+            queryClient,
+            { id: listId!, slug: listSlug! },
+            { remove: true },
           );
           densifyBrowsePublicLists(
             queryClient,
@@ -1090,24 +1086,17 @@ export function setupSSECacheSync() {
           action === "list_made_private"
         ) {
           const isPublic = action === "list_made_public";
-          queryClient.setQueryData<{ lists: UserList[] }>(
-            listQueryKeys.allLists(),
-            (old) => {
-              if (!old?.lists) return old;
-              return {
-                lists: old.lists.map((list) =>
-                  list.id === listId || list.slug === listSlug
-                    ? { ...list, isPublic }
-                    : list,
-                ),
-              };
-            },
-          );
           const fromLists = queryClient
             .getQueryData<{ lists: UserList[] }>(listQueryKeys.allLists())
             ?.lists?.find(
               (list) => list.id === listId || list.slug === listSlug,
             );
+          if (fromLists) {
+            densifyAllLists(queryClient, {
+              ...fromLists,
+              isPublic,
+            });
+          }
           densifyBrowsePublicLists(
             queryClient,
             {

@@ -18,6 +18,7 @@
 
 # testing
 /coverage
+/e2e/.auth
 
 # next.js
 /.next/
@@ -71,4 +72,3 @@ HETZNER_VPS_MIGRATION_GUIDE.md
 REACT_QUERY_SETUP_GUIDE.md
 # Keep seed script - useful for future migrations/testing
 # prisma/seed.ts
-

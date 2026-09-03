@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { updateList } from "@/lib/db";
 import type { UrlItem } from "@/stores/urlListStore";
 import { isAuthorizedInternalJob } from "@/lib/jobs/authorization";
+import { publishMessage, CHANNELS } from "@/lib/realtime/redis";
 
 /**
  * POST /api/jobs/refresh-all-metadata
@@ -85,6 +86,16 @@ export async function POST(request: NextRequest) {
 
         // Update the list in database
         await updateList(list.id, { urls: updatedUrls });
+        // The authenticated SSE route re-authorizes subscribers and attaches
+        // the current server list before delivery. Publishing here ensures
+        // scheduled mutations take the same warm-cache path as manual ones.
+        await publishMessage(CHANNELS.listUpdate(list.id), {
+          type: "list_updated",
+          listId: list.id,
+          eventKey: `job:${list.id}:metadata_refreshed:${Date.now()}`,
+          action: "metadata_refreshed",
+          timestamp: new Date().toISOString(),
+        });
 
         totalRefreshed += urls.length;
         totalSuccess += successCount;

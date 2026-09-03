@@ -156,11 +156,14 @@ export async function POST(
       }
     }
 
+    const commentCount = await prisma.comment.count({ where: { listId, urlId } });
     // Publish real-time update
     await publishMessage(CHANNELS.listComment(listId), {
       type: "comment_added",
       listId,
+      eventKey: `comment:${comment.id}:comment_added`,
       urlId,
+      commentCount,
       commentId: comment.id,
       userId: user.id,
       userEmail: user.email,
@@ -171,6 +174,7 @@ export async function POST(
     await publishMessage(CHANNELS.listActivity(listId), {
       type: "activity_created",
       listId,
+      eventKey: `activity:${activity.id}`,
       action: "comment_added",
       timestamp: new Date().toISOString(),
       activity: {
@@ -279,11 +283,17 @@ export async function PATCH(
       }
     }
 
+    const commentCount = urlId
+      ? await prisma.comment.count({ where: { listId, urlId } })
+      : undefined;
     // Publish real-time update
     await publishMessage(CHANNELS.listComment(listId), {
       type: "comment_updated",
       listId,
+      eventKey: `comment:${comment.id}:comment_updated`,
       commentId: comment.id,
+      urlId,
+      commentCount,
       timestamp: new Date().toISOString(),
     });
 
@@ -291,6 +301,7 @@ export async function PATCH(
     await publishMessage(CHANNELS.listActivity(listId), {
       type: "activity_created",
       listId,
+      eventKey: `activity:${activity.id}`,
       action: "comment_updated",
       timestamp: new Date().toISOString(),
       activity: {
@@ -400,11 +411,17 @@ export async function DELETE(
       }
     }
 
+    const commentCount = urlId
+      ? await prisma.comment.count({ where: { listId, urlId } })
+      : undefined;
     // Publish real-time update
     await publishMessage(CHANNELS.listComment(listId), {
       type: "comment_deleted",
       listId,
+      eventKey: `comment:${commentId}:comment_deleted`,
       commentId,
+      urlId,
+      commentCount,
       timestamp: new Date().toISOString(),
     });
 
@@ -412,6 +429,7 @@ export async function DELETE(
     await publishMessage(CHANNELS.listActivity(listId), {
       type: "activity_created",
       listId,
+      eventKey: `activity:${activity.id}`,
       action: "comment_deleted",
       timestamp: new Date().toISOString(),
       activity: {

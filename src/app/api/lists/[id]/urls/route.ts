@@ -422,13 +422,16 @@ export async function POST(req: NextRequest, context: RouteContext) {
       publishMessage(CHANNELS.listUpdate(listId), {
         type: "list_updated",
         listId: listId,
+        eventKey: `activity:${activity.id}`,
         action: activityAction, // Use activityAction so reorder publishes as "url_reordered"
+        urlId: newUrl.id,
         timestamp: new Date().toISOString(),
         urlCount: updatedUrls.length,
       }),
       publishMessage(CHANNELS.listActivity(listId), {
         type: "activity_created",
         listId: listId,
+        eventKey: `activity:${activity.id}`,
         action: activityAction,
         timestamp: new Date().toISOString(),
         activity: {
@@ -795,13 +798,16 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
       publishMessage(CHANNELS.listUpdate(listId), {
         type: "list_updated",
         listId: listId,
+        eventKey: `activity:${activity.id}`,
         action: activityAction || "url_updated", // Use activityAction if available (e.g., "url_reordered", "url_favorited")
+        urlId: updatedUrl?.id,
         timestamp: new Date().toISOString(),
         urlCount: updatedUrls.length,
       }),
       publishMessage(CHANNELS.listActivity(listId), {
         type: "activity_created",
         listId: listId,
+        eventKey: `activity:${activity.id}`,
         action: activityAction,
         timestamp: new Date().toISOString(),
         activity: {
@@ -966,13 +972,16 @@ export async function DELETE(req: NextRequest, context: RouteContext) {
       publishMessage(CHANNELS.listUpdate(listId), {
         type: "list_updated",
         listId: listId,
+        eventKey: `activity:${activity.id}`,
         action: "url_deleted",
+        urlId: deletedUrl.id,
         timestamp: new Date().toISOString(),
         urlCount: updatedUrls.length,
       }),
       publishMessage(CHANNELS.listActivity(listId), {
         type: "activity_created",
         listId: listId,
+        eventKey: `activity:${activity.id}`,
         action: "url_deleted",
         timestamp: new Date().toISOString(),
         activity: {

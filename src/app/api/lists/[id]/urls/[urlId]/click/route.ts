@@ -124,6 +124,7 @@ export async function POST(req: NextRequest, context: RouteContext) {
       publishMessage(CHANNELS.listUpdate(listId), {
         type: "list_updated",
         listId: listId,
+        eventKey: `click:${listId}:${urlId}:${newClickCount}`,
         action: "url_clicked",
         urlId: urlId,
         clickCount: newClickCount,
@@ -132,6 +133,7 @@ export async function POST(req: NextRequest, context: RouteContext) {
       publishMessage(CHANNELS.listActivity(listId), {
         type: "activity_created",
         listId: listId,
+        eventKey: `click:${listId}:${urlId}:${newClickCount}`,
         action: "url_clicked",
         urlId: urlId,
         clickCount: newClickCount,

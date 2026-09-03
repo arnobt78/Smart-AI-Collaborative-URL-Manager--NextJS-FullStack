@@ -2,10 +2,11 @@ import { atom, map } from "nanostores";
 import { queryClient } from "@/lib/react-query";
 import type { UrlMetadata } from "@/utils/urlMetadata";
 import {
+  densifyAllLists,
+  densifyBrowsePublicLists,
   invalidateMutationImpact,
   type MutationImpact,
 } from "@/utils/queryInvalidation";
-import { listQueryKeys } from "@/lib/query-keys";
 import {
   syncDragOrderCacheWithServer,
   getCachedDragOrder,
@@ -102,17 +103,9 @@ type UnifiedListCache = {
   commentCounts?: Record<string, number>;
 };
 
-type AllListsCache = { lists: UrlList[] };
-
 /** REQ-0028: Keep list-card summary fields current before the next navigation. */
 export function patchListSummaryCache(list: UrlList): void {
-  queryClient.setQueryData<AllListsCache>(listQueryKeys.allLists(), (cached) => {
-    if (!cached) return cached;
-    return {
-      ...cached,
-      lists: cached.lists.map((item) => item.id === list.id ? { ...item, ...list } : item),
-    };
-  });
+  densifyAllLists(queryClient, list);
 }
 
 /**
@@ -129,6 +122,10 @@ function commitUrlMutation(
   const next = { ...previous, ...serverList, urls } as UrlList;
   currentList.set(next);
   patchListSummaryCache(next);
+
+  if (next.isPublic) {
+    densifyBrowsePublicLists(queryClient, next);
+  }
 
   if (next.slug) {
     queryClient.setQueryData<UnifiedListCache>(

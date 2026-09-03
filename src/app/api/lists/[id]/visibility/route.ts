@@ -44,6 +44,7 @@ export async function POST(
     await publishMessage(CHANNELS.listUpdate(id), {
       type: "list_updated",
       listId: id,
+      eventKey: `activity:${activity.id}`,
       slug: list.slug,
       action: isPublic ? "list_made_public" : "list_made_private",
       timestamp: new Date().toISOString(),
@@ -53,6 +54,7 @@ export async function POST(
     await publishMessage(CHANNELS.listActivity(id), {
       type: "activity_created",
       listId: id,
+      eventKey: `activity:${activity.id}`,
       action: isPublic ? "list_made_public" : "list_made_private",
       timestamp: new Date().toISOString(),
       activity: {

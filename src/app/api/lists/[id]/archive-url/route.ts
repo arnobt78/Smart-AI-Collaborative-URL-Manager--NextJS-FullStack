@@ -143,13 +143,16 @@ export async function POST(
         publishMessage(CHANNELS.listUpdate(id), {
           type: "list_updated",
           listId: id,
+          eventKey: `activity:${activity.id}`,
           action: activityAction,
+          urlId,
           timestamp: new Date().toISOString(),
           urlCount: (updatedList.urls as unknown as UrlItem[]).length,
         }),
         publishMessage(CHANNELS.listActivity(id), {
           type: "activity_created",
           listId: id,
+          eventKey: `activity:${activity.id}`,
           action: activityAction,
           timestamp: new Date().toISOString(),
           activity: {

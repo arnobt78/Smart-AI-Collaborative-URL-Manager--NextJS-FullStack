@@ -204,7 +204,7 @@ export async function POST(
     const { createActivity } = await import("@/lib/db/activities");
     const { publishMessage, CHANNELS } = await import("@/lib/realtime/redis");
 
-    await Promise.all([
+    const [sourceActivity, newListActivity] = await Promise.all([
       createActivity(list.id, user.id, "collection_created", {
         collectionId: newList.id,
         collectionName: name,
@@ -222,12 +222,14 @@ export async function POST(
       publishMessage(CHANNELS.listUpdate(list.id), {
         type: "list_updated",
         listId: list.id,
+        eventKey: `activity:${sourceActivity.id}`,
         action: "collection_created",
         timestamp: new Date().toISOString(),
       }),
       publishMessage(CHANNELS.listUpdate(newList.id), {
         type: "list_updated",
         listId: newList.id,
+        eventKey: `activity:${newListActivity.id}`,
         action: "collection_created",
         timestamp: new Date().toISOString(),
       }),

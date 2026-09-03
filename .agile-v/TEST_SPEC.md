@@ -30,3 +30,8 @@ Overview: REQ-0010 through REQ-0014. Tests are derived from approved requirement
 | TC-0047 [C6.8] | REQ-0038 | Soft-nav cache unit | Warm predicates and consume-once flag | unit |
 | TC-0048 [C6.9] | REQ-0039 | Optimistic soft-nav | Warm revisit paints destination UI from RQ; never empty hole; cold one skeleton | manual production |
 | TC-0049 [C6.9] | REQ-0039 | SoftNavLoading unit | Warm paints optimistic lists; cold/missing → skeleton | unit |
+| TC-0053 [C7.18] | REQ-0053 | Densify My Lists summary mutations | Insert, temporary row replacement, field merge, collaborator count, removal, and rollback retain correct warm summary fields | unit |
+| TC-0054 [C7.18] | REQ-0053 | Create Collection confirmation paint | `ensurePendingPaint` displays pending controls before its async confirmation starts and keeps the parent-controlled dialog open | unit |
+| TC-0055 [C7.18] | REQ-0053 | Local warm-nav mutation acceptance | After scoped local CRUD, navbar/Back/Forward/revisit paints current summary values with no late catch-up | manual post-deploy |
+| TC-0056 [C7.18] | REQ-0053 | Authorized realtime stream | Owner/editor/viewer connect; anonymous/outsider cannot receive event data; comment events update badge cache | unit |
+| TC-0057 [C7.18] | REQ-0053 | Isolated browser history | Seeded owner mutates URL then immediately visits My Lists, Back, Forward, and revisits detail without stale count/date | Playwright |

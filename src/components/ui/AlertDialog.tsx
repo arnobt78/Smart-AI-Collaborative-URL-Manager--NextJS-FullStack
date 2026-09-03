@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { Check, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { CancelButton } from "@/components/ui/ActionButtons";
@@ -18,6 +19,7 @@ interface AlertDialogProps {
   pending?: boolean;
   closeOnConfirm?: boolean;
   pendingText?: string;
+  ensurePendingPaint?: boolean;
 }
 
 export function AlertDialog({
@@ -32,22 +34,45 @@ export function AlertDialog({
   pending = false,
   closeOnConfirm = true,
   pendingText,
+  ensurePendingPaint = false,
 }: AlertDialogProps) {
-  const handleConfirm = () => {
-    if (pending) return;
-    void onConfirm();
-    if (closeOnConfirm) onOpenChange(false);
+  const [localPending, setLocalPending] = useState(false);
+  const isPending = pending || localPending;
+
+  const waitForNextFrame = () =>
+    new Promise<void>((resolve) => {
+      window.requestAnimationFrame(() => resolve());
+    });
+
+  const handleConfirm = async () => {
+    if (isPending) return;
+
+    if (ensurePendingPaint && !pending) {
+      setLocalPending(true);
+      // Two frames ensures pending controls are visually committed before async work starts.
+      await waitForNextFrame();
+      await waitForNextFrame();
+    }
+
+    try {
+      await onConfirm();
+      if (closeOnConfirm) onOpenChange(false);
+    } finally {
+      if (ensurePendingPaint) {
+        setLocalPending(false);
+      }
+    }
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange} title={title} description={description} pending={pending} headerMode="scroll">
+    <Dialog open={open} onOpenChange={onOpenChange} title={title} description={description} pending={isPending} headerMode="scroll">
       <div className="flex justify-end gap-2">
-        <CancelButton onClick={() => onOpenChange(false)} disabled={pending}>{cancelText}</CancelButton>
+        <CancelButton onClick={() => onOpenChange(false)} disabled={isPending}>{cancelText}</CancelButton>
         <Button
           type="button"
           variant={variant === "destructive" ? "destructive" : "primary"}
-          onClick={handleConfirm}
-          isLoading={pending}
+          onClick={() => void handleConfirm()}
+          isLoading={isPending}
           loadingText={pendingText ?? `${confirmText}…`}
         >
           {variant === "destructive" ? (

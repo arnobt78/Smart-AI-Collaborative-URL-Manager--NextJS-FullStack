@@ -5,11 +5,12 @@
 Live: https://daily-urlist.vercel.app/ · Resume: `.agile-v/STATE.md`
 
 ## Status (C7 — icon size tokens)
-Done: C7.8–C7.17 · **LLM** `c085f69` REQ-AI-0001 · **Icons** `UI_ICON_CONTROL` (`h-5 w-5`) / `UI_ICON_DECORATIVE` (`h-6 sm:h-8`); PageHeader badge `h-10 w-10`; Home Create/View CTAs both CONTROL.
+Done: C7.8–C7.18 · **LLM** `c085f69` REQ-AI-0001 · **Icons** `UI_ICON_CONTROL` (`h-5 w-5`) / `UI_ICON_DECORATIVE` (`h-6 sm:h-8`); PageHeader badge `h-10 w-10`; Home Create/View CTAs both CONTROL.
+**C7.18** SSE dedup hardening: canonical `getRealtimeEventKey` (`event-types.ts`); all 42 `publishMessage` calls emit explicit `eventKey`; server per-poll + cross-poll dedup via `seenMessageIds`/`processedMessageIds`; client bounded 200-key LRU dedup; cache-sync prefers `eventKey` over rounded-timestamp; grace-period allows fresh events (5 s) through initial hydration window; route tests for burst + duplicate dropping.
 **C7.17** list-detail polish: collaborator avatars = navbar `border border-white/20`; URL drag Y-only (`restrictToVerticalAxis` + `verticalOnlyTransform` + `overflow-x-hidden`); Visit/Similar Visit real `<a target="_blank">` via `ensureAbsoluteHttpUrl` (empty href disabled); Dialog `headerMode="scroll"` parity (Similar/Comments/Edit/Add/Collab); UrlList Lucide Search + instant client filter (no AI smart-search bar); Comments `knownCount===0` skip fetch; Similar RQ `["similar", listId, urlId]` warm cache; Button `isLoading` = spinner + `loadingText` only.
 Stack: Next **16.3.3** · React **19.2.8** · Node **24.x** (`.nvmrc` / `engines`; use nvm 24 — shell may still be 22); **`src/proxy.ts`** (Next 16+; not `middleware.ts`); flat ESLint; audit **0**; Prisma **6.19.3**.
 Nav: warm Lists/Browse/Insights; api-status chrome+refresh; api-docs skeleton.
-Data: densifyBrowse + dropUnified tombstone + invalidateMutationImpact + SSE. Full densify/JWT-null SSR OOS.
+Data: densifyBrowse + dropUnified tombstone + invalidateMutationImpact + SSE (`eventKey` canonical dedup). Full densify/JWT-null SSR OOS.
 Defer: `(auth)` route-group (optional); lists/browse cold API slim; status API speed OOS; full metadata rewrite OOS; Prisma 7/8; conditional SC soft-nav skeleton when urls&lt;2; further UrlCard action bugs (user list later).
 Human: HA-0001; TASK-0039 smoke; next polish after user list.
 Validate: Jest · lint 0 · tsc · build · audit 0. · Resume: `.agile-v/STATE.md`.

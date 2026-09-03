@@ -113,6 +113,7 @@ export async function POST(request: NextRequest) {
         await publishMessage(CHANNELS.listUpdate(listId), {
           type: "list_updated",
           listId,
+          eventKey: `activity:${activity.id}`,
           action: "metadata_refreshed",
           timestamp: new Date().toISOString(),
         });
@@ -121,6 +122,7 @@ export async function POST(request: NextRequest) {
         await publishMessage(CHANNELS.listActivity(listId), {
           type: "activity_created",
           listId,
+          eventKey: `activity:${activity.id}`,
           action: "metadata_refreshed",
           timestamp: new Date().toISOString(),
           activity: {
@@ -145,6 +147,7 @@ export async function POST(request: NextRequest) {
         await publishMessage(CHANNELS.listUpdate(listId), {
           type: "list_updated",
           listId,
+          eventKey: `job:${listId}:metadata_refreshed:${Date.now()}`,
           action: "metadata_refreshed",
           timestamp: new Date().toISOString(),
         });

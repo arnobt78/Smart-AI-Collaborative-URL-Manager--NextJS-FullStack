@@ -89,13 +89,16 @@ export async function DELETE(
       publishMessage(CHANNELS.listUpdate(listId), {
         type: "list_updated",
         listId: listId,
+        eventKey: `activity:${activity.id}`,
         action: "url_deleted",
+        urlId,
         timestamp: new Date().toISOString(),
         urlCount: updatedUrls.length,
       }),
       publishMessage(CHANNELS.listActivity(listId), {
         type: "activity_created",
         listId: listId,
+        eventKey: `activity:${activity.id}`,
         action: "url_deleted",
         timestamp: new Date().toISOString(),
         activity: {

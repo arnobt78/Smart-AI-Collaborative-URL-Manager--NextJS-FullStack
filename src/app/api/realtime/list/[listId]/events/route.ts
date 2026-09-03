@@ -1,22 +1,43 @@
 import { NextRequest, NextResponse } from "next/server";
 import { redis, CHANNELS } from "@/lib/realtime/redis";
+import { getListById } from "@/lib/db";
+import { resolveAuthorizedList } from "@/lib/list-route-access";
+import {
+  getRealtimeEventKey,
+  isRealtimeChannelEvent,
+  type RealtimeChannelEvent,
+} from "@/lib/realtime/event-types";
 
-/**
- * OPTIONS /api/realtime/list/[listId]/events
- * CORS preflight handler for Firefox and other browsers
- */
+async function enrichAuthorizedEvent(
+  event: RealtimeChannelEvent,
+  listId: string,
+): Promise<RealtimeChannelEvent> {
+  const eventKey = getRealtimeEventKey(event);
+  // A deleted list cannot be re-authorized/read, but subscribers that were
+  // authorized when their stream opened still need a non-sensitive tombstone.
+  if (event.action === "list_deleted") {
+    return { ...event, eventKey, deleted: true };
+  }
+
+  const access = await resolveAuthorizedList(listId, "view");
+  if (!access.ok) {
+    return {
+      type: "unauthorized",
+      listId,
+      eventKey,
+      action: event.action ?? "list_updated",
+      timestamp: event.timestamp ?? new Date().toISOString(),
+    };
+  }
+
+  const list = await getListById(access.list.id);
+  if (!list) return { ...event, eventKey, deleted: true };
+  return { ...event, eventKey, list };
+}
+
+/** Same-origin EventSource streams need no permissive CORS policy. */
 export async function OPTIONS() {
-  // Firefox sometimes sends OPTIONS requests for EventSource connections
-  return new NextResponse(null, {
-    status: 204,
-    headers: {
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "GET, OPTIONS",
-      "Access-Control-Allow-Headers": "Cache-Control, Last-Event-ID, Accept",
-      "Access-Control-Expose-Headers": "Content-Type, Cache-Control",
-      "Access-Control-Max-Age": "86400", // 24 hours
-    },
-  });
+  return new NextResponse(null, { status: 204 });
 }
 
 /**
@@ -29,18 +50,20 @@ export async function GET(
   { params }: { params: Promise<{ listId: string }> }
 ) {
   const { listId } = await params;
+  // REQ-0053: list events can include cache-ready data, so authorize before
+  // establishing a long-lived stream (and re-check after future mutations).
+  const initialAccess = await resolveAuthorizedList(listId, "view");
+  if (!initialAccess.ok) {
+    return NextResponse.json({ error: initialAccess.error }, { status: initialAccess.status });
+  }
+  const authorizedListId = initialAccess.list.id;
 
-  // Set up SSE headers with CORS support for Firefox and other browsers
+  // Authenticated same-origin EventSource response.
   const headers = new Headers({
     "Content-Type": "text/event-stream",
     "Cache-Control": "no-cache, no-transform",
     "Connection": "keep-alive",
     "X-Accel-Buffering": "no", // Disable buffering in nginx
-    // CORS headers for cross-origin requests (if needed) and Firefox compatibility
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "GET, OPTIONS",
-    "Access-Control-Allow-Headers": "Cache-Control, Last-Event-ID",
-    "Access-Control-Expose-Headers": "Content-Type, Cache-Control",
   });
 
   const stream = new ReadableStream({
@@ -63,53 +86,33 @@ export async function GET(
             return;
           }
 
-          // Check both listUpdate and listActivity channels
-          const updateChannel = CHANNELS.listUpdate(listId);
-          const activityChannel = CHANNELS.listActivity(listId);
+          // Check mutation, comment, and activity channels.
+          const updateChannel = CHANNELS.listUpdate(authorizedListId);
+          const commentChannel = CHANNELS.listComment(authorizedListId);
+          const activityChannel = CHANNELS.listActivity(authorizedListId);
           
           // Get messages from both channels (get more messages to ensure we don't miss any)
-          const [updateMessages, activityMessages] = await Promise.all([
+          const [updateMessages, commentMessages, activityMessages] = await Promise.all([
             redis.lrange(`${updateChannel}:messages`, 0, 9), // Get last 10 messages
+            redis.lrange(`${commentChannel}:messages`, 0, 9),
             redis.lrange(`${activityChannel}:messages`, 0, 9), // Get last 10 messages
           ]);
           
           // Combine messages from both channels
-          const allMessages = [...updateMessages, ...activityMessages];
+          const allMessages = [...updateMessages, ...commentMessages, ...activityMessages];
           
           // Filter messages we haven't processed yet
           // Use timestamp to determine if message is new (only send messages after connection started)
+          const seenMessageIds = new Set(processedMessageIds);
           const newMessages = allMessages
             .map((msg) => {
               try {
                 const parsed = typeof msg === "string" ? JSON.parse(msg) : msg;
-                // Create a unique ID from the message content and timestamp
-                // CRITICAL: Each message needs a truly unique ID to prevent deduplication issues
-                const messageTimestamp = parsed.timestamp ? new Date(parsed.timestamp).getTime() : 0;
-                
-                // CRITICAL: Generate truly unique message IDs to prevent deduplication bugs
-                // For activity_created events, use activity.id for absolute uniqueness
-                // For other events, use type + action + timestamp + content hash
-                let uniqueKey: string;
-                if (parsed.type === "activity_created") {
-                  // Activity ID ensures uniqueness - this is the most reliable way
-                  const activity = parsed.activity as { id?: string } | undefined;
-                  const activityId = activity?.id;
-                  if (activityId) {
-                    uniqueKey = activityId;
-                  } else {
-                    // Fallback: use action + timestamp + a hash of the full message
-                    const contentStr = JSON.stringify(parsed);
-                    const contentHash = contentStr.length + (contentStr.charCodeAt(0) || 0);
-                    uniqueKey = `${parsed.action || 'unknown'}_${messageTimestamp}_${contentHash}`;
-                  }
-                } else {
-                  // For other events, use type + action + timestamp + content hash
-                  const contentStr = JSON.stringify(parsed);
-                  const contentHash = contentStr.length + (contentStr.charCodeAt(0) || 0);
-                  uniqueKey = `${parsed.action || 'none'}_${messageTimestamp}_${contentHash}`;
+                if (!isRealtimeChannelEvent(parsed)) {
+                  return null;
                 }
-                
-                const messageId = `${parsed.type}_${uniqueKey}`;
+                const messageTimestamp = parsed.timestamp ? new Date(parsed.timestamp).getTime() : 0;
+                const messageId = getRealtimeEventKey(parsed);
                 return {
                   id: messageId,
                   data: parsed,
@@ -119,15 +122,12 @@ export async function GET(
                 return null;
               }
             })
-            .filter((msg): msg is { id: string; data: Record<string, unknown>; timestamp: number } => {
+            .filter((msg): msg is { id: string; data: RealtimeChannelEvent; timestamp: number } => {
               if (msg === null) return false;
-              
-              // CRITICAL: Only check if we've already processed this message
-              // Remove timestamp filtering - if message is in Redis, it's valid to send
-              // The 15-second window was too restrictive and was filtering out valid events
-              const isNew = !processedMessageIds.has(msg.id);
-              
-              // Always send if not processed yet (ignore timestamp - messages in Redis are valid)
+              const isNew = !seenMessageIds.has(msg.id);
+              if (isNew) {
+                seenMessageIds.add(msg.id);
+              }
               return isNew;
             });
 
@@ -147,12 +147,11 @@ export async function GET(
               }
               
               processedMessageIds.add(message.id);
-              // Use a unique event ID based on timestamp
-              const eventId = message.timestamp || Date.now();
               try {
+                const enriched = await enrichAuthorizedEvent(message.data, authorizedListId);
                 controller.enqueue(
                   encoder.encode(
-                    `id: ${eventId}\ndata: ${JSON.stringify(message.data)}\n\n`
+                    `id: ${enriched.eventKey ?? message.id}\ndata: ${JSON.stringify(enriched)}\n\n`
                   )
                 );
               } catch (enqueueError) {
