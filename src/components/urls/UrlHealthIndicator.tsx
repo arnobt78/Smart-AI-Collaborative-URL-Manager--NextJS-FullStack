@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import type { HealthStatus } from "@/lib/jobs/url-health";
 import { HoverTooltip } from "@/components/ui/HoverTooltip";
+import { UI_ICON_CONTROL } from "@/lib/ui/control-styles";
 import { cn } from "@/lib/utils";
 
 interface UrlHealthIndicatorProps {
@@ -135,10 +136,7 @@ export function UrlHealthIndicator({
         )}
       >
         <Icon
-          className={cn(
-            config.color,
-            isInline ? "h-3.5 w-3.5" : "h-4 w-4",
-          )}
+          className={cn(UI_ICON_CONTROL, config.color)}
           strokeWidth={2.25}
           aria-hidden
         />

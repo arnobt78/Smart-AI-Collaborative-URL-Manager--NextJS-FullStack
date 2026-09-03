@@ -18,6 +18,8 @@ import {
 import { TrendingUp, Link2 } from "lucide-react";
 import { InsightsChartTooltip } from "@/components/business-insights/InsightsChartTooltip";
 import { CARD_PAD } from "@/lib/ui-spacing";
+import { UI_ICON_CONTROL } from "@/lib/ui/control-styles";
+import { cn } from "@/lib/utils";
 
 interface PerformanceData {
   totalUrls: number;
@@ -72,7 +74,7 @@ export function PerformanceMetrics({
             <CardTitle className="text-xs sm:text-sm font-medium text-white/70">
               Avg URLs per List
             </CardTitle>
-            <TrendingUp className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-400" />
+            <TrendingUp className={cn(UI_ICON_CONTROL, "text-blue-400")} />
           </CardHeader>
           <CardContent>
             <div className="text-xl sm:text-2xl font-medium text-white">
@@ -86,7 +88,7 @@ export function PerformanceMetrics({
             <CardTitle className="text-xs sm:text-sm font-medium text-white/70">
               Lists with Collaborators
             </CardTitle>
-            <Link2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-purple-400" />
+            <Link2 className={cn(UI_ICON_CONTROL, "text-purple-400")} />
           </CardHeader>
           <CardContent>
             <div className="text-xl sm:text-2xl font-medium text-white">
@@ -100,7 +102,7 @@ export function PerformanceMetrics({
             <CardTitle className="text-xs sm:text-sm font-medium text-white/70">
               Total URLs
             </CardTitle>
-            <Link2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-green-400" />
+            <Link2 className={cn(UI_ICON_CONTROL, "text-green-400")} />
           </CardHeader>
           <CardContent>
             <div className="text-xl sm:text-2xl font-medium text-white">

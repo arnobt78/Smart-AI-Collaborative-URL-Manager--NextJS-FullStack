@@ -62,6 +62,11 @@ import { UrlFilterBar } from "./UrlFilterBar";
 import { UrlBulkImportExport } from "./UrlBulkImportExport";
 import { UrlAddForm } from "./UrlAddForm";
 import { HEADING_STACK, LIST_STACK } from "@/lib/ui-spacing";
+import {
+  UI_ICON_CONTROL,
+  UI_ICON_DECORATIVE,
+} from "@/lib/ui/control-styles";
+import { cn } from "@/lib/utils";
 
 // Component wrapper that fetches metadata using React Query for each URL
 function UrlCardWrapper({
@@ -2298,7 +2303,7 @@ export function UrlList() {
             size="md"
             className="flex-1 sm:flex-none"
           >
-            <Link2 className="h-4 w-4 shrink-0" aria-hidden />
+            <Link2 className={UI_ICON_CONTROL} aria-hidden />
             <span className="inline-flex items-center gap-1.5">
               Active URLs
               <SectionCountBadge count={list.urls?.length || 0} />
@@ -2311,7 +2316,7 @@ export function UrlList() {
             size="md"
             className="flex-1 sm:flex-none"
           >
-            <Archive className="h-4 w-4 shrink-0" aria-hidden />
+            <Archive className={UI_ICON_CONTROL} aria-hidden />
             <span className="inline-flex items-center gap-1.5">
               Archived
               <SectionCountBadge count={archivedUrls.length} />
@@ -2340,7 +2345,7 @@ export function UrlList() {
           }`}
           variant="glassEmerald"
         >
-          <WandSparkles className="h-4 w-4 shrink-0" aria-hidden />
+          <WandSparkles className={UI_ICON_CONTROL} aria-hidden />
           Add URL
         </Button>
       </div>
@@ -2379,7 +2384,10 @@ export function UrlList() {
           {/* Search Input */}
           <div className="relative flex-1 min-w-0">
             <Search
-              className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/45"
+              className={cn(
+                UI_ICON_CONTROL,
+                "pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-white/45",
+              )}
               aria-hidden
             />
             <Input
@@ -2547,7 +2555,7 @@ export function UrlList() {
           {archivedUrlsList.length === 0 ? (
             <div className="rounded-xl border-2 border-dashed border-white/30 p-4 sm:p-6 text-center bg-white/5 backdrop-blur-md">
               <div className="mx-auto w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-gray-500/20 via-gray-500/20 to-transparent rounded-full flex items-center justify-center shadow-inner border border-gray-400/30">
-                <ArchiveBoxIcon className="h-6 w-6 sm:h-7 sm:w-7 text-gray-400" />
+                <ArchiveBoxIcon className={cn(UI_ICON_DECORATIVE, "text-gray-400")} />
               </div>
               <div className={`${HEADING_STACK} mt-3`}>
                 <h3 className="text-sm sm:text-md font-medium text-white">
@@ -2613,7 +2621,7 @@ export function UrlList() {
       {!showArchived && list.urls.length === 0 && (
         <div className="rounded-xl border-2 border-dashed border-white/30 p-4 sm:p-6 text-center bg-white/5 backdrop-blur-md">
           <div className="mx-auto w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-blue-500/20 via-blue-500/20 to-transparent rounded-full flex items-center justify-center shadow-inner border border-blue-400/30">
-            <LinkIcon className="h-6 w-6 sm:h-7 sm:w-7 text-blue-400" />
+            <LinkIcon className={cn(UI_ICON_DECORATIVE, "text-blue-400")} />
           </div>
           <div className={`${HEADING_STACK} mt-3`}>
             <h3 className="text-sm sm:text-md font-medium text-white">

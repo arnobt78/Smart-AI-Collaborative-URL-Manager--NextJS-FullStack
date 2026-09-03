@@ -185,7 +185,7 @@ These describe the current product as verified in code. They are **Accepted as b
 
 **Priority:** P2
 **Type:** UI consistency / accessibility
-**Statement:** The existing Daily Urlist UI MUST use one reusable control-size and spacing contract without changing product behavior. Input, select, search, labeled button, filter, and import/export trigger controls in the approved inventory MUST align at the same 48 CSS-pixel height on the same breakpoint. Labeled primary/action CTAs MUST use one meaningful Lucide icon at most (or no icon when the label is sufficient); icon-only controls remain icon-only with an accessible name.
+**Statement:** The existing Daily Urlist UI MUST use one reusable control-size and spacing contract without changing product behavior. Input, select, search, labeled button, filter, and import/export trigger controls in the approved inventory MUST align at the same 48 CSS-pixel height on the same breakpoint. Labeled primary/action CTAs MUST use one meaningful Lucide icon at most (or no icon when the label is sufficient); icon-only controls remain icon-only with an accessible name. Lucide/Heroicons MUST use `UI_ICON_CONTROL` (`h-5 w-5`) for interactive control glyphs and `UI_ICON_DECORATIVE` (`h-6 sm:h-8`) for page-header / feature / empty-state / brand marks; PageHeader icon tile MUST be `h-10 w-10`.
 
 **Acceptance:**
 

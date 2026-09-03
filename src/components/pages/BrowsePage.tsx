@@ -8,6 +8,7 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { usePublicListsQuery } from "@/hooks/useBrowseQueries";
 import { cn } from "@/lib/utils";
 import { CARD_PAD, PAGE_STACK } from "@/lib/ui-spacing";
+import { UI_ICON_DECORATIVE } from "@/lib/ui/control-styles";
 import { DataSurfaceSlot } from "@/components/ui/DataSurfaceSlot";
 import { BrowsePublicListCard } from "@/components/lists/BrowsePublicListCard";
 import { BrowseSearchField } from "@/components/lists/BrowseSearchField";
@@ -84,7 +85,7 @@ export default function BrowsePage() {
             CARD_PAD,
           )}
         >
-          <Globe className="w-10 h-10 sm:w-12 sm:h-12 text-white/40" />
+          <Globe className={cn(UI_ICON_DECORATIVE, "text-white/40")} />
           <p className="text-white/60 text-base sm:text-lg">
             {filter.trim()
               ? "No lists found matching your search"

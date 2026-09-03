@@ -39,6 +39,7 @@ import {
   URL_META_CHIP_RED,
   URL_META_CHIP_YELLOW,
 } from "@/lib/ui/glass-badge-styles";
+import { UI_ICON_CONTROL } from "@/lib/ui/control-styles";
 import { cn, ensureAbsoluteHttpUrl } from "@/lib/utils";
 // Using public path instead of import
 const logoPath = "/favicon.ico";
@@ -349,7 +350,12 @@ export const UrlCard: React.FC<UrlCardProps> = ({
           aria-label="Drag to reorder"
           style={{ userSelect: "none" }}
         >
-          <Grip className="h-5 w-5 text-white/40 hover:text-blue-400 transition-colors pointer-events-none" />
+          <Grip
+            className={cn(
+              UI_ICON_CONTROL,
+              "text-white/40 hover:text-blue-400 transition-colors pointer-events-none",
+            )}
+          />
         </div>
       )}
       <div className={cn(CARD_PAD, "flex flex-col gap-2")}>
@@ -407,9 +413,10 @@ export const UrlCard: React.FC<UrlCardProps> = ({
                 className="absolute top-2 right-2 bg-black/50 backdrop-blur-md rounded-lg p-2 hover:bg-black/70 transition-colors cursor-pointer z-10"
               >
                 <StarIcon
-                  className={`h-5 w-5 ${
-                    url.isFavorite ? "text-yellow-400" : "text-white"
-                  }`}
+                  className={cn(
+                    UI_ICON_CONTROL,
+                    url.isFavorite ? "text-yellow-400" : "text-white",
+                  )}
                 />
               </button>
             </div>
@@ -486,7 +493,12 @@ export const UrlCard: React.FC<UrlCardProps> = ({
                   {/* Pinned Badge */}
                   {url.isPinned && (
                     <div className="mt-1 flex items-center gap-1">
-                      <Pin className="h-3.5 w-3.5 text-yellow-400 fill-yellow-400" />
+                      <Pin
+                        className={cn(
+                          UI_ICON_CONTROL,
+                          "text-yellow-400 fill-yellow-400",
+                        )}
+                      />
                       <span className={URL_META_CHIP_YELLOW}>Pinned</span>
                     </div>
                   )}
@@ -514,7 +526,9 @@ export const UrlCard: React.FC<UrlCardProps> = ({
                   {/* Reminder Display */}
                   {url.reminder && (
                     <div className="mt-1 flex items-center gap-2">
-                      <BellIcon className="h-3.5 w-3.5 text-yellow-400 shrink-0" />
+                      <BellIcon
+                        className={cn(UI_ICON_CONTROL, "text-yellow-400")}
+                      />
                       <span className="text-xs text-yellow-300 font-normal inline-flex items-center flex-wrap gap-1">
                         Reminder:{" "}
                         <span className="text-yellow-200">
@@ -604,13 +618,15 @@ export const UrlCard: React.FC<UrlCardProps> = ({
                       disabled={!canEdit}
                     />
                     <IconButton
-                      icon={<ClipboardIcon className="h-5 w-5" />}
+                      icon={<ClipboardIcon className={UI_ICON_CONTROL} />}
                       onClick={handleCopyUrl}
                       tooltip="Copy URL"
                     />
                     {onDuplicate && (
                       <IconButton
-                        icon={<DocumentDuplicateIcon className="h-5 w-5" />}
+                        icon={
+                          <DocumentDuplicateIcon className={UI_ICON_CONTROL} />
+                        }
                         onClick={() => onDuplicate(url)}
                         tooltip="Duplicate URL"
                         disabled={!canEdit}
@@ -618,7 +634,7 @@ export const UrlCard: React.FC<UrlCardProps> = ({
                     )}
                     {onArchive && (
                       <IconButton
-                        icon={<ArchiveBoxIcon className="h-5 w-5" />}
+                        icon={<ArchiveBoxIcon className={UI_ICON_CONTROL} />}
                         onClick={() => setArchiveDialogOpen(true)}
                         tooltip="Archive URL"
                         disabled={!canEdit}
@@ -628,11 +644,12 @@ export const UrlCard: React.FC<UrlCardProps> = ({
                       <IconButton
                         icon={
                           <Pin
-                            className={`h-5 w-5 ${
+                            className={cn(
+                              UI_ICON_CONTROL,
                               url.isPinned
                                 ? "text-yellow-400 fill-yellow-400"
-                                : ""
-                            }`}
+                                : "",
+                            )}
                           />
                         }
                         onClick={() => {
@@ -653,19 +670,21 @@ export const UrlCard: React.FC<UrlCardProps> = ({
                     )}
                     {url.clickCount !== undefined && (
                       <IconButton
-                        icon={<ChartBarIcon className="h-5 w-5" />}
+                        icon={<ChartBarIcon className={UI_ICON_CONTROL} />}
                         onClick={handleShowAnalytics}
                         tooltip={`View analytics (${url.clickCount || 0} clicks)`}
                         badge={url.clickCount}
                       />
                     )}
                     <IconButton
-                      icon={<MagnifyingGlassIcon className="h-5 w-5" />}
+                      icon={
+                        <MagnifyingGlassIcon className={UI_ICON_CONTROL} />
+                      }
                       onClick={handleFindSimilar}
                       tooltip="Find similar URLs"
                     />
                     <IconButton
-                      icon={<MessageSquare className="h-5 w-5" />}
+                      icon={<MessageSquare className={UI_ICON_CONTROL} />}
                       onClick={() => setCommentsOpen(true)}
                       tooltip="Comments"
                       badge={url.commentCount}
@@ -673,13 +692,13 @@ export const UrlCard: React.FC<UrlCardProps> = ({
                   </div>
                   <div className="flex items-center gap-2 text-white/60 text-xs font-delicious flex-wrap justify-end">
                     <TimeInfo
-                      icon={<ClockIcon className="h-3.5 w-3.5 shrink-0" />}
+                      icon={<ClockIcon className={UI_ICON_CONTROL} />}
                       label="Added"
                       date={new Date(url.createdAt)}
                     />
                     {url.updatedAt ? (
                       <TimeInfo
-                        icon={<ClockIcon className="h-3.5 w-3.5 shrink-0" />}
+                        icon={<ClockIcon className={UI_ICON_CONTROL} />}
                         label="Updated"
                         date={new Date(url.updatedAt)}
                       />
@@ -827,7 +846,10 @@ export const UrlCard: React.FC<UrlCardProps> = ({
                         rel="noopener noreferrer"
                         className="inline-flex flex-shrink-0 items-center gap-1.5 rounded-lg bg-blue-600 px-4 py-2 text-white whitespace-nowrap transition-colors hover:bg-blue-700 cursor-pointer"
                       >
-                        <ArrowTopRightOnSquareIcon className="h-4 w-4" aria-hidden />
+                        <ArrowTopRightOnSquareIcon
+                          className={UI_ICON_CONTROL}
+                          aria-hidden
+                        />
                         Visit
                       </a>
                     ) : (

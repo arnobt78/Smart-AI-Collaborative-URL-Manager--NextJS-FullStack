@@ -4,6 +4,7 @@ import { Check, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { CancelButton } from "@/components/ui/ActionButtons";
 import { Dialog } from "@/components/ui/Dialog";
+import { UI_ICON_CONTROL } from "@/lib/ui/control-styles";
 
 interface AlertDialogProps {
   open: boolean;
@@ -50,9 +51,9 @@ export function AlertDialog({
           loadingText={pendingText ?? `${confirmText}…`}
         >
           {variant === "destructive" ? (
-            <Trash2 className="h-4 w-4 shrink-0" aria-hidden />
+            <Trash2 className={UI_ICON_CONTROL} aria-hidden />
           ) : (
-            <Check className="h-4 w-4 shrink-0" aria-hidden />
+            <Check className={UI_ICON_CONTROL} aria-hidden />
           )}
           {confirmText}
         </Button>

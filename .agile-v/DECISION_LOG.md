@@ -93,6 +93,19 @@ Append-only. Newest entries at bottom.
 
 ---
 
+## DEC-UI-0010 — Two-tier Lucide/Heroicon size tokens
+
+| Field | Value |
+|-------|-------|
+| Timestamp | 2026-09-03 |
+| Agent | Agile V Build (REQ-0010 icon extension) |
+| Decision | Add `UI_ICON_CONTROL` (`h-5 w-5 shrink-0`) and `UI_ICON_DECORATIVE` (`h-6 w-6 sm:h-8 sm:w-8 shrink-0`); remap control glyphs and decorative/empty/brand icons; PageHeader badge `h-10 w-10`; reject fractional icon sizes and fixed `h-11` badge |
+| Rationale | Home Create CTA was `h-4` vs View `h-5`; inconsistent `h-3.5`/`sm:h-4` across filters/chips; control height is already `h-10` |
+| Linked REQs | REQ-0010 |
+| Status | Implemented |
+
+---
+
 ## DEC-0004 — REQ-0002 guardrails without feature/performance impact
 
 | Field | Value |

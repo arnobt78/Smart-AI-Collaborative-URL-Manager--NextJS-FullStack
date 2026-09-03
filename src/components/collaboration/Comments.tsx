@@ -12,6 +12,8 @@ import { useToast } from "@/components/ui/Toaster";
 import { AlertDialog } from "@/components/ui/AlertDialog";
 import { Trash2, Edit2, Check, MessageSquarePlus } from "lucide-react";
 import { invalidateMutationImpact } from "@/utils/queryInvalidation";
+import { UI_ICON_CONTROL } from "@/lib/ui/control-styles";
+import { cn } from "@/lib/utils";
 
 interface Comment {
   id: string;
@@ -471,7 +473,7 @@ export function Comments({ listId, urlId, currentUserId, knownCount }: CommentsP
               loadingText="Posting…"
               className="px-2 sm:px-3 py-1 text-xs"
             >
-              <MessageSquarePlus className="w-3 h-3" aria-hidden />
+              <MessageSquarePlus className={UI_ICON_CONTROL} aria-hidden />
               Post Comment
             </Button>
           </div>
@@ -520,7 +522,7 @@ export function Comments({ listId, urlId, currentUserId, knownCount }: CommentsP
                         loadingText="Saving…"
                         className="px-2 sm:px-3 py-1 text-xs"
                       >
-                        <Check className="w-3 h-3" aria-hidden />
+                        <Check className={UI_ICON_CONTROL} aria-hidden />
                         Save
                       </Button>
                     </div>
@@ -546,7 +548,7 @@ export function Comments({ listId, urlId, currentUserId, knownCount }: CommentsP
                             className="p-1 sm:p-1.5 rounded hover:bg-white/10 transition-colors"
                             title="Edit comment"
                           >
-                            <Edit2 className="w-3 h-3 text-white/70" />
+                            <Edit2 className={cn(UI_ICON_CONTROL, "text-white/70")} />
                           </button>
                           <button
                             type="button"
@@ -554,7 +556,7 @@ export function Comments({ listId, urlId, currentUserId, knownCount }: CommentsP
                             className="p-1 sm:p-1.5 rounded hover:bg-white/10 transition-colors"
                             title="Delete comment"
                           >
-                            <Trash2 className="w-3 h-3 text-red-400/70" />
+                            <Trash2 className={cn(UI_ICON_CONTROL, "text-red-400/70")} />
                           </button>
                         </div>
                       )}

@@ -12,7 +12,7 @@ import {
   MousePointerClick,
 } from "lucide-react";
 import { CARD_PAD } from "@/lib/ui-spacing";
-import { UI_CONTROL_ICON_GAP } from "@/lib/ui/control-styles";
+import { UI_CONTROL_ICON_GAP, UI_ICON_CONTROL } from "@/lib/ui/control-styles";
 import { cn } from "@/lib/utils";
 
 interface PopularUrl {
@@ -77,7 +77,7 @@ export function PopularContent({
               UI_CONTROL_ICON_GAP,
             )}
           >
-            <Star className="h-4 w-4 text-yellow-400" />
+            <Star className={cn(UI_ICON_CONTROL, "text-yellow-400")} />
             <span>Popular URLs</span>
           </CardTitle>
         </CardHeader>
@@ -97,7 +97,12 @@ export function PopularContent({
                   )}
                 >
                   {url.isFavorite && (
-                    <Star className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-yellow-400 flex-shrink-0 mt-0.5 sm:mt-1 fill-yellow-400" />
+                    <Star
+                      className={cn(
+                        UI_ICON_CONTROL,
+                        "text-yellow-400 mt-0.5 sm:mt-1 fill-yellow-400",
+                      )}
+                    />
                   )}
                   <div className="flex-1 min-w-0">
                     <a
@@ -123,13 +128,18 @@ export function PopularContent({
                             "flex items-center text-white/50 text-xs gap-1",
                           )}
                         >
-                          <MousePointerClick className="h-3 w-3" />
+                          <MousePointerClick className={UI_ICON_CONTROL} />
                           {url.clickCount}
                         </span>
                       )}
                     </div>
                   </div>
-                  <ExternalLink className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-white/40 flex-shrink-0 mt-0.5 sm:mt-1" />
+                  <ExternalLink
+                    className={cn(
+                      UI_ICON_CONTROL,
+                      "text-white/40 mt-0.5 sm:mt-1",
+                    )}
+                  />
                 </div>
               ))
             )}
@@ -146,7 +156,7 @@ export function PopularContent({
               UI_CONTROL_ICON_GAP,
             )}
           >
-            <Users className="h-4 w-4 text-blue-400" />
+            <Users className={cn(UI_ICON_CONTROL, "text-blue-400")} />
             <span>Most Active Lists</span>
           </CardTitle>
         </CardHeader>
@@ -169,9 +179,9 @@ export function PopularContent({
                         {list.title}
                       </h4>
                       {list.isPublic ? (
-                        <Globe className="h-3 w-3 text-green-400 flex-shrink-0" />
+                        <Globe className={cn(UI_ICON_CONTROL, "text-green-400")} />
                       ) : (
-                        <Lock className="h-3 w-3 text-yellow-400 flex-shrink-0" />
+                        <Lock className={cn(UI_ICON_CONTROL, "text-yellow-400")} />
                       )}
                     </div>
                     <div
@@ -184,7 +194,7 @@ export function PopularContent({
                         <>
                           <span aria-hidden>•</span>
                           <span className="inline-flex items-center gap-1">
-                            <Users className="h-3 w-3 shrink-0" />
+                            <Users className={UI_ICON_CONTROL} />
                             {list.collaborators}
                           </span>
                         </>

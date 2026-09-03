@@ -15,6 +15,8 @@ import {
 import { useQueryClient } from "@tanstack/react-query";
 import type { AIProvider } from "@/lib/ai/providers";
 import type { UrlMetadata } from "@/utils/urlMetadata";
+import { UI_ICON_CONTROL } from "@/lib/ui/control-styles";
+import { cn } from "@/lib/utils";
 
 interface EnhancementResult {
   category: string;
@@ -138,12 +140,12 @@ export function UrlEnhancer({
           <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
           {loading ? (
             <>
-              <Loader2 className="w-4 h-4 animate-spin relative z-10" />
+              <Loader2 className={cn(UI_ICON_CONTROL, "animate-spin relative z-10")} />
               <span className="relative z-10">Enhancing...</span>
             </>
           ) : (
             <>
-              <Bot className="w-4 h-4 relative z-10" />
+              <Bot className={cn(UI_ICON_CONTROL, "relative z-10")} />
               <span className="relative z-10">AI Enhance</span>
             </>
           )}
@@ -151,7 +153,7 @@ export function UrlEnhancer({
 
         {error && (
           <div className="p-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg flex items-start gap-2 animate-in fade-in slide-in-from-top-2">
-            <XCircle className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" />
+            <XCircle className={cn(UI_ICON_CONTROL, "text-red-500 mt-0.5")} />
             <p className="text-xs text-red-600 dark:text-red-300">{error}</p>
           </div>
         )}
@@ -160,7 +162,7 @@ export function UrlEnhancer({
           <div className="p-3 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border border-green-200 dark:border-green-800 rounded-lg space-y-2.5 animate-in fade-in slide-in-from-bottom-2 shadow-md">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-green-500" />
+                <CheckCircle2 className={cn(UI_ICON_CONTROL, "text-green-500")} />
                 <p className="text-xs font-medium text-green-800 dark:text-green-200">
                   ✅ Auto-filled below! • {result.provider} •{" "}
                   {result.confidence}%
@@ -175,7 +177,7 @@ export function UrlEnhancer({
             </div>
             {result.category && (
               <div className="flex items-center gap-1">
-                <FolderOpen className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+                <FolderOpen className={cn(UI_ICON_CONTROL, "text-blue-600 dark:text-blue-400")} />
                 <span className="text-xs text-gray-600 dark:text-gray-300 mr-1">
                   Category:
                 </span>
@@ -186,7 +188,7 @@ export function UrlEnhancer({
             )}
             {result.tags && result.tags.length > 0 && (
               <div className="flex items-center gap-1 flex-wrap">
-                <Tags className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400 flex-shrink-0" />
+                <Tags className={cn(UI_ICON_CONTROL, "text-purple-600 dark:text-purple-400")} />
                 <span className="text-xs text-gray-600 dark:text-gray-300">
                   Tags:
                 </span>
@@ -202,7 +204,7 @@ export function UrlEnhancer({
             )}
             {result.summary && (
               <div className="flex items-start gap-1 pt-1 border-t border-green-200 dark:border-green-700">
-                <FileText className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400 mt-0.5 flex-shrink-0" />
+                <FileText className={cn(UI_ICON_CONTROL, "text-teal-600 dark:text-teal-400 mt-0.5")} />
                 <div className="flex-1 flex items-start gap-1">
                   <span className="text-xs font-medium text-gray-600 dark:text-gray-300 whitespace-nowrap">
                     Summary:
@@ -230,23 +232,23 @@ export function UrlEnhancer({
         <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/30 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
         {loading ? (
           <>
-            <Loader2 className="w-5 h-5 animate-spin relative z-10" />
+            <Loader2 className={cn(UI_ICON_CONTROL, "animate-spin relative z-10")} />
             <span className="relative z-10 font-medium">
               Enhancing with AI...
             </span>
           </>
         ) : (
           <>
-            <BotMessageSquare className="w-5 h-5 relative z-10" />
+            <BotMessageSquare className={cn(UI_ICON_CONTROL, "relative z-10")} />
             <span className="relative z-10 font-medium">Enhance with AI</span>
-            <Wand2 className="w-4 h-4 relative z-10 opacity-75" />
+            <Wand2 className={cn(UI_ICON_CONTROL, "relative z-10 opacity-75")} />
           </>
         )}
       </button>
 
       {error && (
         <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl flex items-start gap-2 animate-in fade-in slide-in-from-top-2">
-          <XCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+          <XCircle className={cn(UI_ICON_CONTROL, "text-red-500 mt-0.5")} />
           <div className="flex-1">
             <p className="text-sm font-medium text-red-800 dark:text-red-200 mb-1">
               Enhancement Failed
@@ -261,14 +263,14 @@ export function UrlEnhancer({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="p-2 bg-green-100 dark:bg-green-900/40 rounded-lg">
-                <CheckCircle2 className="w-5 h-5 text-green-600 dark:text-green-400" />
+                <CheckCircle2 className={cn(UI_ICON_CONTROL, "text-green-600 dark:text-green-400")} />
               </div>
               <div>
                 <p className="text-sm font-medium text-green-800 dark:text-green-200">
                   Successfully Enhanced
                 </p>
                 <p className="text-xs text-green-600 dark:text-green-400 flex items-center gap-1">
-                  <Bot className="w-3 h-3" />
+                  <Bot className={UI_ICON_CONTROL} />
                   Powered by {result.provider} • Confidence: {result.confidence}
                   %
                 </p>
@@ -286,7 +288,7 @@ export function UrlEnhancer({
             {result.category && (
               <div className="p-3 bg-white/50 dark:bg-black/20 rounded-lg border border-green-200 dark:border-green-800">
                 <div className="flex items-center gap-2 ">
-                  <FolderOpen className="w-4 h-4 text-blue-500" />
+                  <FolderOpen className={cn(UI_ICON_CONTROL, "text-blue-500")} />
                   <p className="text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wide">
                     Category
                   </p>
@@ -300,7 +302,7 @@ export function UrlEnhancer({
             {result.tags && result.tags.length > 0 && (
               <div className="p-3 bg-white/50 dark:bg-black/20 rounded-lg border border-green-200 dark:border-green-800">
                 <div className="flex items-center gap-2 ">
-                  <Tags className="w-4 h-4 text-purple-500" />
+                  <Tags className={cn(UI_ICON_CONTROL, "text-purple-500")} />
                   <p className="text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wide">
                     Tags ({result.tags.length})
                   </p>
@@ -322,7 +324,7 @@ export function UrlEnhancer({
           {result.summary && (
             <div className="p-3 bg-white/50 dark:bg-black/20 rounded-lg border border-green-200 dark:border-green-800">
               <div className="flex items-center gap-2 ">
-                <FileText className="w-4 h-4 text-teal-500" />
+                <FileText className={cn(UI_ICON_CONTROL, "text-teal-500")} />
                 <p className="text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wide">
                   Summary
                 </p>

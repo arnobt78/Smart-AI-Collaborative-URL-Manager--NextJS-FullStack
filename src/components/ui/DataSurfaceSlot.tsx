@@ -1,4 +1,5 @@
 import { Loader2 } from "lucide-react";
+import { UI_ICON_CONTROL } from "@/lib/ui/control-styles";
 import { cn } from "@/lib/utils";
 
 type DataSurfaceSlotProps = { label: string; description: string; className?: string };
@@ -17,7 +18,7 @@ export function DataSurfaceSlot({ label, description, className }: DataSurfaceSl
         className,
       )}
     >
-      <Loader2 className="size-5 animate-spin text-blue-400" aria-hidden />
+      <Loader2 className={cn(UI_ICON_CONTROL, "animate-spin text-blue-400")} aria-hidden />
       <p className="text-sm font-medium text-white/80 animate-pulse">{label}</p>
       <p className="text-xs text-white/55 animate-pulse">{description}</p>
     </div>

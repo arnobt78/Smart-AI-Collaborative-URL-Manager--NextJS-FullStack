@@ -12,6 +12,7 @@ import {
 } from "@/hooks/useListQueries";
 import { cn } from "@/lib/utils";
 import { HEADING_STACK, LIST_STACK, PAGE_STACK } from "@/lib/ui-spacing";
+import { UI_ICON_DECORATIVE } from "@/lib/ui/control-styles";
 import EditListPageClient from "@/components/pages/EditListPage";
 import { DataSurfaceSlot } from "@/components/ui/DataSurfaceSlot";
 import { Dialog } from "@/components/ui/Dialog";
@@ -103,7 +104,7 @@ export default function ListsPageClient() {
         ) : (
           <div className="rounded-xl border-2 border-dashed border-white/30 p-2 sm:p-4 text-center bg-white/5 backdrop-blur-md">
             <div className="mx-auto w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 bg-gradient-to-r from-blue-500/20 to-purple-500/20 border border-blue-400/30 rounded-full flex items-center justify-center">
-              <LinkIcon className="h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12 text-blue-400" />
+              <LinkIcon className={cn(UI_ICON_DECORATIVE, "text-blue-400")} />
             </div>
             <div className={`${HEADING_STACK} mt-4`}>
               <h3 className="text-base sm:text-lg font-medium text-white">

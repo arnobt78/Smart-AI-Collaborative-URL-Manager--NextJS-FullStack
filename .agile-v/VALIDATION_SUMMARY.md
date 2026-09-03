@@ -568,6 +568,16 @@ Gate 2: BLOCKED — RISK-0016 is accepted; `EVAL_RESULTS.md` PASS/WAIVED evidenc
 | Docs | `docs/LLM_MODEL_SELECTION.md` last verified 2026-09-02 | PASS | Deprecation watch + re-verify checklist. |
 | Validation | `tsc --noEmit`; `eslint .`; Jest; `build` | PASS | See commit-ready run. |
 
+## 2026-09-03 — Two-tier icon sizes + PageHeader badge (REQ-0010 / DEC-UI-0010)
+
+| Scope | Command / evidence | Result | Notes |
+|---|---|---|---|
+| Tokens | `UI_ICON_CONTROL` / `UI_ICON_DECORATIVE` in `control-styles.ts` | PASS | Fixed `h-5`; decorative `h-6 sm:h-8`. |
+| Sweep | Buttons/CTAs/filters/chips/menus/Insights/collab/Auth + empty heroes | PASS | No Lucide/Heroicon on `h-3.5`; exceptions: dots, checkbox, Cancel micro-X, UrlCard media. |
+| PageHeader | Badge tile `h-10 w-10`; icon DECORATIVE | PASS | Aligns with `UI_CONTROL_HEIGHT`. |
+| Home CTAs | CreateNewListButton + LayoutList both CONTROL | PASS | Fixes Create `h-4` vs View `h-5`. |
+| Validation | `tsc`; `eslint .` 0; Jest 135; `build`; verify-deep | PASS | |
+
 ## 2026-09-01 — C7.16 skeleton parity + warm cache paint
 
 | Scope | Command / evidence | Result | Notes |

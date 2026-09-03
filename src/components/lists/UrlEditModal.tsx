@@ -11,6 +11,7 @@ import { UrlEnhancer } from "@/components/ai/UrlEnhancer";
 import { queryClient } from "@/lib/react-query";
 import type { UrlMetadata } from "@/utils/urlMetadata";
 import { saveQueryDataToLocalStorage } from "@/lib/react-query";
+import { UI_ICON_CONTROL } from "@/lib/ui/control-styles";
 
 interface UrlEditModalProps {
   editingUrl: UrlItem | null;
@@ -297,7 +298,7 @@ export function UrlEditModal({
             variant="glass"
             className="w-full sm:w-auto"
           >
-            <Save className="h-4 w-4 shrink-0" aria-hidden />
+            <Save className={UI_ICON_CONTROL} aria-hidden />
             Save Changes
           </Button>
         </div>

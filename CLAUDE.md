@@ -4,14 +4,15 @@
 **The Daily Urlist** (`urlist` v0.2.1) — AI collaborative URL lists.  
 Live: https://daily-urlist.vercel.app/ · Resume: `.agile-v/STATE.md`
 
-## Status (C7.17)
-Done: C7.8–C7.16 · **C7.17** list-detail polish: collaborator avatars = navbar `border border-white/20`; URL drag Y-only (`restrictToVerticalAxis` + `verticalOnlyTransform` + `overflow-x-hidden`); Visit/Similar Visit real `<a target="_blank">` via `ensureAbsoluteHttpUrl` (empty href disabled); Dialog `headerMode="scroll"` parity (Similar/Comments/Edit/Add/Collab); UrlList Lucide Search + instant client filter (no AI smart-search bar); Comments `knownCount===0` skip fetch; Similar RQ `["similar", listId, urlId]` warm cache; Button `isLoading` = spinner + `loadingText` only.
+## Status (C7 — icon size tokens)
+Done: C7.8–C7.17 · **LLM** `c085f69` REQ-AI-0001 · **Icons** `UI_ICON_CONTROL` (`h-5 w-5`) / `UI_ICON_DECORATIVE` (`h-6 sm:h-8`); PageHeader badge `h-10 w-10`; Home Create/View CTAs both CONTROL.
+**C7.17** list-detail polish: collaborator avatars = navbar `border border-white/20`; URL drag Y-only (`restrictToVerticalAxis` + `verticalOnlyTransform` + `overflow-x-hidden`); Visit/Similar Visit real `<a target="_blank">` via `ensureAbsoluteHttpUrl` (empty href disabled); Dialog `headerMode="scroll"` parity (Similar/Comments/Edit/Add/Collab); UrlList Lucide Search + instant client filter (no AI smart-search bar); Comments `knownCount===0` skip fetch; Similar RQ `["similar", listId, urlId]` warm cache; Button `isLoading` = spinner + `loadingText` only.
 Stack: Next **16.3.3** · React **19.2.8** · Node **24.x** (`.nvmrc` / `engines`; use nvm 24 — shell may still be 22); **`src/proxy.ts`** (Next 16+; not `middleware.ts`); flat ESLint; audit **0**; Prisma **6.19.3**.
 Nav: warm Lists/Browse/Insights; api-status chrome+refresh; api-docs skeleton.
 Data: densifyBrowse + dropUnified tombstone + invalidateMutationImpact + SSE. Full densify/JWT-null SSR OOS.
 Defer: `(auth)` route-group (optional); lists/browse cold API slim; status API speed OOS; full metadata rewrite OOS; Prisma 7/8; conditional SC soft-nav skeleton when urls&lt;2; further UrlCard action bugs (user list later).
-Human: HA-0001; TASK-0039 after deploy.
-Validate: Jest · lint 0 · tsc · build · audit 0.
+Human: HA-0001; TASK-0039 smoke; next polish after user list.
+Validate: Jest · lint 0 · tsc · build · audit 0. · Resume: `.agile-v/STATE.md`.
 
 ## Stack
 Next 16.3.3 · React 19.2 · RQ · Prisma 6.19 · cookie auth · Upstash · Sentry tunnel · PostHog · Jest · Node 24.x (Vercel + `.nvmrc`)
@@ -39,7 +40,7 @@ Home: `WAS_AUTHED_COOKIE`+`session_token` SSR Marketing; guests redirect `/login
 
 ## Spacing
 `src/lib/ui-spacing.ts` — `PAGE_STACK` / `SECTION_STACK` / `MARKETING_STACK` / `FORM_STACK` / `LIST_STACK` / `HEADING_STACK` / `PAGE_HEADER` / `CARD_STACK` / `CARD_PAD`  
-`src/lib/ui/control-styles.ts` — `UI_CONTROL_ICON_GAP` (`gap-1`) · `UI_LIST_CARD_META_BADGE` · `UI_ICON_MENU_TRIGGER` · `UI_SECTION_COUNT_BADGE` · `UI_GLASS_MENU_PANEL` / `ITEM` / `SEPARATOR` / `TRIGGER_FOCUS`  
+`src/lib/ui/control-styles.ts` — `UI_CONTROL_ICON_GAP` (`gap-1`) · `UI_ICON_CONTROL` (`h-5 w-5`) · `UI_ICON_DECORATIVE` (`h-6 sm:h-8`) · `UI_LIST_CARD_META_BADGE` · `UI_ICON_MENU_TRIGGER` · `UI_SECTION_COUNT_BADGE` · `UI_GLASS_MENU_PANEL` / `ITEM` / `SEPARATOR` / `TRIGGER_FOCUS`  
 `src/components/ui/dropdown-menu.tsx` — Radix `@radix-ui/react-dropdown-menu` + glass chrome (`modal={false}`); jobs, collab, profile, Auth guest, bulk import/export
 
 ## Glass UI

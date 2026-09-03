@@ -7,6 +7,7 @@ import { BookOpen, Code, Lock, Globe, Link2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PAGE_STACK, CARD_PAD } from "@/lib/ui-spacing";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { UI_ICON_CONTROL } from "@/lib/ui/control-styles";
 
 interface ApiEndpoint {
   method: "GET" | "POST" | "PATCH" | "DELETE";
@@ -365,7 +366,7 @@ export default function ApiDocsPage() {
       <Card className={cn(CARD_PAD, "border-blue-400/30")}>
         <CardHeader>
           <div className="flex items-center gap-2">
-            <Lock className="h-5 w-5 text-blue-400" />
+            <Lock className={cn(UI_ICON_CONTROL, "text-blue-400")} />
             <CardTitle>Authentication</CardTitle>
           </div>
         </CardHeader>
@@ -391,7 +392,7 @@ export default function ApiDocsPage() {
             value="Authentication"
             className="flex items-center  text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2"
           >
-            <Lock className="h-3 w-3 sm:h-4 sm:w-4" />
+            <Lock className={UI_ICON_CONTROL} />
             <span className="hidden sm:inline">Auth</span>
             <span className="sm:hidden">Auth</span>
           </TabsTrigger>
@@ -399,21 +400,21 @@ export default function ApiDocsPage() {
             value="Lists"
             className="flex items-center  text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2"
           >
-            <Link2 className="h-3 w-3 sm:h-4 sm:w-4" />
+            <Link2 className={UI_ICON_CONTROL} />
             Lists
           </TabsTrigger>
           <TabsTrigger
             value="Utility"
             className="flex items-center  text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2"
           >
-            <Code className="h-3 w-3 sm:h-4 sm:w-4" />
+            <Code className={UI_ICON_CONTROL} />
             Utility
           </TabsTrigger>
           <TabsTrigger
             value="Business Insights"
             className="flex items-center  text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2"
           >
-            <Globe className="h-3 w-3 sm:h-4 sm:w-4" />
+            <Globe className={UI_ICON_CONTROL} />
             <span className="hidden sm:inline">Insights</span>
             <span className="sm:hidden">Insights</span>
           </TabsTrigger>
@@ -446,7 +447,7 @@ export default function ApiDocsPage() {
                         </code>
                         {endpoint.auth && (
                           <Badge variant="secondary" className="text-xs">
-                            <Lock className="h-3 w-3 mr-1" />
+                            <Lock className={cn(UI_ICON_CONTROL, "mr-1")} />
                             <span className="hidden sm:inline">
                               Auth Required
                             </span>
@@ -455,7 +456,7 @@ export default function ApiDocsPage() {
                         )}
                         {!endpoint.auth && (
                           <Badge variant="outline" className="text-xs">
-                            <Globe className="h-3 w-3 mr-1" />
+                            <Globe className={cn(UI_ICON_CONTROL, "mr-1")} />
                             Public
                           </Badge>
                         )}

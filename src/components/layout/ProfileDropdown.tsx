@@ -24,7 +24,7 @@ import { UTILITY_NAVIGATION_ITEMS } from "@/constants/auth";
 import { displayNameFromEmail } from "@/lib/robohash";
 import { queueAuthToast } from "@/lib/auth-toast";
 import { setWasAuthedHintClient } from "@/lib/was-authed";
-import { UI_GLASS_MENU_TRIGGER_FOCUS } from "@/lib/ui/control-styles";
+import { UI_GLASS_MENU_TRIGGER_FOCUS, UI_ICON_CONTROL } from "@/lib/ui/control-styles";
 import { markForceGuest } from "@/lib/logout-client";
 
 export type ProfileDropdownProps = {
@@ -120,7 +120,7 @@ export function ProfileDropdown({
                   }}
                   className="cursor-pointer"
                 >
-                  <Icon className="h-4 w-4 shrink-0" aria-hidden />
+                  <Icon className={UI_ICON_CONTROL} aria-hidden />
                   {item.label}
                 </Link>
               </DropdownMenuItem>
@@ -135,7 +135,7 @@ export function ProfileDropdown({
             }}
             className="cursor-pointer"
           >
-            <LogOut className="h-4 w-4 shrink-0" aria-hidden />
+            <LogOut className={UI_ICON_CONTROL} aria-hidden />
             Logout
           </DropdownMenuItem>
         </DropdownMenuContent>

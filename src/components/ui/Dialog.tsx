@@ -5,6 +5,7 @@ import { useEffect, useId, useRef } from "react";
 import ReactDOM from "react-dom";
 import { X } from "lucide-react";
 import { HEADING_STACK } from "@/lib/ui-spacing";
+import { UI_ICON_CONTROL } from "@/lib/ui/control-styles";
 import { cn } from "@/lib/utils";
 
 type DialogSize = "form" | "wide" | "full";
@@ -167,7 +168,7 @@ function DialogHeader({
         aria-label="Close dialog"
         className="shrink-0 rounded-md p-2 text-white/60 transition-colors hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 disabled:cursor-not-allowed disabled:opacity-40"
       >
-        <X className="h-5 w-5" aria-hidden />
+        <X className={UI_ICON_CONTROL} aria-hidden />
       </button>
     </header>
   );

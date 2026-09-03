@@ -12,6 +12,7 @@ import { ListFormCard, ListVisibilityField } from "@/components/lists/ListFormPr
 import { useToast } from "@/components/ui/Toaster";
 import { type EditableList, useUpdateList } from "@/hooks/useListQueries";
 import { FORM_STACK } from "@/lib/ui-spacing";
+import { UI_ICON_CONTROL } from "@/lib/ui/control-styles";
 import {
   LIST_DESCRIPTION_MAX,
   LIST_TITLE_MAX,
@@ -131,7 +132,7 @@ export default function EditListPageClient({ list, onClose, onPendingChange }: E
         <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
           <CancelButton onClick={onClose} disabled={isPending}>Cancel</CancelButton>
           <Button type="submit" variant="primary" isLoading={isPending} loadingText="Saving…">
-            <Save className="h-4 w-4 shrink-0" aria-hidden />
+            <Save className={UI_ICON_CONTROL} aria-hidden />
             Save Changes
           </Button>
         </div>

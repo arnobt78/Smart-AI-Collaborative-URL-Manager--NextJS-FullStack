@@ -24,7 +24,7 @@ import {
 } from "lucide-react";
 import { CARD_PAD } from "@/lib/ui-spacing";
 import { InsightsChartTooltip } from "@/components/business-insights/InsightsChartTooltip";
-import { UI_CONTROL_ICON_GAP } from "@/lib/ui/control-styles";
+import { UI_CONTROL_ICON_GAP, UI_ICON_CONTROL } from "@/lib/ui/control-styles";
 import { cn } from "@/lib/utils";
 
 interface GlobalStatsData {
@@ -93,7 +93,7 @@ export function GlobalStats({ data, isLoading }: GlobalStatsProps) {
             <CardTitle className="text-xs sm:text-sm font-medium text-white/70">
               Total Users
             </CardTitle>
-            <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-400" />
+            <Users className={cn(UI_ICON_CONTROL, "text-blue-400")} />
           </CardHeader>
           <CardContent>
             <div className="text-xl sm:text-2xl font-medium text-white">
@@ -111,7 +111,7 @@ export function GlobalStats({ data, isLoading }: GlobalStatsProps) {
             <CardTitle className="text-xs sm:text-sm font-medium text-white/70">
               Live Users Now
             </CardTitle>
-            <Activity className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-green-400" />
+            <Activity className={cn(UI_ICON_CONTROL, "text-green-400")} />
           </CardHeader>
           <CardContent>
             <div className="text-xl sm:text-2xl font-medium text-white">
@@ -128,7 +128,7 @@ export function GlobalStats({ data, isLoading }: GlobalStatsProps) {
             <CardTitle className="text-xs sm:text-sm font-medium text-white/70">
               Total Lists
             </CardTitle>
-            <List className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-purple-400" />
+            <List className={cn(UI_ICON_CONTROL, "text-purple-400")} />
           </CardHeader>
           <CardContent>
             <div className="text-xl sm:text-2xl font-medium text-white">
@@ -146,7 +146,7 @@ export function GlobalStats({ data, isLoading }: GlobalStatsProps) {
             <CardTitle className="text-xs sm:text-sm font-medium text-white/70">
               Total URLs
             </CardTitle>
-            <Link2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-green-400" />
+            <Link2 className={cn(UI_ICON_CONTROL, "text-green-400")} />
           </CardHeader>
           <CardContent>
             <div className="text-xl sm:text-2xl font-medium text-white">
@@ -167,7 +167,7 @@ export function GlobalStats({ data, isLoading }: GlobalStatsProps) {
             <CardTitle className="text-xs sm:text-sm font-medium text-white/70">
               Avg URLs per List
             </CardTitle>
-            <TrendingUp className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-400" />
+            <TrendingUp className={cn(UI_ICON_CONTROL, "text-blue-400")} />
           </CardHeader>
           <CardContent>
             <div className="text-xl sm:text-2xl font-medium text-white">
@@ -182,18 +182,18 @@ export function GlobalStats({ data, isLoading }: GlobalStatsProps) {
               List Distribution
             </CardTitle>
             <div className={cn("flex", UI_CONTROL_ICON_GAP)}>
-              <Globe className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-green-400" />
-              <Lock className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-yellow-400" />
+              <Globe className={cn(UI_ICON_CONTROL, "text-green-400")} />
+              <Lock className={cn(UI_ICON_CONTROL, "text-yellow-400")} />
             </div>
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
               <Badge variant="success" className="text-xs gap-1">
-                <Globe className="h-3 w-3" />
+                <Globe className={UI_ICON_CONTROL} />
                 {data.publicLists} Public
               </Badge>
               <Badge variant="warning" className="text-xs gap-1">
-                <Lock className="h-3 w-3" />
+                <Lock className={UI_ICON_CONTROL} />
                 {data.privateLists} Private
               </Badge>
             </div>
@@ -205,7 +205,7 @@ export function GlobalStats({ data, isLoading }: GlobalStatsProps) {
             <CardTitle className="text-xs sm:text-sm font-medium text-white/70">
               Lists with Collaborators
             </CardTitle>
-            <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-purple-400" />
+            <Users className={cn(UI_ICON_CONTROL, "text-purple-400")} />
           </CardHeader>
           <CardContent>
             <div className="text-xl sm:text-2xl font-medium text-white">
@@ -219,7 +219,7 @@ export function GlobalStats({ data, isLoading }: GlobalStatsProps) {
       <Card className={CARD_PAD}>
         <CardHeader className="pb-2">
           <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
-            <UserPlus className="h-4 w-4  text-blue-400" />
+            <UserPlus className={cn(UI_ICON_CONTROL, "text-blue-400")} />
             <span className="text-xs sm:text-base">
               User Growth (Last 30 Days)
             </span>

@@ -23,6 +23,7 @@ import { UserAvatar } from "@/components/ui/UserAvatar";
 import { ListDetailSectionHeader } from "@/components/lists/ListDetailSectionHeader";
 import { SectionCountBadge } from "@/components/ui/SectionCountBadge";
 import { CARD_PAD } from "@/lib/ui-spacing";
+import { UI_ICON_CONTROL } from "@/lib/ui/control-styles";
 import { cn } from "@/lib/utils";
 
 interface ActivityItem {
@@ -254,39 +255,41 @@ export function ActivityFeed({ listId, limit = 50 }: ActivityFeedProps) {
   const getActionIcon = (action: string) => {
     switch (action) {
       case "url_added":
-        return <Plus className="w-4 h-4 text-green-400" />;
+        return <Plus className={cn(UI_ICON_CONTROL, "text-green-400")} />;
       case "url_deleted":
-        return <Trash2 className="w-4 h-4 text-red-400" />;
+        return <Trash2 className={cn(UI_ICON_CONTROL, "text-red-400")} />;
       case "url_updated":
-        return <Edit className="w-4 h-4 text-blue-400" />;
+        return <Edit className={cn(UI_ICON_CONTROL, "text-blue-400")} />;
       case "url_favorited":
       case "url_unfavorited":
-        return <Star className="w-4 h-4 text-yellow-400" />;
+        return <Star className={cn(UI_ICON_CONTROL, "text-yellow-400")} />;
       case "url_pinned":
       case "url_unpinned":
-        return <Pin className="w-4 h-4 text-purple-400" />;
+        return <Pin className={cn(UI_ICON_CONTROL, "text-purple-400")} />;
       case "url_duplicated":
-        return <Copy className="w-4 h-4 text-orange-400" />;
+        return <Copy className={cn(UI_ICON_CONTROL, "text-orange-400")} />;
       case "url_archived":
-        return <Archive className="w-4 h-4 text-gray-400" />;
+        return <Archive className={cn(UI_ICON_CONTROL, "text-gray-400")} />;
       case "url_restored":
-        return <Archive className="w-4 h-4 text-green-400" />;
+        return <Archive className={cn(UI_ICON_CONTROL, "text-green-400")} />;
       case "comment_added":
-        return <MessageSquare className="w-4 h-4 text-cyan-400" />;
+        return (
+          <MessageSquare className={cn(UI_ICON_CONTROL, "text-cyan-400")} />
+        );
       case "comment_updated":
-        return <Edit className="w-4 h-4 text-blue-400" />;
+        return <Edit className={cn(UI_ICON_CONTROL, "text-blue-400")} />;
       case "comment_deleted":
-        return <Trash2 className="w-4 h-4 text-red-400" />;
+        return <Trash2 className={cn(UI_ICON_CONTROL, "text-red-400")} />;
       case "collaborator_added":
-        return <UserPlus className="w-4 h-4 text-green-400" />;
+        return <UserPlus className={cn(UI_ICON_CONTROL, "text-green-400")} />;
       case "health_check_completed":
-        return <Activity className="w-4 h-4 text-blue-400" />;
+        return <Activity className={cn(UI_ICON_CONTROL, "text-blue-400")} />;
       case "list_made_public":
-        return <Globe className="w-4 h-4 text-purple-400" />;
+        return <Globe className={cn(UI_ICON_CONTROL, "text-purple-400")} />;
       case "list_made_private":
-        return <Lock className="w-4 h-4 text-orange-400" />;
+        return <Lock className={cn(UI_ICON_CONTROL, "text-orange-400")} />;
       default:
-        return <Activity className="w-4 h-4 text-white/60" />;
+        return <Activity className={cn(UI_ICON_CONTROL, "text-white/60")} />;
     }
   };
 
@@ -381,7 +384,8 @@ export function ActivityFeed({ listId, limit = 50 }: ActivityFeedProps) {
         action={
           <ChevronDown
             className={cn(
-              "size-4 text-white/60 transition-transform",
+              UI_ICON_CONTROL,
+              "text-white/60 transition-transform",
               isExpanded && "rotate-180",
             )}
             aria-hidden

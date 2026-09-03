@@ -3,6 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { FileText, Link2, Users, Globe, Lock, TrendingUp } from "lucide-react";
 import { CARD_PAD } from "@/lib/ui-spacing";
+import { UI_ICON_CONTROL } from "@/lib/ui/control-styles";
 import { cn } from "@/lib/utils";
 
 interface OverviewData {
@@ -108,7 +109,7 @@ export function OverviewCards({ data, isLoading }: OverviewCardsProps) {
                 {card.title}
               </CardTitle>
               <div className={`p-1.5 sm:p-2 rounded-lg ${card.bgColor}`}>
-                <Icon className={`h-3.5 w-3.5 sm:h-4 sm:w-4 ${card.color}`} />
+                <Icon className={cn(UI_ICON_CONTROL, card.color)} />
               </div>
             </CardHeader>
             <CardContent>
@@ -117,7 +118,7 @@ export function OverviewCards({ data, isLoading }: OverviewCardsProps) {
               </div>
               {card.change !== null && card.change > 0 && (
                 <div className="flex items-center gap-1 text-xs text-green-400">
-                  <TrendingUp className="h-3 w-3" />
+                  <TrendingUp className={UI_ICON_CONTROL} />
                   <span>
                     +{card.change} {card.changeLabel}
                   </span>

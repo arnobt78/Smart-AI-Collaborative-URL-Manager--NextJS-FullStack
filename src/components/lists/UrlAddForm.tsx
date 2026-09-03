@@ -13,6 +13,7 @@ import { queryClient } from "@/lib/react-query";
 import { saveQueryDataToLocalStorage } from "@/lib/react-query";
 import type { UrlMetadata } from "@/utils/urlMetadata";
 import { devLog } from "@/lib/dev-log";
+import { UI_ICON_CONTROL } from "@/lib/ui/control-styles";
 
 interface UrlAddFormProps {
   newUrl: string;
@@ -279,7 +280,7 @@ export function UrlAddForm({
           )}
           <CancelButton onClick={onCancel} disabled={isLoading}>Cancel</CancelButton>
           <Button type="submit" isLoading={isLoading} loadingText="Adding…" variant="glassEmerald">
-            <WandSparkles className="h-4 w-4 shrink-0" aria-hidden />
+            <WandSparkles className={UI_ICON_CONTROL} aria-hidden />
             Add URL
           </Button>
         </div>

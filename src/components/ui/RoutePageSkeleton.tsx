@@ -4,6 +4,7 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { DataSurfaceSlot } from "@/components/ui/DataSurfaceSlot";
 import { CARD_PAD, HEADING_STACK, PAGE_HEADER, PAGE_STACK } from "@/lib/ui-spacing";
 import { GLASS_LIST_CARD } from "@/lib/ui/glass-card-styles";
+import { UI_ICON_CONTROL } from "@/lib/ui/control-styles";
 import { ListDetailBodySkeletons } from "@/components/lists/ListDetailHeaderChrome";
 import { cn } from "@/lib/utils";
 
@@ -112,7 +113,7 @@ export function ListDetailRouteSkeleton() {
       <div className={cn(GLASS_LIST_CARD, "animate-pulse", CARD_PAD)}>
         <div className={HEADING_STACK}>
           <div className="flex items-center gap-2">
-            <Link2 className="h-5 w-5 text-blue-300/50 shrink-0" aria-hidden />
+            <Link2 className={cn(UI_ICON_CONTROL, "text-blue-300/50")} aria-hidden />
             <div className="h-5 w-40 sm:w-56 rounded bg-white/10" />
           </div>
           <div className="flex items-center gap-2 mt-2">

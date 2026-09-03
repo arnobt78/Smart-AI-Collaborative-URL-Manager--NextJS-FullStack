@@ -16,7 +16,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { UI_CONTROL_TRIGGER, UI_GLASS_MENU_TRIGGER_FOCUS } from "@/lib/ui/control-styles";
+import { UI_CONTROL_TRIGGER, UI_GLASS_MENU_TRIGGER_FOCUS, UI_ICON_CONTROL } from "@/lib/ui/control-styles";
 import { useToast } from "@/components/ui/Toaster";
 import type { UrlItem } from "@/stores/urlListStore";
 import { addUrlToList, cancelPendingGetList } from "@/stores/urlListStore";
@@ -31,6 +31,7 @@ import {
 } from "@/lib/import";
 import { formatAsMarkdown, downloadMarkdownFile } from "@/lib/export";
 import { devLog } from "@/lib/dev-log";
+import { cn } from "@/lib/utils";
 
 interface UrlBulkImportExportProps {
   urls: UrlItem[];
@@ -2095,14 +2096,14 @@ export function UrlBulkImportExport({
               >
                 {isExporting ? (
                   <>
-                    <div className="w-3.5 h-3.5 sm:w-4 sm:h-4 border-2 border-purple-400 border-t-transparent rounded-full animate-spin" />
+                    <div className={cn(UI_ICON_CONTROL, "border-2 border-purple-400 border-t-transparent rounded-full animate-spin")} />
                     <span>Exporting...</span>
                   </>
                 ) : (
                   <>
-                    <Download className="h-4 w-4 shrink-0" aria-hidden />
+                    <Download className={UI_ICON_CONTROL} aria-hidden />
                     <span>Export URLs</span>
-                    <ChevronDown className="h-3 w-3 shrink-0" aria-hidden />
+                    <ChevronDown className={UI_ICON_CONTROL} aria-hidden />
                   </>
                 )}
               </button>
@@ -2117,7 +2118,7 @@ export function UrlBulkImportExport({
               }}
               className="cursor-pointer"
             >
-              <FileJson className="h-4 w-4 text-purple-400" />
+              <FileJson className={cn(UI_ICON_CONTROL, "text-purple-400")} />
               Export as JSON
             </DropdownMenuItem>
             <DropdownMenuItem
@@ -2127,7 +2128,9 @@ export function UrlBulkImportExport({
               }}
               className="cursor-pointer"
             >
-              <FileSpreadsheet className="h-4 w-4 text-emerald-400" />
+              <FileSpreadsheet
+                className={cn(UI_ICON_CONTROL, "text-emerald-400")}
+              />
               Export as CSV
             </DropdownMenuItem>
             <DropdownMenuItem
@@ -2137,7 +2140,7 @@ export function UrlBulkImportExport({
               }}
               className="cursor-pointer"
             >
-              <FileText className="h-4 w-4 text-indigo-400" />
+              <FileText className={cn(UI_ICON_CONTROL, "text-indigo-400")} />
               Export as Markdown
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -2174,14 +2177,14 @@ export function UrlBulkImportExport({
               >
                 {isImporting ? (
                   <>
-                    <div className="w-3.5 h-3.5 sm:w-4 sm:h-4 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
+                    <div className={cn(UI_ICON_CONTROL, "border-2 border-blue-400 border-t-transparent rounded-full animate-spin")} />
                     <span>Importing...</span>
                   </>
                 ) : (
                   <>
-                    <Upload className="h-4 w-4 shrink-0" aria-hidden />
+                    <Upload className={UI_ICON_CONTROL} aria-hidden />
                     <span>Import URLs</span>
-                    <ChevronDown className="h-3 w-3 shrink-0" aria-hidden />
+                    <ChevronDown className={UI_ICON_CONTROL} aria-hidden />
                   </>
                 )}
               </button>
@@ -2195,7 +2198,7 @@ export function UrlBulkImportExport({
               asChild
             >
               <label className="flex w-full cursor-pointer items-center gap-2 px-3 py-2">
-                <FileJson className="h-4 w-4 text-purple-400" />
+                <FileJson className={cn(UI_ICON_CONTROL, "text-purple-400")} />
                 <span>JSON or CSV</span>
                 <input
                   ref={fileInputRef}
@@ -2216,7 +2219,7 @@ export function UrlBulkImportExport({
               asChild
             >
               <label className="flex w-full cursor-pointer items-center gap-2 px-3 py-2">
-                <FileText className="h-4 w-4 text-orange-400" />
+                <FileText className={cn(UI_ICON_CONTROL, "text-orange-400")} />
                 <span>Chrome Bookmarks</span>
                 <input
                   type="file"
@@ -2236,7 +2239,7 @@ export function UrlBulkImportExport({
               asChild
             >
               <label className="flex w-full cursor-pointer items-center gap-2 px-3 py-2">
-                <FileJson className="h-4 w-4 text-red-400" />
+                <FileJson className={cn(UI_ICON_CONTROL, "text-red-400")} />
                 <span>Pocket Export</span>
                 <input
                   type="file"
@@ -2256,7 +2259,7 @@ export function UrlBulkImportExport({
               asChild
             >
               <label className="flex w-full cursor-pointer items-center gap-2 px-3 py-2">
-                <FileJson className="h-4 w-4 text-green-400" />
+                <FileJson className={cn(UI_ICON_CONTROL, "text-green-400")} />
                 <span>Pinboard Export</span>
                 <input
                   type="file"

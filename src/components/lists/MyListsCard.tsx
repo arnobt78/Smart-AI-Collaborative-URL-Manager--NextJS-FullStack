@@ -13,7 +13,7 @@ import { Blocks, Eye, Globe2, GlobeLock, Users } from "lucide-react";
 import type { UserList } from "@/hooks/useListQueries";
 import { DescriptionRow } from "@/components/ui/DescriptionRow";
 import { ListMetaDates } from "@/lib/ui/list-meta-dates";
-import { UI_LIST_CARD_META_BADGE } from "@/lib/ui/control-styles";
+import { UI_ICON_CONTROL, UI_LIST_CARD_META_BADGE } from "@/lib/ui/control-styles";
 import {
   GLASS_LIST_CARD,
   GLASS_LIST_CARD_INTERACTIVE,
@@ -79,7 +79,7 @@ export function MyListsCard({
         <div className={cn(CARD_STACK, "min-w-0 w-full flex-1")}>
           <div className="flex w-full min-w-0 items-start gap-1 sm:gap-2">
             <Blocks
-              className="mt-0.5 h-5 w-5 shrink-0 self-start text-blue-300"
+              className={cn(UI_ICON_CONTROL, "mt-0.5 self-start text-blue-300")}
               aria-hidden
             />
             <button
@@ -113,12 +113,12 @@ export function MyListsCard({
               >
                 {isPublic ? (
                   <>
-                    <Globe2 className="w-3 h-3 shrink-0" aria-hidden />
+                    <Globe2 className={UI_ICON_CONTROL} aria-hidden />
                     <span className="hidden sm:inline">Public</span>
                   </>
                 ) : (
                   <>
-                    <GlobeLock className="w-3 h-3 shrink-0" aria-hidden />
+                    <GlobeLock className={UI_ICON_CONTROL} aria-hidden />
                     <span className="hidden sm:inline">Private</span>
                   </>
                 )}
@@ -126,7 +126,7 @@ export function MyListsCard({
             )}
             <span className="inline-flex items-center gap-1">
               <Users
-                className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-purple-400 shrink-0"
+                className={cn(UI_ICON_CONTROL, "text-purple-400")}
                 aria-hidden
               />
               <span className="font-medium text-white/80">
@@ -156,7 +156,7 @@ export function MyListsCard({
             title="View List"
             aria-label={`View ${list.title || list.slug}`}
           >
-            <Eye className="size-4" aria-hidden />
+            <Eye className={UI_ICON_CONTROL} aria-hidden />
           </Button>
           <Button
             onClick={() => {
@@ -168,7 +168,7 @@ export function MyListsCard({
             title="Edit List"
             aria-label={`Edit ${list.title || list.slug}`}
           >
-            <PencilIcon className="h-4 w-4" aria-hidden />
+            <PencilIcon className={UI_ICON_CONTROL} aria-hidden />
           </Button>
           <Button
             onClick={() => {
@@ -180,7 +180,7 @@ export function MyListsCard({
             title="Delete List"
             aria-label={`Delete ${list.title || list.slug}`}
           >
-            <TrashIcon className="h-4 w-4" aria-hidden />
+            <TrashIcon className={UI_ICON_CONTROL} aria-hidden />
           </Button>
         </div>
       </div>

@@ -2,6 +2,7 @@
 
 import { Check, Copy, Globe } from "lucide-react";
 import { ListMetaDates } from "@/lib/ui/list-meta-dates";
+import { UI_ICON_CONTROL } from "@/lib/ui/control-styles";
 import { cn, listShareUrl, resolveListShareUrl } from "@/lib/utils";
 
 export type ListDetailShareRowProps = {
@@ -33,7 +34,10 @@ export function ListDetailShareRow({
     >
       <div className="flex min-w-0 w-full flex-wrap items-center gap-x-1.5 gap-y-1 sm:flex-1">
         <span className="inline-flex shrink-0 items-center gap-1.5 font-light text-white/70">
-          <Globe className="h-3.5 w-3.5 shrink-0 text-blue-400" aria-hidden />
+          <Globe
+            className={cn(UI_ICON_CONTROL, "text-blue-400")}
+            aria-hidden
+          />
           Shareable Link:
         </span>
         <span className="inline-flex min-w-0 flex-wrap items-center break-words text-white/90">
@@ -51,9 +55,19 @@ export function ListDetailShareRow({
             aria-label="Copy link"
           >
             {isCopied ? (
-              <Check className="h-3.5 w-3.5 text-green-400 group-hover:scale-110 transition-transform duration-200" />
+              <Check
+                className={cn(
+                  UI_ICON_CONTROL,
+                  "text-green-400 group-hover:scale-110 transition-transform duration-200",
+                )}
+              />
             ) : (
-              <Copy className="h-3.5 w-3.5 text-white/70 group-hover:text-white group-hover:scale-110 transition-all duration-200" />
+              <Copy
+                className={cn(
+                  UI_ICON_CONTROL,
+                  "text-white/70 group-hover:text-white group-hover:scale-110 transition-all duration-200",
+                )}
+              />
             )}
           </button>
         </span>
@@ -61,7 +75,7 @@ export function ListDetailShareRow({
       <ListMetaDates
         createdAt={createdAt}
         updatedAt={updatedAt}
-        className="shrink-0 [&_svg]:size-3.5"
+        className="shrink-0"
       />
     </div>
   );

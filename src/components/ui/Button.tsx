@@ -9,7 +9,7 @@ import {
   GLASS_GHOST_BUTTON,
   GLASS_PRIMARY_BUTTON,
 } from "@/lib/ui/glass-button-styles";
-import { UI_CONTROL_HEIGHT, UI_CONTROL_ICON_GAP } from "@/lib/ui/control-styles";
+import { UI_CONTROL_HEIGHT, UI_CONTROL_ICON_GAP, UI_ICON_CONTROL } from "@/lib/ui/control-styles";
 
 export type ButtonVariant =
   | "primary"
@@ -104,7 +104,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         {isLoading ? (
           <>
             <svg
-              className="h-4 w-4 shrink-0 animate-spin"
+              className={clsx(UI_ICON_CONTROL, "animate-spin")}
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
               viewBox="0 0 24 24"

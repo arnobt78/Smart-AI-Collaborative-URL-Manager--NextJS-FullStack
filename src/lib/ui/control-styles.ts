@@ -6,6 +6,12 @@ export const UI_CONTROL_HEIGHT = "h-10 min-h-10";
 /** Standard icon-to-label spacing for readable labeled actions. */
 export const UI_CONTROL_ICON_GAP = "gap-1";
 
+/** Interactive control glyphs (buttons, chips, filters, menus, close, spinners). */
+export const UI_ICON_CONTROL = "h-5 w-5 shrink-0";
+
+/** Page headers, feature cards, empty-state heroes, brand marks. */
+export const UI_ICON_DECORATIVE = "h-6 w-6 sm:h-8 sm:w-8 shrink-0";
+
 /** Reusable glass form-control foundation, with visible keyboard focus. */
 export const UI_FORM_CONTROL =
   "w-full h-10 min-h-10 rounded-xl border border-white/20 bg-white/10 backdrop-blur-md px-3 text-sm text-white placeholder:text-sm placeholder:text-white/60 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400/60 focus:border-blue-300/50 disabled:cursor-not-allowed disabled:opacity-50";

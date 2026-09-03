@@ -9,7 +9,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { UI_ICON_MENU_TRIGGER } from "@/lib/ui/control-styles";
+import { UI_ICON_CONTROL, UI_ICON_MENU_TRIGGER } from "@/lib/ui/control-styles";
 import { cn } from "@/lib/utils";
 
 export type ListDetailJobsMenuProps = {
@@ -58,7 +58,7 @@ export function ListDetailJobsMenu({
           >
             <MoreVertical
               className={cn(
-                "h-4 w-4",
+                UI_ICON_CONTROL,
                 anyBusy && !busy ? "animate-pulse" : undefined,
               )}
             />
@@ -74,7 +74,8 @@ export function ListDetailJobsMenu({
           >
             <Activity
               className={cn(
-                "h-4 w-4 text-violet-300",
+                UI_ICON_CONTROL,
+                "text-violet-300",
                 isSettingUpSchedule && "animate-spin",
               )}
             />
@@ -89,7 +90,8 @@ export function ListDetailJobsMenu({
           >
             <RefreshCw
               className={cn(
-                "h-4 w-4 text-emerald-300",
+                UI_ICON_CONTROL,
+                "text-emerald-300",
                 isRefreshingMetadata && "animate-spin",
               )}
             />
@@ -104,7 +106,8 @@ export function ListDetailJobsMenu({
           >
             <Activity
               className={cn(
-                "h-4 w-4 text-blue-300",
+                UI_ICON_CONTROL,
+                "text-blue-300",
                 isCheckingHealth && "animate-spin",
               )}
             />
@@ -112,7 +115,7 @@ export function ListDetailJobsMenu({
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem className="cursor-pointer text-white/70">
-            <X className="h-4 w-4" />
+            <X className={UI_ICON_CONTROL} />
             Cancel
           </DropdownMenuItem>
         </DropdownMenuContent>

@@ -5,6 +5,8 @@
 
 import { Input } from "@/components/ui/Input";
 import { Search } from "lucide-react";
+import { UI_ICON_CONTROL } from "@/lib/ui/control-styles";
+import { cn } from "@/lib/utils";
 
 type BrowseSearchFieldProps = {
   value: string;
@@ -20,7 +22,10 @@ export function BrowseSearchField({
   return (
     <div className="relative w-full">
       <Search
-        className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-white/40"
+        className={cn(
+          UI_ICON_CONTROL,
+          "absolute left-3 top-1/2 -translate-y-1/2 text-white/40",
+        )}
         aria-hidden
       />
       <Input

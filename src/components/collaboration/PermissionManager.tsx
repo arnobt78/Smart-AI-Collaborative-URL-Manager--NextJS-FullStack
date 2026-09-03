@@ -37,7 +37,7 @@ import {
   useRemoveCollaborator,
   listQueryKeys,
 } from "@/hooks/useListQueries";
-import { UI_ICON_MENU_TRIGGER } from "@/lib/ui/control-styles";
+import { UI_ICON_CONTROL, UI_ICON_DECORATIVE, UI_ICON_MENU_TRIGGER } from "@/lib/ui/control-styles";
 import { CARD_PAD, CARD_STACK } from "@/lib/ui-spacing";
 import { Dialog } from "@/components/ui/Dialog";
 import { cn } from "@/lib/utils";
@@ -238,9 +238,9 @@ export function PermissionManager({
 
   const getRoleIcon = (role: "editor" | "viewer") => {
     return role === "editor" ? (
-      <Edit3 className="h-3 w-3" />
+      <Edit3 className={UI_ICON_CONTROL} />
     ) : (
-      <Eye className="h-3 w-3" />
+      <Eye className={UI_ICON_CONTROL} />
     );
   };
 
@@ -258,7 +258,7 @@ export function PermissionManager({
       disabled={!canInvite}
       className="w-full sm:w-auto shrink-0"
     >
-      <UserPlus className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" aria-hidden />
+      <UserPlus className={UI_ICON_CONTROL} aria-hidden />
       <span>Add Collaborator</span>
     </Button>
   );
@@ -355,7 +355,7 @@ export function PermissionManager({
                           {collaborator.invitedByEmail || invitedAt ? (
                             <span className="inline-flex items-center gap-1 min-w-0">
                               <CalendarPlus
-                                className="h-3 w-3 shrink-0"
+                                className={UI_ICON_CONTROL}
                                 aria-hidden
                               />
                               <span className="break-words">
@@ -369,7 +369,7 @@ export function PermissionManager({
                           {updatedAt ? (
                             <span className="inline-flex min-w-0 items-center gap-1 break-words">
                               <CalendarArrowUp
-                                className="h-3 w-3 shrink-0"
+                                className={UI_ICON_CONTROL}
                                 aria-hidden
                               />
                               Updated {updatedAt}
@@ -387,7 +387,7 @@ export function PermissionManager({
                             className={UI_ICON_MENU_TRIGGER}
                             aria-label={`Actions for ${collaborator.email}`}
                           >
-                            <MoreVertical className="h-4 w-4" />
+                            <MoreVertical className={UI_ICON_CONTROL} />
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-48">
@@ -402,7 +402,7 @@ export function PermissionManager({
                             }}
                             className="cursor-pointer"
                           >
-                            <Edit3 className="h-4 w-4 text-blue-300" />
+                            <Edit3 className={cn(UI_ICON_CONTROL, "text-blue-300")} />
                             Change Role
                           </DropdownMenuItem>
                           <DropdownMenuItem
@@ -415,12 +415,12 @@ export function PermissionManager({
                             }}
                             className="cursor-pointer text-red-400 focus:bg-red-500/10 focus:text-red-300 data-[highlighted]:bg-red-500/10 data-[highlighted]:text-red-300"
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <Trash2 className={UI_ICON_CONTROL} />
                             Remove
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem className="cursor-pointer text-white/70">
-                            <X className="h-4 w-4" />
+                            <X className={UI_ICON_CONTROL} />
                             Cancel
                           </DropdownMenuItem>
                         </DropdownMenuContent>
@@ -485,7 +485,7 @@ export function PermissionManager({
                     : "bg-white/5 border-white/20 text-white/60 hover:border-white/30 hover:text-white/80"
                 }`}
               >
-                <Edit3 className="h-5 w-5 mx-auto mb-1" />
+                <Edit3 className={cn(UI_ICON_DECORATIVE, "mx-auto mb-1")} />
                 <div className="text-sm font-medium">Editor</div>
                 <div className="text-xs mt-1 opacity-75">
                   Can add, edit, delete URLs
@@ -501,7 +501,7 @@ export function PermissionManager({
                     : "bg-white/5 border-white/20 text-white/60 hover:border-white/30 hover:text-white/80"
                 }`}
               >
-                <Eye className="h-5 w-5 mx-auto mb-1" />
+                <Eye className={cn(UI_ICON_DECORATIVE, "mx-auto mb-1")} />
                 <div className="text-sm font-medium">Viewer</div>
                 <div className="text-xs mt-1 opacity-75">
                   Can view and comment only
@@ -529,7 +529,7 @@ export function PermissionManager({
               loadingText="Sending…"
               variant="glass"
             >
-              <Send className="h-4 w-4" aria-hidden />
+              <Send className={UI_ICON_CONTROL} aria-hidden />
               Send Invite
             </Button>
           </div>
@@ -569,7 +569,7 @@ export function PermissionManager({
                   : "bg-white/5 border-white/20 text-white/60 hover:border-white/30 hover:text-white/80"
               } disabled:opacity-50`}
             >
-              <Edit3 className="h-5 w-5 mx-auto mb-1" />
+              <Edit3 className={cn(UI_ICON_DECORATIVE, "mx-auto mb-1")} />
               <div className="text-sm font-medium">Editor</div>
               <div className="text-xs mt-1 opacity-75">
                 Can add, edit, delete URLs
@@ -590,7 +590,7 @@ export function PermissionManager({
                   : "bg-white/5 border-white/20 text-white/60 hover:border-white/30 hover:text-white/80"
               } disabled:opacity-50`}
             >
-              <Eye className="h-5 w-5 mx-auto mb-1" />
+              <Eye className={cn(UI_ICON_DECORATIVE, "mx-auto mb-1")} />
               <div className="text-sm font-medium">Viewer</div>
               <div className="text-xs mt-1 opacity-75">
                 Can view and comment only
@@ -619,7 +619,7 @@ export function PermissionManager({
               loadingText="Updating…"
               variant="glass"
             >
-              <UserCog className="h-4 w-4" aria-hidden />
+              <UserCog className={UI_ICON_CONTROL} aria-hidden />
               Update Role
             </Button>
           </div>

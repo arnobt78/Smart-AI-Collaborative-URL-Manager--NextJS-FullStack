@@ -7,7 +7,10 @@ import { DescriptionRow } from "@/components/ui/DescriptionRow";
 import { Switch } from "@/components/ui/Switch";
 import { ArrowLeft, Blocks, Globe2, GlobeLock } from "lucide-react";
 import { GLASS_LIST_CARD } from "@/lib/ui/glass-card-styles";
-import { UI_LIST_CARD_META_BADGE } from "@/lib/ui/control-styles";
+import {
+  UI_ICON_CONTROL,
+  UI_LIST_CARD_META_BADGE,
+} from "@/lib/ui/control-styles";
 import { CARD_PAD, CARD_STACK, HEADING_STACK, LIST_STACK } from "@/lib/ui-spacing";
 import { cn } from "@/lib/utils";
 import { ActivityFeed } from "@/components/collaboration/ActivityFeed";
@@ -67,7 +70,7 @@ export function ListDetailHeaderChrome({
         onClick={onBack}
         aria-label="Back"
       >
-        <ArrowLeft className="h-4 w-4" aria-hidden />
+        <ArrowLeft className={UI_ICON_CONTROL} aria-hidden />
         <span className="hidden sm:inline">Back</span>
       </Button>
     ) : null;
@@ -75,7 +78,7 @@ export function ListDetailHeaderChrome({
   const titleBlock = (
     <>
       <Blocks
-        className="mt-0.5 h-5 w-5 shrink-0 self-start text-blue-300"
+        className={cn(UI_ICON_CONTROL, "mt-0.5 self-start text-blue-300")}
         aria-hidden
       />
       <h1 className="min-w-0 flex-1 break-words text-base font-medium text-white sm:text-lg xl:text-xl">
@@ -130,7 +133,7 @@ export function ListDetailHeaderChrome({
           >
             {isPublic ? (
               <>
-                <Globe2 className="w-3 h-3 shrink-0" aria-hidden />
+                <Globe2 className={UI_ICON_CONTROL} aria-hidden />
                 <span className="hidden sm:inline">
                   Public - Anyone can view
                 </span>
@@ -138,7 +141,7 @@ export function ListDetailHeaderChrome({
               </>
             ) : (
               <>
-                <GlobeLock className="w-3 h-3 shrink-0" aria-hidden />
+                <GlobeLock className={UI_ICON_CONTROL} aria-hidden />
                 <span className="hidden sm:inline">
                   Private - Only you & collaborators
                 </span>

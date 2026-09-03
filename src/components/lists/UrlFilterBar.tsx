@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Filter, Clock, ArrowUpDown, Star, Bell } from "lucide-react";
 import { HoverTooltip } from "@/components/ui/HoverTooltip";
-import { UI_CONTROL_HEIGHT } from "@/lib/ui/control-styles";
+import { UI_CONTROL_HEIGHT, UI_ICON_CONTROL } from "@/lib/ui/control-styles";
 import { cn } from "@/lib/utils";
 
 type SortOption =
@@ -38,28 +38,28 @@ const SORT_OPTIONS: {
   {
     value: "latest",
     label: "Recently Added",
-    icon: <Clock className="h-3.5 w-3.5 sm:h-4 sm:w-4" />,
+    icon: <Clock className={UI_ICON_CONTROL} />,
     selectedClass: "bg-blue-600/20 text-blue-300",
     dotClass: "bg-blue-400",
   },
   {
     value: "oldest",
     label: "Oldest",
-    icon: <Clock className="h-3.5 w-3.5 sm:h-4 sm:w-4 rotate-180" />,
+    icon: <Clock className={cn(UI_ICON_CONTROL, "rotate-180")} />,
     selectedClass: "bg-blue-600/20 text-blue-300",
     dotClass: "bg-blue-400",
   },
   {
     value: "az",
     label: "A-Z",
-    icon: <ArrowUpDown className="h-3.5 w-3.5 sm:h-4 sm:w-4" />,
+    icon: <ArrowUpDown className={UI_ICON_CONTROL} />,
     selectedClass: "bg-blue-600/20 text-blue-300",
     dotClass: "bg-blue-400",
   },
   {
     value: "za",
     label: "Z-A",
-    icon: <ArrowUpDown className="h-3.5 w-3.5 sm:h-4 sm:w-4 rotate-180" />,
+    icon: <ArrowUpDown className={cn(UI_ICON_CONTROL, "rotate-180")} />,
     selectedClass: "bg-blue-600/20 text-blue-300",
     dotClass: "bg-blue-400",
   },
@@ -75,14 +75,14 @@ const FILTER_OPTIONS: {
   {
     value: "favourite",
     label: "Favourites",
-    icon: <Star className="h-3.5 w-3.5 sm:h-4 sm:w-4" />,
+    icon: <Star className={UI_ICON_CONTROL} />,
     selectedClass: "bg-yellow-500/20 text-yellow-300",
     dotClass: "bg-yellow-400",
   },
   {
     value: "reminders",
     label: "Reminders",
-    icon: <Bell className="h-3.5 w-3.5 sm:h-4 sm:w-4" />,
+    icon: <Bell className={UI_ICON_CONTROL} />,
     selectedClass: "bg-orange-500/20 text-orange-300",
     dotClass: "bg-orange-400",
   },
@@ -145,7 +145,7 @@ export function UrlFilterBar({ sortOption, setSortOption }: UrlFilterBarProps) {
             )}
             aria-label="Filter and sort URLs"
           >
-            <Filter className="h-4 w-4" />
+            <Filter className={UI_ICON_CONTROL} />
             {isActive ? (
               <span className="absolute -top-1 -right-1 w-2 h-2 sm:w-2.5 sm:h-2.5 bg-blue-400 rounded-full ring-2 ring-white/20" />
             ) : null}

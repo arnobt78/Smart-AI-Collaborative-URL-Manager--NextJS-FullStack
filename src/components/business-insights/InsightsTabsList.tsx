@@ -5,6 +5,7 @@
 
 import { TabsList, TabsTrigger } from "@/components/ui/Tabs";
 import { TrendingUp, Star, Zap, Globe } from "lucide-react";
+import { UI_ICON_CONTROL } from "@/lib/ui/control-styles";
 
 export function InsightsTabsList() {
   return (
@@ -13,21 +14,21 @@ export function InsightsTabsList() {
         value="overview"
         className="flex h-full items-center justify-center gap-1 text-xs sm:text-sm px-2 sm:px-3"
       >
-        <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 shrink-0" aria-hidden />
+        <TrendingUp className={UI_ICON_CONTROL} aria-hidden />
         <span>Overview</span>
       </TabsTrigger>
       <TabsTrigger
         value="popular"
         className="flex h-full items-center justify-center gap-1 text-xs sm:text-sm px-2 sm:px-3"
       >
-        <Star className="h-3 w-3 sm:h-4 sm:w-4 shrink-0" aria-hidden />
+        <Star className={UI_ICON_CONTROL} aria-hidden />
         <span>Popular</span>
       </TabsTrigger>
       <TabsTrigger
         value="performance"
         className="flex h-full items-center justify-center gap-1 text-xs sm:text-sm px-2 sm:px-3"
       >
-        <Zap className="h-3 w-3 sm:h-4 sm:w-4 shrink-0" aria-hidden />
+        <Zap className={UI_ICON_CONTROL} aria-hidden />
         <span className="hidden sm:inline">Performance</span>
         <span className="sm:hidden">Perf</span>
       </TabsTrigger>
@@ -35,7 +36,7 @@ export function InsightsTabsList() {
         value="global"
         className="flex h-full items-center justify-center gap-1 text-xs sm:text-sm px-2 sm:px-3"
       >
-        <Globe className="h-3 w-3 sm:h-4 sm:w-4 shrink-0" aria-hidden />
+        <Globe className={UI_ICON_CONTROL} aria-hidden />
         <span>Global</span>
       </TabsTrigger>
     </TabsList>

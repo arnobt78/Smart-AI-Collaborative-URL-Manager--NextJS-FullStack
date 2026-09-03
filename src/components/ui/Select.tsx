@@ -1,6 +1,6 @@
 import { forwardRef } from "react";
 import { cn } from "@/lib/utils";
-import { UI_FORM_CONTROL } from "@/lib/ui/control-styles";
+import { UI_FORM_CONTROL, UI_ICON_CONTROL } from "@/lib/ui/control-styles";
 
 export interface SelectProps
   extends React.SelectHTMLAttributes<HTMLSelectElement> {
@@ -29,7 +29,7 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(
         {/* Custom dropdown arrow - positioned on right, non-interactive */}
         <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none z-10">
           <svg
-            className="w-4 h-4 text-white/60"
+            className={cn(UI_ICON_CONTROL, "text-white/60")}
             fill="none"
             strokeLinecap="round"
             strokeLinejoin="round"

@@ -35,6 +35,7 @@ import {
 import { useWarmSoftNav } from "@/hooks/useWarmSoftNav";
 import { AlertDialog } from "@/components/ui/AlertDialog";
 import { CARD_STACK, HEADING_STACK } from "@/lib/ui-spacing";
+import { UI_ICON_CONTROL, UI_ICON_DECORATIVE } from "@/lib/ui/control-styles";
 import { cn } from "@/lib/utils";
 import { invalidateMutationImpact } from "@/utils/queryInvalidation";
 
@@ -451,7 +452,7 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
     return (
       <div className="flex items-center justify-between gap-2 sm:gap-2">
         <div className="flex items-center gap-2 sm:gap-2 min-w-0 flex-1">
-          <Sparkles className="h-4 w-4  text-blue-400 flex-shrink-0" />
+          <Sparkles className={cn(UI_ICON_CONTROL, "text-blue-400")} />
           <div className={`${HEADING_STACK} min-w-0`}>
             <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
               <h3 className="font-medium text-white text-sm sm:text-base truncate">
@@ -473,7 +474,7 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
           aria-expanded={false}
           aria-controls="smart-collections-content"
         >
-          <Telescope className="h-4 w-4 shrink-0" aria-hidden />
+          <Telescope className={UI_ICON_CONTROL} aria-hidden />
           View Suggestions
         </Button>
       </div>
@@ -485,7 +486,7 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
       <div className={cn(CARD_STACK, "space-y-2 sm:space-y-3")}>
         <div className="flex items-center justify-between gap-2 sm:gap-2 ">
           <div className="flex items-center gap-2 sm:gap-2 min-w-0 flex-1">
-            <Sparkles className="h-4 w-4  text-blue-400 flex-shrink-0" />
+            <Sparkles className={cn(UI_ICON_CONTROL, "text-blue-400")} />
             <div className={`${HEADING_STACK} min-w-0`}>
               <CardTitle className="text-sm sm:text-base font-medium text-white">
                 Smart Collections
@@ -504,7 +505,7 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
             aria-expanded={true}
             aria-controls="smart-collections-content"
           >
-            <ChevronsUp className="h-4 w-4 shrink-0" aria-hidden />
+            <ChevronsUp className={UI_ICON_CONTROL} aria-hidden />
             View Less
           </Button>
         </div>
@@ -525,7 +526,7 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
           {hasSuggestions && (
             <div className="flex flex-col gap-3 sm:gap-4">
               <h4 className="text-xs sm:text-sm font-medium text-white flex items-center gap-2">
-                <FolderPlus className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+                <FolderPlus className={UI_ICON_CONTROL} />
                 <span>Suggested Collections</span>
                 <SectionCountBadge count={suggestions.length} />
               </h4>
@@ -588,12 +589,14 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
                       >
                         {isCreating === suggestion.id ? (
                           <>
-                            <Loader2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0 animate-spin" />
+                            <Loader2
+                              className={cn(UI_ICON_CONTROL, "animate-spin")}
+                            />
                             Creating…
                           </>
                         ) : (
                           <>
-                            <ListPlus className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+                            <ListPlus className={UI_ICON_CONTROL} />
                             Create Collection
                           </>
                         )}
@@ -610,7 +613,9 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
             <div className="flex flex-col gap-3 sm:gap-4">
               <div className="flex items-center justify-between gap-2">
                 <h4 className="text-xs sm:text-sm font-medium text-white flex items-center gap-2 min-w-0 flex-1">
-                  <AlertTriangle className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-yellow-400 shrink-0" />
+                  <AlertTriangle
+                    className={cn(UI_ICON_CONTROL, "text-yellow-400")}
+                  />
                   <span className="truncate">
                     {isLoadingDuplicates
                       ? "Checking for duplicates..."
@@ -634,7 +639,9 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
               </div>
               {isLoadingDuplicates && (
                 <div className="text-center py-4 sm:py-6">
-                  <Loader2 className="h-4 w-4  text-white/40 mx-auto animate-spin" />
+                  <Loader2
+                    className={cn(UI_ICON_CONTROL, "text-white/40 mx-auto animate-spin")}
+                  />
                   <p className="text-[10px] sm:text-xs text-white/50 mt-2">
                     Checking URLs for duplicates...
                   </p>
@@ -652,7 +659,12 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
                       >
                         <div className="flex items-start gap-2 sm:gap-2 flex-col sm:flex-row">
                           <div className="flex items-start gap-2 sm:gap-2 flex-1 min-w-0 w-full">
-                            <AlertTriangle className="h-4 w-4  text-yellow-400 mt-0.5 shrink-0" />
+                            <AlertTriangle
+                              className={cn(
+                                UI_ICON_CONTROL,
+                                "text-yellow-400 mt-0.5",
+                              )}
+                            />
                             <div className="flex-1 min-w-0 w-full">
                               <p className="text-xs sm:text-sm font-medium text-white break-words">
                                 {dup.url.title || dup.url.url}
@@ -666,7 +678,7 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
                                     key={i}
                                     className="text-[10px] sm:text-xs text-white/70 flex items-start gap-1.5 flex-wrap"
                                   >
-                                    <Link2 className="h-3 w-3 shrink-0 mt-0.5" />
+                                    <Link2 className={cn(UI_ICON_CONTROL, "mt-0.5")} />
                                     <span className="break-words flex-1 min-w-0">
                                       Also in:{" "}
                                       {d.listSlug ? (
@@ -706,7 +718,9 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
                             >
                               {isDeleting ? (
                                 <>
-                                  <Loader2 className="h-3 w-3 animate-spin" />
+                                  <Loader2
+                                    className={cn(UI_ICON_CONTROL, "animate-spin")}
+                                  />
                                   <span className="hidden sm:inline">
                                     Removing...
                                   </span>
@@ -714,7 +728,7 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
                                 </>
                               ) : (
                                 <>
-                                  <Trash2 className="h-3 w-3" />
+                                  <Trash2 className={UI_ICON_CONTROL} />
                                   Remove
                                 </>
                               )}
@@ -728,7 +742,9 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
               )}
               {!isLoadingDuplicates && !hasDuplicates && (
                 <div className="text-center py-4 sm:py-6 border border-green-400/20 rounded-lg bg-green-400/5">
-                  <CheckCircle2 className="h-5 w-5 sm:h-6 sm:w-6 text-green-400 mx-auto " />
+                  <CheckCircle2
+                    className={cn(UI_ICON_DECORATIVE, "text-green-400 mx-auto")}
+                  />
                   <p className="text-xs sm:text-sm text-white/70 px-2">
                     No duplicate URLs found across your lists!
                   </p>
@@ -740,7 +756,9 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
           {/* Empty State - Only show if no suggestions and duplicates section not expanded */}
           {!isLoading && !hasSuggestions && !showDuplicates && (
             <div className="text-center py-8">
-              <CheckCircle2 className="h-12 w-12 text-white/20 mx-auto " />
+              <CheckCircle2
+                className={cn(UI_ICON_DECORATIVE, "text-white/20 mx-auto")}
+              />
               <p className="text-white/60 text-sm">
                 No collection suggestions available yet.
                 <br />
@@ -801,9 +819,11 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
               className="inline-flex items-center justify-center rounded-md border border-white/20 bg-transparent px-2 sm:px-3 py-1 text-xs sm:text-sm font-medium text-white hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 disabled:opacity-50 disabled:pointer-events-none disabled:cursor-not-allowed transition-colors"
             >
               <Search
-                className={`h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2 ${
-                  isLoadingDuplicates ? "animate-spin" : ""
-                }`}
+                className={cn(
+                  UI_ICON_CONTROL,
+                  "mr-1.5 sm:mr-2",
+                  isLoadingDuplicates && "animate-spin",
+                )}
               />
               {isLoadingDuplicates
                 ? "Checking..."
@@ -822,9 +842,11 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
               className="inline-flex items-center justify-center rounded-md border border-white/20 bg-transparent px-2 sm:px-3 py-1 text-xs sm:text-sm font-medium text-white hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 disabled:opacity-50 disabled:pointer-events-none disabled:cursor-not-allowed transition-colors"
             >
               <Loader2
-                className={`h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2 ${
-                  isLoading || isRefreshing ? "animate-spin" : ""
-                }`}
+                className={cn(
+                  UI_ICON_CONTROL,
+                  "mr-1.5 sm:mr-2",
+                  (isLoading || isRefreshing) && "animate-spin",
+                )}
               />
               {isRefreshing ? "Refreshing..." : "Refresh Suggestions"}
             </button>

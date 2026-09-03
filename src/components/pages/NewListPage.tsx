@@ -14,7 +14,7 @@ import { useToast } from "@/components/ui/Toaster";
 import { useCreateList } from "@/hooks/useListQueries";
 import { useWarmSoftNav } from "@/hooks/useWarmSoftNav";
 import { FORM_STACK } from "@/lib/ui-spacing";
-import { UI_FORM_CONTROL } from "@/lib/ui/control-styles";
+import { UI_FORM_CONTROL, UI_ICON_CONTROL } from "@/lib/ui/control-styles";
 import {
   LIST_DESCRIPTION_MAX,
   LIST_TITLE_MAX,
@@ -202,7 +202,7 @@ export default function NewListPageClient({ onClose, onPendingChange }: NewListP
         <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
           <CancelButton onClick={close} disabled={isPending}>Cancel</CancelButton>
           <Button type="submit" variant="glassPurple" isLoading={isPending} loadingText="Creating…">
-            <ListPlus className="h-4 w-4 shrink-0" aria-hidden />
+            <ListPlus className={UI_ICON_CONTROL} aria-hidden />
             Create List
           </Button>
         </div>

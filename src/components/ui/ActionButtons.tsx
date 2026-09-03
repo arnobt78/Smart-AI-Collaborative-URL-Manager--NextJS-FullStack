@@ -3,6 +3,8 @@
 
 import { Eraser, StickyNote, X } from "lucide-react";
 import { Button, type ButtonProps } from "@/components/ui/Button";
+import { UI_ICON_CONTROL } from "@/lib/ui/control-styles";
+import { cn } from "@/lib/utils";
 
 export function CancelButton({ children = "Cancel", ...props }: ButtonProps) {
   return (
@@ -16,8 +18,8 @@ export function CancelButton({ children = "Cancel", ...props }: ButtonProps) {
 /** Lucide 0.552 has StickyNote and X but no composite export, so compose the requested glyph locally. */
 function StickyNoteX({ "aria-hidden": ariaHidden }: { "aria-hidden"?: boolean }) {
   return (
-    <span className="relative h-4 w-4 shrink-0" aria-hidden={ariaHidden}>
-      <StickyNote className="h-4 w-4" />
+    <span className={cn("relative", UI_ICON_CONTROL)} aria-hidden={ariaHidden}>
+      <StickyNote className={UI_ICON_CONTROL} />
       <X className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-zinc-900" strokeWidth={3} />
     </span>
   );
@@ -26,7 +28,7 @@ function StickyNoteX({ "aria-hidden": ariaHidden }: { "aria-hidden"?: boolean })
 export function ClearButton({ children = "Clear", ...props }: ButtonProps) {
   return (
     <Button type="button" variant="glassNeutral" {...props}>
-      <Eraser className="h-4 w-4 shrink-0" aria-hidden />
+      <Eraser className={UI_ICON_CONTROL} aria-hidden />
       {children}
     </Button>
   );

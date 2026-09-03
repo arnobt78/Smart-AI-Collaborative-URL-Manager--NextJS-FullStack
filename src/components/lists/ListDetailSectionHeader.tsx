@@ -4,6 +4,7 @@ import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { useId } from "react";
 import { HEADING_STACK } from "@/lib/ui-spacing";
+import { UI_ICON_CONTROL } from "@/lib/ui/control-styles";
 import { cn } from "@/lib/utils";
 
 export type ListDetailSectionHeaderProps = {
@@ -66,7 +67,7 @@ export function ListDetailSectionHeader({
     <>
       <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-2">
         <Icon
-          className={cn("h-4 w-4 shrink-0", iconClassName)}
+          className={cn(UI_ICON_CONTROL, iconClassName)}
           aria-hidden
         />
         {textBlock}

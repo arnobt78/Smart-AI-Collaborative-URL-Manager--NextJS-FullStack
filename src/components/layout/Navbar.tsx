@@ -15,7 +15,8 @@ import { useSession } from "@/hooks/useSession";
 import { useWasAuthedHint } from "@/hooks/useWasAuthedHint";
 import { ProfileDropdown } from "@/components/layout/ProfileDropdown";
 import { WarmSoftNavLink } from "@/components/ui/WarmSoftNavLink";
-import { UI_CHROME_ROW } from "@/lib/ui/control-styles";
+import { UI_CHROME_ROW, UI_ICON_CONTROL, UI_ICON_DECORATIVE } from "@/lib/ui/control-styles";
+import { cn } from "@/lib/utils";
 
 export type NavbarProps = {
   /** From cookies() urlist_was_authed — skeleton on first paint for returning users */
@@ -116,7 +117,12 @@ export default function Navbar({ initialWasAuthed = false }: NavbarProps) {
             className="flex h-10 items-center gap-2 text-base sm:text-xl font-medium text-white hover:text-blue-400 transition-colors font-mono group"
           >
             <div className="bg-transparent shrink-0 flex items-center">
-              <LinkIcon className="h-7 w-7 sm:h-8 sm:w-8 text-blue-600 stroke-[2.5px] drop-shadow-[0_0_10px_rgba(59,130,246,0.5)]" />
+              <LinkIcon
+                className={cn(
+                  UI_ICON_DECORATIVE,
+                  "text-blue-600 stroke-[2.5px] drop-shadow-[0_0_10px_rgba(59,130,246,0.5)]",
+                )}
+              />
             </div>
             {/* Fixed line box — font swap must not change nav / avatar vertical align */}
             <span className="gradient-color drop-shadow-[0_0_15px_rgba(59,130,246,0.3)] text-sm lg:text-base font-medium tracking-tight leading-none inline-flex h-8 items-center">
@@ -164,9 +170,9 @@ export default function Navbar({ initialWasAuthed = false }: NavbarProps) {
               aria-label="Toggle menu"
             >
               {isMobileMenuOpen ? (
-                <XMarkIcon className="h-6 w-6" />
+                <XMarkIcon className={UI_ICON_CONTROL} />
               ) : (
-                <Bars3Icon className="h-6 w-6" />
+                <Bars3Icon className={UI_ICON_CONTROL} />
               )}
             </button>
           </div>

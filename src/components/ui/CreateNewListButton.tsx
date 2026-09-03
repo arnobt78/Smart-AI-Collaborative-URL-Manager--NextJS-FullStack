@@ -4,6 +4,7 @@
  */
 import { FolderPlus, type LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import { UI_ICON_CONTROL } from "@/lib/ui/control-styles";
 import { cn } from "@/lib/utils";
 
 type CreateNewListButtonProps = {
@@ -29,7 +30,7 @@ export function CreateNewListButton({
       size={size}
       className={cn("w-full sm:w-auto", className)}
     >
-      <Icon className="h-4 w-4  shrink-0" aria-hidden />
+      <Icon className={UI_ICON_CONTROL} aria-hidden />
       <span>{label}</span>
     </Button>
   );

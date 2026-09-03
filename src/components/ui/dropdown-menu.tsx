@@ -13,6 +13,7 @@ import {
   UI_GLASS_MENU_ITEM,
   UI_GLASS_MENU_PANEL,
   UI_GLASS_MENU_SEPARATOR,
+  UI_ICON_CONTROL,
 } from "@/lib/ui/control-styles";
 
 const DropdownMenu = DropdownMenuPrimitive.Root;
@@ -47,7 +48,7 @@ const DropdownMenuSubTrigger = React.forwardRef<
     {...props}
   >
     {children}
-    <ChevronRight className="ml-auto size-4" />
+    <ChevronRight className={cn("ml-auto", UI_ICON_CONTROL)} />
   </DropdownMenuPrimitive.SubTrigger>
 ));
 DropdownMenuSubTrigger.displayName =
@@ -116,9 +117,9 @@ const DropdownMenuCheckboxItem = React.forwardRef<
     {...props}
   >
     {children}
-    <span className="absolute right-2 flex size-3.5 items-center justify-center">
+    <span className={cn("absolute right-2 flex items-center justify-center", UI_ICON_CONTROL)}>
       <DropdownMenuPrimitive.ItemIndicator>
-        <Check className="size-4" />
+        <Check className={UI_ICON_CONTROL} />
       </DropdownMenuPrimitive.ItemIndicator>
     </span>
   </DropdownMenuPrimitive.CheckboxItem>

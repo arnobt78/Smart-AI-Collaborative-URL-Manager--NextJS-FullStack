@@ -17,24 +17,34 @@ import { OptimizedImage } from "@/components/ui/OptimizedImage";
 import { ScrollReveal } from "@/components/ui/ScrollReveal";
 import { cn } from "@/lib/utils";
 import { CARD_PAD, HEADING_STACK, MARKETING_STACK } from "@/lib/ui-spacing";
+import {
+  UI_ICON_CONTROL,
+  UI_ICON_DECORATIVE,
+} from "@/lib/ui/control-styles";
 import { useListDialogRouteState } from "@/hooks/useListDialogRouteState";
 import { useWarmSoftNav } from "@/hooks/useWarmSoftNav";
 
 const features = [
   {
-    icon: <LinkIcon className="h-6 w-6 sm:h-8 sm:w-8 text-blue-400" />,
+    icon: (
+      <LinkIcon className={cn(UI_ICON_DECORATIVE, "text-blue-400")} />
+    ),
     title: "Easy to Create",
     description:
       "Create lists in seconds with our simple interface. Add URLs, titles, and descriptions effortlessly.",
   },
   {
-    icon: <ShareIcon className="h-6 w-6 sm:h-8 sm:w-8 text-purple-400" />,
+    icon: (
+      <ShareIcon className={cn(UI_ICON_DECORATIVE, "text-purple-400")} />
+    ),
     title: "Share Instantly",
     description:
       "Share your lists with anyone using a simple URL. Perfect for sharing resources, bookmarks, and collections.",
   },
   {
-    icon: <PhotoIcon className="h-6 w-6 sm:h-8 sm:w-8 text-indigo-400" />,
+    icon: (
+      <PhotoIcon className={cn(UI_ICON_DECORATIVE, "text-indigo-400")} />
+    ),
     title: "Rich Previews",
     description:
       "Beautiful previews for all your saved URLs, including titles, descriptions, and images.",
@@ -103,7 +113,7 @@ function MarketingHome() {
                 onMouseEnter={() => prefetchIntent("/lists")}
                 onFocus={() => prefetchIntent("/lists")}
               >
-                <LayoutList className="h-5 w-5 shrink-0" aria-hidden />
+                <LayoutList className={UI_ICON_CONTROL} aria-hidden />
                 View My Lists
               </Button>
             </div>

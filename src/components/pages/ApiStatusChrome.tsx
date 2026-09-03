@@ -21,6 +21,7 @@ import { cn } from "@/lib/utils";
 import { PAGE_STACK, CARD_PAD } from "@/lib/ui-spacing";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { GLASS_GHOST_BUTTON, GLASS_BUTTON_ICON_HOVER } from "@/lib/ui/glass-button-styles";
+import { UI_ICON_CONTROL } from "@/lib/ui/control-styles";
 
 export const STATUS_ENDPOINT_SHELLS = [
   { name: "Lists API", endpoint: "/api/lists" },
@@ -71,14 +72,14 @@ function getStatusBadge(status: string) {
   if (status === "operational") {
     return (
       <Badge variant="success" className="flex items-center gap-1">
-        <CheckCircle2 className="h-3 w-3" />
+        <CheckCircle2 className={UI_ICON_CONTROL} />
         Operational
       </Badge>
     );
   }
   return (
     <Badge variant="destructive" className="flex items-center gap-1">
-      <AlertCircle className="h-3 w-3" />
+      <AlertCircle className={UI_ICON_CONTROL} />
       Degraded
     </Badge>
   );
@@ -114,7 +115,7 @@ export function ApiStatusRefreshControl({
         aria-live="polite"
         role="status"
       >
-        <Loader2 className="h-4 w-4 shrink-0 animate-spin" aria-hidden />
+        <Loader2 className={cn(UI_ICON_CONTROL, "animate-spin")} aria-hidden />
         <span>refreshing…</span>
       </span>
     );
@@ -131,12 +132,12 @@ export function ApiStatusRefreshControl({
     >
       {busy ? (
         <>
-          <Loader2 className="h-4 w-4 shrink-0 animate-spin" aria-hidden />
+          <Loader2 className={cn(UI_ICON_CONTROL, "animate-spin")} aria-hidden />
           <span>refreshing…</span>
         </>
       ) : (
         <>
-          <RefreshCw className="h-4 w-4 shrink-0" aria-hidden />
+          <RefreshCw className={UI_ICON_CONTROL} aria-hidden />
           <span className="hidden sm:inline">Refresh</span>
         </>
       )}
@@ -205,9 +206,13 @@ export function ApiStatusChrome({
                 ) : (
                   <>
                     {data.status.database === "operational" ? (
-                      <CheckCircle2 className="h-4 w-4 text-green-400" />
+                      <CheckCircle2
+                        className={cn(UI_ICON_CONTROL, "text-green-400")}
+                      />
                     ) : (
-                      <AlertCircle className="h-4 w-4 text-yellow-400" />
+                      <AlertCircle
+                        className={cn(UI_ICON_CONTROL, "text-yellow-400")}
+                      />
                     )}
                     <span className="text-white font-medium capitalize">
                       {data.status.database || "unknown"}
@@ -219,7 +224,7 @@ export function ApiStatusChrome({
             <div>
               <p className="text-white/60 text-sm mb-1">Uptime</p>
               <div className="flex items-center gap-2 min-h-5">
-                <Clock className="h-4 w-4 text-blue-400 shrink-0" />
+                <Clock className={cn(UI_ICON_CONTROL, "text-blue-400")} />
                 {pending || !data?.status ? (
                   <ValuePulse className="h-4 w-16" />
                 ) : (

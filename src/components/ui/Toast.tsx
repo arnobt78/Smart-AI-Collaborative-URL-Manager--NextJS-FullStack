@@ -10,6 +10,7 @@ import {
   XCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { UI_ICON_CONTROL } from "@/lib/ui/control-styles";
 
 export interface Toast {
   id: string;
@@ -34,20 +35,25 @@ function ToastStatusIcon({
   loading?: boolean;
 }) {
   if (loading) {
-    return <Loader2 className="h-5 w-5 shrink-0 animate-spin" aria-hidden />;
+    return (
+      <Loader2
+        className={cn(UI_ICON_CONTROL, "animate-spin")}
+        aria-hidden
+      />
+    );
   }
 
   switch (variant) {
     case "success":
-      return <CheckCircle2 className="h-5 w-5 shrink-0" aria-hidden />;
+      return <CheckCircle2 className={UI_ICON_CONTROL} aria-hidden />;
     case "error":
-      return <XCircle className="h-5 w-5 shrink-0" aria-hidden />;
+      return <XCircle className={UI_ICON_CONTROL} aria-hidden />;
     case "warning":
-      return <AlertTriangle className="h-5 w-5 shrink-0" aria-hidden />;
+      return <AlertTriangle className={UI_ICON_CONTROL} aria-hidden />;
     case "info":
-      return <Info className="h-5 w-5 shrink-0" aria-hidden />;
+      return <Info className={UI_ICON_CONTROL} aria-hidden />;
     default:
-      return <Info className="h-5 w-5 shrink-0" aria-hidden />;
+      return <Info className={UI_ICON_CONTROL} aria-hidden />;
   }
 }
 
@@ -97,7 +103,7 @@ export function ToastComponent({ toast, onClose }: ToastProps) {
         className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-white/10"
         aria-label="Close"
       >
-        <X className="h-4 w-4" />
+        <X className={UI_ICON_CONTROL} />
       </button>
 
       <div className="flex items-start gap-3 pr-6">

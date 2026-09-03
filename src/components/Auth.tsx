@@ -45,6 +45,7 @@ import { glassPrimaryButtonClass } from "@/lib/ui/glass-button-styles";
 import {
   UI_FORM_CONTROL,
   UI_GLASS_MENU_TRIGGER_FOCUS,
+  UI_ICON_CONTROL,
 } from "@/lib/ui/control-styles";
 
 /** Left-panel process blurb — mirrors Home marketing features */
@@ -482,7 +483,7 @@ export default function Auth() {
                     }
                   >
                     <span className="flex size-9 shrink-0 items-center justify-center rounded-lg border border-blue-400/30 bg-blue-500/20 text-blue-300">
-                      <Icon className="h-4 w-4" aria-hidden />
+                      <Icon className={UI_ICON_CONTROL} aria-hidden />
                     </span>
                     <span className="min-w-0">
                       <span className="block text-sm font-medium text-white">
@@ -574,7 +575,7 @@ export default function Auth() {
                             />
                           ) : (
                             <Users
-                              className="h-4 w-4 text-white/70"
+                              className={cn(UI_ICON_CONTROL, "text-white/70")}
                               aria-hidden
                             />
                           )}
@@ -588,9 +589,11 @@ export default function Auth() {
                         </span>
                       </span>
                       <ChevronDown
-                        className={`w-4 h-4 text-white/60 transition-transform duration-200 flex-shrink-0 ${
-                          isGuestDropdownOpen ? "rotate-180" : ""
-                        }`}
+                        className={cn(
+                          UI_ICON_CONTROL,
+                          "text-white/60 transition-transform duration-200",
+                          isGuestDropdownOpen && "rotate-180",
+                        )}
                       />
                     </button>
                   </DropdownMenuTrigger>
@@ -635,7 +638,7 @@ export default function Auth() {
                       }}
                       className="cursor-pointer text-white/70"
                     >
-                      <Eraser className="h-4 w-4" aria-hidden />
+                      <Eraser className={UI_ICON_CONTROL} aria-hidden />
                       <span>Clear Selection</span>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
@@ -699,14 +702,14 @@ export default function Auth() {
                   {loading && authAction === "signin" ? (
                     <>
                       <Loader2
-                        className="h-4 w-4 shrink-0 animate-spin"
+                        className={cn(UI_ICON_CONTROL, "animate-spin")}
                         aria-hidden
                       />
                       <span>Signing in…</span>
                     </>
                   ) : (
                     <>
-                      <Sparkles className="h-4 w-4 shrink-0" aria-hidden />
+                      <Sparkles className={UI_ICON_CONTROL} aria-hidden />
                       <span>Sign in</span>
                     </>
                   )}
@@ -723,7 +726,7 @@ export default function Auth() {
                     {loading && authAction === "signup" ? (
                       <>
                         <Loader2
-                          className="h-3.5 w-3.5 shrink-0 animate-spin"
+                          className={cn(UI_ICON_CONTROL, "animate-spin")}
                           aria-hidden
                         />
                         <span>Signing up…</span>
