@@ -1037,11 +1037,19 @@ export function UrlList() {
     // Notify activity feed to skip fetch after local operation
     window.dispatchEvent(new CustomEvent("local-operation"));
 
+    let parsedUrl: URL;
     try {
-      const url = parseUserEnteredUrl(newUrl);
+      parsedUrl = parseUserEnteredUrl(newUrl);
+    } catch {
+      setError("Please enter a valid URL");
+      setIsLoading(false);
+      isLocalOperationRef.current = false;
+      return;
+    }
 
+    try {
       // Check if we already have metadata in React Query cache (from AI enhancement)
-      const queryKey = ["url-metadata", url.toString()] as const;
+      const queryKey = ["url-metadata", parsedUrl.toString()] as const;
       const existingMetadata = queryClient.getQueryData<UrlMetadata>(queryKey);
 
       // Use enhanced tags if available, otherwise use manually entered tags
@@ -1050,32 +1058,38 @@ export function UrlList() {
         .map((t) => t.trim())
         .filter((t) => t.length > 0);
 
-      // Pass existing metadata if available (from AI enhancement)
-      // The unified POST endpoint will use it if provided, otherwise fetch it
-      // This prevents duplicate metadata fetches
       await addUrlToList(
-        url.toString(),
-        existingMetadata?.title, // Use cached metadata title if available
+        parsedUrl.toString(),
+        existingMetadata?.title,
         tagsToUse.length > 0 ? tagsToUse : undefined,
         newNote || enhancementResult?.summary || "",
-        undefined, // reminder
-        enhancementResult?.category, // AI-generated category
-        existingMetadata, // Pass cached metadata to avoid re-fetching
+        undefined,
+        enhancementResult?.category,
+        existingMetadata,
       );
-      // Note: Metadata is now fetched and cached by the unified POST endpoint
-      // The event listener in UrlList will populate React Query cache when metadata-cached event fires
+
+      toast({
+        title: "URL Added",
+        description: `"${existingMetadata?.title || parsedUrl.hostname}" has been added to the list.`,
+        variant: "success",
+      });
 
       setNewUrl("");
       setNewNote("");
       setNewTags("");
       setEnhancementResult(null);
-      // Keep the add overlay pending until the new card can paint.
       requestAnimationFrame(() => setIsAddUrlFormExpanded(false));
-    } catch {
-      setError("Please enter a valid URL");
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to add URL";
+      setError(errorMessage);
+      toast({
+        title: "Add Failed",
+        description: errorMessage,
+        variant: "error",
+      });
     } finally {
       setIsLoading(false);
-      // Clear the flag after a delay
       setTimeout(() => {
         isLocalOperationRef.current = false;
       }, 2000);
