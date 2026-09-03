@@ -800,3 +800,16 @@ Append-only. Newest entries at bottom.
 | Rationale | Soft-nav pulse flash when My Lists already knew zero collaborators; cold collections fetch on every detail visit; optimistic URL drop unmounted SC mid-create. |
 | Linked REQs | C7.19 UX / cold-path |
 | Status | Implemented and validated 2026-09-03. |
+
+---
+
+## DEC-0057 — C7.20 densify-first visibility + flag-only URL toggles
+
+| Field | Value |
+|---|---|
+| Timestamp | 2026-09-04 |
+| Agent | Cursor |
+| Decision | For visibility mutations: densify list/browse + prepend activity + mark SSE eventKey; invalidate browse only (skip unified). For fav/pin-only URL updates: densify unified + activity + mark SSE; skip `invalidateMutationImpact("url")` and global store `isLoading`. Share SSE dedup via `lib/sse-unified-dedup.ts`. Preserve browse densify `existing.user` instead of inventing `you@local`. |
+| Rationale | Owner saw Browse “You” flash, double `updates?activityLimit=30` after visibility, Create Collection Activity 0→1, and fav/pin list blink from full unified refetch racing densify. |
+| Linked REQs | C7.20 densify / UrlCard actions |
+| Status | Implemented and validated 2026-09-04. |

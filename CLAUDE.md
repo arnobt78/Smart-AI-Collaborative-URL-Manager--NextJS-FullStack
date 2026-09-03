@@ -4,12 +4,13 @@
 **The Daily Urlist** (`urlist` v0.2.1) — AI collaborative URL lists.  
 Live: https://daily-urlist.vercel.app/ · Resume: `.agile-v/STATE.md`
 
-## Status (C7 — empty states / SC cold-path)
-Done: C7.8–C7.19 · **LLM** `c085f69` REQ-AI-0001 · **Icons** CONTROL/DECORATIVE · **C7.18** SSE `eventKey` dedup.
-**C7.19** Empty/browse polish + SC create/cold-path: `knownCollaboratorCount===0` skips collab pulse; SC thin shell (no AI); tombstoned soft-nav not-found (no skeleton backdrop); UrlList search zero-match empty; Browse `UserAvatar` + malformed-slug guard; orphan `/plan` delete script; SC fetch on expand only; Create Collection defers source URL drop + `collectionCreateInFlight` mount lock; `sync-vectors` idle (~5s).
+## Status (C7 — densify + UrlCard actions)
+Done: C7.8–C7.20 · **LLM** `c085f69` REQ-AI-0001 · **Icons** CONTROL/DECORATIVE · **C7.18** SSE `eventKey` dedup.
+**C7.19** Empty/browse polish + SC create/cold-path (known-empty thin paint; SC expand gate; Create Collection mount lock).
+**C7.20** Visibility/browse densify (preserve owner `user`; skip unified invalidate; activity prepend + SSE mark); Create Collection seeds Activity; UrlCard fav/pin skipInvalidate densify; duplicate AlertDialog; `lib/sse-unified-dedup.ts`.
 Stack: Next **16.3.3** · React **19.2.8** · Node **24.x** · **`src/proxy.ts`** · Prisma **6.19.3**.
-Defer: `(auth)` route-group; lists/browse cold API slim; status API speed OOS; full metadata rewrite OOS; Prisma 7/8; Activity badge spinner; further UrlCard bugs (user list).
-Human: HA-0001; TASK-0039 prod Network smoke (dup unified/collections/sync-vectors).
+Defer: `(auth)` route-group; lists/browse cold API slim; status API speed OOS; full metadata rewrite OOS; Prisma 7/8; Activity badge spinner.
+Human: HA-0001; TASK-0039 prod Network smoke; **next fix:** Add URL `https://` 400, archive-url 400, UrlCard empty on fast scroll.
 Validate: Jest · lint 0 · tsc · build · audit 0. · Resume: `.agile-v/STATE.md`.
 
 ## Stack
@@ -28,6 +29,7 @@ List detail: `ListDetailSection` wraps PM/SC (urls≥2)/Activity; `GLASS_LIST_CA
 C7.16 Wave 0–Insights polish: DescriptionRow/ListMetaDates/SectionCountBadge; skeleton + warm cache; Activity full-bleed hover; chart labels (see prior commits).
 C7.17: PM avatar = navbar ring; dnd `restrictToVerticalAxis` + `verticalOnlyTransform` (`lib/dnd-vertical.ts`) + list `overflow-x-hidden`; Dialog `headerMode="scroll"` (Similar/Comments/Edit/Add/Collab); UrlList Lucide Search + client filter (no AI bar); Comments `knownCount===0` skip fetch; Similar RQ warm cache; Button `loadingText` hides children while loading.
 C7.19: thin known-empty collab/SC chrome; UrlList search empty; Browse Robohash owner + slug guard; tombstone soft-nav not-found.
+C7.20: visibility densify no You-flash; Create Collection Activity seed; fav/pin densify without unified refetch; duplicate confirm dialog.
 
 ## Insights
 `ActivityChartSkeleton` on soft-nav · single `LineChart` + non-zero `LabelList` (7/30) · pie slice-colored labels · `InsightsChartTooltip` · Popular/Global icon gaps via `UI_CONTROL_ICON_GAP`

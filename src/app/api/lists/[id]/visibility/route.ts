@@ -72,13 +72,27 @@ export async function POST(
       },
     });
 
+    const activityUser = activity.user
+      ? { id: activity.user.id, email: activity.user.email }
+      : { id: user.id, email: user.email };
+
     // Fresh updatedAt so detail/lists meta densifies during pending (not after refetch)
     const updatedList = {
       ...list,
       isPublic,
       updatedAt: new Date().toISOString(),
+      user: { email: user.email },
     };
-    return NextResponse.json({ list: updatedList });
+    return NextResponse.json({
+      list: updatedList,
+      activity: {
+        id: activity.id,
+        action: activity.action,
+        details: activity.details,
+        createdAt: activity.createdAt.toISOString(),
+        user: activityUser,
+      },
+    });
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Failed to update visibility";

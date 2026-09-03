@@ -50,12 +50,12 @@ interface UrlCardProps {
   isLoadingMetadata?: boolean;
   onEdit: (url: UrlItem) => void;
   onDelete: (id: string) => void | Promise<void>;
-  onToggleFavorite: (id: string) => void;
+  onToggleFavorite: (id: string) => void | Promise<void>;
   onShare: (url: { url: string; title?: string }) => void;
   onUrlClick?: (urlId: string) => void;
-  onDuplicate?: (url: UrlItem) => void;
+  onDuplicate?: (url: UrlItem) => void | Promise<void>;
   onArchive?: (id: string) => void | Promise<void>;
-  onPin?: (id: string) => void;
+  onPin?: (id: string) => void | Promise<void>;
   shareTooltip: string | null;
   dragHandleProps?: React.HTMLAttributes<HTMLDivElement> | null;
   canEdit?: boolean; // Permission to edit URLs (false for viewers)
@@ -115,8 +115,10 @@ export const UrlCard: React.FC<UrlCardProps> = ({
   const [toastMessage, setToastMessage] = React.useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
   const [archiveDialogOpen, setArchiveDialogOpen] = React.useState(false);
+  const [duplicateDialogOpen, setDuplicateDialogOpen] = React.useState(false);
   const [deletePending, setDeletePending] = React.useState(false);
   const [archivePending, setArchivePending] = React.useState(false);
+  const [duplicatePending, setDuplicatePending] = React.useState(false);
   const [similarUrlsOpen, setSimilarUrlsOpen] = React.useState(false);
   const [commentsOpen, setCommentsOpen] = React.useState(false);
   const { toast } = useToast();
@@ -222,6 +224,19 @@ export const UrlCard: React.FC<UrlCardProps> = ({
       // Store/query rollback and error toasts remain with the mutation owner.
     } finally {
       setArchivePending(false);
+    }
+  };
+
+  const handleDuplicateConfirm = async () => {
+    if (!onDuplicate) return;
+    setDuplicatePending(true);
+    try {
+      await onDuplicate(url);
+      requestAnimationFrame(() => setDuplicateDialogOpen(false));
+    } catch {
+      // Error toast is owned by UrlList.handleDuplicate
+    } finally {
+      setDuplicatePending(false);
     }
   };
 
@@ -409,13 +424,28 @@ export const UrlCard: React.FC<UrlCardProps> = ({
                 </div>
               )}
               <button
-                onClick={() => onToggleFavorite(url.id)}
-                className="absolute top-2 right-2 bg-black/50 backdrop-blur-md rounded-lg p-2 hover:bg-black/70 transition-colors cursor-pointer z-10"
+                type="button"
+                onClick={() => {
+                  if (!canEdit) return;
+                  void onToggleFavorite(url.id);
+                }}
+                disabled={!canEdit}
+                className={cn(
+                  "absolute top-2 right-2 bg-black/50 backdrop-blur-md rounded-lg p-2 transition-colors z-10",
+                  canEdit
+                    ? "hover:bg-black/70 cursor-pointer"
+                    : "opacity-50 cursor-not-allowed",
+                )}
+                aria-label={
+                  url.isFavorite ? "Remove from favorites" : "Add to favorites"
+                }
               >
                 <StarIcon
                   className={cn(
                     UI_ICON_CONTROL,
-                    url.isFavorite ? "text-yellow-400" : "text-white",
+                    url.isFavorite
+                      ? "text-yellow-400 fill-current"
+                      : "text-white",
                   )}
                 />
               </button>
@@ -627,7 +657,7 @@ export const UrlCard: React.FC<UrlCardProps> = ({
                         icon={
                           <DocumentDuplicateIcon className={UI_ICON_CONTROL} />
                         }
-                        onClick={() => onDuplicate(url)}
+                        onClick={() => setDuplicateDialogOpen(true)}
                         tooltip="Duplicate URL"
                         disabled={!canEdit}
                       />
@@ -653,16 +683,7 @@ export const UrlCard: React.FC<UrlCardProps> = ({
                           />
                         }
                         onClick={() => {
-                          onPin(url.id);
-                          toast({
-                            title: url.isPinned ? "URL Unpinned" : "URL Pinned",
-                            description: url.isPinned
-                              ? `"${url.title || url.url}" has been unpinned.`
-                              : `"${
-                                  url.title || url.url
-                                }" has been pinned to the top.`,
-                            variant: "success",
-                          });
+                          void onPin(url.id);
                         }}
                         tooltip={url.isPinned ? "Unpin from top" : "Pin to top"}
                         disabled={!canEdit}
@@ -761,6 +782,25 @@ export const UrlCard: React.FC<UrlCardProps> = ({
           variant="default"
           pending={archivePending}
           pendingText="Archiving…"
+          closeOnConfirm={false}
+        />
+      )}
+
+      {onDuplicate && (
+        <AlertDialog
+          open={duplicateDialogOpen}
+          onOpenChange={(open) => {
+            if (!duplicatePending) setDuplicateDialogOpen(open);
+          }}
+          title="Duplicate URL"
+          description={`Create a copy of "${
+            url.title || url.url
+          }" in this list?`}
+          confirmText="Duplicate"
+          cancelText="Cancel"
+          onConfirm={handleDuplicateConfirm}
+          pending={duplicatePending}
+          pendingText="Duplicating…"
           closeOnConfirm={false}
         />
       )}

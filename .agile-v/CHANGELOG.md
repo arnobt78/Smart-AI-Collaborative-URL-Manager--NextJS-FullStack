@@ -1,5 +1,13 @@
 # CHANGELOG.md
 
+## CR-0033 — C7.20 visibility densify + UrlCard fav/pin/duplicate
+
+- **Cycle:** C7.20
+- **Change:** Browse densify keeps known owner email; visibility returns `user`+`activity` and skips unified invalidate; Create Collection returns/seeds activity; flag-only fav/pin densify + SSE mark without url invalidate; duplicate confirm + pending; shared `sse-unified-dedup`.
+- **Rationale:** Browse “You” flash; visibility 2× `updates`; Create Collection Activity 0→1; fav/pin blink from full invalidate; duplicate needed confirm UX.
+- **Impact:** visibility/collections routes, queryInvalidation, useListQueries, urlListStore, UrlCard, UrlList, SmartCollections, BrowsePublicListCard, tests, docs.
+- **Requested by / approval:** visibility_browse_activity_polish + urlcard_fav_pin_duplicate; verify-deep PASS WITH WARNINGS; `/commit-ready`.
+
 ## CR-0032 — C7.19 empty states / browse avatar / SC cold-path
 
 - **Cycle:** C7.19

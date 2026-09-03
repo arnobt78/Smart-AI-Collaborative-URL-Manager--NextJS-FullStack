@@ -16,10 +16,18 @@ import { devLog, devWarn } from "@/lib/dev-log";
 import { listQueryKeys } from "@/lib/query-keys";
 import {
   normalizeUnifiedListResponse,
+  type UnifiedActivity,
   type UnifiedListResponse,
 } from "@/lib/unified-list-response";
+import { useSession } from "@/hooks/useSession";
+import {
+  hasUnifiedEventProcessed,
+  markUnifiedEventProcessed,
+  rememberUnifiedEventProcessed,
+} from "@/lib/sse-unified-dedup";
 
 export { listQueryKeys } from "@/lib/query-keys";
+export { markUnifiedEventProcessed } from "@/lib/sse-unified-dedup";
 
 // ============================================
 // QUERY KEYS - Centralized for consistency
@@ -464,7 +472,10 @@ export interface UpdateListInput {
   isPublic: boolean;
 }
 
-type ListMutationResponse = { list: UrlList & UserList };
+type ListMutationResponse = {
+  list: UrlList & UserList & { user?: { email: string } };
+  activity?: UnifiedActivity;
+};
 
 function patchAllListsCache(
   queryClient: ReturnType<typeof useQueryClient>,
@@ -623,6 +634,7 @@ export function useUpdateList() {
  */
 export function useUpdateListVisibility() {
   const queryClient = useQueryClient();
+  const { user: sessionUser } = useSession();
 
   return useMutation({
     mutationFn: async ({ id, isPublic }: { id: string; slug: string; isPublic: boolean }): Promise<ListMutationResponse> => {
@@ -648,6 +660,7 @@ export function useUpdateListVisibility() {
       const previousCurrent = currentList.get();
       const fromLists = previousLists?.lists?.find((item) => item.id === id);
       const nowIso = new Date().toISOString();
+      const ownerEmail = sessionUser?.email;
       const optimistic = {
         ...(fromLists || {}),
         id,
@@ -657,7 +670,8 @@ export function useUpdateListVisibility() {
         description: fromLists?.description ?? previousUnified?.list?.description ?? null,
         urls: fromLists?.urls ?? previousUnified?.list?.urls ?? [],
         updatedAt: nowIso,
-      } as UrlList & UserList;
+        ...(ownerEmail ? { user: { email: ownerEmail } } : {}),
+      } as UrlList & UserList & { user?: { email: string } };
       patchAllListsCache(queryClient, optimistic);
       patchUnifiedListCache(queryClient, optimistic);
       densifyBrowsePublicLists(queryClient, optimistic);
@@ -670,6 +684,10 @@ export function useUpdateListVisibility() {
       patchAllListsCache(queryClient, data.list);
       patchUnifiedListCache(queryClient, data.list);
       densifyBrowsePublicLists(queryClient, data.list);
+      if (data.activity) {
+        prependUnifiedActivity(queryClient, data.list.slug, data.activity);
+        markUnifiedEventProcessed(`activity:${data.activity.id}`);
+      }
       invalidateMutationImpact(queryClient, "visibility", data.list.slug, data.list.id);
     },
     onError: (_error, input, context) => {
@@ -678,6 +696,24 @@ export function useUpdateListVisibility() {
       if (context?.previousBrowse) restoreBrowsePublicCaches(queryClient, context.previousBrowse);
       if (context?.previousCurrent.id === input.id) currentList.set(context.previousCurrent);
     },
+  });
+}
+
+function prependUnifiedActivity(
+  queryClient: ReturnType<typeof useQueryClient>,
+  slug: string,
+  activity: UnifiedActivity,
+): void {
+  queryClient.setQueryData<UnifiedListData>(listQueryKeys.unified(slug), (current) => {
+    if (!current) return current;
+    const existing = Array.isArray(current.activities) ? current.activities : [];
+    if (existing.some((item) => item.id === activity.id)) {
+      return current;
+    }
+    return {
+      ...current,
+      activities: [activity, ...existing],
+    };
   });
 }
 
@@ -844,7 +880,6 @@ export function useDeleteList() {
 // This prevents duplicate invalidations when multiple components call setupSSECacheSync
 let listenerRefCount = 0; // Track how many components are using this
 let globalInvalidationTimeout: NodeJS.Timeout | null = null;
-const globalProcessedInvocations = new Set<string>(); // Shared deduplication across all instances
 let globalSSEConnectedTime: number | null = null; // Track when SSE actually connects
 let globalHandler: ((event: Event) => void) | null = null;
 let globalSSEConnectedHandler: ((event: Event) => void) | null = null;
@@ -1038,7 +1073,7 @@ export function setupSSECacheSync() {
       }
 
       // Skip if we've already processed this exact event recently (shared across all instances)
-      if (globalProcessedInvocations.has(invocationKey)) {
+      if (hasUnifiedEventProcessed(invocationKey)) {
         devLog(
           `⏭️ [SSE CACHE SYNC] Skipping duplicate unified-update event: ${invocationKey}`
         );
@@ -1046,14 +1081,7 @@ export function setupSSECacheSync() {
       }
 
       // Add to processed set and clean up old entries (keep last 100 for better deduplication)
-      globalProcessedInvocations.add(invocationKey);
-      if (globalProcessedInvocations.size > 100) {
-        const entries = Array.from(globalProcessedInvocations);
-        globalProcessedInvocations.clear();
-        entries
-          .slice(-100)
-          .forEach((key) => globalProcessedInvocations.add(key));
-      }
+      rememberUnifiedEventProcessed(invocationKey);
 
       // Debounce invalidation to prevent rapid-fire API calls (shared timeout across all instances)
       // Clear existing timeout if another event comes in quickly

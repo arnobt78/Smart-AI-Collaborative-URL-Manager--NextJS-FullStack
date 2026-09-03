@@ -86,12 +86,12 @@ function UrlCardWrapper({
   url: UrlItem;
   onEdit: (url: UrlItem) => void;
   onDelete: (id: string) => void | Promise<void>;
-  onToggleFavorite: (id: string) => void;
+  onToggleFavorite: (id: string) => void | Promise<void>;
   onShare: (url: { url: string; title?: string }) => void;
   onUrlClick?: (urlId: string) => void;
-  onDuplicate?: (url: UrlItem) => void;
+  onDuplicate?: (url: UrlItem) => void | Promise<void>;
   onArchive?: (id: string) => void | Promise<void>;
-  onPin?: (id: string) => void;
+  onPin?: (id: string) => void | Promise<void>;
   shareTooltip: string | null;
   isMetadataReady: boolean;
   canEdit?: boolean; // Permission to edit URLs (false for viewers)
@@ -1209,13 +1209,25 @@ export function UrlList() {
     const urlToToggle = currentUrls.find((u) => u.id === id);
     if (!urlToToggle) return;
 
-    // Toggle favorite status optimistically
-    const updatedUrl = { ...urlToToggle, isFavorite: !urlToToggle.isFavorite };
+    const nextFavorite = !urlToToggle.isFavorite;
+    const urlTitle = urlToToggle.title || urlToToggle.url || "URL";
     try {
       // The store owns the snapshot and synchronous optimistic commit.
-      await updateUrlInList(id, { isFavorite: updatedUrl.isFavorite });
-    } catch {
-      // updateUrlInList restores its own snapshot on failure.
+      await updateUrlInList(id, { isFavorite: nextFavorite });
+      toast({
+        title: nextFavorite ? "Added to favorites" : "Removed from favorites",
+        description: nextFavorite
+          ? `"${urlTitle}" is now in your favorites.`
+          : `"${urlTitle}" was removed from favorites.`,
+        variant: "success",
+      });
+    } catch (err) {
+      toast({
+        title: "Favorite update failed",
+        description:
+          err instanceof Error ? err.message : "Failed to update favorite",
+        variant: "error",
+      });
     } finally {
       setTimeout(() => {
         isLocalOperationRef.current = false;
@@ -1283,6 +1295,7 @@ export function UrlList() {
           err instanceof Error ? err.message : "Failed to duplicate URL",
         variant: "error",
       });
+      throw err;
     } finally {
       // Clear the flag after a delay
       setTimeout(() => {
@@ -1347,14 +1360,27 @@ export function UrlList() {
 
     // Toggle pin status
     const isCurrentlyPinned = urlToPin.isPinned || false;
-    const updatedUrl = { ...urlToPin, isPinned: !isCurrentlyPinned };
+    const nextPinned = !isCurrentlyPinned;
+    const urlTitle = urlToPin.title || urlToPin.url || "URL";
 
     // Update the URL in the list
     try {
       // The store owns the snapshot and synchronous optimistic commit.
-      await updateUrlInList(id, { isPinned: updatedUrl.isPinned });
-    } catch {
-      // updateUrlInList restores its own snapshot on failure.
+      await updateUrlInList(id, { isPinned: nextPinned });
+      toast({
+        title: nextPinned ? "URL Pinned" : "URL Unpinned",
+        description: nextPinned
+          ? `"${urlTitle}" has been pinned to the top.`
+          : `"${urlTitle}" has been unpinned.`,
+        variant: "success",
+      });
+    } catch (err) {
+      toast({
+        title: "Pin update failed",
+        description:
+          err instanceof Error ? err.message : "Failed to update pin",
+        variant: "error",
+      });
     } finally {
       setTimeout(() => {
         isLocalOperationRef.current = false;

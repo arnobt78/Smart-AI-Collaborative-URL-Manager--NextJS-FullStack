@@ -611,3 +611,14 @@ Gate 2: BLOCKED — RISK-0016 is accepted; `EVAL_RESULTS.md` PASS/WAIVED evidenc
 | SC create/cold | expand-gated fetch; create mount lock; idle `sync-vectors` | PASS | Avoids dialog unmount mid-create; fewer cold AI calls. |
 | Validation | `tsc`; eslint affected; Jest 19 (UrlList/SoftNav/soft-nav-cache); `build` | PASS WITH WARNINGS | Optional UI unit tests deferred; verify-deep PASS WITH WARNINGS. |
 | Browser | soft-nav 0-collab + Network dups | PENDING USER | TASK-0039 after deploy. |
+
+## 2026-09-04 — C7.20 visibility densify + UrlCard fav/pin/duplicate
+
+| Scope | Command / evidence | Result | Notes |
+|---|---|---|---|
+| Visibility / browse | densify preserve `user`; visibility `user`+`activity`; skip unified invalidate | PASS | `you@local` removed; SSE mark via shared dedup. |
+| Create Collection | API `activity`/`sourceActivity`; client seed unified | PASS | New list Activity opens at 1. |
+| Fav/pin | flag-only `skipInvalidate` + activity prepend; UrlList toasts; star fill | PASS | No global `isLoading` for flag-only. |
+| Duplicate | AlertDialog + pending; rethrow on error | PASS | Dialog stays open on failure. |
+| Validation | `tsc`; eslint; Jest related 33; `build`; verify-deep | PASS WITH WARNINGS | Optional flag-only unit test deferred. |
+| Browser | Network smoke + UrlCard | PENDING USER | TASK-0039; reported add/archive/scroll bugs tracked in STATE. |

@@ -14,7 +14,7 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { useToast } from "@/components/ui/Toaster";
 import { useListPermissions } from "@/hooks/useListPermissions";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { listQueryKeys } from "@/hooks/useListQueries";
+import { listQueryKeys, markUnifiedEventProcessed } from "@/hooks/useListQueries";
 import type {
   CollectionSuggestion,
   DuplicateDetection,
@@ -343,6 +343,13 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
     const previousList = currentList.get();
     const previousUnified = queryClient.getQueryData<{
       list?: typeof previousList;
+      activities?: Array<{
+        id: string;
+        action: string;
+        details: Record<string, unknown> | null;
+        createdAt: string;
+        user: { id: string; email: string };
+      }>;
     }>(listQueryKeys.unified(listSlug));
     const previousAllLists = queryClient.getQueryData(listQueryKeys.allLists());
     const previousSuggestions = queryClient.getQueryData<{
@@ -433,19 +440,36 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
         source?: Parameters<typeof densifyAllLists>[1] & {
           urls?: typeof previousList.urls;
         };
+        activity?: {
+          id: string;
+          action: string;
+          details: Record<string, unknown> | null;
+          createdAt: string;
+          user: { id: string; email: string };
+        };
+        sourceActivity?: {
+          id: string;
+          action: string;
+          details: Record<string, unknown> | null;
+          createdAt: string;
+          user: { id: string; email: string };
+        };
       };
 
       if (data.list) {
         densifyAllLists(queryClient, data.list, { temporaryId });
-        // Full unified seed (not thin soft-nav) so opening the new collection
-        // does not mount-refetch updates before SSE applies activities.
+        // Full unified seed with create activity so detail opens at Activity count 1.
         if (data.list.slug) {
+          const seededActivities = data.activity ? [data.activity] : [];
           queryClient.setQueryData(listQueryKeys.unified(data.list.slug), {
             list: data.list,
-            activities: [],
+            activities: seededActivities,
             collaborators: [],
             commentCounts: {},
           });
+          if (data.activity?.id) {
+            markUnifiedEventProcessed(`activity:${data.activity.id}`);
+          }
         }
       }
       if (data.source) {
@@ -472,27 +496,41 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
         });
         queryClient.setQueryData(
           listQueryKeys.unified(listSlug),
-          (cached: typeof previousUnified) =>
-            cached?.list
-              ? {
-                  ...cached,
-                  list: {
-                    ...cached.list,
-                    id: data.source!.id,
-                    slug: data.source!.slug,
-                    title: data.source!.title ?? cached.list.title,
-                    description:
-                      data.source!.description ?? cached.list.description,
-                    isPublic: data.source!.isPublic ?? cached.list.isPublic,
-                    updatedAt:
-                      typeof data.source!.updatedAt === "string"
-                        ? data.source!.updatedAt
-                        : cached.list.updatedAt,
-                    urls: nextSourceUrls,
-                  },
-                }
-              : cached,
+          (cached: typeof previousUnified) => {
+            if (!cached?.list) return cached;
+            const existingActivities = Array.isArray(cached.activities)
+              ? cached.activities
+              : [];
+            const nextActivities =
+              data.sourceActivity &&
+              !existingActivities.some(
+                (item: { id?: string }) => item.id === data.sourceActivity!.id,
+              )
+                ? [data.sourceActivity, ...existingActivities]
+                : existingActivities;
+            return {
+              ...cached,
+              list: {
+                ...cached.list,
+                id: data.source!.id,
+                slug: data.source!.slug,
+                title: data.source!.title ?? cached.list.title,
+                description:
+                  data.source!.description ?? cached.list.description,
+                isPublic: data.source!.isPublic ?? cached.list.isPublic,
+                updatedAt:
+                  typeof data.source!.updatedAt === "string"
+                    ? data.source!.updatedAt
+                    : cached.list.updatedAt,
+                urls: nextSourceUrls,
+              },
+              activities: nextActivities,
+            };
+          },
         );
+        if (data.sourceActivity?.id) {
+          markUnifiedEventProcessed(`activity:${data.sourceActivity.id}`);
+        }
       }
 
       toast({

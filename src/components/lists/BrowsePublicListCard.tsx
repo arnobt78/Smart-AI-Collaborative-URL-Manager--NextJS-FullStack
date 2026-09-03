@@ -25,7 +25,8 @@ export type BrowsePublicListCardModel = {
   title: string;
   description?: string;
   urls?: unknown[];
-  user: { email: string };
+  /** Omitted when densify insert has no owner yet — do not invent a label. */
+  user?: { email: string };
 };
 
 function isBrowseableSlug(slug: string | undefined | null): slug is string {
@@ -43,7 +44,8 @@ export function BrowsePublicListCard({
   const [copied, setCopied] = useState(false);
   const slugOk = isBrowseableSlug(list.slug);
   const shareHref = slugOk ? resolveListShareUrl(list.slug) : "";
-  const ownerLabel = displayNameFromEmail(list.user.email);
+  const ownerEmail = list.user?.email?.trim() || "";
+  const ownerLabel = ownerEmail ? displayNameFromEmail(ownerEmail) : "";
 
   const handleCopy = async (event: React.MouseEvent) => {
     event.preventDefault();
@@ -137,12 +139,14 @@ export function BrowsePublicListCard({
           </div>
         ) : null}
         <div className="flex flex-wrap items-center gap-1 sm:gap-2 text-xs text-white/50">
-          <div className="flex items-center gap-1.5 min-w-0">
-            <UserAvatar seed={list.user.email} size={16} alt="" />
-            <span className="truncate max-w-[100px] sm:max-w-none">
-              {ownerLabel}
-            </span>
-          </div>
+          {ownerEmail ? (
+            <div className="flex items-center gap-1.5 min-w-0">
+              <UserAvatar seed={ownerEmail} size={20} alt="" />
+              <span className="truncate max-w-[100px] sm:max-w-none">
+                {ownerLabel}
+              </span>
+            </div>
+          ) : null}
           <div className="flex items-center gap-1">
             <Eye className={UI_ICON_CONTROL} aria-hidden />
             <span>

@@ -261,6 +261,18 @@ export async function POST(
         urlCount: collectionUrls.length,
       },
       list: densifyList,
+      activity: {
+        id: newListActivity.id,
+        action: newListActivity.action,
+        details: newListActivity.details,
+        createdAt: newListActivity.createdAt.toISOString(),
+        user: newListActivity.user
+          ? {
+              id: newListActivity.user.id,
+              email: newListActivity.user.email,
+            }
+          : { id: user.id, email: user.email },
+      },
       source: {
         id: list.id,
         slug: list.slug,
@@ -269,6 +281,18 @@ export async function POST(
         urls: remainingUrls,
         isPublic: list.isPublic,
         updatedAt: toIso(updatedSource?.updatedAt),
+      },
+      sourceActivity: {
+        id: sourceActivity.id,
+        action: sourceActivity.action,
+        details: sourceActivity.details,
+        createdAt: sourceActivity.createdAt.toISOString(),
+        user: sourceActivity.user
+          ? {
+              id: sourceActivity.user.id,
+              email: sourceActivity.user.email,
+            }
+          : { id: user.id, email: user.email },
       },
     });
   } catch (error) {

@@ -14,6 +14,14 @@ jest.mock("@/components/ui/Toaster", () => ({
   useToast: () => ({ toast: jest.fn() }),
 }));
 
+jest.mock("@/hooks/useSession", () => ({
+  useSession: () => ({
+    user: { id: "u1", email: "owner@example.com" },
+    isLoading: false,
+    isAuthenticated: true,
+  }),
+}));
+
 const list = {
   id: "list-1",
   slug: "cached-list",

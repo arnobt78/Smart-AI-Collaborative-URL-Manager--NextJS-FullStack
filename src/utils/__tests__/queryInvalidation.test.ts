@@ -61,6 +61,85 @@ describe("C7.1 densify browse + insights invalidation", () => {
     expect(client.getQueryData<{ lists: { id: string }[] }>(key)?.lists).toEqual([]);
   });
 
+  it("densifyBrowsePublicLists preserves existing user when patch omits user", () => {
+    const client = new QueryClient();
+    const key = browseQueryKeys.publicLists(1, "");
+    client.setQueryData(key, {
+      lists: [
+        {
+          id: "a",
+          slug: "a",
+          title: "A",
+          isPublic: true,
+          urls: [],
+          user: { email: "owner@example.com" },
+        },
+      ],
+    });
+
+    densifyBrowsePublicLists(client, {
+      id: "a",
+      slug: "a",
+      title: "A2",
+      isPublic: true,
+      urls: [],
+    });
+
+    expect(
+      client.getQueryData<{ lists: { user?: { email: string }; title?: string }[] }>(
+        key,
+      )?.lists[0],
+    ).toMatchObject({
+      title: "A2",
+      user: { email: "owner@example.com" },
+    });
+  });
+
+  it("densifyBrowsePublicLists does not invent you@local on insert without user", () => {
+    const client = new QueryClient();
+    const key = browseQueryKeys.publicLists(1, "");
+    client.setQueryData(key, { lists: [] });
+
+    densifyBrowsePublicLists(client, {
+      id: "b",
+      slug: "b",
+      title: "B",
+      isPublic: true,
+      urls: [],
+    });
+
+    const row = client.getQueryData<{ lists: { user?: { email: string } }[] }>(
+      key,
+    )?.lists[0];
+    expect(row?.user).toBeUndefined();
+  });
+
+  it("visibility impact invalidates browse/insights but not unified", () => {
+    const client = new QueryClient();
+    const invalidate = jest.spyOn(client, "invalidateQueries");
+    invalidateMutationImpact(client, "visibility", "test-list", "list-1");
+    const keys = invalidate.mock.calls.map((call) => call[0]);
+    const asPredicate = keys.some(
+      (opts) =>
+        opts &&
+        typeof opts === "object" &&
+        "predicate" in opts &&
+        typeof (opts as { predicate?: unknown }).predicate === "function",
+    );
+    expect(asPredicate || invalidate.mock.calls.length > 0).toBe(true);
+    // Must not target unified list key directly
+    expect(
+      keys.some(
+        (opts) =>
+          opts &&
+          typeof opts === "object" &&
+          "queryKey" in opts &&
+          JSON.stringify((opts as { queryKey?: unknown }).queryKey) ===
+            JSON.stringify(listQueryKeys.unified("test-list")),
+      ),
+    ).toBe(false);
+  });
+
   it("densifyAllLists inserts, upserts by temporaryId, and removes", () => {
     const client = new QueryClient();
     const key = listQueryKeys.allLists();

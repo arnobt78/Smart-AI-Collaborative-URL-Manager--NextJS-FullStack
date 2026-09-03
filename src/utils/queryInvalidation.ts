@@ -320,25 +320,28 @@ export function densifyBrowsePublicLists(
         return { ...current, lists: nextLists };
       }
 
+      const index = current.lists.findIndex(
+        (item) => item.id === list.id || item.slug === list.slug,
+      );
+      const existing = index >= 0 ? current.lists[index] : undefined;
+      // Prefer incoming user; never invent you@local over a known browse email.
+      const user = list.user ?? existing?.user;
       const row: BrowseDensifyList = {
         id: list.id,
         slug: list.slug,
         title: list.title ?? list.slug,
         description: list.description ?? undefined,
         isPublic: true,
-        urls: list.urls ?? [],
-        user: list.user ?? { email: "you@local" },
+        urls: list.urls ?? existing?.urls ?? [],
+        ...(user ? { user } : {}),
       };
 
-      const index = current.lists.findIndex(
-        (item) => item.id === list.id || item.slug === list.slug,
-      );
       if (index === -1) {
         return { ...current, lists: [row, ...current.lists] };
       }
 
       const nextLists = current.lists.slice();
-      nextLists[index] = { ...nextLists[index], ...row };
+      nextLists[index] = { ...existing, ...row };
       return { ...current, lists: nextLists };
     },
   );
@@ -458,8 +461,12 @@ export function invalidateMutationImpact(
       invalidateAnalyticsQueries(queryClient, listSlug);
       return;
     case "list":
-    case "visibility":
       invalidateListMutationQueries(queryClient, listSlug, listId);
+      return;
+    case "visibility":
+      // List + activity densified on mutation success — skip unified to avoid
+      // owner double updates?activityLimit=30 (mutation + SSE).
+      invalidateBrowseQueries(queryClient);
       return;
     case "url":
     case "archive":

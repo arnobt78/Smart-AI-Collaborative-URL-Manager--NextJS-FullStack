@@ -7,6 +7,8 @@ import {
   invalidateMutationImpact,
   type MutationImpact,
 } from "@/utils/queryInvalidation";
+import { markUnifiedEventProcessed } from "@/lib/sse-unified-dedup";
+import { listQueryKeys } from "@/lib/query-keys";
 import {
   syncDragOrderCacheWithServer,
   getCachedDragOrder,
@@ -120,6 +122,16 @@ function commitUrlMutation(
   serverList: UrlList,
   urls: UrlItem[],
   impact: Extract<MutationImpact, "url" | "archive"> = "url",
+  options?: {
+    skipInvalidate?: boolean;
+    activity?: {
+      id: string;
+      action: string;
+      details: Record<string, unknown> | null;
+      createdAt: string;
+      user: { id: string; email: string };
+    };
+  },
 ): UrlList {
   const next = { ...previous, ...serverList, urls } as UrlList;
   currentList.set(next);
@@ -131,13 +143,46 @@ function commitUrlMutation(
 
   if (next.slug) {
     queryClient.setQueryData<UnifiedListCache>(
-      ["unified-list", next.slug],
-      (cached) => (cached?.list ? { ...cached, list: { ...cached.list, ...next } } : cached),
+      listQueryKeys.unified(next.slug),
+      (cached) => {
+        if (!cached?.list) return cached;
+        const existingActivities = Array.isArray(cached.activities)
+          ? cached.activities
+          : [];
+        const activity = options?.activity;
+        const nextActivities =
+          activity &&
+          !existingActivities.some(
+            (item) =>
+              item &&
+              typeof item === "object" &&
+              "id" in item &&
+              (item as { id?: string }).id === activity.id,
+          )
+            ? [activity, ...existingActivities]
+            : existingActivities;
+        return {
+          ...cached,
+          list: { ...cached.list, ...next },
+          activities: nextActivities,
+        };
+      },
     );
-    invalidateMutationImpact(queryClient, impact, next.slug, next.id);
+    if (options?.activity?.id) {
+      markUnifiedEventProcessed(`activity:${options.activity.id}`);
+    }
+    if (!options?.skipInvalidate) {
+      invalidateMutationImpact(queryClient, impact, next.slug, next.id);
+    }
   }
 
   return next;
+}
+
+function isFlagOnlyUrlUpdate(updates: Partial<UrlItem>): boolean {
+  const keys = Object.keys(updates);
+  if (keys.length === 0) return false;
+  return keys.every((key) => key === "isFavorite" || key === "isPinned");
 }
 
 // Global flag to prevent getList from overwriting optimistic updates during drag
@@ -788,8 +833,11 @@ export async function updateUrlInList(
   const current = currentList.get();
   if (!current.id || !current.urls) return;
   const snapshot = current;
+  const flagOnly = isFlagOnlyUrlUpdate(updates);
 
-  isLoading.set(true);
+  if (!flagOnly) {
+    isLoading.set(true);
+  }
   error.set(null);
 
   try {
@@ -836,7 +884,7 @@ export async function updateUrlInList(
     // Merge server response with optimistic state
     // Server response is the source of truth, but preserve optimistic order
     const serverUrls = (list.urls as unknown as UrlItem[]) || [];
-    const serverUrlMap = new Map(serverUrls.map((u) => [u.id, u]));
+    const serverUrlMap = new Map(serverUrls.map((u: UrlItem) => [u.id, u]));
 
     // For updates, use server data as source of truth for content
     // But preserve optimistic order (order of updatedUrls)
@@ -910,13 +958,32 @@ export async function updateUrlInList(
     // Note: Activity feed will also update via real-time SSE event
     // But optimistic update provides instant feedback
 
-    return commitUrlMutation(snapshot, list, finalUrls);
+    const activityForCache =
+      activityData?.id && activityData?.user?.email
+        ? {
+            id: activityData.id as string,
+            action: activityData.action as string,
+            details: (activityData.details ?? null) as Record<
+              string,
+              unknown
+            > | null,
+            createdAt: activityData.createdAt as string,
+            user: activityData.user as { id: string; email: string },
+          }
+        : undefined;
+
+    return commitUrlMutation(snapshot, list, finalUrls, "url", {
+      skipInvalidate: flagOnly,
+      activity: activityForCache,
+    });
   } catch (err) {
     currentList.set(snapshot);
     error.set(err instanceof Error ? err.message : "Failed to update list");
     throw err;
   } finally {
-    isLoading.set(false);
+    if (!flagOnly) {
+      isLoading.set(false);
+    }
   }
 }
 
