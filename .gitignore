@@ -57,6 +57,7 @@ next-env.d.ts
 tsconfig.tsbuildinfo
 db-data
 .swc
+.cursor
 
 # Editor config (keep commented if you want to commit it)
 # .editorconfig
