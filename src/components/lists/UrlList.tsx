@@ -52,6 +52,7 @@ import { listQueryKeys, prependUnifiedActivity, markUnifiedEventProcessed } from
 import { invalidateMutationImpact } from "@/utils/queryInvalidation";
 import { fetchUrlMetadata, type UrlMetadata } from "@/utils/urlMetadata";
 import { toReorderUrlItems } from "@/lib/reorder-url-payload";
+import { shouldClearUrlMetadataCache } from "@/lib/url-metadata-payload";
 import { UrlCard } from "./UrlCard";
 import { UrlEditModal } from "./UrlEditModal";
 import { LinkIcon, ArchiveBoxIcon } from "@heroicons/react/24/outline";
@@ -411,8 +412,9 @@ export function UrlList() {
       return;
     }
 
+    // Hash unchanged but cache missing entries (e.g. premature wipe) — allow re-fetch.
     if (batchFetchCompleteRef.current === prefetchKey) {
-      return;
+      batchFetchCompleteRef.current = null;
     }
 
     let cancelled = false;
@@ -1169,11 +1171,17 @@ export function UrlList() {
       // Pass existingMetadata to avoid redundant fetch in PATCH endpoint
       await updateUrlInList(id, updates, undefined, existingMetadata);
 
-      // Clean up old cache entry if URL changed (PATCH already populated new one)
+      // Clean up old cache only if no remaining item still uses the old URL string
       if (urlChanged && currentUrl) {
-        queryClient.removeQueries({
-          queryKey: listQueryKeys.urlMetadata(currentUrl.url),
-        });
+        const afterEdit = (currentList.get()?.urls ||
+          []) as unknown as UrlItem[];
+        if (
+          shouldClearUrlMetadataCache(afterEdit, id, currentUrl.url)
+        ) {
+          queryClient.removeQueries({
+            queryKey: listQueryKeys.urlMetadata(currentUrl.url),
+          });
+        }
       }
 
       // Show success toast
@@ -2724,7 +2732,7 @@ export function UrlList() {
                       isLocalOperationRef.current = true;
                       lastDeleteTimeRef.current = Date.now(); // Track delete time to prevent real-time refresh
 
-                      // Clean up React Query cache for deleted URL before delete
+                      // Clean up React Query cache only if no remaining item shares this URL
                       const current = currentList.get();
                       if (current?.urls) {
                         const currentUrls =
@@ -2732,7 +2740,14 @@ export function UrlList() {
                         const deletedUrl = currentUrls.find(
                           (url) => url.id === urlId,
                         );
-                        if (deletedUrl) {
+                        if (
+                          deletedUrl &&
+                          shouldClearUrlMetadataCache(
+                            currentUrls,
+                            urlId,
+                            deletedUrl.url,
+                          )
+                        ) {
                           queryClient.removeQueries({
                             queryKey: listQueryKeys.urlMetadata(deletedUrl.url),
                           });

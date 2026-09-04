@@ -96,6 +96,9 @@ export const UrlCard: React.FC<UrlCardProps> = ({
   const [currentImageUrl, setCurrentImageUrl] = React.useState<
     string | undefined
   >(undefined);
+  const imageRetryCountRef = React.useRef(0);
+  const [imageRetryNonce, setImageRetryNonce] = React.useState(0);
+  const imageSectionRef = React.useRef<HTMLDivElement | null>(null);
 
   // Check if image has been prefetched/loaded before (prevents loading state on reorder)
   const checkImageCache = React.useCallback(
@@ -276,6 +279,8 @@ export const UrlCard: React.FC<UrlCardProps> = ({
       if (currentImageUrl !== primaryImage) {
         setCurrentImageUrl(primaryImage);
         setImageError(false);
+        imageRetryCountRef.current = 0;
+        setImageRetryNonce(0);
 
         // Check if image has been prefetched/loaded before (from batch prefetch)
         // If yes, set loading to false immediately (instant display)
@@ -339,16 +344,51 @@ export const UrlCard: React.FC<UrlCardProps> = ({
     currentImageUrl !== undefined &&
     (isOwnUrl ? currentImageUrl === logoPath : true);
 
-  // Handle image load error - show placeholder immediately
+  // Handle image load error — one retry before permanent placeholder
   const handleImageError = React.useCallback(() => {
+    if (imageRetryCountRef.current < 1 && currentImageUrl) {
+      imageRetryCountRef.current += 1;
+      setImageError(false);
+      setImageLoading(true);
+      setImageRetryNonce((n) => n + 1);
+      return;
+    }
     setImageError(true);
     setImageLoading(false);
-  }, []);
+  }, [currentImageUrl]);
 
-  // Reset when metadata changes
+  // Reset when metadata image changes
   React.useEffect(() => {
+    imageRetryCountRef.current = 0;
+    setImageRetryNonce(0);
     setImageError(false);
   }, [metadata?.image]);
+
+  // Re-enter viewport after fast scroll: clear sticky transient image errors
+  React.useEffect(() => {
+    const el = imageSectionRef.current;
+    if (!el || typeof IntersectionObserver === "undefined") return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting || !primaryImage) continue;
+          setImageError((prev) => {
+            if (!prev) return prev;
+            imageRetryCountRef.current = 0;
+            queueMicrotask(() => {
+              setImageRetryNonce(0);
+              setImageLoading(true);
+              setCurrentImageUrl(primaryImage);
+            });
+            return false;
+          });
+        }
+      },
+      { rootMargin: "80px", threshold: 0.01 },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [primaryImage]);
   // Fallback for sites that block metadata (e.g., Facebook)
   const isNoPreview = !hasImage && !description;
 
@@ -375,8 +415,10 @@ export const UrlCard: React.FC<UrlCardProps> = ({
       )}
       <div className={cn(CARD_PAD, "flex flex-col gap-2")}>
         <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
-          {/* Image Section */}
-          <div className="md:w-1/5 w-full flex-shrink-0 flex items-center justify-center">
+          <div
+            ref={imageSectionRef}
+            className="md:w-1/5 w-full flex-shrink-0 flex items-center justify-center"
+          >
             <div className="relative mx-auto w-24 h-24 sm:w-28 sm:h-28 md:mx-0 md:w-full md:h-full aspect-square overflow-hidden rounded-lg sm:rounded-xl shadow-sm bg-gray-900/30 backdrop-blur-md border border-white/10 flex items-center justify-center">
               {shouldShowSkeleton ? (
                 <div className="absolute inset-0 bg-gray-800/40 rounded-xl animate-pulse" />
@@ -390,27 +432,26 @@ export const UrlCard: React.FC<UrlCardProps> = ({
               ) : (
                 <div className="relative w-full h-full">
                   {imageLoading && (
-                    <div className="absolute inset-0 bg-gray-800/40 rounded-xl animate-pulse" />
+                    <div className="absolute inset-0 bg-gray-800/40 rounded-xl animate-pulse z-[1]" />
                   )}
                   <SafeImage
-                    key={currentImageUrl}
+                    key={`${currentImageUrl}:${imageRetryNonce}`}
                     src={currentImageUrl}
                     alt={title}
                     width={208}
                     height={208}
                     className={`h-full w-full object-cover object-top group-hover:scale-105 transition-transform duration-300 ${
-                      imageError ? "opacity-0" : imageLoading ? "opacity-0" : ""
+                      imageLoading ? "opacity-0" : "opacity-100"
                     }`}
                     onError={() => {
-                      // Native fallback also failed — show placeholder
                       setImageLoading(false);
                       handleImageError();
                     }}
                     onLoad={() => {
                       setImageLoading(false);
                       setImageError(false);
+                      imageRetryCountRef.current = 0;
 
-                      // Mark image as loaded in global cache (for instant display on future renders)
                       if (currentImageUrl && typeof window !== "undefined") {
                         try {
                           const imageCacheKey = `image-loaded:${currentImageUrl}`;

@@ -852,3 +852,16 @@ Append-only. Newest entries at bottom.
 | Rationale | Post–C7.21 prod smoke: refresh-metadata hung on untimed Cloudinary/DNS self-fetch while `duration:0` toast never cleared; agent-review activity path incomplete; click densify still double-`updates`; pin SSE window closed too early. |
 | Linked REQs | TASK-0058; GATE-0039 |
 | Status | Implemented and validated 2026-09-04. |
+
+---
+
+## DEC-0061 — C7.23 UrlCard parked bugs + sibling archivedAt merge
+
+| Field | Value |
+|---|---|
+| Timestamp | 2026-09-04 |
+| Agent | Cursor |
+| Decision | Fix parked Add URL 400 (sanitize + Zod nullish metadata), archive-url 400 (`toReorderUrlItems` + server `mergeArchivedAtOnWrite`), duplicate-delete RQ image wipe (`shouldClearUrlMetadataCache` + batch re-fetch), and UrlCard fast-scroll sticky image errors (retry + viewport reset). Latency/virtualization/Cloudinary destroy remain OOS. |
+| Rationale | Prod evidence: metadata nulls failed createUrlSchema; archive posted commentCount/archivedAt; delete cleared shared url-metadata by URL string; imageError stuck after transient load failures. |
+| Linked REQs | TASK-0059; GATE-0040 |
+| Status | Implemented and validated 2026-09-04. |

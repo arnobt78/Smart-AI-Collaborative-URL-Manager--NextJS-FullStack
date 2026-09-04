@@ -422,6 +422,20 @@ Implementation is locally verified. Production check remains with TASK-0039. Gat
 
 ---
 
+## GATE-0040 — Human Gate 1 (C7.23 UrlCard parked bugs)
+
+| Field | Value |
+|-------|-------|
+| Type | Human-Decision |
+| Status | **APPROVED / COMPLETE 2026-09-04** |
+| Checkpoint | `C7.23-HG1-URLCARD-PARKED-2026-09-04` → `C7.23-COMMIT-READY-2026-09-04` |
+| Evidence | TASK-0059; DEC-0061; plan `c7.23_urlcard_parked_bugs` + `fix_archivedat_wipe`; lint/tsc/jest/e2e/build + verify-deep PASS |
+| Required human action | Completed — user approved C7.23 plan + archivedAt follow-up + commit-ready. |
+| Scope | Add URL metadata 400; archive 400 + sibling archivedAt; dup-delete image; fast-scroll UrlCard. |
+| Resume condition | Push/deploy on request; prod re-smoke. |
+
+---
+
 ## GATE-0002 — Human Gate 2 (release / acceptance)
 
 | Field | Value |

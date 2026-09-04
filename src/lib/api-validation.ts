@@ -28,6 +28,22 @@ export const signUpSchema = signInSchema;
 
 const optionalText = (limit: number) => z.string().trim().max(limit).optional();
 
+/** JSON null / empty → undefined so metadata prefetch payloads pass Zod. */
+const nullishOptionalText = (limit: number) =>
+  z.preprocess(
+    (value) => (value === null || value === "" ? undefined : value),
+    optionalText(limit),
+  );
+
+/** Absolute http(s) only; null/empty/relative → omitted. */
+const nullishHttpUrl = z.preprocess((value) => {
+  if (value === null || value === undefined || value === "") return undefined;
+  if (typeof value !== "string") return undefined;
+  const trimmed = value.trim();
+  if (!/^https?:\/\//i.test(trimmed)) return undefined;
+  return trimmed;
+}, z.string().url().max(2_048).optional());
+
 export const listCreateSchema = z.object({
   title: z.string().trim().min(1).max(200),
   description: z.string().trim().max(5_000).nullable().optional(),
@@ -135,8 +151,11 @@ export const urlItemSchema = z.object({
 }).strict();
 
 const urlMetadataSchema = z.object({
-  title: optionalText(500), description: optionalText(10_000), image: z.string().url().max(2_048).optional(),
-  favicon: z.string().url().max(2_048).optional(), siteName: optionalText(500),
+  title: nullishOptionalText(500),
+  description: nullishOptionalText(10_000),
+  image: nullishHttpUrl,
+  favicon: nullishHttpUrl,
+  siteName: nullishOptionalText(500),
 }).strict();
 
 export const archiveUrlSchema = z.object({

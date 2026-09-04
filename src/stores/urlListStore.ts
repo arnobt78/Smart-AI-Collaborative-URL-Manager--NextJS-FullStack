@@ -11,6 +11,7 @@ import { markUnifiedEventProcessed, beginLocalFlagMutation } from "@/lib/sse-uni
 import { listQueryKeys } from "@/lib/query-keys";
 import { sliceActivityFeed } from "@/lib/activity-feed-limit";
 import { toReorderUrlItems } from "@/lib/reorder-url-payload";
+import { sanitizeUrlMetadataForApi } from "@/lib/url-metadata-payload";
 import {
   syncDragOrderCacheWithServer,
   getCachedDragOrder,
@@ -752,7 +753,7 @@ export async function addUrlToList(
         notes,
         reminder,
         category,
-        metadata: existingMetadata, // Pass existing metadata if available (from AI enhancement or cache)
+        metadata: sanitizeUrlMetadataForApi(existingMetadata),
         isDuplicate: isDuplicate || false, // Pass duplicate flag if this is a duplicate operation
       }),
       signal: controller.signal || abortSignal, // Pass abort signal to fetch
@@ -952,7 +953,7 @@ async function updateUrlInListInner(
       body: JSON.stringify({
         urlId,
         updates,
-        metadata: existingMetadata,
+        metadata: sanitizeUrlMetadataForApi(existingMetadata),
       }),
     });
 
@@ -1292,13 +1293,17 @@ export async function archiveUrlFromList(urlId: string) {
       archivedUrls: updatedArchivedUrls,
     });
 
-    // Use unified archive-url endpoint with action flag
+    // Sanitize like reorder — strip commentCount/archivedAt; server stamps archivedAt.
     const response = await fetch(`/api/lists/${current.id}/archive-url`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        urls: updatedUrls,
-        archivedUrls: updatedArchivedUrls,
+        urls: toReorderUrlItems(
+          updatedUrls as unknown as Record<string, unknown>[],
+        ),
+        archivedUrls: toReorderUrlItems(
+          updatedArchivedUrls as unknown as Record<string, unknown>[],
+        ),
         action: "archive",
         urlId: urlId,
       }),
@@ -1410,13 +1415,16 @@ export async function restoreArchivedUrl(urlId: string) {
       archivedUrls: updatedArchivedUrls,
     });
 
-    // Use unified archive-url endpoint with action flag
     const response = await fetch(`/api/lists/${current.id}/archive-url`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        urls: updatedUrls,
-        archivedUrls: updatedArchivedUrls,
+        urls: toReorderUrlItems(
+          updatedUrls as unknown as Record<string, unknown>[],
+        ),
+        archivedUrls: toReorderUrlItems(
+          updatedArchivedUrls as unknown as Record<string, unknown>[],
+        ),
         action: "restore",
         urlId: urlId,
       }),

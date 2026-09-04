@@ -653,3 +653,14 @@ Gate 2: BLOCKED — RISK-0016 is accepted; `EVAL_RESULTS.md` PASS/WAIVED evidenc
 |---|---|---|---|
 | ListPage finally | `if (!toastSettled)` before settleToast (refresh + health) | PASS | Behavior unchanged; Agent Review overwrite = FP |
 | Validation | `tsc`; eslint ListPage; verify-deep | PASS | Clarity-only; no e2e re-run |
+
+## 2026-09-04 — C7.23 UrlCard parked bugs + archivedAt merge
+
+| Scope | Command / evidence | Result | Notes |
+|---|---|---|---|
+| Add URL 400 | sanitize + Zod nullish metadata | PASS | Jest + e2e POST null-heavy meta 200 |
+| Archive 400 | toReorderUrlItems + mergeArchivedAtOnWrite | PASS | Dirty body 400; strip 200; sibling dates kept |
+| Dup delete image | shouldClearUrlMetadataCache + batch re-fetch | PASS | Guard keeps shared RQ key |
+| Fast scroll | UrlCard retry + IO reset | PASS | e2e titles visible after scroll |
+| Validation | lint 0; tsc; Jest 11; e2e 4; prior build; verify-deep | PASS | Commit-ready code+docs |
+| Deploy | push / prod re-smoke | PENDING USER | Latency/virtualization OOS |

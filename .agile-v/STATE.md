@@ -1,20 +1,19 @@
 # STATE.md
 
-**C7.22 refresh-metadata hang + Network polish** | 2026-09-04
+**C7.23 UrlCard parked bugs + archivedAt merge** | 2026-09-04
 
 ## Reconciled (repo = docs)
 
-- **C7.22 shipped (local, pending push/deploy):** refresh-metadata/all `lite=1` + per-URL 12s abort + `maxDuration=60`; metadata early-return skip Cloudinary; ListPage 55s abort + toast always clears; drag activity guard (`id`+email+slug); click `markUnifiedEventProcessed` + analytics `skipUnified`; pin SSE window (no early `endLocalFlagMutation`); Saving/Reordering toasts; Activity subtitle FIFO-20.
-- **Follow-up:** ListPage refresh/health `finally` only settles toast when `!toastSettled` (Agent Review FP — runtime already guarded inside `settleToast`).
-- **GATE-0039 closed:** C7.22 plan approved → verified PASS (lint/tsc/jest/e2e/build).
-- **Parked OOS (user confirms tomorrow):** Add URL `https://` 400; archive-url 400; UrlCard empty on fast scroll; cold latency.
+- **C7.23 shipped (local, pending push/deploy):** Add URL metadata sanitize + Zod nullish (fix 400); archive/restore `toReorderUrlItems` + server `mergeArchivedAtOnWrite` (fix 400 + sibling `archivedAt`); delete/edit clear RQ metadata only if URL unused + batch re-fetch; UrlCard image retry + viewport sticky-error reset.
+- **C7.22** still on prior commits (`340df49` + toast clarity).
+- **GATE-0040 closed:** C7.23 plan approved → verified PASS (lint/tsc/jest/e2e/build + archivedAt follow-up).
+- **Still OOS:** cold PATCH/job latency; Cloudinary destroy/refcount; list virtualization; HA-0001.
 - **Stack:** Next 16.3.3 · React 19.2.8 · Node 24.x · Prisma 6.19.3.
 
 ## Human
 
 - HA-0001 Firewall (open)
-- **Next:** push/deploy when requested → prod Network re-smoke (list detail / collab / Activity / collections / UrlCard) + timings paste
-- Parked UrlCard bugs + polish after prod evidence
+- **Next:** push/deploy when requested → prod re-smoke Add URL, archive, duplicate delete images, fast scroll
 
 ## Backlog
 
@@ -24,16 +23,16 @@
 
 ## Current checkpoint
 
-- **Stage:** Stage 4 complete / commit-ready C7.22 + toast finally clarity
+- **Stage:** Stage 4 complete / commit-ready C7.23
 - **Cycle:** C7
-- **Status:** Verified PASS; docs synced; local commits
-- **Gate:** GATE-0039 APPROVED (C7.22 waves)
-- **Trace:** DEC-0060; TASK-0058; GATE-0039; prior DEC-0059 / TASK-0041 / GATE-0038
+- **Status:** Verified PASS; docs synced; local commit
+- **Gate:** GATE-0040 APPROVED (C7.23 parked UrlCard bugs)
+- **Trace:** DEC-0061; TASK-0059; GATE-0040; prior DEC-0060 / TASK-0058 / GATE-0039
 
 ## Next
 
 ```text
 1. Push when user requests (do not auto-push).
-2. Deploy → prod Network re-smoke refresh-metadata toast, Saving, Activity “Latest 20”, click/pin updates ≤1.
-3. Queue parked: Add URL https 400, archive 400, fast-scroll empty card (+ other bugs user reports).
+2. Deploy → prod re-smoke Add URL https, archive, dup-delete image, scroll cards.
+3. Latency / virtualization remain OOS.
 ```

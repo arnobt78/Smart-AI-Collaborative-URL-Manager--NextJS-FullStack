@@ -9,6 +9,8 @@ import { fetchUrlMetadata } from "@/utils/urlMetadata";
 import type { UrlItem } from "@/stores/urlListStore";
 import type { UrlMetadata } from "@/utils/urlMetadata";
 import { archiveUrlSchema, parseJsonBody } from "@/lib/api-validation";
+import { mergeArchivedAtOnWrite } from "@/lib/archive-url-payload";
+import type { ArchivedAtCarrier } from "@/lib/archive-url-payload";
 
 export async function POST(
   req: NextRequest,
@@ -60,7 +62,14 @@ export async function POST(
     }
 
     if (archivedUrls !== undefined) {
-      updatePayload.archivedUrls = archivedUrls as UrlItem[];
+      // Client strips archivedAt for Zod; merge prior dates + stamp new archive.
+      updatePayload.archivedUrls = mergeArchivedAtOnWrite({
+        incoming: archivedUrls as UrlItem[],
+        existing: existingArchivedUrls as ArchivedAtCarrier[],
+        action,
+        urlId,
+        nowIso: new Date().toISOString(),
+      }) as UrlItem[];
     } else {
       updatePayload.archivedUrls = existingArchivedUrls;
     }

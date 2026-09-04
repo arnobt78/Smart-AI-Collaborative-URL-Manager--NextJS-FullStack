@@ -244,6 +244,18 @@ RSC shells · densify/Zod/SHA/Next16
 **Out of scope:** parked Add URL https / archive / fast-scroll; absolute job latency.
 **Validation:** lint 0 · tsc · Jest c722 + invalidation · e2e c722 · build PASS · verify-deep PASS.
 
+### TASK-0059 — C7.23 UrlCard parked bugs + archivedAt merge — DONE
+
+1. Add URL: `sanitizeUrlMetadataForApi` + `urlMetadataSchema` nullish preprocess (fix Zod 400 on null/relative metadata).
+2. Archive/restore: `toReorderUrlItems` client strip; server `mergeArchivedAtOnWrite` preserves sibling `archivedAt`, stamps current `urlId`.
+3. Delete/edit: `shouldClearUrlMetadataCache`; batch refetch when cache incomplete for same hash.
+4. UrlCard: one image retry + IntersectionObserver sticky-error reset; titles stay visible on scroll.
+5. Jest `c723-urlcard-parked` + e2e `c723-urlcard-parked` on demo DB.
+
+**Dependencies:** GATE-0040 APPROVED; DEC-0061; C7.22.
+**Out of scope:** latency; virtualization; Cloudinary destroy.
+**Validation:** lint 0 · tsc · Jest 11 · e2e 4 · build PASS · verify-deep PASS.
+
 ### TASK-0040 — C6.5 instant dialogs and confirmed overlays — DONE
 
 1. Stop `useListDialogRouteState` from using `useSearchParams` or writing `?dialog=` search params; keep hydrated open/close in React state plus `history.state` on the same href.
