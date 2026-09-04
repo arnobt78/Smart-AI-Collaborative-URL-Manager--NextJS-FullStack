@@ -5,7 +5,7 @@
 ## Reconciled (repo = docs)
 
 - **C7.22 shipped (local, pending push/deploy):** refresh-metadata/all `lite=1` + per-URL 12s abort + `maxDuration=60`; metadata early-return skip Cloudinary; ListPage 55s abort + toast always clears; drag activity guard (`id`+email+slug); click `markUnifiedEventProcessed` + analytics `skipUnified`; pin SSE window (no early `endLocalFlagMutation`); Saving/Reordering toasts; Activity subtitle FIFO-20.
-- **C7.21 still local** (`6f75109`) — push with C7.22 when requested.
+- **Follow-up:** ListPage refresh/health `finally` only settles toast when `!toastSettled` (Agent Review FP — runtime already guarded inside `settleToast`).
 - **GATE-0039 closed:** C7.22 plan approved → verified PASS (lint/tsc/jest/e2e/build).
 - **Parked OOS (user confirms tomorrow):** Add URL `https://` 400; archive-url 400; UrlCard empty on fast scroll; cold latency.
 - **Stack:** Next 16.3.3 · React 19.2.8 · Node 24.x · Prisma 6.19.3.
@@ -24,9 +24,9 @@
 
 ## Current checkpoint
 
-- **Stage:** Stage 4 complete / commit-ready C7.22
+- **Stage:** Stage 4 complete / commit-ready C7.22 + toast finally clarity
 - **Cycle:** C7
-- **Status:** Verified PASS; docs synced; local commit
+- **Status:** Verified PASS; docs synced; local commits
 - **Gate:** GATE-0039 APPROVED (C7.22 waves)
 - **Trace:** DEC-0060; TASK-0058; GATE-0039; prior DEC-0059 / TASK-0041 / GATE-0038
 
