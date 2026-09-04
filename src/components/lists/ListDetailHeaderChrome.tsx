@@ -16,6 +16,7 @@ import {
 import { CARD_PAD, CARD_STACK, HEADING_STACK, LIST_STACK } from "@/lib/ui-spacing";
 import { cn } from "@/lib/utils";
 import { ActivityFeed } from "@/components/collaboration/ActivityFeed";
+import { ACTIVITY_FEED_LIMIT } from "@/lib/activity-feed-limit";
 import { PermissionManager } from "@/components/collaboration/PermissionManager";
 import { SmartCollections } from "@/components/collections/SmartCollections";
 import { useStore } from "@nanostores/react";
@@ -269,7 +270,7 @@ export function ListDetailBodySections({ list }: { list: ListDetailBodyList }) {
       ) : null}
 
       <ListDetailSection className="p-0 sm:p-0">
-        <ActivityFeed listId={list.id} limit={30} />
+        <ActivityFeed listId={list.id} limit={ACTIVITY_FEED_LIMIT} />
       </ListDetailSection>
     </>
   );

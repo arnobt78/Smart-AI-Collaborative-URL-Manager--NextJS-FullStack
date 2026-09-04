@@ -446,16 +446,17 @@ export function invalidateMutationImpact(
   impact: MutationImpact,
   listSlug: string,
   listId: string,
+  options?: { skipUnified?: boolean },
 ): void {
   switch (impact) {
     case "collaborator":
       invalidateCollaboratorQueries(queryClient, listSlug);
       return;
     case "metadata":
-      invalidateUrlQueries(queryClient, listSlug, listId, true);
+      invalidateUrlQueries(queryClient, listSlug, listId, true, options);
       return;
     case "action":
-      invalidateActionQueries(queryClient, listSlug);
+      invalidateActionQueries(queryClient, listSlug, options);
       return;
     case "analytics":
       invalidateAnalyticsQueries(queryClient, listSlug);
@@ -465,13 +466,13 @@ export function invalidateMutationImpact(
       return;
     case "visibility":
       // List + activity densified on mutation success — skip unified to avoid
-      // owner double updates?activityLimit=30 (mutation + SSE).
+      // owner double updates?activityLimit=20 (mutation + SSE).
       invalidateBrowseQueries(queryClient);
       return;
     case "url":
     case "archive":
     case "import":
-      invalidateUrlQueries(queryClient, listSlug, listId, true);
+      invalidateUrlQueries(queryClient, listSlug, listId, true, options);
       return;
     case "collection":
       invalidateCollectionMutationQueries(queryClient, listSlug, listId);
@@ -483,8 +484,14 @@ export function invalidateMutationImpact(
 }
 
 /** REQ-0025: Actions change list-visible state without reloading unrelated data. */
-function invalidateActionQueries(queryClient: QueryClient, listSlug: string): void {
-  queryClient.invalidateQueries({ queryKey: listQueryKeys.unified(listSlug) });
+function invalidateActionQueries(
+  queryClient: QueryClient,
+  listSlug: string,
+  options?: { skipUnified?: boolean },
+): void {
+  if (!options?.skipUnified) {
+    queryClient.invalidateQueries({ queryKey: listQueryKeys.unified(listSlug) });
+  }
   queryClient.invalidateQueries({ queryKey: listQueryKeys.allLists() });
 }
 
@@ -670,7 +677,7 @@ export function invalidateCollaboratorQueries(
 ): void {
   // CRITICAL: Invalidate unified query (contains collaborators, permissions, activities)
   // This is the same as invalidateUrlQueries - ensures consistent behavior
-  // When this is called, it triggers updates?activityLimit=30 refetch
+  // When this is called, it triggers updates?activityLimit=20 refetch
   queryClient.invalidateQueries({
     queryKey: listQueryKeys.unified(listSlug),
   });
@@ -720,12 +727,15 @@ export function invalidateUrlQueries(
   queryClient: QueryClient,
   listSlug: string,
   listId: string,
-  includeMetadata: boolean = false
+  includeMetadata: boolean = false,
+  options?: { skipUnified?: boolean },
 ): void {
-  // Invalidate unified list query
-  queryClient.invalidateQueries({
-    queryKey: listQueryKeys.unified(listSlug),
-  });
+  // Invalidate unified list query (skip when owner already densified)
+  if (!options?.skipUnified) {
+    queryClient.invalidateQueries({
+      queryKey: listQueryKeys.unified(listSlug),
+    });
+  }
 
   // Invalidate all lists query
   queryClient.invalidateQueries({

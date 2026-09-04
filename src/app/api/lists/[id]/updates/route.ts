@@ -7,6 +7,10 @@ import {
   resolveCollaboratorRole,
   type CollaboratorRolesJson,
 } from "@/lib/collaborator-roles";
+import {
+  ACTIVITY_FEED_LIMIT,
+  clampActivityLimit,
+} from "@/lib/activity-feed-limit";
 
 /**
  * GET /api/lists/[id]/updates
@@ -20,7 +24,9 @@ export async function GET(
   try {
     const { id } = await params;
     const { searchParams } = new URL(req.url);
-    const activityLimit = parseInt(searchParams.get("activityLimit") || "30", 10);
+    const activityLimit = clampActivityLimit(
+      searchParams.get("activityLimit") ?? ACTIVITY_FEED_LIMIT,
+    );
 
     const access = await resolveAuthorizedList(id, "view");
     if (!access.ok) {

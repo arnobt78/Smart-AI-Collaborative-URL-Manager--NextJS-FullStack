@@ -25,6 +25,7 @@ import { SectionCountBadge } from "@/components/ui/SectionCountBadge";
 import { CARD_PAD } from "@/lib/ui-spacing";
 import { UI_ICON_CONTROL } from "@/lib/ui/control-styles";
 import { cn } from "@/lib/utils";
+import { ACTIVITY_FEED_LIMIT, sliceActivityFeed } from "@/lib/activity-feed-limit";
 
 interface ActivityItem {
   id: string;
@@ -42,7 +43,10 @@ interface ActivityFeedProps {
   limit?: number;
 }
 
-export function ActivityFeed({ listId, limit = 50 }: ActivityFeedProps) {
+export function ActivityFeed({
+  listId,
+  limit = ACTIVITY_FEED_LIMIT,
+}: ActivityFeedProps) {
   const [activities, setActivities] = useState<ActivityItem[]>([]);
   const [isExpanded, setIsExpanded] = useState(false);
   const isLoading = false;
@@ -77,7 +81,7 @@ export function ActivityFeed({ listId, limit = 50 }: ActivityFeedProps) {
         queryState?.data?.activities &&
         Array.isArray(queryState.data.activities)
       ) {
-        setActivities(queryState.data.activities);
+        setActivities(sliceActivityFeed(queryState.data.activities).slice(0, limit));
       }
     };
 
@@ -113,7 +117,7 @@ export function ActivityFeed({ listId, limit = 50 }: ActivityFeedProps) {
       clearInterval(intervalId);
       clearTimeout(timeoutId);
     };
-  }, [slug, queryClient]);
+  }, [slug, queryClient, limit]);
 
   // Listen for unified-update events (UNIFIED APPROACH: One event, one API call)
   useEffect(() => {
@@ -129,7 +133,9 @@ export function ActivityFeed({ listId, limit = 50 }: ActivityFeedProps) {
       }
 
       // Update activities when unified query dispatches event
-      setActivities(customEvent.detail.activities || []);
+      setActivities(
+        sliceActivityFeed(customEvent.detail.activities || []).slice(0, limit),
+      );
     };
 
     window.addEventListener(

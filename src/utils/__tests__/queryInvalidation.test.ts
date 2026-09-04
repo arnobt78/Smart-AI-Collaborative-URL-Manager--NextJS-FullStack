@@ -253,4 +253,53 @@ describe("C7.1 densify browse + insights invalidation", () => {
       ),
     ).toBe(true);
   });
+
+  it("skipUnified skips unified invalidate for url/action/metadata", () => {
+    const client = new QueryClient();
+    const invalidate = jest.spyOn(client, "invalidateQueries");
+
+    invalidateMutationImpact(client, "url", "test-list", "list-1", {
+      skipUnified: true,
+    });
+    invalidateMutationImpact(client, "action", "test-list", "list-1", {
+      skipUnified: true,
+    });
+    invalidateMutationImpact(client, "metadata", "test-list", "list-1", {
+      skipUnified: true,
+    });
+
+    const unifiedHits = invalidate.mock.calls.filter((call) => {
+      const key = call[0]?.queryKey;
+      return (
+        Array.isArray(key) &&
+        key[0] === listQueryKeys.unified("test-list")[0] &&
+        key[1] === "test-list"
+      );
+    });
+    expect(unifiedHits).toHaveLength(0);
+
+    // Still invalidates allLists / collections / duplicates for url impact
+    expect(
+      invalidate.mock.calls.some(
+        (call) =>
+          Array.isArray(call[0]?.queryKey) &&
+          call[0]?.queryKey[0] === listQueryKeys.allLists()[0],
+      ),
+    ).toBe(true);
+  });
+
+  it("without skipUnified still invalidates unified for url", () => {
+    const client = new QueryClient();
+    const invalidate = jest.spyOn(client, "invalidateQueries");
+    invalidateMutationImpact(client, "url", "test-list", "list-1");
+
+    expect(
+      invalidate.mock.calls.some(
+        (call) =>
+          Array.isArray(call[0]?.queryKey) &&
+          call[0]?.queryKey[0] === listQueryKeys.unified("test-list")[0] &&
+          call[0]?.queryKey[1] === "test-list",
+      ),
+    ).toBe(true);
+  });
 });

@@ -7,8 +7,10 @@ import {
   invalidateMutationImpact,
   type MutationImpact,
 } from "@/utils/queryInvalidation";
-import { markUnifiedEventProcessed } from "@/lib/sse-unified-dedup";
+import { markUnifiedEventProcessed, beginLocalFlagMutation, endLocalFlagMutation } from "@/lib/sse-unified-dedup";
 import { listQueryKeys } from "@/lib/query-keys";
+import { sliceActivityFeed } from "@/lib/activity-feed-limit";
+import { toReorderUrlItems } from "@/lib/reorder-url-payload";
 import {
   syncDragOrderCacheWithServer,
   getCachedDragOrder,
@@ -124,6 +126,7 @@ function commitUrlMutation(
   impact: Extract<MutationImpact, "url" | "archive"> = "url",
   options?: {
     skipInvalidate?: boolean;
+    skipUnified?: boolean;
     activity?: {
       id: string;
       action: string;
@@ -164,7 +167,7 @@ function commitUrlMutation(
         return {
           ...cached,
           list: { ...cached.list, ...next },
-          activities: nextActivities,
+          activities: sliceActivityFeed(nextActivities),
         };
       },
     );
@@ -172,11 +175,33 @@ function commitUrlMutation(
       markUnifiedEventProcessed(`activity:${options.activity.id}`);
     }
     if (!options?.skipInvalidate) {
-      invalidateMutationImpact(queryClient, impact, next.slug, next.id);
+      invalidateMutationImpact(queryClient, impact, next.slug, next.id, {
+        skipUnified: options?.skipUnified,
+      });
     }
   }
 
   return next;
+}
+
+function densifyOptimisticUnifiedList(list: Partial<UrlList>, urls: UrlItem[]): void {
+  if (!list.slug) return;
+  queryClient.setQueryData<UnifiedListCache>(
+    listQueryKeys.unified(list.slug),
+    (cached) => {
+      if (!cached?.list) {
+        return {
+          list: { ...list, urls } as UrlList,
+          activities: [],
+          commentCounts: {},
+        };
+      }
+      return {
+        ...cached,
+        list: { ...cached.list, ...list, urls },
+      };
+    },
+  );
 }
 
 function isFlagOnlyUrlUpdate(updates: Partial<UrlItem>): boolean {
@@ -185,8 +210,10 @@ function isFlagOnlyUrlUpdate(updates: Partial<UrlItem>): boolean {
   return keys.every((key) => key === "isFavorite" || key === "isPinned");
 }
 
+/** Single-flight guard for flag-only PATCH per urlId. */
+const flagUpdateInFlight = new Map<string, Promise<UrlList | undefined>>();
+
 // Global flag to prevent getList from overwriting optimistic updates during drag
-// This is set by the component during drag operations
 let isDragInProgress = false;
 
 export function setDragInProgress(value: boolean) {
@@ -814,7 +841,22 @@ export async function addUrlToList(
     // Note: Activity feed will also update via real-time SSE event
     // But optimistic update provides instant feedback and activity-updated ensures refresh
 
-    return commitUrlMutation(snapshot, list, finalUrls);
+    return commitUrlMutation(snapshot, list, finalUrls, "url", {
+      skipUnified: true,
+      activity:
+        activityData?.id && activityData?.user?.email
+          ? {
+              id: activityData.id as string,
+              action: activityData.action as string,
+              details: (activityData.details ?? null) as Record<
+                string,
+                unknown
+              > | null,
+              createdAt: activityData.createdAt as string,
+              user: activityData.user as { id: string; email: string },
+            }
+          : undefined,
+    });
   } catch (err) {
     currentList.set(snapshot);
     error.set(err instanceof Error ? err.message : "Failed to update list");
@@ -832,13 +874,54 @@ export async function updateUrlInList(
 ) {
   const current = currentList.get();
   if (!current.id || !current.urls) return;
-  const snapshot = current;
   const flagOnly = isFlagOnlyUrlUpdate(updates);
+
+  if (flagOnly) {
+    const existing = flagUpdateInFlight.get(urlId);
+    if (existing) return existing;
+    const run = updateUrlInListInner(
+      urlId,
+      updates,
+      optimisticUpdate,
+      existingMetadata,
+      true,
+    );
+    flagUpdateInFlight.set(urlId, run);
+    try {
+      return await run;
+    } finally {
+      flagUpdateInFlight.delete(urlId);
+    }
+  }
+
+  return updateUrlInListInner(
+    urlId,
+    updates,
+    optimisticUpdate,
+    existingMetadata,
+    false,
+  );
+}
+
+async function updateUrlInListInner(
+  urlId: string,
+  updates: Partial<UrlItem>,
+  optimisticUpdate: ((urls: UrlItem[]) => UrlItem[]) | undefined,
+  existingMetadata: UrlMetadata | undefined,
+  flagOnly: boolean,
+): Promise<UrlList | undefined> {
+  const current = currentList.get();
+  if (!current.id || !current.urls) return;
+  const snapshot = current;
 
   if (!flagOnly) {
     isLoading.set(true);
   }
   error.set(null);
+
+  if (flagOnly) {
+    beginLocalFlagMutation();
+  }
 
   try {
     // Optimistic update - apply immediately for instant UI feedback
@@ -846,10 +929,8 @@ export async function updateUrlInList(
     let updatedUrls: UrlItem[];
 
     if (optimisticUpdate) {
-      // Use custom optimistic updater if provided
       updatedUrls = optimisticUpdate(currentUrls);
     } else {
-      // Default optimistic update
       updatedUrls = currentUrls.map((url) =>
         url.id === urlId
           ? { ...url, ...updates, updatedAt: new Date().toISOString() }
@@ -860,15 +941,18 @@ export async function updateUrlInList(
     // Update store immediately (optimistic)
     currentList.set({ ...current, urls: updatedUrls });
 
-    // Use unified PATCH endpoint that handles update, activity, and real-time updates
-    // Pass existingMetadata if available (from prefetch cache) to avoid redundant fetch
+    // Flag-only: densify RQ before await so ListPage RQ→store sync cannot reapply stale flags.
+    if (flagOnly) {
+      densifyOptimisticUnifiedList({ ...current, urls: updatedUrls }, updatedUrls);
+    }
+
     const response = await fetch(`/api/lists/${current.id}/urls`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         urlId,
         updates,
-        metadata: existingMetadata, // Pass cached metadata if available
+        metadata: existingMetadata,
       }),
     });
 
@@ -881,28 +965,20 @@ export async function updateUrlInList(
       activity: activityData,
     } = await response.json();
 
-    // Merge server response with optimistic state
-    // Server response is the source of truth, but preserve optimistic order
     const serverUrls = (list.urls as unknown as UrlItem[]) || [];
     const serverUrlMap = new Map(serverUrls.map((u: UrlItem) => [u.id, u]));
 
-    // For updates, use server data as source of truth for content
-    // But preserve optimistic order (order of updatedUrls)
     const finalUrls = updatedUrls.map((url) => {
       if (url.id === urlId && serverUrl) {
-        // Use server URL data (it has the latest content)
         return serverUrl as UrlItem;
       }
       const serverUrlData = serverUrlMap.get(url.id);
       if (serverUrlData) {
-        // Server has the URL - use server data as source of truth for content
-        // But preserve the optimistic order by mapping in the order of updatedUrls
         return serverUrlData;
       }
-      return url; // Fallback (shouldn't happen)
+      return url;
     });
 
-    // Also check for any URLs in server that aren't in optimistic (shouldn't happen, but safety check)
     const optimisticUrlIds = new Set(updatedUrls.map((u) => u.id));
     for (const serverUrlData of serverUrls) {
       if (!optimisticUrlIds.has(serverUrlData.id)) {
@@ -910,22 +986,17 @@ export async function updateUrlInList(
       }
     }
 
-    // Cache metadata if URL changed and metadata was provided
     if (typeof window !== "undefined" && urlMetadata && serverUrl?.url) {
       try {
-        // Populate React Query cache SYNCHRONOUSLY so cards don't fetch
-        // This prevents race condition where component checks cache before event handler runs
         const queryKey = ["url-metadata", serverUrl.url] as const;
         queryClient.setQueryData<UrlMetadata>(queryKey, urlMetadata);
 
-        // Also dispatch event for components that listen to it (backward compatibility)
         window.dispatchEvent(
           new CustomEvent("metadata-cached", {
             detail: { url: serverUrl.url, metadata: urlMetadata },
           })
         );
 
-        // Also save to localStorage
         const key = `react-query:${queryKey.join(":")}`;
         localStorage.setItem(
           key,
@@ -936,11 +1007,8 @@ export async function updateUrlInList(
       }
     }
 
-    // Dispatch activity data for optimistic feed update
-    // Use user data from activityData if available (from API response), otherwise fetch session
     if (typeof window !== "undefined" && activityData && current.id) {
       try {
-        // If activityData already has user data (from API response), use it directly
         if (activityData.user?.email) {
           dispatchActivityEvents(current.id, {
             id: activityData.id,
@@ -954,9 +1022,6 @@ export async function updateUrlInList(
         // Ignore errors - real-time event will handle it
       }
     }
-
-    // Note: Activity feed will also update via real-time SSE event
-    // But optimistic update provides instant feedback
 
     const activityForCache =
       activityData?.id && activityData?.user?.email
@@ -978,9 +1043,15 @@ export async function updateUrlInList(
     });
   } catch (err) {
     currentList.set(snapshot);
+    if (flagOnly && snapshot.slug) {
+      densifyOptimisticUnifiedList(snapshot, (snapshot.urls as UrlItem[]) || []);
+    }
     error.set(err instanceof Error ? err.message : "Failed to update list");
     throw err;
   } finally {
+    if (flagOnly) {
+      endLocalFlagMutation();
+    }
     if (!flagOnly) {
       isLoading.set(false);
     }
@@ -1143,7 +1214,7 @@ export async function reorderUrls(startIndex: number, endIndex: number) {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        urls,
+        urls: toReorderUrlItems(urls as unknown as Record<string, unknown>[]),
         action: "reorder",
       }),
     });

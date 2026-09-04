@@ -41,15 +41,17 @@ import {
 import {
   updateDragOrderCache,
   getDragOrderStorageKey,
+  clearDragOrderCache,
 } from "@/stores/dragOrderCache";
 import { Button } from "@/components/ui/Button";
 import { SectionCountBadge } from "@/components/ui/SectionCountBadge";
 import { Input } from "@/components/ui/Input";
 import { useUrlMetadata } from "@/hooks/useUrlMetadata";
 import { useQueryClient } from "@tanstack/react-query";
-import { listQueryKeys } from "@/hooks/useListQueries";
+import { listQueryKeys, prependUnifiedActivity, markUnifiedEventProcessed } from "@/hooks/useListQueries";
 import { invalidateMutationImpact } from "@/utils/queryInvalidation";
 import { fetchUrlMetadata, type UrlMetadata } from "@/utils/urlMetadata";
+import { toReorderUrlItems } from "@/lib/reorder-url-payload";
 import { UrlCard } from "./UrlCard";
 import { UrlEditModal } from "./UrlEditModal";
 import { LinkIcon, ArchiveBoxIcon } from "@heroicons/react/24/outline";
@@ -67,6 +69,12 @@ import {
   UI_ICON_DECORATIVE,
 } from "@/lib/ui/control-styles";
 import { cn, parseUserEnteredUrl } from "@/lib/utils";
+
+/** Module-level single-flight for GET /metadata across remounts (C7.21 Wave 5). */
+const metadataBatchInFlight = new Map<
+  string,
+  { promise: Promise<void>; controller: AbortController; subscribers: number }
+>();
 
 // Component wrapper that fetches metadata using React Query for each URL
 function UrlCardWrapper({
@@ -324,6 +332,13 @@ export function UrlList() {
   const prefetchedMetadataRef = useRef<string | null>(null);
   const batchFetchCompleteRef = useRef<string | null>(null); // Track completed batch fetches
 
+  // Stable hash: order-independent so pin/reorder does not retrigger batch GET
+  const metadataUrlsHash = useMemo(() => {
+    if (!list?.urls || list.urls.length === 0) return "";
+    const urls = list.urls as unknown as UrlItem[];
+    return Array.from(new Set(urls.map((u) => u.url))).sort().join("|");
+  }, [list?.urls]);
+
   // CRITICAL: Compute isMetadataReady SYNCHRONOUSLY during render (not from state)
   // This prevents race condition where hooks run before useLayoutEffect
   // IMPORTANT: Use sorted unique URLs for hash to make it order-independent (pin/unpin reorder doesn't invalidate cache)
@@ -335,10 +350,7 @@ export function UrlList() {
     }
 
     // Check if this exact list+URLs combo has been prefetched AND completed
-    // Use sorted unique URLs for hash so order changes (pin/unpin) don't invalidate cache
-    const urls = list.urls as unknown as UrlItem[];
-    const uniqueUrls = Array.from(new Set(urls.map((u) => u.url))).sort();
-    const urlsHash = uniqueUrls.join("|");
+    const urlsHash = metadataUrlsHash;
     const listId = list.id;
     const prefetchKey = `${listId}:${urlsHash}`;
 
@@ -348,13 +360,14 @@ export function UrlList() {
     }
 
     // If batch completed, check if all URLs are cached
+    const uniqueUrls = urlsHash ? urlsHash.split("|") : [];
     const allCached = uniqueUrls.every((url) => {
       const queryKey = ["url-metadata", url] as const;
       return !!queryClient.getQueryData<UrlMetadata>(queryKey);
     });
 
     return allCached;
-  }, [list?.id, list?.urls, queryClient]);
+  }, [list?.id, list?.urls, metadataUrlsHash, queryClient]);
 
   useEffect(() => {
     // CRITICAL: Skip metadata fetch if we just did a bulk import (dev server workaround)
@@ -376,211 +389,213 @@ export function UrlList() {
     // Skip batch fetch if a local operation is in progress (delete, add, etc.)
     // This prevents unnecessary metadata fetches during optimistic updates
     if (isLocalOperationRef.current) {
-      //   `⏭️ [BATCH] Skipping batch fetch - local operation in progress`
-      // );
       return;
     }
 
     const listId = current.id;
     const urls = current.urls as unknown as UrlItem[];
-    // Use sorted unique URLs for hash so order changes (pin/unpin reorder) don't trigger re-fetch
-    const uniqueUrls = Array.from(new Set(urls.map((u) => u.url))).sort();
-    const urlsHash = uniqueUrls.join("|");
+    const urlsHash = metadataUrlsHash;
+    if (!urlsHash) return;
     const prefetchKey = `${listId}:${urlsHash}`;
+    const uniqueUrls = urlsHash.split("|");
 
     // CRITICAL: Check React Query cache FIRST before making any API calls
-    // This ensures we skip the API call if all metadata is already cached
-    // Works across page visits because React Query cache persists
     const allCached = uniqueUrls.every((url) => {
       const queryKey = listQueryKeys.urlMetadata(url);
       return !!queryClient.getQueryData<UrlMetadata>(queryKey);
     });
 
     if (allCached) {
-      // All metadata is cached in React Query - no API call needed
-      // Update refs to mark as complete
       batchFetchCompleteRef.current = prefetchKey;
       prefetchedMetadataRef.current = null;
-      return; // Skip API call - use cached data
-    }
-
-    // Skip if already prefetched AND completed (for same list state)
-    if (batchFetchCompleteRef.current === prefetchKey) {
-      return; // Already done for this list state
-    }
-
-    // Skip if currently prefetching (wait for it to complete)
-    if (prefetchedMetadataRef.current === prefetchKey) {
       return;
     }
 
-    const fetchAllMetadata = async () => {
-      // Mark as prefetching
-      prefetchedMetadataRef.current = prefetchKey;
+    if (batchFetchCompleteRef.current === prefetchKey) {
+      return;
+    }
 
-      try {
-        // OPTIMIZATION: Fetch metadata in background - React Query handles caching automatically
-        // With staleTime: Infinity, cached data shows instantly on subsequent visits
-        // First visit: Fetches in background (non-blocking), page shows immediately
-        // Subsequent visits: Uses cache instantly (no API call)
-        // After invalidation: Refetches once, then cached again
-        const response = await fetch(`/api/lists/${listId}/metadata`);
+    let cancelled = false;
 
-        if (response.ok) {
-          const { metadata } = await response.json();
+    const hydrateFromMetadata = (metadata: Record<string, unknown>) => {
+      Object.entries(metadata).forEach(([url, metaData]) => {
+        const queryKey = listQueryKeys.urlMetadata(url);
+        const meta = metaData as UrlMetadata;
 
-          // Hydrate React Query cache and localStorage with all metadata instantly
-          // CRITICAL: This happens synchronously, so cards will see cache immediately
-          // Also prefetch images so they display instantly (no loading state on reorder)
-          Object.entries(metadata).forEach(([url, metaData]) => {
-            const queryKey = listQueryKeys.urlMetadata(url);
-            const meta = metaData as UrlMetadata;
+        const existingCache = queryClient.getQueryData<UrlMetadata>(queryKey);
+        if (!existingCache) {
+          queryClient.setQueryData(queryKey, meta);
+        }
 
-            // Check if already in cache
-            const existingCache =
-              queryClient.getQueryData<UrlMetadata>(queryKey);
-            if (!existingCache) {
-              // Set in React Query cache (instant, synchronous)
-              queryClient.setQueryData(queryKey, meta);
-            }
+        if (meta.image && typeof window !== "undefined") {
+          try {
+            const imageCacheKey = `image-loaded:${meta.image}`;
+            const imageAlreadyLoaded = sessionStorage.getItem(imageCacheKey);
 
-            // Prefetch image if available (ensures instant display on reorder)
-            if (meta.image && typeof window !== "undefined") {
-              try {
-                // Mark image as prefetched in global cache (prevents loading state on re-render)
-                const imageCacheKey = `image-loaded:${meta.image}`;
-                const imageAlreadyLoaded =
-                  sessionStorage.getItem(imageCacheKey);
-
-                // Prefetch image using Image() constructor to warm browser cache
-                // Don't use link preload to avoid crossorigin warnings
-                if (!imageAlreadyLoaded && meta.image) {
-                  // Store image URL in const for use in closures
-                  const imageUrl = meta.image;
-                  const img = new window.Image();
-
-                  // Try anonymous first (for CORS images), fall back to regular load
-                  img.crossOrigin = "anonymous";
-                  img.src = imageUrl;
-
-                  // Mark as prefetched after successful load
-                  img.onload = () => {
+            if (!imageAlreadyLoaded && meta.image) {
+              const imageUrl = meta.image;
+              const img = new window.Image();
+              img.crossOrigin = "anonymous";
+              img.src = imageUrl;
+              img.onload = () => {
+                sessionStorage.setItem(imageCacheKey, "true");
+              };
+              img.onerror = () => {
+                try {
+                  const img2 = new window.Image();
+                  img2.src = imageUrl;
+                  img2.onload = () => {
                     sessionStorage.setItem(imageCacheKey, "true");
                   };
-
-                  // If CORS fails, try without crossOrigin (for same-origin images)
-                  img.onerror = () => {
-                    try {
-                      const img2 = new window.Image();
-                      img2.src = imageUrl;
-                      img2.onload = () => {
-                        sessionStorage.setItem(imageCacheKey, "true");
-                      };
-                      img2.onerror = () => {
-                        // Silently fail - image will load normally in component
-                      };
-                    } catch {
-                      // Silently fail - image will load normally in component
-                    }
-                  };
+                } catch {
+                  // Silently fail
                 }
-              } catch {
-                // Ignore prefetch errors (non-critical)
-                //   `  ⚠️ [BATCH] Failed to prefetch image for ${url}:`,
-                //   error
-                // );
-              }
-            }
-
-            // Also save to localStorage for persistence
-            try {
-              const key = `react-query:${queryKey.join(":")}`;
-              localStorage.setItem(
-                key,
-                JSON.stringify({
-                  data: meta,
-                  timestamp: Date.now(),
-                }),
-              );
-            } catch {
-              // Ignore localStorage errors
-            }
-          });
-
-          // CRITICAL: Mark batch as complete AFTER cache hydration
-          // This makes isMetadataReady=true on next render (computed synchronously)
-          batchFetchCompleteRef.current = prefetchKey;
-
-          // Force a React Query cache update notification to trigger re-renders
-          // This ensures cards see the newly hydrated cache immediately
-          queryClient.invalidateQueries({
-            queryKey: ["url-metadata"],
-            exact: false,
-            refetchType: "none",
-          });
-        } else {
-          //   `❌ [BATCH] API error: ${response.status} ${response.statusText}`
-          // );
-          prefetchedMetadataRef.current = null; // Reset on error
-        }
-      } catch {
-        prefetchedMetadataRef.current = null; // Reset on error
-
-        // Fallback to individual prefetching if batch endpoint fails
-        const uniqueUrls = Array.from(new Set(urls.map((u) => u.url)));
-
-        // Load from localStorage first (instant)
-        uniqueUrls.forEach((url) => {
-          const queryKey = listQueryKeys.urlMetadata(url);
-          const localStorageKey = `react-query:${queryKey.join(":")}`;
-          try {
-            const item = localStorage.getItem(localStorageKey);
-            if (item) {
-              const parsed = JSON.parse(item);
-              const age = Date.now() - parsed.timestamp;
-              if (age < 1000 * 60 * 60 * 24 * 7 && parsed.data) {
-                queryClient.setQueryData(queryKey, parsed.data);
-              }
+              };
             }
           } catch {
-            // Ignore localStorage errors
+            // Ignore prefetch errors
           }
-        });
-
-        // Prefetch missing ones individually (fallback only)
-        const urlsToFetch = uniqueUrls.filter((url) => {
-          const queryKey = listQueryKeys.urlMetadata(url);
-          return !queryClient.getQueryData(queryKey);
-        });
-
-        // Fetch in batches
-        const concurrency = 5;
-        for (let i = 0; i < urlsToFetch.length; i += concurrency) {
-          const batch = urlsToFetch.slice(i, i + concurrency);
-          await Promise.allSettled(
-            batch.map((url) =>
-              queryClient
-                .prefetchQuery({
-                  queryKey: ["url-metadata", url] as const,
-                  queryFn: () => fetchUrlMetadata(url),
-                  // CRITICAL: Use Infinity for consistency with useUrlMetadata hook
-                  staleTime: Infinity, // Cache forever until invalidated
-                })
-                .catch(() => {
-                  // Silently fail
-                }),
-            ),
-          );
         }
 
-        // Mark as complete after fallback fetch
+        try {
+          const key = `react-query:${queryKey.join(":")}`;
+          localStorage.setItem(
+            key,
+            JSON.stringify({
+              data: meta,
+              timestamp: Date.now(),
+            }),
+          );
+        } catch {
+          // Ignore localStorage errors
+        }
+      });
+
+      batchFetchCompleteRef.current = prefetchKey;
+      queryClient.invalidateQueries({
+        queryKey: ["url-metadata"],
+        exact: false,
+        refetchType: "none",
+      });
+    };
+
+    const runFallbackIndividual = async () => {
+      const fallbackUrls = Array.from(new Set(urls.map((u) => u.url)));
+
+      fallbackUrls.forEach((url) => {
+        const queryKey = listQueryKeys.urlMetadata(url);
+        const localStorageKey = `react-query:${queryKey.join(":")}`;
+        try {
+          const item = localStorage.getItem(localStorageKey);
+          if (item) {
+            const parsed = JSON.parse(item);
+            const age = Date.now() - parsed.timestamp;
+            if (age < 1000 * 60 * 60 * 24 * 7 && parsed.data) {
+              queryClient.setQueryData(queryKey, parsed.data);
+            }
+          }
+        } catch {
+          // Ignore localStorage errors
+        }
+      });
+
+      const urlsToFetch = fallbackUrls.filter((url) => {
+        const queryKey = listQueryKeys.urlMetadata(url);
+        return !queryClient.getQueryData(queryKey);
+      });
+
+      const concurrency = 5;
+      for (let i = 0; i < urlsToFetch.length; i += concurrency) {
+        if (cancelled) return;
+        const batch = urlsToFetch.slice(i, i + concurrency);
+        await Promise.allSettled(
+          batch.map((url) =>
+            queryClient
+              .prefetchQuery({
+                queryKey: ["url-metadata", url] as const,
+                queryFn: () => fetchUrlMetadata(url),
+                staleTime: Infinity,
+              })
+              .catch(() => undefined),
+          ),
+        );
+      }
+
+      if (!cancelled) {
         batchFetchCompleteRef.current = prefetchKey;
       }
     };
 
-    // Fetch metadata IMMEDIATELY when list loads (no delay to prevent individual calls)
-    fetchAllMetadata();
-  }, [list?.id, list?.urls, queryClient]);
+    const joinOrStartFlight = async () => {
+      let flight = metadataBatchInFlight.get(prefetchKey);
+      if (!flight) {
+        const controller = new AbortController();
+        prefetchedMetadataRef.current = prefetchKey;
+
+        const promise = (async () => {
+          try {
+            const response = await fetch(`/api/lists/${listId}/metadata`, {
+              signal: controller.signal,
+            });
+
+            if (response.ok) {
+              const { metadata } = await response.json();
+              hydrateFromMetadata(metadata);
+            } else {
+              prefetchedMetadataRef.current = null;
+              await runFallbackIndividual();
+            }
+          } catch (err) {
+            if (controller.signal.aborted) return;
+            prefetchedMetadataRef.current = null;
+            await runFallbackIndividual();
+            throw err;
+          }
+        })().finally(() => {
+          const currentFlight = metadataBatchInFlight.get(prefetchKey);
+          if (currentFlight?.promise === promise && currentFlight.subscribers <= 0) {
+            metadataBatchInFlight.delete(prefetchKey);
+          }
+        });
+
+        flight = { promise, controller, subscribers: 0 };
+        metadataBatchInFlight.set(prefetchKey, flight);
+      }
+
+      flight.subscribers += 1;
+      prefetchedMetadataRef.current = prefetchKey;
+
+      try {
+        await flight.promise;
+        if (!cancelled) {
+          batchFetchCompleteRef.current = prefetchKey;
+        }
+      } catch {
+        if (!cancelled) {
+          prefetchedMetadataRef.current = null;
+        }
+      }
+    };
+
+    void joinOrStartFlight();
+
+    return () => {
+      cancelled = true;
+      const flight = metadataBatchInFlight.get(prefetchKey);
+      if (!flight) return;
+      flight.subscribers = Math.max(0, flight.subscribers - 1);
+      // Defer abort so Strict Mode remount / soft remount can rejoin the same flight.
+      if (flight.subscribers === 0) {
+        queueMicrotask(() => {
+          const still = metadataBatchInFlight.get(prefetchKey);
+          if (still && still.subscribers === 0) {
+            still.controller.abort();
+            metadataBatchInFlight.delete(prefetchKey);
+          }
+        });
+      }
+    };
+  }, [list?.id, metadataUrlsHash, queryClient]);
 
   // Track if we're currently performing a local operation to prevent refresh loops
   const isLocalOperationRef = useRef(false);
@@ -1523,7 +1538,12 @@ export function UrlList() {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            urls: finalDragOrderRef.current, // Use preserved order from ref
+            urls: toReorderUrlItems(
+              (finalDragOrderRef.current ?? []) as unknown as Record<
+                string,
+                unknown
+              >[],
+            ),
             action: "reorder",
           }),
         });
@@ -1558,6 +1578,27 @@ export function UrlList() {
             setSortableContextKey((prev) => prev + 1);
           });
 
+          // Densify unified RQ list order before activity prepend (matches fav/jobs)
+          if (current.slug) {
+            queryClient.setQueryData(
+              listQueryKeys.unified(current.slug),
+              (
+                cached:
+                  | { list: unknown; activities?: unknown[]; commentCounts?: Record<string, number> }
+                  | undefined,
+              ) => {
+                if (!cached) {
+                  return {
+                    list: mergedList,
+                    activities: [],
+                    commentCounts: {},
+                  };
+                }
+                return { ...cached, list: mergedList };
+              },
+            );
+          }
+
           // NOTE: The order is now preserved in both store AND ref
           // The ref ensures urlsToUse memo uses preserved order
           // The store ensures other parts of the app see the updated order
@@ -1579,16 +1620,26 @@ export function UrlList() {
                 },
               }),
             );
+            if (current.slug && activityData.id && activityData.user?.email) {
+              prependUnifiedActivity(queryClient, current.slug, {
+                id: activityData.id,
+                action: activityData.action,
+                details: activityData.details ?? null,
+                createdAt: activityData.createdAt,
+                user: activityData.user,
+              });
+              markUnifiedEventProcessed(`activity:${activityData.id}`);
+            }
           }
 
-          // CRITICAL: Invalidate unified query to trigger updates?activityLimit=30 API call
-          // This ensures activity feed updates immediately after reorder (same pattern as other URL actions)
+          // Invalidate non-unified impacts; skip unified (densified + SSE-marked)
           if (current.slug && current.id) {
             invalidateMutationImpact(
               queryClient,
               "url",
               current.slug,
               current.id,
+              { skipUnified: true },
             );
           }
 
@@ -1621,19 +1672,16 @@ export function UrlList() {
               }
             }
           }, 60000); // Keep for 60 seconds to survive Fast Refresh cycles
+        } else {
+          currentList.set(current);
+          finalDragOrderRef.current = null;
+          if (current.id) clearDragOrderCache(current.id);
         }
       } catch (_err) {
         // Restore the initiating order synchronously; the impact gateway reconciles once.
         currentList.set(current);
         finalDragOrderRef.current = null; // Clear ref on error
-        // Clear localStorage on error (using localStorage instead of sessionStorage)
-        if (current.id && typeof window !== "undefined") {
-          try {
-            localStorage.removeItem(getDragOrderStorageKey(current.id));
-          } catch {
-            // Ignore localStorage errors
-          }
-        }
+        if (current.id) clearDragOrderCache(current.id);
         if (current.slug && current.id) {
           invalidateMutationImpact(
             queryClient,
@@ -1736,7 +1784,9 @@ export function UrlList() {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            urls: urlsToSend, // Use preserved order from ref
+            urls: toReorderUrlItems(
+              (urlsToSend ?? []) as unknown as Record<string, unknown>[],
+            ),
             action: "reorder",
           }),
         });
@@ -1781,6 +1831,27 @@ export function UrlList() {
             setSortableContextKey((prev) => prev + 1);
           });
 
+          // Densify unified RQ list order before activity prepend (matches fav/jobs)
+          if (current.slug) {
+            queryClient.setQueryData(
+              listQueryKeys.unified(current.slug),
+              (
+                cached:
+                  | { list: unknown; activities?: unknown[]; commentCounts?: Record<string, number> }
+                  | undefined,
+              ) => {
+                if (!cached) {
+                  return {
+                    list: mergedList,
+                    activities: [],
+                    commentCounts: {},
+                  };
+                }
+                return { ...cached, list: mergedList };
+              },
+            );
+          }
+
           // NOTE: The order is now preserved in both store AND ref
           // The ref ensures urlsToUse memo uses preserved order during drag
           // The store ensures the final order is persisted after drag completes
@@ -1801,16 +1872,26 @@ export function UrlList() {
                 },
               }),
             );
+            if (current.slug && activityData.id && activityData.user?.email) {
+              prependUnifiedActivity(queryClient, current.slug, {
+                id: activityData.id,
+                action: activityData.action,
+                details: activityData.details ?? null,
+                createdAt: activityData.createdAt,
+                user: activityData.user,
+              });
+              markUnifiedEventProcessed(`activity:${activityData.id}`);
+            }
           }
 
-          // CRITICAL: Invalidate unified query to trigger updates?activityLimit=30 API call
-          // This ensures activity feed updates immediately after reorder (same pattern as other URL actions)
+          // Invalidate non-unified impacts; skip unified (densified + SSE-marked)
           if (current.slug && current.id) {
             invalidateMutationImpact(
               queryClient,
               "url",
               current.slug,
               current.id,
+              { skipUnified: true },
             );
           }
 
@@ -1843,19 +1924,16 @@ export function UrlList() {
               }
             }
           }, 60000); // Keep for 60 seconds to survive Fast Refresh cycles
+        } else {
+          currentList.set(current);
+          finalDragOrderRef.current = null;
+          if (current.id) clearDragOrderCache(current.id);
         }
       } catch (_err) {
         // Restore the initiating order synchronously; the impact gateway reconciles once.
         currentList.set(current);
         finalDragOrderRef.current = null; // Clear ref on error
-        // Clear localStorage on error (using localStorage instead of sessionStorage)
-        if (current.id && typeof window !== "undefined") {
-          try {
-            localStorage.removeItem(getDragOrderStorageKey(current.id));
-          } catch {
-            // Ignore localStorage errors
-          }
-        }
+        if (current.id) clearDragOrderCache(current.id);
         if (current.slug && current.id) {
           invalidateMutationImpact(
             queryClient,

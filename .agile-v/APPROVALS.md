@@ -38,3 +38,6 @@ Append-only record of Human Gate decisions.
 | 2026-09-03 | GATE-0037 | PENDING | — | `C7.18-HG1-WARM-MUTATION-DENSIFY-2026-09-03` | Scope: REQ-0053 field-level warm mutation densification and Smart Collections pending paint only. |
 | 2026-09-03 | GATE-0037 | APPROVED | User | `C7.18-HG1-WARM-MUTATION-DENSIFY-2026-09-03` | User explicitly requested implementation of the approved C7.18 plan (REQ-0053). |
 | 2026-09-03 | GATE-0037 | SCOPE CONFIRMED | User | `C7.18-HG1-WARM-MUTATION-DENSIFY-2026-09-03` | User approved authenticated SSE payloads and isolated Playwright history/cross-tab coverage under REQ-0053. |
+| 2026-09-04 | GATE-0038 | PENDING | — | `C7.20-HG-NETWORK-SMOKE-2026-09-04` | Network-first Human-Verify for C7.20 `cff9a3b`; no coding until Network paste + C7.21 fix-plan approval. |
+| 2026-09-04 | GATE-0038 | APPROVED | User | `C7.20-HG-NETWORK-SMOKE-2026-09-04` | User pasted prod Network rows; classified expected/improve/bug; approved sequential C7.21 waves 1–5 (FIFO 20; latency OOS; parked Add URL/archive/fast-scroll). |
+| 2026-09-04 | GATE-0038 | SCOPE COMPLETE | Auto | `C7.21-COMMIT-READY-2026-09-04` | C7.21 waves verified PASS (lint/tsc/jest/e2e/build); commit-ready docs synced. |

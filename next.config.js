@@ -16,6 +16,8 @@ const securityHeaders = [
 
 const nextConfig = {
   reactStrictMode: true,
+  // Playwright / local e2e hit 127.0.0.1 — without this, Next 16 blocks /_next chunks.
+  allowedDevOrigins: ["127.0.0.1", "localhost"],
   images: {
     remotePatterns: [
       {

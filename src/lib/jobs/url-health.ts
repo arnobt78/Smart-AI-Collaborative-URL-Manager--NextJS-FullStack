@@ -126,11 +126,18 @@ export function updateUrlsWithHealthResults(
       return url; // No health check result, keep as is
     }
 
+    // Omit healthLastStatus when httpStatus is 0 (network/timeout) — Zod reorder
+    // schema requires 100–599, and 0 is not a real HTTP code.
+    const httpOk =
+      Number.isInteger(healthResult.httpStatus) &&
+      healthResult.httpStatus >= 100 &&
+      healthResult.httpStatus <= 599;
+
     return {
       ...url,
       healthStatus: healthResult.status,
       healthCheckedAt: now,
-      healthLastStatus: healthResult.httpStatus,
+      ...(httpOk ? { healthLastStatus: healthResult.httpStatus } : {}),
       healthResponseTime: healthResult.responseTime,
       updatedAt: now,
     };

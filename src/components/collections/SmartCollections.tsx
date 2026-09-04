@@ -42,6 +42,7 @@ import {
   UI_IDENTITY_GAP,
 } from "@/lib/ui/control-styles";
 import { cn } from "@/lib/utils";
+import { sliceActivityFeed } from "@/lib/activity-feed-limit";
 import { densifyAllLists, densifyBrowsePublicLists } from "@/utils/queryInvalidation";
 
 interface SmartCollectionsProps {
@@ -460,7 +461,9 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
         densifyAllLists(queryClient, data.list, { temporaryId });
         // Full unified seed with create activity so detail opens at Activity count 1.
         if (data.list.slug) {
-          const seededActivities = data.activity ? [data.activity] : [];
+          const seededActivities = sliceActivityFeed(
+            data.activity ? [data.activity] : [],
+          );
           queryClient.setQueryData(listQueryKeys.unified(data.list.slug), {
             list: data.list,
             activities: seededActivities,
@@ -501,13 +504,14 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
             const existingActivities = Array.isArray(cached.activities)
               ? cached.activities
               : [];
-            const nextActivities =
+            const nextActivities = sliceActivityFeed(
               data.sourceActivity &&
-              !existingActivities.some(
-                (item: { id?: string }) => item.id === data.sourceActivity!.id,
-              )
+                !existingActivities.some(
+                  (item: { id?: string }) => item.id === data.sourceActivity!.id,
+                )
                 ? [data.sourceActivity, ...existingActivities]
-                : existingActivities;
+                : existingActivities,
+            );
             return {
               ...cached,
               list: {

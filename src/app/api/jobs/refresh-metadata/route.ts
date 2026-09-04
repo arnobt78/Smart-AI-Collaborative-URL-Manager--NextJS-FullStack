@@ -92,12 +92,20 @@ export async function POST(request: NextRequest) {
     }
 
     // Update the list in database
-    await updateList(listId, { urls: updatedUrls });
+    const updatedList = await updateList(listId, { urls: updatedUrls });
 
     const duration = Date.now() - startTime;
 
     // CRITICAL: Publish real-time updates so collaborators see metadata refresh immediately
     // Get user for activity log (if available - may be null for scheduled jobs)
+    let activityPayload: {
+      id: string;
+      action: string;
+      details: unknown;
+      createdAt: string;
+      user: { id: string; email: string };
+    } | null = null;
+
     try {
       const user = await getCurrentUser();
       if (user) {
@@ -108,6 +116,22 @@ export async function POST(request: NextRequest) {
           errors: errorCount,
           duration,
         });
+
+        activityPayload = {
+          id: activity.id,
+          action: activity.action,
+          details: activity.details,
+          createdAt: activity.createdAt.toISOString(),
+          user: activity.user
+            ? {
+                id: activity.user.id,
+                email: activity.user.email,
+              }
+            : {
+                id: user.id,
+                email: user.email,
+              },
+        };
 
         // Publish real-time update
         await publishMessage(CHANNELS.listUpdate(listId), {
@@ -125,19 +149,7 @@ export async function POST(request: NextRequest) {
           eventKey: `activity:${activity.id}`,
           action: "metadata_refreshed",
           timestamp: new Date().toISOString(),
-          activity: {
-            id: activity.id,
-            action: activity.action,
-            details: activity.details,
-            createdAt: activity.createdAt.toISOString(),
-            user: activity.user ? {
-              id: activity.user.id,
-              email: activity.user.email,
-            } : {
-              id: user.id,
-              email: user.email,
-            },
-          },
+          activity: activityPayload,
         });
       }
     } catch {
@@ -165,6 +177,8 @@ export async function POST(request: NextRequest) {
         errors: errorCount,
       },
       duration,
+      list: updatedList,
+      activity: activityPayload,
     });
   } catch (error) {
     const message =

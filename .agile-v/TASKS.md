@@ -211,15 +211,26 @@ RSC shells · densify/Zod/SHA/Next16
 
 **Completion evidence:** commit `c675cf6`; Vercel production `dpl_DB8BYHnrXN5LuwL5Yo5FNdtwFvXd` READY.
 
-### TASK-0039 — C6.4 production browser verification — PENDING USER
+### TASK-0039 — Production Network / browser verification — DONE (intake 2026-09-04)
 
-1. On https://daily-urlist.vercel.app/, sign in and click Home Create List, Lists Create, and list edit.
-2. Confirm the dialog opens immediately with no `lists?dialog=` / `_rsc` request; close, Escape, backdrop, and browser-back remain immediate while idle.
-3. Confirm mutating overlays stay pending until success or error, `/lists?dialog=create` and `/new` still open Create List, and a successful create still reaches the new list detail.
-4. Report only reproducible findings with route, action, expected, actual, and screenshot/video when available.
+1. User pasted prod Network rows for login, lists soft-nav, list detail, visibility, jobs, fav/pin/duplicate, drag, Activity badge, SC, back/browse.
+2. Agent classified expected vs improve vs bug; GATE-0038 approved C7.21 waves.
+3. Historical C6.4 dialog checks remain optional on future deploys.
 
-**Dependencies:** REQ-0032; deployed commit `c675cf6`.
-**Resume condition:** User supplies production-test results; this task does not authorize application changes.
+**Dependencies:** C7.20 `cff9a3b`; GATE-0038.
+**Completion evidence:** Network paste in chat; DEC-0058/0059; TASK-0041.
+
+### TASK-0041 — C7.21 Network-smoke fixes (waves 1–5) — DONE
+
+1. Fav/pin/duplicate: densify before await, single-flight, SSE densify cancel, `skipUnified`.
+2. Drag reorder: `toReorderUrlItems` + `!ok` rollback + unified RQ densify; omit `healthLastStatus: 0`.
+3. Activity FIFO 20 + badge slice + `createActivity` prune + `scripts/prune-list-activities.ts`.
+4. Jobs refresh-metadata/check-urls return `{ list, activity }`; ListPage densify + `skipUnified`.
+5. UrlList `metadataBatchInFlight` Map; Playwright e2e + `allowedDevOrigins` + shared-demo DB gate.
+
+**Dependencies:** GATE-0038 APPROVED; DEC-0059.
+**Out of scope:** latency; Add URL https 400; archive 400; fast-scroll empty card.
+**Validation:** lint 0 · tsc · Jest 37 related · e2e 7 · build PASS.
 
 ### TASK-0040 — C6.5 instant dialogs and confirmed overlays — DONE
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient, type QueryClient } from "@tanstack/react-query";
 import { currentList, type UrlList } from "@/stores/urlListStore";
 import { queryClient } from "@/lib/react-query";
 import { useToast } from "@/components/ui/Toaster";
@@ -21,10 +21,12 @@ import {
 } from "@/lib/unified-list-response";
 import { useSession } from "@/hooks/useSession";
 import {
-  hasUnifiedEventProcessed,
+  hasUnifiedEventDensified,
   markUnifiedEventProcessed,
-  rememberUnifiedEventProcessed,
+  scheduleUnifiedInvalidation,
+  clearPendingUnifiedInvalidation,
 } from "@/lib/sse-unified-dedup";
+import { ACTIVITY_FEED_LIMIT, sliceActivityFeed } from "@/lib/activity-feed-limit";
 
 export { listQueryKeys } from "@/lib/query-keys";
 export { markUnifiedEventProcessed } from "@/lib/sse-unified-dedup";
@@ -44,7 +46,7 @@ export function useUnifiedListQuery(slug: string, enabled: boolean = true) {
     queryKey: listQueryKeys.unified(slug),
     queryFn: async () => {
       const response = await fetch(
-        `/api/lists/${slug}/updates?activityLimit=30`
+        `/api/lists/${slug}/updates?activityLimit=${ACTIVITY_FEED_LIMIT}`
       );
       if (!response.ok) {
         if (response.status === 401) {
@@ -699,8 +701,8 @@ export function useUpdateListVisibility() {
   });
 }
 
-function prependUnifiedActivity(
-  queryClient: ReturnType<typeof useQueryClient>,
+export function prependUnifiedActivity(
+  queryClient: QueryClient,
   slug: string,
   activity: UnifiedActivity,
 ): void {
@@ -712,7 +714,7 @@ function prependUnifiedActivity(
     }
     return {
       ...current,
-      activities: [activity, ...existing],
+      activities: sliceActivityFeed([activity, ...existing]),
     };
   });
 }
@@ -879,7 +881,6 @@ export function useDeleteList() {
 // CRITICAL: Singleton pattern to ensure only one listener exists globally
 // This prevents duplicate invalidations when multiple components call setupSSECacheSync
 let listenerRefCount = 0; // Track how many components are using this
-let globalInvalidationTimeout: NodeJS.Timeout | null = null;
 let globalSSEConnectedTime: number | null = null; // Track when SSE actually connects
 let globalHandler: ((event: Event) => void) | null = null;
 let globalSSEConnectedHandler: ((event: Event) => void) | null = null;
@@ -1072,81 +1073,84 @@ export function setupSSECacheSync() {
         invocationKey = `${listSlug}:${action}:${roundedTime}`;
       }
 
-      // Skip if we've already processed this exact event recently (shared across all instances)
-      if (hasUnifiedEventProcessed(invocationKey)) {
+      // Skip if densified by owner or already scheduled
+      if (hasUnifiedEventDensified(invocationKey)) {
+        clearPendingUnifiedInvalidation();
         devLog(
-          `⏭️ [SSE CACHE SYNC] Skipping duplicate unified-update event: ${invocationKey}`
+          `⏭️ [SSE CACHE SYNC] Skipping densified unified-update event: ${invocationKey}`
         );
         return;
       }
 
-      // Add to processed set and clean up old entries (keep last 100 for better deduplication)
-      rememberUnifiedEventProcessed(invocationKey);
-
-      // Debounce invalidation to prevent rapid-fire API calls (shared timeout across all instances)
-      // Clear existing timeout if another event comes in quickly
-      if (globalInvalidationTimeout) {
-        clearTimeout(globalInvalidationTimeout);
-      }
-
-      globalInvalidationTimeout = setTimeout(() => {
-        // CRITICAL: Invalidate unified query to trigger refetch
-        // This ensures collaborators see real-time updates (SSE -> unified-update event -> invalidation -> refetch)
-        devLog(
-          `🔄 [SSE CACHE SYNC] Invalidating unified query for: ${listSlug} (action: ${action})`
-        );
-
-        // C7.9 playbook: densify/drop on delete + visibility so thin seed cannot resurrect ghosts
-        if (action === "list_deleted") {
-          densifyAllLists(
-            queryClient,
-            { id: listId!, slug: listSlug! },
-            { remove: true },
+      // Debounce invalidation; mark()/local flag window can cancel before fire
+      const scheduled = scheduleUnifiedInvalidation(
+        invocationKey,
+        invalidationDelay,
+        () => {
+          // CRITICAL: Invalidate unified query to trigger refetch
+          // This ensures collaborators see real-time updates (SSE -> unified-update event -> invalidation -> refetch)
+          devLog(
+            `🔄 [SSE CACHE SYNC] Invalidating unified query for: ${listSlug} (action: ${action})`
           );
-          densifyBrowsePublicLists(
-            queryClient,
-            { id: listId!, slug: listSlug! },
-            { remove: true },
-          );
-          dropUnifiedListCache(queryClient, listSlug!);
-        } else if (
-          action === "list_made_public" ||
-          action === "list_made_private"
-        ) {
-          const isPublic = action === "list_made_public";
-          const fromLists = queryClient
-            .getQueryData<{ lists: UserList[] }>(listQueryKeys.allLists())
-            ?.lists?.find(
-              (list) => list.id === listId || list.slug === listSlug,
+
+          // C7.9 playbook: densify/drop on delete + visibility so thin seed cannot resurrect ghosts
+          if (action === "list_deleted") {
+            densifyAllLists(
+              queryClient,
+              { id: listId!, slug: listSlug! },
+              { remove: true },
             );
-          if (fromLists) {
-            densifyAllLists(queryClient, {
-              ...fromLists,
-              isPublic,
-            });
+            densifyBrowsePublicLists(
+              queryClient,
+              { id: listId!, slug: listSlug! },
+              { remove: true },
+            );
+            dropUnifiedListCache(queryClient, listSlug!);
+          } else if (
+            action === "list_made_public" ||
+            action === "list_made_private"
+          ) {
+            const isPublic = action === "list_made_public";
+            const fromLists = queryClient
+              .getQueryData<{ lists: UserList[] }>(listQueryKeys.allLists())
+              ?.lists?.find(
+                (list) => list.id === listId || list.slug === listSlug,
+              );
+            if (fromLists) {
+              densifyAllLists(queryClient, {
+                ...fromLists,
+                isPublic,
+              });
+            }
+            densifyBrowsePublicLists(
+              queryClient,
+              {
+                id: listId!,
+                slug: listSlug!,
+                title: fromLists?.title,
+                description: fromLists?.description ?? undefined,
+                urls: fromLists?.urls,
+                isPublic,
+              },
+              isPublic ? undefined : { remove: true },
+            );
           }
-          densifyBrowsePublicLists(
-            queryClient,
-            {
-              id: listId!,
-              slug: listSlug!,
-              title: fromLists?.title,
-              description: fromLists?.description ?? undefined,
-              urls: fromLists?.urls,
-              isPublic,
-            },
-            isPublic ? undefined : { remove: true },
-          );
-        }
 
-        queryClient.invalidateQueries({
-          queryKey: listQueryKeys.unified(listSlug!),
-        });
-        globalInvalidationTimeout = null;
+          queryClient.invalidateQueries({
+            queryKey: listQueryKeys.unified(listSlug!),
+          });
+          devLog(
+            `✅ [SSE CACHE SYNC] Unified query invalidated, refetch should trigger updates?activityLimit=${ACTIVITY_FEED_LIMIT}`
+          );
+        },
+        action,
+      );
+
+      if (!scheduled) {
         devLog(
-          `✅ [SSE CACHE SYNC] Unified query invalidated, refetch should trigger updates?activityLimit=30`
+          `⏭️ [SSE CACHE SYNC] Skipped schedule (marked or local flag): ${invocationKey}`
         );
-      }, invalidationDelay);
+      }
     };
 
     // Store handler globally for cleanup
@@ -1189,10 +1193,7 @@ export function setupSSECacheSync() {
         }
         globalHandler = null;
       }
-      if (globalInvalidationTimeout) {
-        clearTimeout(globalInvalidationTimeout);
-        globalInvalidationTimeout = null;
-      }
+      clearPendingUnifiedInvalidation();
       // Don't clear processedInvocations - keep them for deduplication
       // Don't reset globalSetupTime or globalSSEConnectedTime - keep them for grace period tracking
       listenerRefCount = 0; // Reset to 0 (safety)

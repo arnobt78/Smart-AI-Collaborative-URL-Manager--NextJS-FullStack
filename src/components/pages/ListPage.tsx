@@ -21,6 +21,8 @@ import {
   setupSSECacheSync,
   listQueryKeys,
   useUpdateListVisibility,
+  prependUnifiedActivity,
+  markUnifiedEventProcessed,
 } from "@/hooks/useListQueries";
 import { useQueryClient } from "@tanstack/react-query";
 import { Dialog } from "@/components/ui/Dialog";
@@ -33,6 +35,8 @@ import {
 } from "@/components/lists/ListDetailHeaderChrome";
 import { HEADING_STACK, PAGE_STACK } from "@/lib/ui-spacing";
 import { invalidateMutationImpact } from "@/utils/queryInvalidation";
+import type { UnifiedActivity } from "@/lib/unified-list-response";
+import type { UrlList as UrlListModel } from "@/stores/urlListStore";
 import { useListDialogRouteState } from "@/hooks/useListDialogRouteState";
 import { isUnifiedListHydrated } from "@/lib/soft-nav-cache";
 import { cn } from "@/lib/utils";
@@ -695,6 +699,44 @@ export default function ListPageClient() {
                 });
                 const data = await response.json();
                 if (response.ok) {
+                  if (data.list) {
+                    flushSync(() => {
+                      currentList.set(data.list);
+                    });
+                    if (typeof slug === "string") {
+                      queryClient.setQueryData(
+                        listQueryKeys.unified(slug),
+                        (cached: { list: UrlListModel | null; activities?: UnifiedActivity[] } | undefined) => {
+                          if (!cached) {
+                            return {
+                              list: data.list as UrlListModel,
+                              activities: [],
+                              commentCounts: {},
+                            };
+                          }
+                          return { ...cached, list: data.list as UrlListModel };
+                        },
+                      );
+                    }
+                  }
+                  if (data.activity && typeof slug === "string") {
+                    prependUnifiedActivity(
+                      queryClient,
+                      slug,
+                      data.activity as UnifiedActivity,
+                    );
+                    if (data.activity.id) {
+                      markUnifiedEventProcessed(`activity:${data.activity.id}`);
+                    }
+                    window.dispatchEvent(
+                      new CustomEvent("activity-added", {
+                        detail: {
+                          listId: data.list?.id || list.id,
+                          activity: data.activity,
+                        },
+                      }),
+                    );
+                  }
                   if (list.urls && list.urls.length > 0) {
                     window.dispatchEvent(
                       new CustomEvent("metadata-refresh-complete", {
@@ -708,6 +750,7 @@ export default function ListPageClient() {
                       "metadata",
                       slug,
                       list.id,
+                      { skipUnified: true },
                     );
                   }
                   const refreshed = data.refreshed ?? urlCount;
@@ -762,7 +805,30 @@ export default function ListPageClient() {
                     flushSync(() => {
                       currentList.set(data.list);
                     });
+                    if (typeof slug === "string") {
+                      queryClient.setQueryData(
+                        listQueryKeys.unified(slug),
+                        (cached: { list: UrlListModel | null; activities?: UnifiedActivity[] } | undefined) => {
+                          if (!cached) {
+                            return {
+                              list: data.list as UrlListModel,
+                              activities: [],
+                              commentCounts: {},
+                            };
+                          }
+                          return { ...cached, list: data.list as UrlListModel };
+                        },
+                      );
+                    }
                     if (data.activity && typeof slug === "string") {
+                      prependUnifiedActivity(
+                        queryClient,
+                        slug,
+                        data.activity as UnifiedActivity,
+                      );
+                      if (data.activity.id) {
+                        markUnifiedEventProcessed(`activity:${data.activity.id}`);
+                      }
                       window.dispatchEvent(
                         new CustomEvent("activity-added", {
                           detail: {
@@ -778,6 +844,7 @@ export default function ListPageClient() {
                         "action",
                         slug,
                         list.id,
+                        { skipUnified: true },
                       );
                     }
                   } else if (typeof slug === "string") {

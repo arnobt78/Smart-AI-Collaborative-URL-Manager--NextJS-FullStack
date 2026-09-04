@@ -1,8 +1,9 @@
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
+import { ACTIVITY_FEED_LIMIT } from "@/lib/activity-feed-limit";
 
 /**
- * Create an activity log entry
+ * Create an activity log entry, then FIFO-prune older rows beyond ACTIVITY_FEED_LIMIT.
  */
 export async function createActivity(
   listId: string,
@@ -10,7 +11,7 @@ export async function createActivity(
   action: string,
   details?: Record<string, unknown>
 ) {
-  return prisma.activity.create({
+  const activity = await prisma.activity.create({
     data: {
       listId,
       userId,
@@ -28,6 +29,24 @@ export async function createActivity(
       },
     },
   });
+
+  const keep = await prisma.activity.findMany({
+    where: { listId },
+    orderBy: { createdAt: "desc" },
+    take: ACTIVITY_FEED_LIMIT,
+    select: { id: true },
+  });
+  const keepIds = keep.map((row) => row.id);
+  if (keepIds.length > 0) {
+    await prisma.activity.deleteMany({
+      where: {
+        listId,
+        id: { notIn: keepIds },
+      },
+    });
+  }
+
+  return activity;
 }
 
 /**
@@ -35,7 +54,7 @@ export async function createActivity(
  */
 export async function getActivitiesForList(
   listId: string,
-  limit: number = 50
+  limit: number = ACTIVITY_FEED_LIMIT
 ) {
   return prisma.activity.findMany({
     where: {
@@ -61,7 +80,7 @@ export async function getActivitiesForList(
  */
 export async function getRecentActivitiesForUser(
   userId: string,
-  limit: number = 20
+  limit: number = ACTIVITY_FEED_LIMIT
 ) {
   return prisma.activity.findMany({
     where: {
@@ -88,4 +107,3 @@ export async function getRecentActivitiesForUser(
     take: limit,
   });
 }
-

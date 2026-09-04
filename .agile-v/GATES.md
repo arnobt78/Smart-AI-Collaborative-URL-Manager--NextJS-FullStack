@@ -394,6 +394,20 @@ Implementation is locally verified. Production check remains with TASK-0039. Gat
 
 ---
 
+## GATE-0038 — Human-Verify (C7.20 Network smoke → C7.21 fixes)
+
+| Field | Value |
+|-------|-------|
+| Type | Human-Action / Human-Verify |
+| Status | **APPROVED / COMPLETE 2026-09-04** |
+| Checkpoint | `C7.20-HG-NETWORK-SMOKE-2026-09-04` → `C7.21-COMMIT-READY-2026-09-04` |
+| Evidence | TASK-0039; TASK-0041; DEC-0058; DEC-0059; prod Network paste; lint/tsc/jest/e2e/build PASS |
+| Required human action | Completed — Network paste + C7.21 waves 1–5 plan approval + verified implementation. |
+| Scope | C7.21: fav/pin densify; reorder strip; Activity FIFO 20; jobs densify; metadata dedupe. Parked OOS: Add URL https 400, archive 400, fast-scroll empty, latency. |
+| Resume condition | Push/deploy on request; prod re-smoke; then parked bugs as a new gate. |
+
+---
+
 ## GATE-0002 — Human Gate 2 (release / acceptance)
 
 | Field | Value |

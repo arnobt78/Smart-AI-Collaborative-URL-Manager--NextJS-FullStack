@@ -813,3 +813,29 @@ Append-only. Newest entries at bottom.
 | Rationale | Owner saw Browse “You” flash, double `updates?activityLimit=30` after visibility, Create Collection Activity 0→1, and fav/pin list blink from full unified refetch racing densify. |
 | Linked REQs | C7.20 densify / UrlCard actions |
 | Status | Implemented and validated 2026-09-04. |
+
+---
+
+## DEC-0058 — Network-first acceptance before C7.21 bug fixes
+
+| Field | Value |
+|---|---|
+| Timestamp | 2026-09-04 |
+| Agent | Cursor |
+| Decision | Treat TASK-0039 / GATE-0038 as Network-first Human-Verify: user pastes prod API path/status/time for list-detail collab, Activity, collections, and UrlCard actions; agent classifies expected vs improve vs bug. Park Add URL https 400, archive-url 400, and fast-scroll empty card until after Network classification. Do not code until a separate C7.21 fix plan is explicitly approved. |
+| Rationale | C7.20 is on prod but untested by user; Network evidence decides whether densify/SSE behavior is healthy before expanding scope into known UrlCard defects. |
+| Linked REQs | TASK-0039; GATE-0038 |
+| Status | Superseded by DEC-0059 — Network paste received; C7.21 waves approved and implemented. |
+
+---
+
+## DEC-0059 — C7.21 Network-smoke sequential fixes (FIFO 20)
+
+| Field | Value |
+|---|---|
+| Timestamp | 2026-09-04 |
+| Agent | Cursor |
+| Decision | Implement C7.21 waves 1–5: (1) fav/pin/duplicate densify-before-await + single-flight + SSE invalidate cancel + skipUnified; (2) `toReorderUrlItems` strip commentCount/null/invalid health/datetimes + drag `!ok` rollback + unified list densify; (3) `ACTIVITY_FEED_LIMIT=20` client/server/slice + DB prune + prune script; (4) jobs return `{ list, activity }` densify + skipUnified; (5) module `metadataBatchInFlight`. Latency OOS. Park Add URL https / archive / fast-scroll. Demo DB e2e via `E2E_ALLOW_SHARED_DB=1` allowed for showcase only. |
+| Rationale | Prod Network paste proved fav/pin flicker, drag 400, Activity badge >30, jobs updates spam, dual metadata — densify/SSE races and Zod strict payloads, not cold latency. |
+| Linked REQs | TASK-0039; TASK-0041; GATE-0038 |
+| Status | Implemented and validated 2026-09-04. |

@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { prepareWarmSoftNav } from "@/lib/soft-nav-cache";
 import { browseQueryKeys } from "@/lib/browse-query-keys";
 import { listQueryKeys } from "@/lib/query-keys";
+import { ACTIVITY_FEED_LIMIT } from "@/lib/activity-feed-limit";
 
 /**
  * C6.9: Shared warm soft-nav helpers for Link click and router.push/replace sites.
@@ -84,7 +85,7 @@ async function intentPrefetch(
         queryKey: listQueryKeys.unified(slug),
         queryFn: async () => {
           const response = await fetch(
-            `/api/lists/${encodeURIComponent(slug)}/updates?activityLimit=30`,
+            `/api/lists/${encodeURIComponent(slug)}/updates?activityLimit=${ACTIVITY_FEED_LIMIT}`,
           );
           if (!response.ok) throw new Error("Failed to prefetch list detail");
           return response.json();

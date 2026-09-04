@@ -69,5 +69,9 @@
 | 2026-09-01 | C7.16 planning | Human-Decision | APPROVED | `C7.16-HG1-LIST-DETAIL-GLASS-2026-09-01` | Baseline waves approved; Wave 0 deferred. |
 | 2026-09-01 | C7.16 baseline complete | Auto | DONE | — | REQ-0051 baseline validated; commit-ready. |
 | 2026-09-01 | C7.16 Wave 0 complete | Auto | DONE | — | REQ-0051 Wave 0 validated; commit-ready. |
+| 2026-09-04 | GATE-0038 | Human-Action | PENDING | `C7.20-HG-NETWORK-SMOKE-2026-09-04` | C7.20 `cff9a3b` on prod. User pastes Network timings first; agent classifies; no code until C7.21 fix plan approved. Parked: Add URL https 400, archive 400, fast-scroll empty card. |
+| 2026-09-04 | C7.20 commit on origin | Auto | DONE | — | `cff9a3b` main=origin/main; densify visibility + UrlCard fav/pin/duplicate. |
+| 2026-09-04 | GATE-0038 | Human-Decision | APPROVED | `C7.20-HG-NETWORK-SMOKE-2026-09-04` | Network paste + C7.21 plan approval (waves 1–5). |
+| 2026-09-04 | C7.21 commit-ready | Auto | DONE | `C7.21-COMMIT-READY-2026-09-04` | Waves 1–5 verified; docs synced; local commit. |
 | 2026-08-18 | GATE-0012 complete: responsive header/footer chrome alignment; zero lint, typecheck, Jest, and production build pass. Prisma CLI audit remains RISK-0016. |
 | 2026-08-18 | User accepted RISK-0016: retain Prisma 6.19.3; no forced downgrade or breaking upgrade. Gate 2 still needs EvalGate and human acceptance. |

@@ -61,6 +61,14 @@ export async function POST(request: NextRequest) {
     const updatedList = await updateList(listId, { urls: updatedUrls });
 
     // Get user for activity log (if available)
+    let activityPayload: {
+      id: string;
+      action: string;
+      details: unknown;
+      createdAt: string;
+      user: { id: string; email: string };
+    } | null = null;
+
     try {
       const user = await getCurrentUser();
       if (user) {
@@ -72,6 +80,22 @@ export async function POST(request: NextRequest) {
           broken: brokenCount,
           duration,
         });
+
+        activityPayload = {
+          id: activity.id,
+          action: activity.action,
+          details: activity.details,
+          createdAt: activity.createdAt.toISOString(),
+          user: activity.user
+            ? {
+                id: activity.user.id,
+                email: activity.user.email,
+              }
+            : {
+                id: user.id,
+                email: user.email,
+              },
+        };
 
         // Publish real-time update
         await publishMessage(CHANNELS.listUpdate(listId), {
@@ -89,19 +113,7 @@ export async function POST(request: NextRequest) {
           eventKey: `activity:${activity.id}`,
           action: "health_check_completed",
           timestamp: new Date().toISOString(),
-          activity: {
-            id: activity.id,
-            action: activity.action,
-            details: activity.details,
-            createdAt: activity.createdAt.toISOString(),
-            user: activity.user ? {
-              id: activity.user.id,
-              email: activity.user.email,
-            } : {
-              id: user.id,
-              email: user.email,
-            },
-          },
+          activity: activityPayload,
         });
       }
     } catch (_error) {
@@ -119,7 +131,8 @@ export async function POST(request: NextRequest) {
         broken: brokenCount,
       },
       duration,
-      list: updatedList, // Return updated list for immediate UI update
+      list: updatedList,
+      activity: activityPayload,
     });
   } catch (error) {
     const message =

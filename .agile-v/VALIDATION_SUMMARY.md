@@ -622,3 +622,16 @@ Gate 2: BLOCKED — RISK-0016 is accepted; `EVAL_RESULTS.md` PASS/WAIVED evidenc
 | Duplicate | AlertDialog + pending; rethrow on error | PASS | Dialog stays open on failure. |
 | Validation | `tsc`; eslint; Jest related 33; `build`; verify-deep | PASS WITH WARNINGS | Optional flag-only unit test deferred. |
 | Browser | Network smoke + UrlCard | PENDING USER | TASK-0039; reported add/archive/scroll bugs tracked in STATE. |
+
+## 2026-09-04 — C7.21 Network-smoke fixes (waves 1–5)
+
+| Scope | Command / evidence | Result | Notes |
+|---|---|---|---|
+| W1 fav/pin/dup | densify-before-await; `flagUpdateInFlight`; SSE cancel; `skipUnified` | PASS | e2e `urlcard-flags` |
+| W2 reorder | `toReorderUrlItems`; `!ok` rollback; unified densify; healthLastStatus 0 omit | PASS | e2e API strip 400→200; unit sanitization |
+| W3 Activity FIFO | `ACTIVITY_FEED_LIMIT=20`; slice; DB prune; prune script | PASS | e2e badge ≤20 |
+| W4 jobs | `{ list, activity }` densify + `skipUnified` | PASS | e2e health updates ≤1 |
+| W5 metadata | `metadataBatchInFlight` Map | PASS | e2e ≤1 metadata batch |
+| Harness | `allowedDevOrigins`; `E2E_ALLOW_SHARED_DB`; playwright env typing | PASS | demo DB only |
+| Validation | lint 0; `tsc`; Jest related 37; e2e 7; `build`; verify-deep | PASS | Commit-ready code+docs |
+| Deploy | push / prod re-smoke | PENDING USER | Parked: Add URL https, archive, fast-scroll |
