@@ -73,5 +73,7 @@
 | 2026-09-04 | C7.20 commit on origin | Auto | DONE | — | `cff9a3b` main=origin/main; densify visibility + UrlCard fav/pin/duplicate. |
 | 2026-09-04 | GATE-0038 | Human-Decision | APPROVED | `C7.20-HG-NETWORK-SMOKE-2026-09-04` | Network paste + C7.21 plan approval (waves 1–5). |
 | 2026-09-04 | C7.21 commit-ready | Auto | DONE | `C7.21-COMMIT-READY-2026-09-04` | Waves 1–5 verified; docs synced; local commit. |
+| 2026-09-04 | GATE-0039 | Human-Decision | APPROVED | `C7.22-HG1-REFRESH-HANG-2026-09-04` | User approved C7.22 refresh hang + Network polish plan. |
+| 2026-09-04 | C7.22 commit-ready | Auto | DONE | `C7.22-COMMIT-READY-2026-09-04` | Waves 1–5 verified; docs synced; local commit. Parked UrlCard bugs for tomorrow’s prod smoke. |
 | 2026-08-18 | GATE-0012 complete: responsive header/footer chrome alignment; zero lint, typecheck, Jest, and production build pass. Prisma CLI audit remains RISK-0016. |
 | 2026-08-18 | User accepted RISK-0016: retain Prisma 6.19.3; no forced downgrade or breaking upgrade. Gate 2 still needs EvalGate and human acceptance. |

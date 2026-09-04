@@ -382,7 +382,7 @@ export function ActivityFeed({
         hue="sky"
         title="Activity Feed"
         badge={<SectionCountBadge count={activities.length} />}
-        subtitle="You & your collaborators' live activity"
+        subtitle={`Latest ${ACTIVITY_FEED_LIMIT} events · you & collaborators`}
         collapsible
         expanded={isExpanded}
         onToggle={() => setIsExpanded((expanded) => !expanded)}

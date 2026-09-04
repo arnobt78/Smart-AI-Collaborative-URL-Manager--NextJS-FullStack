@@ -7,7 +7,7 @@ import {
   invalidateMutationImpact,
   type MutationImpact,
 } from "@/utils/queryInvalidation";
-import { markUnifiedEventProcessed, beginLocalFlagMutation, endLocalFlagMutation } from "@/lib/sse-unified-dedup";
+import { markUnifiedEventProcessed, beginLocalFlagMutation } from "@/lib/sse-unified-dedup";
 import { listQueryKeys } from "@/lib/query-keys";
 import { sliceActivityFeed } from "@/lib/activity-feed-limit";
 import { toReorderUrlItems } from "@/lib/reorder-url-payload";
@@ -1049,9 +1049,8 @@ async function updateUrlInListInner(
     error.set(err instanceof Error ? err.message : "Failed to update list");
     throw err;
   } finally {
-    if (flagOnly) {
-      endLocalFlagMutation();
-    }
+    // Keep beginLocalFlagMutation window (~5s) so late SSE cannot refetch stale flags.
+    // Clearing immediately caused occasional updates?activityLimit=20 after pin.
     if (!flagOnly) {
       isLoading.set(false);
     }

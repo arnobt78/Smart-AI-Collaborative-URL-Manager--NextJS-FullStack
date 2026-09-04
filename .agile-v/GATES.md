@@ -408,6 +408,20 @@ Implementation is locally verified. Production check remains with TASK-0039. Gat
 
 ---
 
+## GATE-0039 — Human Gate 1 (C7.22 refresh hang + Network polish)
+
+| Field | Value |
+|-------|-------|
+| Type | Human-Decision |
+| Status | **APPROVED / COMPLETE 2026-09-04** |
+| Checkpoint | `C7.22-HG1-REFRESH-HANG-2026-09-04` → `C7.22-COMMIT-READY-2026-09-04` |
+| Evidence | TASK-0058; DEC-0060; plan `c7.22_refresh_hang_fixes`; lint/tsc/jest/e2e/build + verify-deep PASS |
+| Required human action | Completed — user approved C7.22 plan + commit-ready after verify-deep. |
+| Scope | Refresh-metadata hang/toast; activity guard; click densify; pin SSE window; Saving toasts; Activity FIFO subtitle. Parked OOS unchanged. |
+| Resume condition | Push/deploy on request; prod Network re-smoke tomorrow; then parked UrlCard bugs as new gate. |
+
+---
+
 ## GATE-0002 — Human Gate 2 (release / acceptance)
 
 | Field | Value |

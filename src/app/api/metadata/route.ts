@@ -495,6 +495,72 @@ export async function GET(request: Request) {
       return {};
     };
 
+    // Improved description extraction (defined early so lite jobs can skip image work)
+    const getDescription = (): string | null => {
+      const jsonLdDesc = getJsonLdData();
+      if (jsonLdDesc.description) {
+        const clean = jsonLdDesc.description.trim();
+        if (clean && clean.length > 0) return clean;
+      }
+
+      const ogDesc = getMetaContent("og:description");
+      if (ogDesc) {
+        const clean = ogDesc.trim();
+        if (clean && clean.length > 0) return clean;
+      }
+
+      const twitterDesc = getMetaContent("twitter:description");
+      if (twitterDesc) {
+        const clean = twitterDesc.trim();
+        if (clean && clean.length > 0) return clean;
+      }
+
+      const metaDesc = getMetaContent("description");
+      if (metaDesc) {
+        const clean = metaDesc.trim();
+        if (clean && clean.length > 0) return clean;
+      }
+
+      const nameDescMatch =
+        html.match(
+          /<meta[^>]*name=["']description["'][^>]*content=["']([^"']+)["']/i
+        ) ||
+        html.match(
+          /<meta[^>]*content=["']([^"']+)["'][^>]*name=["']description["']/i
+        );
+      if (nameDescMatch && nameDescMatch[1]) {
+        const clean = nameDescMatch[1].trim();
+        if (clean && clean.length > 0) return clean;
+      }
+
+      const pMatch = html.match(/<p[^>]*>[\s\S]*?([^<]{50,300})[\s\S]*?<\/p>/i);
+      if (pMatch && pMatch[1]) {
+        const clean = pMatch[1]
+          .trim()
+          .replace(/\s+/g, " ")
+          .replace(/&nbsp;/g, " ");
+        if (clean && clean.length > 50) {
+          return clean.substring(0, 200) + (clean.length > 200 ? "..." : "");
+        }
+      }
+
+      return null;
+    };
+
+    // Job refresh only needs title/description — skip Cloudinary / image HEADs
+    if (searchParams.get("lite") === "1") {
+      return NextResponse.json({
+        title: getTitle(),
+        description: getDescription(),
+        image: null,
+        favicon: null,
+        siteName:
+          getMetaContent("og:site_name") ||
+          getMetaContent("application-name") ||
+          new URL(url).hostname,
+      });
+    }
+
     // Get primary image from meta tags (improved extraction)
     // First try JSON-LD structured data
     const jsonLd = getJsonLdData();
@@ -681,65 +747,6 @@ export async function GET(request: Request) {
         }
       }
     }
-
-    // Improved description extraction
-    const getDescription = (): string | null => {
-      // Try JSON-LD structured data first
-      const jsonLd = getJsonLdData();
-      if (jsonLd.description) {
-        const clean = jsonLd.description.trim();
-        if (clean && clean.length > 0) return clean;
-      }
-
-      // Try Open Graph description
-      const ogDesc = getMetaContent("og:description");
-      if (ogDesc) {
-        const clean = ogDesc.trim();
-        if (clean && clean.length > 0) return clean;
-      }
-
-      // Try Twitter description
-      const twitterDesc = getMetaContent("twitter:description");
-      if (twitterDesc) {
-        const clean = twitterDesc.trim();
-        if (clean && clean.length > 0) return clean;
-      }
-
-      // Try standard meta description
-      const metaDesc = getMetaContent("description");
-      if (metaDesc) {
-        const clean = metaDesc.trim();
-        if (clean && clean.length > 0) return clean;
-      }
-
-      // Try meta name="description"
-      const nameDescMatch =
-        html.match(
-          /<meta[^>]*name=["']description["'][^>]*content=["']([^"']+)["']/i
-        ) ||
-        html.match(
-          /<meta[^>]*content=["']([^"']+)["'][^>]*name=["']description["']/i
-        );
-      if (nameDescMatch && nameDescMatch[1]) {
-        const clean = nameDescMatch[1].trim();
-        if (clean && clean.length > 0) return clean;
-      }
-
-      // Try to find first meaningful paragraph (<p> tag)
-      const pMatch = html.match(/<p[^>]*>[\s\S]*?([^<]{50,300})[\s\S]*?<\/p>/i);
-      if (pMatch && pMatch[1]) {
-        const clean = pMatch[1]
-          .trim()
-          .replace(/\s+/g, " ")
-          .replace(/&nbsp;/g, " ");
-        if (clean && clean.length > 50) {
-          // Return first 200 characters
-          return clean.substring(0, 200) + (clean.length > 200 ? "..." : "");
-        }
-      }
-
-      return null;
-    };
 
     // Optimize images using Cloudinary
     // Use upload method (like hotel-booking) instead of fetch URLs

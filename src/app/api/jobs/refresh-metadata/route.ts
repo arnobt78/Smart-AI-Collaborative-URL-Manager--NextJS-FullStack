@@ -7,6 +7,11 @@ import { getCurrentUser } from "@/lib/auth";
 import { isAuthorizedManualListJob } from "@/lib/jobs/authorization";
 import { jobListSchema, parseJsonBody } from "@/lib/api-validation";
 
+/** Vercel / serverless ceiling; per-URL abort is shorter so the handler can still return JSON. */
+export const maxDuration = 60;
+
+const METADATA_FETCH_TIMEOUT_MS = 12_000;
+
 /**
  * POST /api/jobs/refresh-metadata
  * Refresh metadata for URLs in a specific list
@@ -48,11 +53,12 @@ export async function POST(request: NextRequest) {
       const batch = urls.slice(i, i + concurrency);
       const batchPromises = batch.map(async (urlItem) => {
         try {
-          // Fetch metadata using the metadata API
+          // Lite = title/description only (job does not persist images)
           const baseUrl =
             process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
           const metadataResponse = await fetch(
-            `${baseUrl}/api/metadata?url=${encodeURIComponent(urlItem.url)}`
+            `${baseUrl}/api/metadata?url=${encodeURIComponent(urlItem.url)}&lite=1`,
+            { signal: AbortSignal.timeout(METADATA_FETCH_TIMEOUT_MS) },
           );
 
           if (!metadataResponse.ok) {

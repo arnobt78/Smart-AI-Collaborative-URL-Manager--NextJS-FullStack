@@ -635,3 +635,14 @@ Gate 2: BLOCKED — RISK-0016 is accepted; `EVAL_RESULTS.md` PASS/WAIVED evidenc
 | Harness | `allowedDevOrigins`; `E2E_ALLOW_SHARED_DB`; playwright env typing | PASS | demo DB only |
 | Validation | lint 0; `tsc`; Jest related 37; e2e 7; `build`; verify-deep | PASS | Commit-ready code+docs |
 | Deploy | push / prod re-smoke | PENDING USER | Parked: Add URL https, archive, fast-scroll |
+
+## 2026-09-04 — C7.22 refresh hang + Network polish (waves 1–5)
+
+| Scope | Command / evidence | Result | Notes |
+|---|---|---|---|
+| W1 refresh hang | `lite=1`; job 12s/url abort; `maxDuration=60`; ListPage 55s + settleToast | PASS | e2e `c722-refresh-metadata` toast clears |
+| W2 activity guard | drag dispatch/prepend/mark only if id+email+slug | PASS | contracts + UrlList |
+| W3 click densify | `markUnifiedEventProcessed(click:…)`; analytics `skipUnified` | PASS | queryInvalidation tests |
+| W4 polish | pin SSE window; Saving/Reordering toasts; Activity FIFO subtitle | PASS | e2e subtitle Latest 20 |
+| Validation | lint 0; `tsc`; Jest c722+invalidation; e2e c722; prior build; verify-deep | PASS | Commit-ready code+docs |
+| Deploy | push / prod re-smoke | PENDING USER | User tests tomorrow; parked UrlCard bugs |

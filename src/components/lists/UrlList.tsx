@@ -187,7 +187,7 @@ function UrlCardWrapper({
 export function UrlList() {
   const list = useStore(currentList);
   const queryClient = useQueryClient();
-  const { toast } = useToast();
+  const { toast, updateToast } = useToast();
   const permissions = useListPermissions(); // Get permissions for current list and user
   const [newUrl, setNewUrl] = useState("");
 
@@ -1009,6 +1009,9 @@ export function UrlList() {
               (cached: typeof previousUnified) =>
                 cached?.list ? { ...cached, list: updatedListData } : cached,
             );
+            markUnifiedEventProcessed(
+              `click:${current.id}:${urlId}:${newClickCount}`,
+            );
           }
         }
         if (current.slug) {
@@ -1017,6 +1020,7 @@ export function UrlList() {
             "analytics",
             current.slug,
             current.id,
+            { skipUnified: true },
           );
         }
       } else {
@@ -1226,22 +1230,35 @@ export function UrlList() {
 
     const nextFavorite = !urlToToggle.isFavorite;
     const urlTitle = urlToToggle.title || urlToToggle.url || "URL";
+    const savingId = toast({
+      title: "Saving…",
+      description: nextFavorite
+        ? `Adding "${urlTitle}" to favorites…`
+        : `Removing "${urlTitle}" from favorites…`,
+      variant: "info",
+      loading: true,
+      duration: 0,
+    });
     try {
       // The store owns the snapshot and synchronous optimistic commit.
       await updateUrlInList(id, { isFavorite: nextFavorite });
-      toast({
+      updateToast(savingId, {
         title: nextFavorite ? "Added to favorites" : "Removed from favorites",
         description: nextFavorite
           ? `"${urlTitle}" is now in your favorites.`
           : `"${urlTitle}" was removed from favorites.`,
         variant: "success",
+        loading: false,
+        duration: 5000,
       });
     } catch (err) {
-      toast({
+      updateToast(savingId, {
         title: "Favorite update failed",
         description:
           err instanceof Error ? err.message : "Failed to update favorite",
         variant: "error",
+        loading: false,
+        duration: 5000,
       });
     } finally {
       setTimeout(() => {
@@ -1378,23 +1395,36 @@ export function UrlList() {
     const nextPinned = !isCurrentlyPinned;
     const urlTitle = urlToPin.title || urlToPin.url || "URL";
 
+    const savingId = toast({
+      title: "Saving…",
+      description: nextPinned
+        ? `Pinning "${urlTitle}" to the top…`
+        : `Unpinning "${urlTitle}"…`,
+      variant: "info",
+      loading: true,
+      duration: 0,
+    });
     // Update the URL in the list
     try {
       // The store owns the snapshot and synchronous optimistic commit.
       await updateUrlInList(id, { isPinned: nextPinned });
-      toast({
+      updateToast(savingId, {
         title: nextPinned ? "URL Pinned" : "URL Unpinned",
         description: nextPinned
           ? `"${urlTitle}" has been pinned to the top.`
           : `"${urlTitle}" has been unpinned.`,
         variant: "success",
+        loading: false,
+        duration: 5000,
       });
     } catch (err) {
-      toast({
+      updateToast(savingId, {
         title: "Pin update failed",
         description:
           err instanceof Error ? err.message : "Failed to update pin",
         variant: "error",
+        loading: false,
+        duration: 5000,
       });
     } finally {
       setTimeout(() => {
@@ -1533,6 +1563,13 @@ export function UrlList() {
       // Use unified PATCH endpoint for reorder (same pattern as other URL actions)
       // CRITICAL: Always use the preserved order from ref, not from store after API response
 
+      const reorderToastId = toast({
+        title: "Reordering…",
+        description: "Saving new URL order…",
+        variant: "info",
+        loading: true,
+        duration: 0,
+      });
       try {
         const response = await fetch(`/api/lists/${current.id}/urls`, {
           method: "PATCH",
@@ -1548,6 +1585,13 @@ export function UrlList() {
           }),
         });
         if (response.ok) {
+          updateToast(reorderToastId, {
+            title: "Order saved",
+            description: "URL order updated.",
+            variant: "success",
+            loading: false,
+            duration: 3000,
+          });
           const { list, activity: activityData } = await response.json();
 
           // CRITICAL: Always use the preserved order from ref (survives re-renders)
@@ -1604,8 +1648,12 @@ export function UrlList() {
           // The store ensures other parts of the app see the updated order
           // The key increment forces SortableContext to remount with new items
 
-          // Dispatch activity-added event for optimistic feed update (no redundant fetch)
-          if (activityData) {
+          // Dispatch + densify only when activity is fully formed (agent-review / SSE mark)
+          if (
+            activityData?.id &&
+            activityData.user?.email &&
+            current.slug
+          ) {
             window.dispatchEvent(
               new CustomEvent("activity-added", {
                 detail: {
@@ -1620,16 +1668,14 @@ export function UrlList() {
                 },
               }),
             );
-            if (current.slug && activityData.id && activityData.user?.email) {
-              prependUnifiedActivity(queryClient, current.slug, {
-                id: activityData.id,
-                action: activityData.action,
-                details: activityData.details ?? null,
-                createdAt: activityData.createdAt,
-                user: activityData.user,
-              });
-              markUnifiedEventProcessed(`activity:${activityData.id}`);
-            }
+            prependUnifiedActivity(queryClient, current.slug, {
+              id: activityData.id,
+              action: activityData.action,
+              details: activityData.details ?? null,
+              createdAt: activityData.createdAt,
+              user: activityData.user,
+            });
+            markUnifiedEventProcessed(`activity:${activityData.id}`);
           }
 
           // Invalidate non-unified impacts; skip unified (densified + SSE-marked)
@@ -1673,11 +1719,25 @@ export function UrlList() {
             }
           }, 60000); // Keep for 60 seconds to survive Fast Refresh cycles
         } else {
+          updateToast(reorderToastId, {
+            title: "Reorder failed",
+            description: "Could not save the new order.",
+            variant: "error",
+            loading: false,
+            duration: 5000,
+          });
           currentList.set(current);
           finalDragOrderRef.current = null;
           if (current.id) clearDragOrderCache(current.id);
         }
       } catch (_err) {
+        updateToast(reorderToastId, {
+          title: "Reorder failed",
+          description: "Could not save the new order.",
+          variant: "error",
+          loading: false,
+          duration: 5000,
+        });
         // Restore the initiating order synchronously; the impact gateway reconciles once.
         currentList.set(current);
         finalDragOrderRef.current = null; // Clear ref on error
@@ -1779,6 +1839,13 @@ export function UrlList() {
 
       // CRITICAL: Log what we're sending to the API
       const urlsToSend = finalDragOrderRef.current;
+      const reorderToastId = toast({
+        title: "Reordering…",
+        description: "Saving new URL order…",
+        variant: "info",
+        loading: true,
+        duration: 0,
+      });
       try {
         const response = await fetch(`/api/lists/${current.id}/urls`, {
           method: "PATCH",
@@ -1791,6 +1858,13 @@ export function UrlList() {
           }),
         });
         if (response.ok) {
+          updateToast(reorderToastId, {
+            title: "Order saved",
+            description: "URL order updated.",
+            variant: "success",
+            loading: false,
+            duration: 3000,
+          });
           const { list, activity: activityData } = await response.json();
 
           // CRITICAL: Always use the preserved order from ref (survives re-renders)
@@ -1856,8 +1930,12 @@ export function UrlList() {
           // The ref ensures urlsToUse memo uses preserved order during drag
           // The store ensures the final order is persisted after drag completes
 
-          // Dispatch activity-added event for optimistic feed update (no redundant fetch)
-          if (activityData) {
+          // Dispatch + densify only when activity is fully formed (agent-review / SSE mark)
+          if (
+            activityData?.id &&
+            activityData.user?.email &&
+            current.slug
+          ) {
             window.dispatchEvent(
               new CustomEvent("activity-added", {
                 detail: {
@@ -1872,16 +1950,14 @@ export function UrlList() {
                 },
               }),
             );
-            if (current.slug && activityData.id && activityData.user?.email) {
-              prependUnifiedActivity(queryClient, current.slug, {
-                id: activityData.id,
-                action: activityData.action,
-                details: activityData.details ?? null,
-                createdAt: activityData.createdAt,
-                user: activityData.user,
-              });
-              markUnifiedEventProcessed(`activity:${activityData.id}`);
-            }
+            prependUnifiedActivity(queryClient, current.slug, {
+              id: activityData.id,
+              action: activityData.action,
+              details: activityData.details ?? null,
+              createdAt: activityData.createdAt,
+              user: activityData.user,
+            });
+            markUnifiedEventProcessed(`activity:${activityData.id}`);
           }
 
           // Invalidate non-unified impacts; skip unified (densified + SSE-marked)
@@ -1925,11 +2001,25 @@ export function UrlList() {
             }
           }, 60000); // Keep for 60 seconds to survive Fast Refresh cycles
         } else {
+          updateToast(reorderToastId, {
+            title: "Reorder failed",
+            description: "Could not save the new order.",
+            variant: "error",
+            loading: false,
+            duration: 5000,
+          });
           currentList.set(current);
           finalDragOrderRef.current = null;
           if (current.id) clearDragOrderCache(current.id);
         }
       } catch (_err) {
+        updateToast(reorderToastId, {
+          title: "Reorder failed",
+          description: "Could not save the new order.",
+          variant: "error",
+          loading: false,
+          duration: 5000,
+        });
         // Restore the initiating order synchronously; the impact gateway reconciles once.
         currentList.set(current);
         finalDragOrderRef.current = null; // Clear ref on error

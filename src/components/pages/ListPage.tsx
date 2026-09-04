@@ -691,13 +691,28 @@ export default function ListPageClient() {
                 loading: true,
                 duration: 0,
               });
+              let toastSettled = false;
+              const settleToast = (next: {
+                title: string;
+                description: string;
+                variant: "success" | "error" | "info";
+              }) => {
+                if (toastSettled) return;
+                toastSettled = true;
+                updateToast(toastId, {
+                  ...next,
+                  loading: false,
+                  duration: 5000,
+                });
+              };
               try {
                 const response = await fetch("/api/jobs/refresh-metadata", {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
                   body: JSON.stringify({ listId: list.id }),
+                  signal: AbortSignal.timeout(55_000),
                 });
-                const data = await response.json();
+                const data = await response.json().catch(() => ({}));
                 if (response.ok) {
                   if (data.list) {
                     flushSync(() => {
@@ -754,31 +769,34 @@ export default function ListPageClient() {
                     );
                   }
                   const refreshed = data.refreshed ?? urlCount;
-                  updateToast(toastId, {
+                  settleToast({
                     title: "Metadata Refresh Complete!",
                     description: `Refreshed metadata for ${refreshed} URL${refreshed === 1 ? "" : "s"} using improved extractor.`,
                     variant: "success",
-                    loading: false,
-                    duration: 5000,
                   });
                 } else {
-                  updateToast(toastId, {
+                  settleToast({
                     title: "Refresh Failed",
                     description: data.error || "Failed to refresh metadata",
                     variant: "error",
-                    loading: false,
-                    duration: 5000,
                   });
                 }
-              } catch {
-                updateToast(toastId, {
-                  title: "Error",
-                  description: "An unexpected error occurred",
+              } catch (error) {
+                const timedOut =
+                  error instanceof DOMException && error.name === "TimeoutError";
+                settleToast({
+                  title: timedOut ? "Refresh Timed Out" : "Error",
+                  description: timedOut
+                    ? "Metadata refresh took too long. Try again or refresh fewer URLs."
+                    : "An unexpected error occurred",
                   variant: "error",
-                  loading: false,
-                  duration: 5000,
                 });
               } finally {
+                settleToast({
+                  title: "Error",
+                  description: "Metadata refresh ended unexpectedly",
+                  variant: "error",
+                });
                 setIsRefreshingMetadata(false);
               }
             }}
@@ -793,13 +811,28 @@ export default function ListPageClient() {
                 loading: true,
                 duration: 0,
               });
+              let toastSettled = false;
+              const settleToast = (next: {
+                title: string;
+                description: string;
+                variant: "success" | "error" | "info";
+              }) => {
+                if (toastSettled) return;
+                toastSettled = true;
+                updateToast(toastId, {
+                  ...next,
+                  loading: false,
+                  duration: 5000,
+                });
+              };
               try {
                 const response = await fetch("/api/jobs/check-urls", {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
                   body: JSON.stringify({ listId: list.id }),
+                  signal: AbortSignal.timeout(55_000),
                 });
-                const data = await response.json();
+                const data = await response.json().catch(() => ({}));
                 if (response.ok) {
                   if (data.list) {
                     flushSync(() => {
@@ -859,31 +892,34 @@ export default function ListPageClient() {
                   const healthy = data.results?.healthy ?? 0;
                   const warning = data.results?.warning ?? 0;
                   const broken = data.results?.broken ?? 0;
-                  updateToast(toastId, {
+                  settleToast({
                     title: "Health Check Complete!",
                     description: `Checked ${checked} URL${checked === 1 ? "" : "s"}. Healthy: ${healthy}, Warning: ${warning}, Broken: ${broken}`,
                     variant: "success",
-                    loading: false,
-                    duration: 5000,
                   });
                 } else {
-                  updateToast(toastId, {
+                  settleToast({
                     title: "Health Check Failed",
                     description: data.error || "Failed to check URL health",
                     variant: "error",
-                    loading: false,
-                    duration: 5000,
                   });
                 }
-              } catch {
-                updateToast(toastId, {
-                  title: "Error",
-                  description: "An unexpected error occurred",
+              } catch (error) {
+                const timedOut =
+                  error instanceof DOMException && error.name === "TimeoutError";
+                settleToast({
+                  title: timedOut ? "Health Check Timed Out" : "Error",
+                  description: timedOut
+                    ? "Health check took too long. Try again."
+                    : "An unexpected error occurred",
                   variant: "error",
-                  loading: false,
-                  duration: 5000,
                 });
               } finally {
+                settleToast({
+                  title: "Error",
+                  description: "Health check ended unexpectedly",
+                  variant: "error",
+                });
                 setIsCheckingHealth(false);
               }
             }}

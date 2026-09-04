@@ -30,7 +30,7 @@ Next 16 URL bookmark manager. Demo: https://daily-urlist.vercel.app/
 - UI controls: `lib/ui/control-styles.ts` provides shared 48px field/trigger geometry; Auth uses CSS reveal with reduced-motion support
 - Home motion: `ui/ScrollReveal.tsx` provides replayable CSS/observer reveal plus subtle parallax; shared controls use `h-10 min-h-10` and text-sm placeholders
 - Home wave: hero copy lines and CTAs are individual reveal units, staggered in order rather than animated as a grouped row
-- Data sync: SSR prefetch/dehydrate (C6.7) + optimistic `currentList` + `invalidateMutationImpact` + C7.1 `densifyBrowsePublicLists` / `dropUnifiedListCache` (C7.9 `{ list: null }` tombstone) + SSE densify/drop + C7.21 densify-before-await / `skipUnified` / Activity FIFO 20 / jobs densify / metadata batch Map / schema-safe reorder.
+- Data sync: SSR prefetch/dehydrate (C6.7) + optimistic `currentList` + `invalidateMutationImpact` + C7.1 `densifyBrowsePublicLists` / `dropUnifiedListCache` (C7.9 `{ list: null }` tombstone) + SSE densify/drop + C7.21 densify-before-await / `skipUnified` / Activity FIFO 20 / jobs densify / metadata batch Map / schema-safe reorder + C7.22 lite metadata timeouts / click mark / analytics skipUnified / pin SSE window.
 - Soft-nav: warm full-parity chrome (C7.0); list-detail seeds thin unified from Lists (C7.9–C7.15 UrlList + Copy parity + `ListDetailJobsMenu` + Radix glass menus + share row in header stack + warm history); cold one continuous detail skeleton; browse densify (C7.1); rare Links `prefetch={false}` (C7.2); api-docs spinner shell; api-status `ApiStatusChrome` + header Refresh/refreshing… (C7.5–C7.6).
 - Menus: `ui/dropdown-menu.tsx` (Radix + `UI_GLASS_MENU_*`, `modal={false}`, `z-[900]`) for list jobs, collaborator …, profile, Auth guest, bulk import/export; `UI_ICON_MENU_TRIGGER` h-10; no blue focus ring on menu panel/items.
 - Cards/UrlCard: `CARD_STACK` on MyLists/Browse/detail headers; UrlCard single `CARD_PAD` + note separator + local `URL_META_CHIP` tones.
@@ -45,8 +45,8 @@ Next 16 URL bookmark manager. Demo: https://daily-urlist.vercel.app/
 - Stable data safety: Browse/Lists/Insights/API Status/detail keep static chrome with delayed local cold placeholders; unified list batches comment counts; bulk import reconciles without reload; metadata documents/images/favicons accept public HTTP(S) destinations only after DNS/IP and redirect checks.
 - List access: `lib/list-route-access.ts` verifies a persisted session before resolving list slug/ID; public lists are visible to every authenticated account, while private reads require ownership/collaboration; PATCH content is owner/editor, visibility and deletion owner-only, and vector sync/metadata refresh require edit permission. Unified GET normalization is response-only and shared with server hydration, preserving comment and collaborator cache data.
 - Comment badges: create increments, delete decrements, edit is count-neutral, and failed mutations restore only their own optimistic delta.
-- Manual: TASK-0039 Network intake DONE; C7.21 local verified — prod re-smoke after deploy.
-- Audit: lint/tsc/Jest/build/e2e C7.21 pass; RISK-0016 closed (deepmerge override); Gate 2 needs EvalGate.
+- Manual: TASK-0039 Network intake DONE; C7.21–C7.22 local verified — prod re-smoke after deploy (user tomorrow).
+- Audit: lint/tsc/Jest/build/e2e C7.22 pass; RISK-0016 closed (deepmerge override); Gate 2 needs EvalGate.
 
 ## Versions
 

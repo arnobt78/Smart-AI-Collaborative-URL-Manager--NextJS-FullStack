@@ -459,7 +459,7 @@ export function invalidateMutationImpact(
       invalidateActionQueries(queryClient, listSlug, options);
       return;
     case "analytics":
-      invalidateAnalyticsQueries(queryClient, listSlug);
+      invalidateAnalyticsQueries(queryClient, listSlug, options);
       return;
     case "list":
       invalidateListMutationQueries(queryClient, listSlug, listId);
@@ -496,8 +496,12 @@ function invalidateActionQueries(
 }
 
 /** REQ-0026: Clicks affect the list card and cached business insight KPIs. */
-function invalidateAnalyticsQueries(queryClient: QueryClient, listSlug: string): void {
-  invalidateActionQueries(queryClient, listSlug);
+function invalidateAnalyticsQueries(
+  queryClient: QueryClient,
+  listSlug: string,
+  options?: { skipUnified?: boolean },
+): void {
+  invalidateActionQueries(queryClient, listSlug, options);
   invalidateAllBusinessInsights(queryClient);
 }
 

@@ -839,3 +839,16 @@ Append-only. Newest entries at bottom.
 | Rationale | Prod Network paste proved fav/pin flicker, drag 400, Activity badge >30, jobs updates spam, dual metadata — densify/SSE races and Zod strict payloads, not cold latency. |
 | Linked REQs | TASK-0039; TASK-0041; GATE-0038 |
 | Status | Implemented and validated 2026-09-04. |
+
+---
+
+## DEC-0060 — C7.22 refresh-metadata hang + Network polish
+
+| Field | Value |
+|---|---|
+| Timestamp | 2026-09-04 |
+| Agent | Cursor |
+| Decision | Implement C7.22 waves 1–5: (1) job `lite=1` metadata + per-URL 12s abort + `maxDuration=60` + client 55s abort + toast always settles; (2) drag activity dispatch/prepend/mark only with full `id`+email+slug guard; (3) click markUnified + analytics `skipUnified`; (4) keep pin SSE cancel window (no early endLocalFlagMutation) + Saving/Reordering toasts + Activity FIFO-20 subtitle. Park Add URL https / archive / fast-scroll. |
+| Rationale | Post–C7.21 prod smoke: refresh-metadata hung on untimed Cloudinary/DNS self-fetch while `duration:0` toast never cleared; agent-review activity path incomplete; click densify still double-`updates`; pin SSE window closed too early. |
+| Linked REQs | TASK-0058; GATE-0039 |
+| Status | Implemented and validated 2026-09-04. |

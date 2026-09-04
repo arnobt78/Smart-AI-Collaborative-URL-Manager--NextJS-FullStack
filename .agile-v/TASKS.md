@@ -232,6 +232,18 @@ RSC shells · densify/Zod/SHA/Next16
 **Out of scope:** latency; Add URL https 400; archive 400; fast-scroll empty card.
 **Validation:** lint 0 · tsc · Jest 37 related · e2e 7 · build PASS.
 
+### TASK-0058 — C7.22 refresh hang + Network polish (waves 1–5) — DONE
+
+1. Refresh-metadata/all: `&lite=1` + per-URL 12s `AbortSignal.timeout`; `maxDuration=60`; metadata lite early-return (skip Cloudinary/image).
+2. ListPage: 55s client abort; `settleToast` clears loading on every exit (refresh + health).
+3. UrlList drag: dispatch/prepend/mark only if `activityData.id && user.email && slug`.
+4. Click densify: `markUnifiedEventProcessed(click:…)` + analytics `{ skipUnified: true }`.
+5. Pin SSE window (no early `endLocalFlagMutation`); Saving/Reordering toasts; Activity subtitle `Latest ${ACTIVITY_FEED_LIMIT}`.
+
+**Dependencies:** GATE-0039 APPROVED; DEC-0060; C7.21 `6f75109`.
+**Out of scope:** parked Add URL https / archive / fast-scroll; absolute job latency.
+**Validation:** lint 0 · tsc · Jest c722 + invalidation · e2e c722 · build PASS · verify-deep PASS.
+
 ### TASK-0040 — C6.5 instant dialogs and confirmed overlays — DONE
 
 1. Stop `useListDialogRouteState` from using `useSearchParams` or writing `?dialog=` search params; keep hydrated open/close in React state plus `history.state` on the same href.

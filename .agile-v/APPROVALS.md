@@ -41,3 +41,5 @@ Append-only record of Human Gate decisions.
 | 2026-09-04 | GATE-0038 | PENDING | — | `C7.20-HG-NETWORK-SMOKE-2026-09-04` | Network-first Human-Verify for C7.20 `cff9a3b`; no coding until Network paste + C7.21 fix-plan approval. |
 | 2026-09-04 | GATE-0038 | APPROVED | User | `C7.20-HG-NETWORK-SMOKE-2026-09-04` | User pasted prod Network rows; classified expected/improve/bug; approved sequential C7.21 waves 1–5 (FIFO 20; latency OOS; parked Add URL/archive/fast-scroll). |
 | 2026-09-04 | GATE-0038 | SCOPE COMPLETE | Auto | `C7.21-COMMIT-READY-2026-09-04` | C7.21 waves verified PASS (lint/tsc/jest/e2e/build); commit-ready docs synced. |
+| 2026-09-04 | GATE-0039 | APPROVED | User | `C7.22-HG1-REFRESH-HANG-2026-09-04` | User approved C7.22 plan (refresh hang + Network polish waves 1–5); parked Add URL/archive/fast-scroll remain OOS. |
+| 2026-09-04 | GATE-0039 | SCOPE COMPLETE | Auto | `C7.22-COMMIT-READY-2026-09-04` | C7.22 verified PASS (lint/tsc/jest/e2e/build/verify-deep); commit-ready docs synced. |

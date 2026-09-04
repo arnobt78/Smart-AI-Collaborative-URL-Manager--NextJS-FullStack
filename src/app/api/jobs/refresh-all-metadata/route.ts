@@ -5,6 +5,10 @@ import type { UrlItem } from "@/stores/urlListStore";
 import { isAuthorizedInternalJob } from "@/lib/jobs/authorization";
 import { publishMessage, CHANNELS } from "@/lib/realtime/redis";
 
+export const maxDuration = 60;
+
+const METADATA_FETCH_TIMEOUT_MS = 12_000;
+
 /**
  * POST /api/jobs/refresh-all-metadata
  * Refresh metadata for URLs in all lists
@@ -45,9 +49,9 @@ export async function POST(request: NextRequest) {
           const batch = urls.slice(i, i + concurrency);
           const batchPromises = batch.map(async (urlItem) => {
             try {
-              // Fetch metadata using the metadata API
               const metadataResponse = await fetch(
-                `${baseUrl}/api/metadata?url=${encodeURIComponent(urlItem.url)}`
+                `${baseUrl}/api/metadata?url=${encodeURIComponent(urlItem.url)}&lite=1`,
+                { signal: AbortSignal.timeout(METADATA_FETCH_TIMEOUT_MS) },
               );
 
               if (!metadataResponse.ok) {

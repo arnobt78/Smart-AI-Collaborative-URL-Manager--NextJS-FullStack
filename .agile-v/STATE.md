@@ -1,20 +1,20 @@
 # STATE.md
 
-**C7.21 Network-smoke fixes (waves 1–5)** | 2026-09-04
+**C7.22 refresh-metadata hang + Network polish** | 2026-09-04
 
 ## Reconciled (repo = docs)
 
-- **C7.21 shipped (local, pending push/deploy):** fav/pin/duplicate densify + single-flight + SSE cancel; schema-safe reorder + unified densify + `!ok` rollback; Activity FIFO **20** (slice + DB prune + `scripts/prune-list-activities.ts`); jobs return `{ list, activity }` densify + `skipUnified`; metadata batch single-flight; health omit `healthLastStatus: 0`.
-- **GATE-0038 closed:** Network paste classified → C7.21 plan approved → verified PASS (lint/tsc/jest/e2e/build).
-- **C7.20 still on prod** until this commit is pushed/deployed (`cff9a3b`).
-- **Parked OOS:** Add URL `https://` 400; archive-url 400; UrlCard empty on fast scroll; cold PATCH/job latency.
+- **C7.22 shipped (local, pending push/deploy):** refresh-metadata/all `lite=1` + per-URL 12s abort + `maxDuration=60`; metadata early-return skip Cloudinary; ListPage 55s abort + toast always clears; drag activity guard (`id`+email+slug); click `markUnifiedEventProcessed` + analytics `skipUnified`; pin SSE window (no early `endLocalFlagMutation`); Saving/Reordering toasts; Activity subtitle FIFO-20.
+- **C7.21 still local** (`6f75109`) — push with C7.22 when requested.
+- **GATE-0039 closed:** C7.22 plan approved → verified PASS (lint/tsc/jest/e2e/build).
+- **Parked OOS (user confirms tomorrow):** Add URL `https://` 400; archive-url 400; UrlCard empty on fast scroll; cold latency.
 - **Stack:** Next 16.3.3 · React 19.2.8 · Node 24.x · Prisma 6.19.3.
 
 ## Human
 
 - HA-0001 Firewall (open)
-- **Next:** push/deploy when requested → prod Network re-smoke of C7.21 surfaces
-- Parked bugs remain for a follow-up slice after deploy acceptance
+- **Next:** push/deploy when requested → prod Network re-smoke (list detail / collab / Activity / collections / UrlCard) + timings paste
+- Parked UrlCard bugs + polish after prod evidence
 
 ## Backlog
 
@@ -24,16 +24,16 @@
 
 ## Current checkpoint
 
-- **Stage:** Stage 4 complete / commit-ready C7.21
+- **Stage:** Stage 4 complete / commit-ready C7.22
 - **Cycle:** C7
-- **Status:** Verified PASS; docs synced; local commit pending push
-- **Gate:** GATE-0038 APPROVED (Network + C7.21 waves)
-- **Trace:** DEC-0057; DEC-0058; DEC-0059; CR-0033; TASK-0039; TASK-0041
+- **Status:** Verified PASS; docs synced; local commit
+- **Gate:** GATE-0039 APPROVED (C7.22 waves)
+- **Trace:** DEC-0060; TASK-0058; GATE-0039; prior DEC-0059 / TASK-0041 / GATE-0038
 
 ## Next
 
 ```text
 1. Push when user requests (do not auto-push).
-2. Deploy → prod re-smoke fav/pin, drag reorder, Activity ≤20, jobs updates ≤1, single metadata.
-3. Queue parked: Add URL https 400, archive 400, fast-scroll empty card.
+2. Deploy → prod Network re-smoke refresh-metadata toast, Saving, Activity “Latest 20”, click/pin updates ≤1.
+3. Queue parked: Add URL https 400, archive 400, fast-scroll empty card (+ other bugs user reports).
 ```
