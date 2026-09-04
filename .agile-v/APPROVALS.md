@@ -45,3 +45,5 @@ Append-only record of Human Gate decisions.
 | 2026-09-04 | GATE-0039 | SCOPE COMPLETE | Auto | `C7.22-COMMIT-READY-2026-09-04` | C7.22 verified PASS (lint/tsc/jest/e2e/build/verify-deep); commit-ready docs synced. |
 | 2026-09-04 | GATE-0040 | APPROVED | User | `C7.23-HG1-URLCARD-PARKED-2026-09-04` | User approved C7.23 UrlCard parked bugs plan + archivedAt wipe fix. |
 | 2026-09-04 | GATE-0040 | SCOPE COMPLETE | Auto | `C7.23-COMMIT-READY-2026-09-04` | C7.23 verified PASS; commit-ready docs synced. |
+| 2026-09-04 | GATE-0041 | APPROVED | User | `C7.24-HG1-UI-POLISH-2026-09-04` | User approved C7.24 UI polish plan and implement. |
+| 2026-09-04 | GATE-0041 | SCOPE COMPLETE | Auto | `C7.24-COMMIT-READY-2026-09-04` | C7.24 verified PASS WITH WARNINGS; commit-ready docs synced. |

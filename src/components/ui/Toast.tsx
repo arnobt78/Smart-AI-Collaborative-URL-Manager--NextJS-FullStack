@@ -94,7 +94,8 @@ export function ToastComponent({ toast, onClose }: ToastProps) {
       role="status"
       aria-busy={toast.loading || undefined}
       className={cn(
-        "toast-slide-in group relative w-full max-w-md rounded-lg border bg-white/5 p-4 shadow-lg backdrop-blur-md",
+        "toast-slide-in group relative w-full max-w-md rounded-lg border p-4 shadow-lg",
+        // Solid tint only — avoid bg-white/5 + backdrop-blur stack (logout flash)
         variantStyles[variant],
       )}
     >

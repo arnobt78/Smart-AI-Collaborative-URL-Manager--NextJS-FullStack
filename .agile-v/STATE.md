@@ -1,19 +1,19 @@
 # STATE.md
 
-**C7.23 UrlCard parked bugs + archivedAt merge** | 2026-09-04
+**C7.24 UI polish + UrlCard-adjacent fixes** | 2026-09-04
 
 ## Reconciled (repo = docs)
 
-- **C7.23 shipped (local, pending push/deploy):** Add URL metadata sanitize + Zod nullish (fix 400); archive/restore `toReorderUrlItems` + server `mergeArchivedAtOnWrite` (fix 400 + sibling `archivedAt`); delete/edit clear RQ metadata only if URL unused + batch re-fetch; UrlCard image retry + viewport sticky-error reset.
-- **C7.22** still on prior commits (`340df49` + toast clarity).
-- **GATE-0040 closed:** C7.23 plan approved → verified PASS (lint/tsc/jest/e2e/build + archivedAt follow-up).
-- **Still OOS:** cold PATCH/job latency; Cloudinary destroy/refcount; list virtualization; HA-0001.
+- **C7.24 shipped (local, pending push/deploy):** toast enter soften; Dialog `titleAccessory` + Comments/Similar badges; Navbar pathname glow; Comments session email + Robohash + created/edited times + Cancel/Save gap; Edit title densify-all + RQ metadata title sync; Add reminder via `ReminderDateField`; Insights soft-nav warm `ActivityChart`; Popular section badges; Restore AlertDialog+pending; `data-url-id` scroll after pin/add/duplicate.
+- **C7.23** still on prior commit (`29b2fad`) — UrlCard parked bugs.
+- **GATE-0041 closed:** C7.24 plan approved → verified PASS WITH WARNINGS (soft-nav chart remount / scroll rAF timing non-blocking).
+- **Still OOS:** cold PATCH/job latency; Cloudinary destroy/refcount; list virtualization; HA-0001; comment `editedAt` DB column.
 - **Stack:** Next 16.3.3 · React 19.2.8 · Node 24.x · Prisma 6.19.3.
 
 ## Human
 
 - HA-0001 Firewall (open)
-- **Next:** push/deploy when requested → prod re-smoke Add URL, archive, duplicate delete images, fast scroll
+- **Next:** push/deploy when requested → prod smoke polish items (logout toast, nav glow, Comments, Edit title, Add reminder, Insights warm chart, archive/restore, scroll-to-card)
 
 ## Backlog
 
@@ -23,16 +23,16 @@
 
 ## Current checkpoint
 
-- **Stage:** Stage 4 complete / commit-ready C7.23
+- **Stage:** Stage 4 complete / commit-ready C7.24
 - **Cycle:** C7
-- **Status:** Verified PASS; docs synced; local commit
-- **Gate:** GATE-0040 APPROVED (C7.23 parked UrlCard bugs)
-- **Trace:** DEC-0061; TASK-0059; GATE-0040; prior DEC-0060 / TASK-0058 / GATE-0039
+- **Status:** Verified PASS WITH WARNINGS; docs synced; local commit
+- **Gate:** GATE-0041 APPROVED (C7.24 UI polish)
+- **Trace:** DEC-0062; TASK-0060; GATE-0041; prior DEC-0061 / TASK-0059 / GATE-0040
 
 ## Next
 
 ```text
 1. Push when user requests (do not auto-push).
-2. Deploy → prod re-smoke Add URL https, archive, dup-delete image, scroll cards.
+2. Deploy → prod smoke C7.24 polish surfaces.
 3. Latency / virtualization remain OOS.
 ```

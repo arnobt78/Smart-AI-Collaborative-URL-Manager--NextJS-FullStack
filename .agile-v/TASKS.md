@@ -256,6 +256,18 @@ RSC shells · densify/Zod/SHA/Next16
 **Out of scope:** latency; virtualization; Cloudinary destroy.
 **Validation:** lint 0 · tsc · Jest 11 · e2e 4 · build PASS · verify-deep PASS.
 
+### TASK-0060 — C7.24 UI polish + UrlCard-adjacent fixes — DONE
+
+1. Toast: remove conflicting `bg-white/5` + `backdrop-blur` on enter.
+2. Dialog `titleAccessory`; Comments + Similar `SectionCountBadge`; Navbar pathname glow + `aria-current`.
+3. Comments: session email (not `"You"`); UserAvatar; created/edited times with icons; Cancel/Save `gap-2`.
+4. Edit: `url.title || metadata?.title`; densify unified on all edits; patch RQ metadata title; `ReminderDateField` shared with Add.
+5. Insights soft-nav: warm activity → `ActivityChart`; Popular badges; Restore AlertDialog+pending; `data-url-id` + scroll after pin/add/duplicate.
+
+**Dependencies:** GATE-0041 APPROVED; DEC-0062; C7.23.
+**Out of scope:** latency; virtualization; Cloudinary destroy; `editedAt` column.
+**Validation:** lint 0 · tsc · Jest UrlAddForm · build PASS · verify-deep PASS WITH WARNINGS.
+
 ### TASK-0040 — C6.5 instant dialogs and confirmed overlays — DONE
 
 1. Stop `useListDialogRouteState` from using `useSearchParams` or writing `?dialog=` search params; keep hydrated open/close in React state plus `history.state` on the same href.

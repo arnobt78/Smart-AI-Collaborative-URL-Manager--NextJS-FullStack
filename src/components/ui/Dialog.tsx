@@ -1,7 +1,7 @@
 // REQ-0021: Shared dialog supports fixed or scrollable header chrome without duplicate form headings.
 "use client";
 
-import { useEffect, useId, useRef } from "react";
+import { useEffect, useId, useRef, type ReactNode } from "react";
 import ReactDOM from "react-dom";
 import { X } from "lucide-react";
 import { UI_ICON_CONTROL } from "@/lib/ui/control-styles";
@@ -15,7 +15,9 @@ interface DialogProps {
   onOpenChange: (open: boolean) => void;
   title: string;
   description?: string;
-  children: React.ReactNode;
+  /** Optional accessory beside the title (e.g. SectionCountBadge). */
+  titleAccessory?: ReactNode;
+  children: ReactNode;
   size?: DialogSize;
   pending?: boolean;
   className?: string;
@@ -37,6 +39,7 @@ export function Dialog({
   onOpenChange,
   title,
   description,
+  titleAccessory,
   children,
   size = "form",
   pending = false,
@@ -94,6 +97,7 @@ export function Dialog({
           <DialogHeader
             title={title}
             description={description}
+            titleAccessory={titleAccessory}
             titleId={titleId}
             descriptionId={descriptionId}
             pending={pending}
@@ -106,6 +110,7 @@ export function Dialog({
             <DialogHeader
               title={title}
               description={description}
+              titleAccessory={titleAccessory}
               titleId={titleId}
               descriptionId={descriptionId}
               pending={pending}
@@ -124,6 +129,7 @@ export function Dialog({
 interface DialogHeaderProps {
   title: string;
   description?: string;
+  titleAccessory?: ReactNode;
   titleId: string;
   descriptionId: string;
   pending: boolean;
@@ -134,6 +140,7 @@ interface DialogHeaderProps {
 function DialogHeader({
   title,
   description,
+  titleAccessory,
   titleId,
   descriptionId,
   pending,
@@ -143,12 +150,15 @@ function DialogHeader({
   return (
     <header className={cn(className)}>
       <div className="flex items-center justify-between gap-1">
-        <h2
-          id={titleId}
-          className="min-w-0 text-lg font-medium leading-tight text-white sm:text-xl"
-        >
-          {title}
-        </h2>
+        <div className="flex min-w-0 items-center gap-2">
+          <h2
+            id={titleId}
+            className="min-w-0 text-lg font-medium leading-tight text-white sm:text-xl"
+          >
+            {title}
+          </h2>
+          {titleAccessory}
+        </div>
         <button
           type="button"
           onClick={onClose}

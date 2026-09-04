@@ -865,3 +865,16 @@ Append-only. Newest entries at bottom.
 | Rationale | Prod evidence: metadata nulls failed createUrlSchema; archive posted commentCount/archivedAt; delete cleared shared url-metadata by URL string; imageError stuck after transient load failures. |
 | Linked REQs | TASK-0059; GATE-0040 |
 | Status | Implemented and validated 2026-09-04. |
+
+---
+
+## DEC-0062 — C7.24 UI polish + UrlCard-adjacent fixes
+
+| Field | Value |
+|---|---|
+| Timestamp | 2026-09-04 |
+| Agent | Cursor |
+| Decision | Ship C7.24 polish batch: toast enter soften; Dialog `titleAccessory` + Comments/Similar count badges; Navbar pathname active glow; Comments session email + Robohash + created/edited timestamps + Cancel/Save gap; Edit title densify-all + RQ metadata title patch; Add reminder via shared `ReminderDateField`; Insights soft-nav warm `ActivityChart`; Popular section badges; Restore Confirm+pending; scroll-to-card after pin/add/duplicate. Latency/virtualization/Cloudinary destroy/`editedAt` column remain OOS. |
+| Rationale | User screenshot/list polish after C7.23; approved plan `c7.24_ui_polish_batch`. |
+| Linked REQs | TASK-0060; GATE-0041 |
+| Status | Implemented and validated 2026-09-04. |

@@ -13,6 +13,7 @@ import type { UrlMetadata } from "@/utils/urlMetadata";
 import { saveQueryDataToLocalStorage } from "@/lib/react-query";
 import { UI_ICON_CONTROL } from "@/lib/ui/control-styles";
 import { parseUserEnteredUrl } from "@/lib/utils";
+import { ReminderDateField } from "@/components/lists/ReminderDateField";
 
 interface UrlEditModalProps {
   editingUrl: UrlItem | null;
@@ -280,18 +281,13 @@ export function UrlEditModal({
             className="mt-2 text-sm sm:text-base shadow-sm"
           />
         </div>
-        <div>
-          <label className="block text-sm sm:text-base font-medium text-white">
-            Reminder (optional)
-          </label>
-          <Input
-            type="date"
-            value={editingReminder}
-            onChange={(e) => setEditingReminder(e.target.value)}
-            className="mt-2 text-sm sm:text-base shadow-sm"
-          />
-        </div>
-        <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-2">
+        <ReminderDateField
+          id="edit-reminder-date"
+          value={editingReminder}
+          onChange={setEditingReminder}
+          disabled={isEditing}
+        />
+        <div className="flex flex-col sm:flex-row justify-end gap-2">
           <CancelButton
             onClick={() => setEditingUrl(null)}
             disabled={isEditing}

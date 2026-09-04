@@ -70,12 +70,32 @@ import {
   UI_ICON_DECORATIVE,
 } from "@/lib/ui/control-styles";
 import { cn, parseUserEnteredUrl } from "@/lib/utils";
+import { AlertDialog } from "@/components/ui/AlertDialog";
 
 /** Module-level single-flight for GET /metadata across remounts (C7.21 Wave 5). */
 const metadataBatchInFlight = new Map<
   string,
   { promise: Promise<void>; controller: AbortController; subscribers: number }
 >();
+
+function scrollToUrlCard(urlId: string) {
+  if (typeof document === "undefined" || !urlId) return;
+  requestAnimationFrame(() => {
+    // Prefer attribute selector; ids are UUIDs (no CSS.escape — conflicts with dnd-kit CSS import)
+    const el = document.querySelector<HTMLElement>(
+      `[data-url-id="${urlId.replace(/"/g, "")}"]`,
+    );
+    el?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  });
+}
+
+function latestUrlIdForHref(href: string): string | undefined {
+  const urls = (currentList.get()?.urls || []) as UrlItem[];
+  for (let i = urls.length - 1; i >= 0; i--) {
+    if (urls[i]?.url === href) return urls[i]!.id;
+  }
+  return undefined;
+}
 
 // Component wrapper that fetches metadata using React Query for each URL
 function UrlCardWrapper({
@@ -247,6 +267,7 @@ export function UrlList() {
   >("latest");
   const [search, setSearch] = useState("");
   const [newNote, setNewNote] = useState("");
+  const [newReminder, setNewReminder] = useState("");
   const [editingTags, setEditingTags] = useState<string>("");
   const [editingNotes, setEditingNotes] = useState<string>("");
   const [editingReminder, setEditingReminder] = useState<string>("");
@@ -255,6 +276,9 @@ export function UrlList() {
     useState<EnhancementResult | null>(null);
   const [showArchived, setShowArchived] = useState(false);
   const [isAddUrlFormExpanded, setIsAddUrlFormExpanded] = useState(false);
+  const [restoreDialogOpen, setRestoreDialogOpen] = useState(false);
+  const [restorePending, setRestorePending] = useState(false);
+  const [restoreTargetId, setRestoreTargetId] = useState<string | null>(null);
 
   // CRITICAL: Track sortable context version to force remount after drag ends
   // This ensures dnd-kit uses the updated order instead of reverting to cached positions
@@ -1084,7 +1108,7 @@ export function UrlList() {
         existingMetadata?.title,
         tagsToUse.length > 0 ? tagsToUse : undefined,
         newNote || enhancementResult?.summary || "",
-        undefined,
+        newReminder || undefined,
         enhancementResult?.category,
         existingMetadata,
       );
@@ -1095,9 +1119,13 @@ export function UrlList() {
         variant: "success",
       });
 
+      const addedId = latestUrlIdForHref(parsedUrl.toString());
+      if (addedId) scrollToUrlCard(addedId);
+
       setNewUrl("");
       setNewNote("");
       setNewTags("");
+      setNewReminder("");
       setEnhancementResult(null);
       requestAnimationFrame(() => setIsAddUrlFormExpanded(false));
     } catch (err) {
@@ -1327,6 +1355,8 @@ export function UrlList() {
         description: `"${urlTitle}" has been duplicated and added to the list.`,
         variant: "success",
       });
+      const dupId = latestUrlIdForHref(urlToDuplicate.url);
+      if (dupId) scrollToUrlCard(dupId);
     } catch (err) {
       // Show error toast
       toast({
@@ -1425,6 +1455,7 @@ export function UrlList() {
         loading: false,
         duration: 5000,
       });
+      if (nextPinned) scrollToUrlCard(id);
     } catch (err) {
       updateToast(savingId, {
         title: "Pin update failed",
@@ -2488,6 +2519,7 @@ export function UrlList() {
     const urlToRestore = archivedUrlsList.find((url) => url.id === urlId);
     const urlTitle = urlToRestore?.title || urlToRestore?.url || "URL";
 
+    setRestorePending(true);
     try {
       const { restoreArchivedUrl } = await import("@/stores/urlListStore");
       await restoreArchivedUrl(urlId);
@@ -2498,6 +2530,10 @@ export function UrlList() {
         description: `"${urlTitle}" has been restored and added back to the list.`,
         variant: "success",
       });
+      requestAnimationFrame(() => {
+        setRestoreDialogOpen(false);
+        setRestoreTargetId(null);
+      });
     } catch (err) {
       // Show error toast
       toast({
@@ -2507,12 +2543,19 @@ export function UrlList() {
         variant: "error",
       });
     } finally {
+      setRestorePending(false);
       // Clear the flag after a delay
       setTimeout(() => {
         isLocalOperationRef.current = false;
       }, 1000);
     }
   };
+
+  const restoreTarget = restoreTargetId
+    ? ((list.archivedUrls || []) as UrlItem[]).find(
+        (u) => u.id === restoreTargetId,
+      )
+    : undefined;
 
   return (
     <div className={LIST_STACK}>
@@ -2559,6 +2602,7 @@ export function UrlList() {
               setNewUrl("");
               setNewNote("");
               setNewTags("");
+              setNewReminder("");
               setEnhancementResult(null);
               setError(undefined);
             }
@@ -2582,6 +2626,8 @@ export function UrlList() {
           setNewTags={setNewTags}
           newNote={newNote}
           setNewNote={setNewNote}
+          newReminder={newReminder}
+          setNewReminder={setNewReminder}
           error={error}
           isLoading={isLoading}
           onAdd={handleAddUrl}
@@ -2592,6 +2638,7 @@ export function UrlList() {
             setNewUrl("");
             setNewNote("");
             setNewTags("");
+            setNewReminder("");
             setEnhancementResult(null);
             setError(undefined);
             setIsAddUrlFormExpanded(false);
@@ -2830,8 +2877,9 @@ export function UrlList() {
                     type="button"
                     disabled={!permissions.canEdit}
                     onClick={() => {
-                      if (!permissions.canEdit) return; // Prevent action if disabled
-                      handleRestore(url.id);
+                      if (!permissions.canEdit) return;
+                      setRestoreTargetId(url.id);
+                      setRestoreDialogOpen(true);
                     }}
                     className={`bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg ${
                       !permissions.canEdit
@@ -2895,6 +2943,29 @@ export function UrlList() {
           handleEditUrl={handleEditUrl}
         />
       )}
+
+      <AlertDialog
+        open={restoreDialogOpen}
+        onOpenChange={(open) => {
+          if (!restorePending) {
+            setRestoreDialogOpen(open);
+            if (!open) setRestoreTargetId(null);
+          }
+        }}
+        title="Restore URL"
+        description={`Restore "${
+          restoreTarget?.title || restoreTarget?.url || "this URL"
+        }" back to the active list?`}
+        confirmText="Restore"
+        cancelText="Cancel"
+        onConfirm={() => {
+          if (restoreTargetId) void handleRestore(restoreTargetId);
+        }}
+        variant="default"
+        pending={restorePending}
+        pendingText="Restoring…"
+        closeOnConfirm={false}
+      />
     </div>
   );
 }

@@ -12,6 +12,8 @@ const formProps = {
   setNewTags: jest.fn(),
   newNote: "",
   setNewNote: jest.fn(),
+  newReminder: "",
+  setNewReminder: jest.fn(),
   isExpanded: true,
   onAdd: jest.fn(),
   onClear: jest.fn(),

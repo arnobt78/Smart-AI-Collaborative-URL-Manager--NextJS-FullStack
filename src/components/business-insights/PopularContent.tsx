@@ -19,6 +19,7 @@ import {
   UI_IDENTITY_GAP,
 } from "@/lib/ui/control-styles";
 import { cn } from "@/lib/utils";
+import { SectionCountBadge } from "@/components/ui/SectionCountBadge";
 
 interface PopularUrl {
   id: string;
@@ -79,7 +80,10 @@ export function PopularContent({
           <div className={cn("flex items-center", UI_IDENTITY_GAP)}>
             <GlassIconTile icon={Star} hue="amber" />
             <div className={cn(HEADING_STACK, "min-w-0")}>
-              <CardTitle className="text-sm sm:text-base">Popular URLs</CardTitle>
+              <div className="flex items-center gap-2">
+                <CardTitle className="text-sm sm:text-base">Popular URLs</CardTitle>
+                <SectionCountBadge count={popularUrls.length} />
+              </div>
               <p className="text-xs text-white/60">Most favorited and clicked</p>
             </div>
           </div>
@@ -156,9 +160,12 @@ export function PopularContent({
           <div className={cn("flex items-center", UI_IDENTITY_GAP)}>
             <GlassIconTile icon={Users} hue="blue" />
             <div className={cn(HEADING_STACK, "min-w-0")}>
-              <CardTitle className="text-sm sm:text-base">
-                Most Active Lists
-              </CardTitle>
+              <div className="flex items-center gap-2">
+                <CardTitle className="text-sm sm:text-base">
+                  Most Active Lists
+                </CardTitle>
+                <SectionCountBadge count={activeLists.length} />
+              </div>
               <p className="text-xs text-white/60">Highest URL and collaborator counts</p>
             </div>
           </div>

@@ -8,6 +8,7 @@
  * REQ-0015: the shared chrome row keeps interactive header content centered in 56px.
  */
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { LinkIcon, Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
 import { useEffect, useState } from "react";
 import { abortRegistry } from "@/utils/abortRegistry";
@@ -20,6 +21,26 @@ import { cn } from "@/lib/utils";
 
 const SCROLL_GLASS_THRESHOLD_PX = 8;
 
+const NAV_LINK_BASE =
+  "font-medium transition-colors font-mono text-sm lg:text-base leading-none";
+const NAV_LINK_IDLE = "text-white/80 hover:text-white";
+const NAV_LINK_ACTIVE =
+  "text-white drop-shadow-[0_0_8px_rgba(59,130,246,0.55)]";
+const NAV_LINK_MOBILE_BASE =
+  "font-medium transition-colors font-mono text-sm py-2 px-2 rounded-lg";
+const NAV_LINK_MOBILE_IDLE = "text-white/80 hover:text-white hover:bg-white/5";
+const NAV_LINK_MOBILE_ACTIVE =
+  "text-white bg-white/5 drop-shadow-[0_0_8px_rgba(59,130,246,0.55)]";
+
+function isNavActive(pathname: string | null, href: string): boolean {
+  if (!pathname) return false;
+  if (href === "/lists") {
+    return pathname === "/lists" || pathname.startsWith("/lists/");
+  }
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
+
+
 export type NavbarProps = {
   /** From cookies() urlist_was_authed — skeleton on first paint for returning users */
   initialWasAuthed?: boolean;
@@ -28,8 +49,13 @@ export type NavbarProps = {
 export default function Navbar({ initialWasAuthed = false }: NavbarProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const pathname = usePathname();
   const { user, isLoading } = useSession();
   const wasAuthedHint = useWasAuthedHint(initialWasAuthed);
+  const browseActive = isNavActive(pathname, "/browse");
+  const insightsActive = isNavActive(pathname, "/business-insights");
+  const listsActive = isNavActive(pathname, "/lists");
+
 
   const showProfile = Boolean(user?.email) && wasAuthedHint;
   // Skeleton as soon as SSR/client hint says returning user — never empty slot jump
@@ -164,24 +190,37 @@ export default function Navbar({ initialWasAuthed = false }: NavbarProps) {
             <WarmSoftNavLink
               href="/browse"
               onClick={(e) => handleNavigation(e, "/browse")}
-              className="text-white/80 hover:text-white font-medium transition-colors font-mono text-sm lg:text-base leading-none"
+              aria-current={browseActive ? "page" : undefined}
+              className={cn(
+                NAV_LINK_BASE,
+                browseActive ? NAV_LINK_ACTIVE : NAV_LINK_IDLE,
+              )}
             >
               Public URL
             </WarmSoftNavLink>
             <WarmSoftNavLink
               href="/business-insights"
               onClick={(e) => handleNavigation(e, "/business-insights")}
-              className="text-white/80 hover:text-white font-medium transition-colors font-mono text-sm lg:text-base leading-none"
+              aria-current={insightsActive ? "page" : undefined}
+              className={cn(
+                NAV_LINK_BASE,
+                insightsActive ? NAV_LINK_ACTIVE : NAV_LINK_IDLE,
+              )}
             >
               Analytics
             </WarmSoftNavLink>
             <WarmSoftNavLink
               href="/lists"
               onClick={(e) => handleNavigation(e, "/lists")}
-              className="text-white/80 hover:text-white font-medium transition-colors font-mono text-sm lg:text-base leading-none"
+              aria-current={listsActive ? "page" : undefined}
+              className={cn(
+                NAV_LINK_BASE,
+                listsActive ? NAV_LINK_ACTIVE : NAV_LINK_IDLE,
+              )}
             >
               My Lists
             </WarmSoftNavLink>
+
 
             {/* Padding outside size-10 — padding+size on same node squashed the avatar */}
             <div className="pl-2 lg:pl-4 shrink-0 flex items-center">
@@ -217,7 +256,11 @@ export default function Navbar({ initialWasAuthed = false }: NavbarProps) {
                   handleNavigation(e, "/browse");
                   setIsMobileMenuOpen(false);
                 }}
-                className="text-white/80 hover:text-white font-medium transition-colors font-mono text-sm py-2 px-2 rounded-lg hover:bg-white/5"
+                aria-current={browseActive ? "page" : undefined}
+                className={cn(
+                  NAV_LINK_MOBILE_BASE,
+                  browseActive ? NAV_LINK_MOBILE_ACTIVE : NAV_LINK_MOBILE_IDLE,
+                )}
               >
                 Public URL
               </WarmSoftNavLink>
@@ -227,7 +270,11 @@ export default function Navbar({ initialWasAuthed = false }: NavbarProps) {
                   handleNavigation(e, "/business-insights");
                   setIsMobileMenuOpen(false);
                 }}
-                className="text-white/80 hover:text-white font-medium transition-colors font-mono text-sm py-2 px-2 rounded-lg hover:bg-white/5"
+                aria-current={insightsActive ? "page" : undefined}
+                className={cn(
+                  NAV_LINK_MOBILE_BASE,
+                  insightsActive ? NAV_LINK_MOBILE_ACTIVE : NAV_LINK_MOBILE_IDLE,
+                )}
               >
                 Analytics
               </WarmSoftNavLink>
@@ -237,11 +284,16 @@ export default function Navbar({ initialWasAuthed = false }: NavbarProps) {
                   handleNavigation(e, "/lists");
                   setIsMobileMenuOpen(false);
                 }}
-                className="text-white/80 hover:text-white font-medium transition-colors font-mono text-sm py-2 px-2 rounded-lg hover:bg-white/5"
+                aria-current={listsActive ? "page" : undefined}
+                className={cn(
+                  NAV_LINK_MOBILE_BASE,
+                  listsActive ? NAV_LINK_MOBILE_ACTIVE : NAV_LINK_MOBILE_IDLE,
+                )}
               >
                 My Lists
               </WarmSoftNavLink>
             </div>
+
           </div>
         )}
       </div>

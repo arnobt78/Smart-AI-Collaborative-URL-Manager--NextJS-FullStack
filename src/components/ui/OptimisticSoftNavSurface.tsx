@@ -16,7 +16,7 @@ import {
   ListsRouteSkeleton,
 } from "@/components/ui/RoutePageSkeleton";
 import { OverviewCards } from "@/components/business-insights/OverviewCards";
-import { ActivityChartSkeleton } from "@/components/business-insights/ActivityChart";
+import { ActivityChart } from "@/components/business-insights/ActivityChart";
 import { InsightsTabsList } from "@/components/business-insights/InsightsTabsList";
 import { ListsPageChrome } from "@/components/lists/ListsPageChrome";
 import { MyListsCard } from "@/components/lists/MyListsCard";
@@ -204,8 +204,8 @@ function InsightsOptimisticSurface() {
         <InsightsTabsList />
         <div className="mt-2 space-y-6">
           <OverviewCards data={overview} />
-          {/* C7.11: skeleton only — avoid second live ActivityChart remount */}
-          {activity ? <ActivityChartSkeleton /> : null}
+          {/* C7.24: warm activity paints chart; cold still waits for real route */}
+          {activity ? <ActivityChart initialData={activity} /> : null}
         </div>
       </Tabs>
     </div>

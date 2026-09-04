@@ -664,3 +664,13 @@ Gate 2: BLOCKED — RISK-0016 is accepted; `EVAL_RESULTS.md` PASS/WAIVED evidenc
 | Fast scroll | UrlCard retry + IO reset | PASS | e2e titles visible after scroll |
 | Validation | lint 0; tsc; Jest 11; e2e 4; prior build; verify-deep | PASS | Commit-ready code+docs |
 | Deploy | push / prod re-smoke | PENDING USER | Latency/virtualization OOS |
+
+## 2026-09-04 — C7.24 UI polish + UrlCard-adjacent fixes
+
+| Scope | Command / evidence | Result | Notes |
+|---|---|---|---|
+| Toast / Dialog / Nav | Toast soften; `titleAccessory`; Navbar glow | PASS | Wave 1 |
+| Comments / Edit / Add | email+avatar+times; densify-all; ReminderDateField | PASS | Wave 2 |
+| Insights / Restore / Scroll | warm ActivityChart; Popular badges; Restore dialog; scroll-to-card | PASS | Wave 3 |
+| Validation | lint 0; tsc; Jest UrlAddForm; build; verify-deep | PASS WITH WARNINGS | Soft-nav remount / scroll rAF non-blocking |
+| Deploy | push / prod smoke | PENDING USER | Docs at commit-ready |

@@ -27,6 +27,7 @@ import type { UrlItem } from "@/stores/urlListStore";
 import type { UrlMetadata } from "@/utils/urlMetadata";
 import type { SearchResult } from "@/lib/ai/search";
 import { Dialog } from "@/components/ui/Dialog";
+import { SectionCountBadge } from "@/components/ui/SectionCountBadge";
 import { currentList } from "@/stores/urlListStore";
 import { UrlHealthIndicator } from "@/components/urls/UrlHealthIndicator";
 import { Comments } from "@/components/collaboration/Comments";
@@ -316,9 +317,8 @@ export const UrlCard: React.FC<UrlCardProps> = ({
     return () => clearTimeout(timeout);
   }, [imageLoading, currentImageUrl, imageError]);
 
-  // Use metadata with fallback to URL object fields for persistence
-  // This ensures data is displayed even if metadata hasn't loaded yet
-  const title = metadata?.title || url.title || url.url;
+  // Prefer persisted list title over metadata so Edit URL densify sticks
+  const title = url.title || metadata?.title || url.url;
   const description = metadata?.description || url.description; // Fallback to url.description from database
   const visitHref = ensureAbsoluteHttpUrl(url.url);
   // Reserved for richer card chrome (site label); keep derived so metadata path stays warm
@@ -393,7 +393,10 @@ export const UrlCard: React.FC<UrlCardProps> = ({
   const isNoPreview = !hasImage && !description;
 
   return (
-    <div className="group relative overflow-hidden rounded-2xl border border-white/20 bg-white/5 backdrop-blur-md max-sm:bg-white/[0.08] max-sm:backdrop-blur-none shadow-lg hover:shadow-xl transition-all duration-300 hover:border-blue-400/30 cursor-default [transform:translateZ(0)]">
+    <div
+      className="group relative overflow-hidden rounded-2xl border border-white/20 bg-white/5 backdrop-blur-md max-sm:bg-white/[0.08] max-sm:backdrop-blur-none shadow-lg hover:shadow-xl transition-all duration-300 hover:border-blue-400/30 cursor-default [transform:translateZ(0)]"
+      data-url-id={url.id}
+    >
       {/* Drag handle in top-right corner */}
       {dragHandleProps && (
         <div
@@ -850,6 +853,11 @@ export const UrlCard: React.FC<UrlCardProps> = ({
         open={similarUrlsOpen}
         onOpenChange={setSimilarUrlsOpen}
         title={`Similar URLs to “${url.title || url.url}”`}
+        titleAccessory={
+          !showSimilarLoading && !similarError ? (
+            <SectionCountBadge count={similarUrls.length} />
+          ) : undefined
+        }
         description="AI-powered similarity search"
         size="wide"
         headerMode="scroll"
@@ -956,6 +964,9 @@ export const UrlCard: React.FC<UrlCardProps> = ({
           open={commentsOpen}
           onOpenChange={setCommentsOpen}
           title="Comments"
+          titleAccessory={
+            <SectionCountBadge count={url.commentCount ?? 0} />
+          }
           description={url.title || url.url}
           size="wide"
           headerMode="scroll"

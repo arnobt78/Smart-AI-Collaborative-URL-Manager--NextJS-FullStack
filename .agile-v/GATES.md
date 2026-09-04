@@ -436,6 +436,20 @@ Implementation is locally verified. Production check remains with TASK-0039. Gat
 
 ---
 
+## GATE-0041 — Human Gate 1 (C7.24 UI polish)
+
+| Field | Value |
+|-------|-------|
+| Type | Human-Decision |
+| Status | **APPROVED / COMPLETE 2026-09-04** |
+| Checkpoint | `C7.24-HG1-UI-POLISH-2026-09-04` → `C7.24-COMMIT-READY-2026-09-04` |
+| Evidence | TASK-0060; DEC-0062; plan `c7.24_ui_polish_batch`; lint/tsc/jest/build + verify-deep PASS WITH WARNINGS |
+| Required human action | Completed — user approved C7.24 plan + implement + commit-ready. |
+| Scope | Toast/nav/dialog chrome; Comments/Edit/Add; Insights warm chart; Popular badges; Restore pending; scroll-to-card. |
+| Resume condition | Push/deploy on request; prod smoke polish. |
+
+---
+
 ## GATE-0002 — Human Gate 2 (release / acceptance)
 
 | Field | Value |

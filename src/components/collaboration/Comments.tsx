@@ -10,11 +10,13 @@ import { CancelButton } from "@/components/ui/ActionButtons";
 import { Textarea } from "@/components/ui/Textarea";
 import { useToast } from "@/components/ui/Toaster";
 import { AlertDialog } from "@/components/ui/AlertDialog";
-import { Trash2, Edit2, Check, MessageSquarePlus } from "lucide-react";
+import { Trash2, Edit2, Check, MessageSquarePlus, Clock } from "lucide-react";
 import { invalidateMutationImpact } from "@/utils/queryInvalidation";
 import { listQueryKeys } from "@/lib/query-keys";
 import { UI_ICON_CONTROL } from "@/lib/ui/control-styles";
 import { cn } from "@/lib/utils";
+import { useSession } from "@/hooks/useSession";
+import { UserAvatar } from "@/components/ui/UserAvatar";
 
 interface Comment {
   id: string;
@@ -47,6 +49,8 @@ export function Comments({ listId, urlId, currentUserId, knownCount }: CommentsP
   const params = useParams();
   const slug = typeof params?.slug === "string" ? params.slug : null;
   const list = useStore(currentList);
+  const { user: sessionUser } = useSession();
+  const sessionEmail = sessionUser?.email;
   const skipFetch = knownCount === 0;
 
   const updateVisibleCommentCount = (delta: number) => {
@@ -179,14 +183,15 @@ export function Comments({ listId, urlId, currentUserId, knownCount }: CommentsP
       );
 
       // Optimistically update cache with temporary comment
+      const nowIso = new Date().toISOString();
       const optimisticComment: Comment = {
         id: `temp-${Date.now()}`,
         content,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        createdAt: nowIso,
+        updatedAt: nowIso,
         user: {
-          id: currentUserId || "",
-          email: "You",
+          id: currentUserId || sessionUser?.id || "",
+          email: sessionEmail || "You",
         },
       };
 
@@ -538,7 +543,7 @@ export function Comments({ listId, urlId, currentUserId, knownCount }: CommentsP
                       onChange={(e) => setEditContent(e.target.value)}
                       className="min-h-[70px] sm:min-h-[80px] resize-none bg-white/5 border-white/10 text-white placeholder:text-white/50 text-sm"
                     />
-                    <div className="flex justify-end ">
+                    <div className="flex justify-end gap-2">
                       <CancelButton
                         onClick={handleCancelEdit}
                         className="px-2 sm:px-3 text-xs"
@@ -560,15 +565,37 @@ export function Comments({ listId, urlId, currentUserId, knownCount }: CommentsP
                   </div>
                 ) : (
                   <>
-                    <div className="flex items-start justify-between gap-2 mb-1.5 sm:">
-                      <div className="flex-1 min-w-0">
-                        <div className="text-xs font-medium text-white/90 truncate">
-                          {comment.user.email}
-                        </div>
-                        <div className="text-xs text-white/50">
-                          {formatDate(comment.createdAt)}
-                          {comment.updatedAt !== comment.createdAt &&
-                            " (edited)"}
+                    <div className="flex items-start justify-between gap-2 mb-1.5">
+                      <div className="flex min-w-0 flex-1 items-start gap-2">
+                        <UserAvatar
+                          seed={comment.user.email}
+                          size={28}
+                          alt=""
+                          className="mt-0.5"
+                        />
+                        <div className="min-w-0 flex-1">
+                          <div className="text-xs font-medium text-white/90 truncate">
+                            {comment.user.email}
+                          </div>
+                          <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-white/50">
+                            <span className="inline-flex items-center gap-1">
+                              <Clock
+                                className={cn(UI_ICON_CONTROL, "opacity-70")}
+                                aria-hidden
+                              />
+                              <span className="sr-only">Created </span>
+                              {formatDate(comment.createdAt)}
+                            </span>
+                            {comment.updatedAt !== comment.createdAt ? (
+                              <span className="inline-flex items-center gap-1">
+                                <Edit2
+                                  className={cn(UI_ICON_CONTROL, "opacity-70")}
+                                  aria-hidden
+                                />
+                                <span>edited {formatDate(comment.updatedAt)}</span>
+                              </span>
+                            ) : null}
+                          </div>
                         </div>
                       </div>
                       {isOwner && (

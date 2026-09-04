@@ -15,6 +15,7 @@ import type { UrlMetadata } from "@/utils/urlMetadata";
 import { devLog } from "@/lib/dev-log";
 import { UI_ICON_CONTROL } from "@/lib/ui/control-styles";
 import { parseUserEnteredUrl } from "@/lib/utils";
+import { ReminderDateField } from "@/components/lists/ReminderDateField";
 
 interface UrlAddFormProps {
   newUrl: string;
@@ -23,6 +24,8 @@ interface UrlAddFormProps {
   setNewTags: (v: string | ((prev: string) => string)) => void;
   newNote: string;
   setNewNote: (v: string | ((prev: string) => string)) => void;
+  newReminder: string;
+  setNewReminder: (v: string) => void;
   error?: string;
   isLoading: boolean;
   onAdd: (e: React.FormEvent) => void;
@@ -38,6 +41,8 @@ export function UrlAddForm({
   setNewTags,
   newNote,
   setNewNote,
+  newReminder,
+  setNewReminder,
   error,
   isLoading,
   onAdd,
@@ -162,6 +167,7 @@ export function UrlAddForm({
     setNewUrl("");
     setNewNote("");
     setNewTags("");
+    setNewReminder("");
     previousUrlRef.current = null;
     onClear();
   };
@@ -252,7 +258,7 @@ export function UrlAddForm({
           <div
             className={`
             transition-all duration-300 ease-in-out overflow-hidden
-            max-h-[500px] opacity-100
+            max-h-[560px] opacity-100
           `}
           >
             <div className="space-y-2">
@@ -271,6 +277,14 @@ export function UrlAddForm({
                 placeholder="Note (optional) - AI will suggest a summary!"
                 className="text-sm sm:text-base shadow-md font-delicious rounded-xl min-h-[40px]"
                 rows={2}
+              />
+
+              <ReminderDateField
+                id="add-reminder-date"
+                value={newReminder}
+                onChange={setNewReminder}
+                disabled={isLoading}
+                className="[&_label]:text-sm"
               />
             </div>
           </div>

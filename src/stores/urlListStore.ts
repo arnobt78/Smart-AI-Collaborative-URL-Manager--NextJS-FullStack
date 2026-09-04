@@ -942,9 +942,34 @@ async function updateUrlInListInner(
     // Update store immediately (optimistic)
     currentList.set({ ...current, urls: updatedUrls });
 
-    // Flag-only: densify RQ before await so ListPage RQ→store sync cannot reapply stale flags.
-    if (flagOnly) {
-      densifyOptimisticUnifiedList({ ...current, urls: updatedUrls }, updatedUrls);
+    // Densify RQ on all edits so soft-nav / ListPage sync cannot reapply stale fields.
+    densifyOptimisticUnifiedList({ ...current, urls: updatedUrls }, updatedUrls);
+
+    // Keep metadata title in sync when the user edits the card title
+    if (
+      typeof window !== "undefined" &&
+      typeof updates.title === "string" &&
+      updates.title.length > 0
+    ) {
+      const target = updatedUrls.find((u) => u.id === urlId);
+      const metaUrl = (updates.url as string | undefined) || target?.url;
+      if (metaUrl) {
+        const queryKey = ["url-metadata", metaUrl] as const;
+        const prev = queryClient.getQueryData<UrlMetadata>(queryKey);
+        if (prev) {
+          const nextMeta = { ...prev, title: updates.title };
+          queryClient.setQueryData<UrlMetadata>(queryKey, nextMeta);
+          try {
+            const key = `react-query:${queryKey.join(":")}`;
+            localStorage.setItem(
+              key,
+              JSON.stringify({ data: nextMeta, timestamp: Date.now() }),
+            );
+          } catch {
+            // Ignore localStorage errors
+          }
+        }
+      }
     }
 
     const response = await fetch(`/api/lists/${current.id}/urls`, {
@@ -1044,7 +1069,7 @@ async function updateUrlInListInner(
     });
   } catch (err) {
     currentList.set(snapshot);
-    if (flagOnly && snapshot.slug) {
+    if (snapshot.slug) {
       densifyOptimisticUnifiedList(snapshot, (snapshot.urls as UrlItem[]) || []);
     }
     error.set(err instanceof Error ? err.message : "Failed to update list");
