@@ -9,7 +9,7 @@ Done: C7.8–C7.22 · **LLM** `c085f69` REQ-AI-0001 · **Icons** CONTROL/DECORAT
 **C7.19** Empty/browse polish + SC create/cold-path (known-empty thin paint; SC expand gate; Create Collection mount lock).
 **C7.20** Visibility/browse densify (preserve owner `user`; skip unified invalidate; activity prepend + SSE mark); Create Collection seeds Activity; UrlCard fav/pin skipInvalidate densify; duplicate AlertDialog; `lib/sse-unified-dedup.ts`.
 **C7.21** Network-smoke fixes: fav/pin densify-before-await + single-flight + SSE cancel; reorder strip/`!ok` rollback + unified densify; Activity FIFO **20** + prune; jobs densify + `skipUnified`; metadata batch Map; e2e on demo DB (`E2E_ALLOW_SHARED_DB`).
-**C7.22** Refresh hang + polish: metadata `lite=1` + job/client timeouts; toast always clears; drag activity guard; click mark + analytics `skipUnified`; pin SSE window; Saving toasts; Activity “Latest 20” subtitle.
+**C7.22** Refresh hang + polish: metadata `lite=1` + job/client timeouts; toast always clears (`finally` only if `!toastSettled`); drag activity guard; click mark + analytics `skipUnified`; pin SSE window; Saving toasts; Activity “Latest 20” subtitle.
 Stack: Next **16.3.3** · React **19.2.8** · Node **24.x** · **`src/proxy.ts`** · Prisma **6.19.3**.
 Defer: `(auth)` route-group; lists/browse cold API slim; status API speed OOS; full metadata rewrite OOS; Prisma 7/8; Activity badge spinner; PATCH/job latency.
 Human: HA-0001; GATE-0039 closed; parked next: Add URL `https://` 400, archive-url 400, UrlCard empty on fast scroll (after prod re-smoke).

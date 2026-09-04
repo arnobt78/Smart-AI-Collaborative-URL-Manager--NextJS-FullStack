@@ -792,11 +792,14 @@ export default function ListPageClient() {
                   variant: "error",
                 });
               } finally {
-                settleToast({
-                  title: "Error",
-                  description: "Metadata refresh ended unexpectedly",
-                  variant: "error",
-                });
+                // Safety net only — settleToast no-ops once try/catch already settled.
+                if (!toastSettled) {
+                  settleToast({
+                    title: "Error",
+                    description: "Metadata refresh ended unexpectedly",
+                    variant: "error",
+                  });
+                }
                 setIsRefreshingMetadata(false);
               }
             }}
@@ -915,11 +918,14 @@ export default function ListPageClient() {
                   variant: "error",
                 });
               } finally {
-                settleToast({
-                  title: "Error",
-                  description: "Health check ended unexpectedly",
-                  variant: "error",
-                });
+                // Safety net only — settleToast no-ops once try/catch already settled.
+                if (!toastSettled) {
+                  settleToast({
+                    title: "Error",
+                    description: "Health check ended unexpectedly",
+                    variant: "error",
+                  });
+                }
                 setIsCheckingHealth(false);
               }
             }}

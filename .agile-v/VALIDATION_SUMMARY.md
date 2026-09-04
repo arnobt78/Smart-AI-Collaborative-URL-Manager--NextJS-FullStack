@@ -646,3 +646,10 @@ Gate 2: BLOCKED — RISK-0016 is accepted; `EVAL_RESULTS.md` PASS/WAIVED evidenc
 | W4 polish | pin SSE window; Saving/Reordering toasts; Activity FIFO subtitle | PASS | e2e subtitle Latest 20 |
 | Validation | lint 0; `tsc`; Jest c722+invalidation; e2e c722; prior build; verify-deep | PASS | Commit-ready code+docs |
 | Deploy | push / prod re-smoke | PENDING USER | User tests tomorrow; parked UrlCard bugs |
+
+## 2026-09-04 — C7.22 toast finally clarity
+
+| Scope | Command / evidence | Result | Notes |
+|---|---|---|---|
+| ListPage finally | `if (!toastSettled)` before settleToast (refresh + health) | PASS | Behavior unchanged; Agent Review overwrite = FP |
+| Validation | `tsc`; eslint ListPage; verify-deep | PASS | Clarity-only; no e2e re-run |
