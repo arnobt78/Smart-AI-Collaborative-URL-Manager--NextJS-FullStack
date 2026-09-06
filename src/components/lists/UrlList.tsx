@@ -64,6 +64,7 @@ import { useListPermissions } from "@/hooks/useListPermissions";
 import { UrlFilterBar } from "./UrlFilterBar";
 import { UrlBulkImportExport } from "./UrlBulkImportExport";
 import { UrlAddForm } from "./UrlAddForm";
+import { ArchivedUrlCard } from "./ArchivedUrlCard";
 import { HEADING_STACK, LIST_STACK } from "@/lib/ui-spacing";
 import {
   UI_ICON_CONTROL,
@@ -1381,24 +1382,14 @@ export function UrlList() {
     // Notify activity feed to skip fetch after local operation
     window.dispatchEvent(new CustomEvent("local-operation"));
 
-    const current = currentList.get();
-    if (!current.urls || !current.id) return;
-
-    // Get URL details for toast
-    const currentUrls = current.urls as unknown as UrlItem[];
-    const urlToArchive = currentUrls.find((u) => u.id === id);
-    const urlTitle = urlToArchive?.title || urlToArchive?.url || "URL";
-
     try {
+      const current = currentList.get();
+      if (!current.urls || !current.id) {
+        throw new Error("List not ready");
+      }
       const { archiveUrlFromList } = await import("@/stores/urlListStore");
       await archiveUrlFromList(id);
-
-      // Show success toast
-      toast({
-        title: "URL Archived",
-        description: `"${urlTitle}" has been archived and removed from the list.`,
-        variant: "success",
-      });
+      // Success toast owned by UrlCard (match delete) — avoid double toast.
     } catch (err) {
       // Show error toast
       toast({
@@ -1407,6 +1398,7 @@ export function UrlList() {
           err instanceof Error ? err.message : "Failed to archive URL",
         variant: "error",
       });
+      throw err;
     } finally {
       // Clear the flag after a delay
       setTimeout(() => {
@@ -2511,16 +2503,18 @@ export function UrlList() {
     // Notify activity feed to skip fetch after local operation
     window.dispatchEvent(new CustomEvent("local-operation"));
 
-    const current = currentList.get();
-    if (!current?.archivedUrls) return;
-
-    // Get URL details for toast
-    const archivedUrlsList = current.archivedUrls as unknown as UrlItem[];
-    const urlToRestore = archivedUrlsList.find((url) => url.id === urlId);
-    const urlTitle = urlToRestore?.title || urlToRestore?.url || "URL";
-
     setRestorePending(true);
     try {
+      const current = currentList.get();
+      if (!current?.archivedUrls) {
+        throw new Error("List not ready");
+      }
+
+      // Get URL details for toast
+      const archivedUrlsList = current.archivedUrls as unknown as UrlItem[];
+      const urlToRestore = archivedUrlsList.find((url) => url.id === urlId);
+      const urlTitle = urlToRestore?.title || urlToRestore?.url || "URL";
+
       const { restoreArchivedUrl } = await import("@/stores/urlListStore");
       await restoreArchivedUrl(urlId);
 
@@ -2846,51 +2840,15 @@ export function UrlList() {
             </div>
           ) : (
             archivedUrlsList.map((url) => (
-              <div
+              <ArchivedUrlCard
                 key={url.id}
-                className="bg-white/5 backdrop-blur-md rounded-xl border border-white/20 p-2 sm:p-4"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <h3 className="text-lg font-medium text-white ">
-                      {url.title || url.url}
-                    </h3>
-                    {url.url !== url.title && (
-                      <p className="text-sm text-white/60 ">{url.url}</p>
-                    )}
-                    {url.description && (
-                      <p className="text-sm text-white/70 ">
-                        {url.description}
-                      </p>
-                    )}
-                    {(url as UrlItem & { archivedAt?: string }).archivedAt && (
-                      <p className="text-xs text-white/50 mt-2">
-                        Archived:{" "}
-                        {new Date(
-                          (url as UrlItem & { archivedAt?: string })
-                            .archivedAt!,
-                        ).toLocaleDateString()}
-                      </p>
-                    )}
-                  </div>
-                  <Button
-                    type="button"
-                    disabled={!permissions.canEdit}
-                    onClick={() => {
-                      if (!permissions.canEdit) return;
-                      setRestoreTargetId(url.id);
-                      setRestoreDialogOpen(true);
-                    }}
-                    className={`bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg ${
-                      !permissions.canEdit
-                        ? "opacity-50 cursor-not-allowed"
-                        : ""
-                    }`}
-                  >
-                    Restore
-                  </Button>
-                </div>
-              </div>
+                url={url as UrlItem & { archivedAt?: string }}
+                canEdit={permissions.canEdit}
+                onRestore={() => {
+                  setRestoreTargetId(url.id);
+                  setRestoreDialogOpen(true);
+                }}
+              />
             ))
           )}
         </div>

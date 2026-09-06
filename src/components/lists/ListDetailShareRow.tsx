@@ -2,7 +2,7 @@
 
 import { Check, Copy, Globe } from "lucide-react";
 import { ListMetaDates } from "@/lib/ui/list-meta-dates";
-import { UI_ICON_CONTROL } from "@/lib/ui/control-styles";
+import { UI_ICON_INLINE_XS } from "@/lib/ui/control-styles";
 import { cn, listShareUrl, resolveListShareUrl } from "@/lib/utils";
 
 export type ListDetailShareRowProps = {
@@ -35,7 +35,7 @@ export function ListDetailShareRow({
       <div className="flex min-w-0 w-full flex-wrap items-center gap-x-1.5 gap-y-1 sm:flex-1">
         <span className="inline-flex shrink-0 items-center gap-1.5 font-light text-white/70">
           <Globe
-            className={cn(UI_ICON_CONTROL, "text-blue-400")}
+            className={cn(UI_ICON_INLINE_XS, "text-blue-400")}
             aria-hidden
           />
           Shareable Link:
@@ -57,14 +57,14 @@ export function ListDetailShareRow({
             {isCopied ? (
               <Check
                 className={cn(
-                  UI_ICON_CONTROL,
+                  UI_ICON_INLINE_XS,
                   "text-green-400 group-hover:scale-110 transition-transform duration-200",
                 )}
               />
             ) : (
               <Copy
                 className={cn(
-                  UI_ICON_CONTROL,
+                  UI_ICON_INLINE_XS,
                   "text-white/70 group-hover:text-white group-hover:scale-110 transition-all duration-200",
                 )}
               />

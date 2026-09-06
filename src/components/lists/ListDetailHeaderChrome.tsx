@@ -10,6 +10,7 @@ import { ArrowLeft, Blocks, Globe2, GlobeLock, Shield, Sparkles, Telescope } fro
 import { GLASS_LIST_CARD } from "@/lib/ui/glass-card-styles";
 import {
   UI_ICON_CONTROL,
+  UI_ICON_INLINE_XS,
   UI_IDENTITY_GAP,
   UI_LIST_CARD_META_BADGE,
 } from "@/lib/ui/control-styles";
@@ -131,7 +132,8 @@ export function ListDetailHeaderChrome({
               "w-fit border",
             )}
           >
-            {urlCount} {urlCount === 1 ? "URL" : "URLs"}
+            <span className="font-medium">{urlCount}</span>{" "}
+            {urlCount === 1 ? "URL" : "URLs"}
           </Badge>
           <Badge
             variant={isPublic ? "success" : "secondary"}
@@ -143,7 +145,7 @@ export function ListDetailHeaderChrome({
           >
             {isPublic ? (
               <>
-                <Globe2 className={UI_ICON_CONTROL} aria-hidden />
+                <Globe2 className={UI_ICON_INLINE_XS} aria-hidden />
                 <span className="hidden sm:inline">
                   Public - Anyone can view
                 </span>
@@ -151,7 +153,7 @@ export function ListDetailHeaderChrome({
               </>
             ) : (
               <>
-                <GlobeLock className={UI_ICON_CONTROL} aria-hidden />
+                <GlobeLock className={UI_ICON_INLINE_XS} aria-hidden />
                 <span className="hidden sm:inline">
                   Private - Only you & collaborators
                 </span>

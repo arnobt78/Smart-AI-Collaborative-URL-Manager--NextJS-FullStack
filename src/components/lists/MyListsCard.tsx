@@ -13,6 +13,7 @@ import type { UserList } from "@/hooks/useListQueries";
 import { ListMetaDates } from "@/lib/ui/list-meta-dates";
 import {
   UI_ICON_CONTROL,
+  UI_ICON_INLINE_XS,
   UI_LIST_CARD_META_BADGE,
 } from "@/lib/ui/control-styles";
 import {
@@ -131,7 +132,7 @@ export function MyListsCard({
       <DescriptionRow text={description} lineClamp />
 
       <div className="mt-auto flex w-full min-w-0 flex-wrap items-center gap-1 sm:gap-2 text-xs sm:text-sm text-white/60">
-        <Badge
+          <Badge
           variant="secondary"
           className={cn(
             badgeTextClass,
@@ -139,7 +140,8 @@ export function MyListsCard({
             "w-fit border",
           )}
         >
-          {urlCount} {urlCount === 1 ? "URL" : "URLs"}
+          <span className="font-medium">{urlCount}</span>{" "}
+          {urlCount === 1 ? "URL" : "URLs"}
         </Badge>
         {list.isPublic !== undefined && (
           <Badge
@@ -152,12 +154,12 @@ export function MyListsCard({
           >
             {isPublic ? (
               <>
-                <Globe2 className={UI_ICON_CONTROL} aria-hidden />
+                <Globe2 className={UI_ICON_INLINE_XS} aria-hidden />
                 <span className="hidden sm:inline">Public</span>
               </>
             ) : (
               <>
-                <GlobeLock className={UI_ICON_CONTROL} aria-hidden />
+                <GlobeLock className={UI_ICON_INLINE_XS} aria-hidden />
                 <span className="hidden sm:inline">Private</span>
               </>
             )}
@@ -165,7 +167,7 @@ export function MyListsCard({
         )}
         <span className="inline-flex items-center gap-1">
           <Users
-            className={cn(UI_ICON_CONTROL, "text-purple-400")}
+            className={cn(UI_ICON_INLINE_XS, "text-purple-400")}
             aria-hidden
           />
           <span className="font-medium text-white/80">

@@ -478,7 +478,13 @@ export function invalidateMutationImpact(
       invalidateCollectionMutationQueries(queryClient, listSlug, listId);
       return;
     case "comment":
-      invalidateUrlQueries(queryClient, listSlug, listId, impact !== "comment");
+      invalidateUrlQueries(
+        queryClient,
+        listSlug,
+        listId,
+        impact !== "comment",
+        options,
+      );
       return;
   }
 }

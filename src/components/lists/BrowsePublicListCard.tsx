@@ -14,7 +14,7 @@ import {
   GLASS_LIST_CARD,
   GLASS_LIST_CARD_INTERACTIVE,
 } from "@/lib/ui/glass-card-styles";
-import { UI_ICON_CONTROL } from "@/lib/ui/control-styles";
+import { UI_ICON_INLINE_XS } from "@/lib/ui/control-styles";
 import { CARD_PAD, CARD_STACK } from "@/lib/ui-spacing";
 import { cn, listShareUrl, resolveListShareUrl } from "@/lib/utils";
 import { displayNameFromEmail } from "@/lib/robohash";
@@ -98,7 +98,7 @@ export function BrowsePublicListCard({
             variant="success"
             className="inline-flex shrink-0 items-center gap-1 text-xs"
           >
-            <Globe2 className={UI_ICON_CONTROL} aria-hidden />
+            <Globe2 className={UI_ICON_INLINE_XS} aria-hidden />
             <span className="hidden sm:inline">Public</span>
           </Badge>
         }
@@ -111,7 +111,7 @@ export function BrowsePublicListCard({
           <div className="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-1 text-xs text-white/50">
             <span className="inline-flex shrink-0 items-center gap-1">
               <Globe
-                className={cn(UI_ICON_CONTROL, "text-blue-400")}
+                className={cn(UI_ICON_INLINE_XS, "text-blue-400")}
                 aria-hidden
               />
               <span className="truncate max-w-[10rem] sm:max-w-[14rem] text-white/70">
@@ -126,12 +126,12 @@ export function BrowsePublicListCard({
             >
               {copied ? (
                 <Check
-                  className={cn(UI_ICON_CONTROL, "text-green-400")}
+                  className={cn(UI_ICON_INLINE_XS, "text-green-400")}
                   aria-hidden
                 />
               ) : (
                 <Copy
-                  className={cn(UI_ICON_CONTROL, "text-white/70")}
+                  className={cn(UI_ICON_INLINE_XS, "text-white/70")}
                   aria-hidden
                 />
               )}
@@ -148,9 +148,10 @@ export function BrowsePublicListCard({
             </div>
           ) : null}
           <div className="flex items-center gap-1">
-            <Eye className={UI_ICON_CONTROL} aria-hidden />
+            <Eye className={UI_ICON_INLINE_XS} aria-hidden />
             <span>
-              {urlCount} {urlCount === 1 ? "URL" : "URLs"}
+              <span className="font-medium text-white/80">{urlCount}</span>{" "}
+              {urlCount === 1 ? "URL" : "URLs"}
             </span>
           </div>
         </div>

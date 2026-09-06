@@ -81,7 +81,9 @@ describe("REQ-0023 URL mutation cache safety", () => {
     currentList.set(archivedList);
     (global.fetch as jest.Mock).mockResolvedValue({ ok: false } as Response);
 
-    await restoreArchivedUrl("url-1");
+    await expect(restoreArchivedUrl("url-1")).rejects.toThrow(
+      "Failed to restore URL",
+    );
 
     expect(currentList.get()).toEqual(archivedList);
   });

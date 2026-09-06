@@ -13,7 +13,12 @@ import { cn } from "@/lib/utils";
 
 type AnyIcon =
   | LucideIcon
-  | ComponentType<SVGProps<SVGSVGElement> & { className?: string; "aria-hidden"?: boolean | "true" | "false" }>;
+  | ComponentType<
+      SVGProps<SVGSVGElement> & {
+        className?: string;
+        "aria-hidden"?: boolean | "true" | "false";
+      }
+    >;
 
 type IdentityHeadingProps = {
   icon: AnyIcon;
@@ -21,6 +26,8 @@ type IdentityHeadingProps = {
   subtitle?: string;
   hue?: UIIconTileHue;
   action?: ReactNode;
+  /** Optional accessory beside the title (e.g. SectionCountBadge). */
+  titleAccessory?: ReactNode;
   className?: string;
   /** Use h1 for page chrome; h2/h3 for section cards. */
   titleAs?: "h1" | "h2" | "h3";
@@ -34,6 +41,7 @@ export function IdentityHeading({
   subtitle,
   hue = "blue",
   action,
+  titleAccessory,
   className,
   titleAs: TitleTag = "h1",
   titleClassName,
@@ -51,17 +59,20 @@ export function IdentityHeading({
       <div className={cn("flex min-w-0 flex-1 items-center", UI_IDENTITY_GAP)}>
         <GlassIconTile icon={icon} hue={hue} />
         <div className={cn(HEADING_STACK, "min-w-0")}>
-          <TitleTag
-            className={cn(
-              "text-lg font-medium leading-tight sm:text-xl",
-              TitleTag === "h1"
-                ? "bg-gradient-to-r from-blue-300 to-purple-300 bg-clip-text text-transparent"
-                : "text-white",
-              titleClassName,
-            )}
-          >
-            {title}
-          </TitleTag>
+          <div className="flex min-w-0 items-center gap-2">
+            <TitleTag
+              className={cn(
+                "min-w-0 text-lg font-medium leading-tight sm:text-xl",
+                TitleTag === "h1"
+                  ? "bg-gradient-to-r from-blue-300 to-purple-300 bg-clip-text text-transparent"
+                  : "text-white",
+                titleClassName,
+              )}
+            >
+              {title}
+            </TitleTag>
+            {titleAccessory}
+          </div>
           {subtitle ? (
             <p
               className={cn(

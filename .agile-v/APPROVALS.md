@@ -47,3 +47,7 @@ Append-only record of Human Gate decisions.
 | 2026-09-04 | GATE-0040 | SCOPE COMPLETE | Auto | `C7.23-COMMIT-READY-2026-09-04` | C7.23 verified PASS; commit-ready docs synced. |
 | 2026-09-04 | GATE-0041 | APPROVED | User | `C7.24-HG1-UI-POLISH-2026-09-04` | User approved C7.24 UI polish plan and implement. |
 | 2026-09-04 | GATE-0041 | SCOPE COMPLETE | Auto | `C7.24-COMMIT-READY-2026-09-04` | C7.24 verified PASS WITH WARNINGS; commit-ready docs synced. |
+| 2026-09-05 | GATE-0042 | PENDING | — | `C7.25-HG-PROD-SMOKE-2026-09-05` | Human-Verify: prod smoke C7.23+C7.24 + Network/UX notes for C7.21–C7.22. No coding until paste + optional fix-plan approval. |
+| 2026-09-06 | GATE-0042 | APPROVED | User | `C7.25-HG-PROD-SMOKE-2026-09-05` | Network paste + UX classified; C7.25 polish plan approved for implement. |
+| 2026-09-06 | GATE-0043 | APPROVED | User | `C7.25-HG1-POLISH-2026-09-06` | User approved C7.25 polish plan (smoke Improve + screenshots). |
+| 2026-09-06 | GATE-0043 | SCOPE COMPLETE | Auto | `C7.25-COMMIT-READY-2026-09-06` | C7.25 verified PASS WITH WARNINGS; commit-ready docs synced. |

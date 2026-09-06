@@ -674,3 +674,23 @@ Gate 2: BLOCKED — RISK-0016 is accepted; `EVAL_RESULTS.md` PASS/WAIVED evidenc
 | Insights / Restore / Scroll | warm ActivityChart; Popular badges; Restore dialog; scroll-to-card | PASS | Wave 3 |
 | Validation | lint 0; tsc; Jest UrlAddForm; build; verify-deep | PASS WITH WARNINGS | Soft-nav remount / scroll rAF non-blocking |
 | Deploy | push / prod smoke | PENDING USER | Docs at commit-ready |
+
+## 2026-09-05 — GATE-0042 opened (Human-Verify prod smoke)
+
+| Scope | Command / evidence | Result | Notes |
+|---|---|---|---|
+| Reconcile | HEAD = origin `90e80a3` (C7.24) | PASS | Push already on remote |
+| Gate | GATE-0042 / TASK-0061 / DEC-0063 | PENDING | No code until Network paste + optional plan approval |
+| Human | Prod smoke C7.23–C7.24 + Network/UX C7.21–C7.22 | PENDING USER | Checklist in session plan |
+
+## 2026-09-06 — GATE-0042 closed / GATE-0043 C7.25 polish
+
+| Scope | Command / evidence | Result | Notes |
+|---|---|---|---|
+| Classify | Network paste + UX screenshots | PASS WITH WARNINGS | Densify healthy; Improve → C7.25 |
+| Reminder / Archive UI | ReminderDateField showPicker; ArchivedUrlCard | PASS | Native indicator hidden |
+| Densify | archive/comment skipUnified; comment options forward | PASS | e2e ≤1 updates after archive/comment |
+| Browse / ApiDocs / icons | SectionCountBadge; UI_ICON_INLINE_XS; ApiDocs gaps | PASS | e2e badge + tabs |
+| Toast / Comments flash | UrlCard-only archive toast; awaitingKnownComments | PASS | restore rethrow + readiness throws |
+| Validation | lint 0; tsc; Jest 185; e2e c725+warm; build; verify-deep | PASS WITH WARNINGS | urlCount hydration race OOS |
+| Deploy | push / prod re-smoke | PENDING USER | Docs at commit-ready |

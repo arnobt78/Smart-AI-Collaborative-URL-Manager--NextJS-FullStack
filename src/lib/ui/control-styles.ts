@@ -9,6 +9,9 @@ export const UI_CONTROL_ICON_GAP = "gap-1";
 /** Interactive control glyphs (buttons, chips, filters, menus, close, spinners). */
 export const UI_ICON_CONTROL = "h-5 w-5 shrink-0";
 
+/** Inline icons beside text-xs meta labels (badges, list-card footers). */
+export const UI_ICON_INLINE_XS = "h-3.5 w-3.5 shrink-0";
+
 /** Page headers, feature cards, empty-state heroes, brand marks. */
 export const UI_ICON_DECORATIVE = "h-6 w-6 sm:h-8 sm:w-8 shrink-0";
 

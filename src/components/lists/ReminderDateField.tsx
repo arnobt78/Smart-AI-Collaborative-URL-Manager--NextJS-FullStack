@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef } from "react";
 import { Calendar } from "lucide-react";
 import { Input } from "@/components/ui/Input";
 import { UI_ICON_CONTROL } from "@/lib/ui/control-styles";
@@ -14,7 +15,7 @@ type ReminderDateFieldProps = {
   disabled?: boolean;
 };
 
-/** Optional reminder date with calendar chrome right-justified (Add + Edit parity). */
+/** Optional reminder date: one Lucide calendar (native indicator hidden) opens the picker. */
 export function ReminderDateField({
   value,
   onChange,
@@ -23,6 +24,19 @@ export function ReminderDateField({
   className,
   disabled,
 }: ReminderDateFieldProps) {
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const openPicker = () => {
+    if (disabled) return;
+    const el = inputRef.current;
+    if (!el) return;
+    try {
+      el.showPicker?.();
+    } catch {
+      el.focus();
+    }
+  };
+
   return (
     <div className={className}>
       <label
@@ -33,6 +47,7 @@ export function ReminderDateField({
       </label>
       <div className="relative mt-2">
         <Input
+          ref={inputRef}
           id={id}
           type="date"
           value={value}
@@ -40,15 +55,22 @@ export function ReminderDateField({
           onChange={(e) => onChange(e.target.value)}
           className={cn(
             "pr-10 text-sm sm:text-base shadow-sm font-delicious bg-transparent",
+            // Hide native calendar chrome — Lucide button is the only control
+            "[&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:inset-0 [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:cursor-pointer",
           )}
         />
-        <Calendar
+        <button
+          type="button"
+          tabIndex={-1}
+          disabled={disabled}
+          onClick={openPicker}
+          aria-label="Pick reminder date"
           className={cn(
-            UI_ICON_CONTROL,
-            "pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-white/50",
+            "absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-white/50 transition-colors hover:bg-white/10 hover:text-white/80 disabled:cursor-not-allowed disabled:opacity-40",
           )}
-          aria-hidden
-        />
+        >
+          <Calendar className={UI_ICON_CONTROL} aria-hidden />
+        </button>
       </div>
     </div>
   );

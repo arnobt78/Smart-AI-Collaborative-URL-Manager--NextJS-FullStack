@@ -307,6 +307,33 @@ describe("C7.1 densify browse + insights invalidation", () => {
     expect(unifiedHits).toHaveLength(0);
   });
 
+  it("skipUnified skips unified invalidate for comment densify", () => {
+    const client = new QueryClient();
+    const invalidate = jest.spyOn(client, "invalidateQueries");
+
+    invalidateMutationImpact(client, "comment", "test-list", "list-1", {
+      skipUnified: true,
+    });
+
+    const unifiedHits = invalidate.mock.calls.filter((call) => {
+      const key = call[0]?.queryKey;
+      return (
+        Array.isArray(key) &&
+        key[0] === listQueryKeys.unified("test-list")[0] &&
+        key[1] === "test-list"
+      );
+    });
+    expect(unifiedHits).toHaveLength(0);
+
+    expect(
+      invalidate.mock.calls.some(
+        (call) =>
+          Array.isArray(call[0]?.queryKey) &&
+          call[0]?.queryKey[0] === listQueryKeys.allLists()[0],
+      ),
+    ).toBe(true);
+  });
+
   it("without skipUnified still invalidates unified for url", () => {
     const client = new QueryClient();
     const invalidate = jest.spyOn(client, "invalidateQueries");

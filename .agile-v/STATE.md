@@ -1,38 +1,32 @@
 # STATE.md
 
-**C7.24 UI polish + UrlCard-adjacent fixes** | 2026-09-04
+**C7.25 polish (smoke Improve + screenshots)** | 2026-09-06
 
 ## Reconciled (repo = docs)
 
-- **C7.24 shipped (local, pending push/deploy):** toast enter soften; Dialog `titleAccessory` + Comments/Similar badges; Navbar pathname glow; Comments session email + Robohash + created/edited times + Cancel/Save gap; Edit title densify-all + RQ metadata title sync; Add reminder via `ReminderDateField`; Insights soft-nav warm `ActivityChart`; Popular section badges; Restore AlertDialog+pending; `data-url-id` scroll after pin/add/duplicate.
-- **C7.23** still on prior commit (`29b2fad`) — UrlCard parked bugs.
-- **GATE-0041 closed:** C7.24 plan approved → verified PASS WITH WARNINGS (soft-nav chart remount / scroll rAF timing non-blocking).
-- **Still OOS:** cold PATCH/job latency; Cloudinary destroy/refcount; list virtualization; HA-0001; comment `editedAt` DB column.
+- **HEAD:** C7.25 commit-ready (was `90e80a3` C7.24).
+- **GATE-0042 closed · GATE-0043 APPROVED / SCOPE COMPLETE.**
+- **Shipped:** ReminderDateField clickable Lucide calendar; `ArchivedUrlCard` + `ArchiveRestore`; `UI_ICON_INLINE_XS` + font-medium meta counts; ApiDocs tab/heading gaps; archive single toast + restore rethrow; Comments `awaitingKnownComments`; Browse `SectionCountBadge`; archive/comment `skipUnified` densify (`comment` options forwarded).
+- **Verify:** tsc 0 · eslint 0 · Jest 185 pass · e2e C7.25 (archive/comment densify ≤1 updates, Browse badge, ApiDocs) · warm-mutation · build · verify-deep PASS WITH WARNINGS (urlCount hydration race OOS).
+- **Still OOS:** absolute cold latency; SSE events weight; console-error audit; Cloudinary destroy; virtualization; HA-0001.
 - **Stack:** Next 16.3.3 · React 19.2.8 · Node 24.x · Prisma 6.19.3.
 
 ## Human
 
 - HA-0001 Firewall (open)
-- **Next:** push/deploy when requested → prod smoke polish items (logout toast, nav glow, Comments, Edit title, Add reminder, Insights warm chart, archive/restore, scroll-to-card)
-
-## Backlog
-
-- Activity densify-on-every-visit OOS
-- Activity badge in-spinner projection OOS
-- Optional `(auth)` route-group; lists/browse cold API slim; status API speed OOS; full metadata rewrite OOS; Prisma 7/8 OOS
+- **Now:** Push / prod re-smoke C7.25 polish when ready.
 
 ## Current checkpoint
 
-- **Stage:** Stage 4 complete / commit-ready C7.24
+- **Stage:** Stage 3 Synthesis — C7.25 commit-ready
 - **Cycle:** C7
-- **Status:** Verified PASS WITH WARNINGS; docs synced; local commit
-- **Gate:** GATE-0041 APPROVED (C7.24 UI polish)
-- **Trace:** DEC-0062; TASK-0060; GATE-0041; prior DEC-0061 / TASK-0059 / GATE-0040
+- **Status:** Done (local commit)
+- **Gate:** GATE-0043 SCOPE COMPLETE (`C7.25-COMMIT-READY-2026-09-06`)
+- **Trace:** TASK-0062; DEC-0064; GATE-0043; prior TASK-0061 / DEC-0063 / GATE-0042
 
 ## Next
 
 ```text
-1. Push when user requests (do not auto-push).
-2. Deploy → prod smoke C7.24 polish surfaces.
-3. Latency / virtualization remain OOS.
+1. Push when ready.
+2. Prod re-smoke: reminder picker, archive/restore, Comments, Browse badge, ApiDocs, meta icons, Network densify.
 ```

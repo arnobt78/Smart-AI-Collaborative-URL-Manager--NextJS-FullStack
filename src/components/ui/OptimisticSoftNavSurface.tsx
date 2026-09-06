@@ -7,6 +7,7 @@ import { ListDetailShareRow } from "@/components/lists/ListDetailShareRow";
 import { BarChart3, Globe } from "lucide-react";
 import { ListDetailJobsMenu } from "@/components/lists/ListDetailJobsMenu";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { SectionCountBadge } from "@/components/ui/SectionCountBadge";
 import { CreateNewListButton } from "@/components/ui/CreateNewListButton";
 import { Tabs } from "@/components/ui/Tabs";
 import {
@@ -58,6 +59,12 @@ type BrowseCache = {
     urls?: unknown[];
     user: { email: string };
   }>;
+  pagination?: {
+    page: number;
+    limit: number;
+    totalPages: number;
+    total: number;
+  };
 };
 type InsightsOverviewCache = {
   overview: {
@@ -167,6 +174,9 @@ function BrowseOptimisticSurface() {
         icon={Globe}
         title="Discover Public Lists"
         description="Browse and explore curated URL collections from the community"
+        titleAccessory={
+          <SectionCountBadge count={data.pagination?.total ?? lists.length} />
+        }
       />
       <BrowseSearchField value={filter} onChange={setFilter} />
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

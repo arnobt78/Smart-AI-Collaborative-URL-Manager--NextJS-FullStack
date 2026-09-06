@@ -5,17 +5,18 @@
 Live: https://daily-urlist.vercel.app/ · Resume: `.agile-v/STATE.md`
 
 ## Status (C7 — densify + UrlCard actions)
-Done: C7.8–C7.24 · **LLM** `c085f69` REQ-AI-0001 · **Icons** CONTROL/DECORATIVE · **C7.18** SSE `eventKey` dedup.
+Done: C7.8–C7.25 · **LLM** `c085f69` REQ-AI-0001 · **Icons** CONTROL/DECORATIVE/INLINE_XS · **C7.18** SSE `eventKey` dedup.
 **C7.19** Empty/browse polish + SC create/cold-path (known-empty thin paint; SC expand gate; Create Collection mount lock).
 **C7.20** Visibility/browse densify (preserve owner `user`; skip unified invalidate; activity prepend + SSE mark); Create Collection seeds Activity; UrlCard fav/pin skipInvalidate densify; duplicate AlertDialog; `lib/sse-unified-dedup.ts`.
 **C7.21** Network-smoke fixes: fav/pin densify-before-await + single-flight + SSE cancel; reorder strip/`!ok` rollback + unified densify; Activity FIFO **20** + prune; jobs densify + `skipUnified`; metadata batch Map; e2e on demo DB (`E2E_ALLOW_SHARED_DB`).
 **C7.22** Refresh hang + polish: metadata `lite=1` + job/client timeouts; toast always clears (`finally` only if `!toastSettled`); drag activity guard; click mark + analytics `skipUnified`; pin SSE window; Saving toasts; Activity “Latest 20” subtitle.
 **C7.23** UrlCard parked: metadata sanitize/Zod nullish (Add URL 400); archive strip + `mergeArchivedAtOnWrite`; dup-delete RQ guard; UrlCard image retry + viewport reset.
 **C7.24** UI polish: toast enter soften; Dialog `titleAccessory` + Comments/Similar badges; Navbar active glow; Comments email/avatar/times; Edit densify-all + title precedence; Add `ReminderDateField`; Insights soft-nav warm chart; Popular badges; Restore pending dialog; scroll-to-card.
+**C7.25** Smoke polish: Reminder Lucide→`showPicker`; `ArchivedUrlCard`+`ArchiveRestore`; `UI_ICON_INLINE_XS`+font-medium meta; ApiDocs gaps; archive single toast; Comments knownCount loading; Browse `SectionCountBadge`; archive/comment `skipUnified` (comment options forward).
 Stack: Next **16.3.3** · React **19.2.8** · Node **24.x** · **`src/proxy.ts`** · Prisma **6.19.3**.
-Defer: `(auth)` route-group; lists/browse cold API slim; status API speed OOS; full metadata rewrite OOS; Prisma 7/8; Activity badge spinner; PATCH/job latency; virtualization; Cloudinary destroy.
-Human: HA-0001; GATE-0041 closed; next: prod re-smoke C7.24 polish.
-Validate: Jest · lint 0 · tsc · build · e2e C7.21–C7.23 · audit 0. · Resume: `.agile-v/STATE.md`.
+Defer: `(auth)` route-group; lists/browse cold API slim; status API speed OOS; full metadata rewrite OOS; Prisma 7/8; Activity badge spinner; PATCH/job latency; virtualization; Cloudinary destroy; SSE weight; urlCount hydration race.
+Human: HA-0001; GATE-0043 closed; next: prod re-smoke C7.25 polish.
+Validate: Jest · lint 0 · tsc · build · e2e C7.21–C7.25 · audit 0. · Resume: `.agile-v/STATE.md`.
 
 ## Stack
 Next 16.3.3 · React 19.2 · RQ · Prisma 6.19 · cookie auth · Upstash · Sentry tunnel · PostHog · Jest · Node 24.x (Vercel + `.nvmrc`)
@@ -38,6 +39,7 @@ C7.21: fav/pin pre-await densify + SSE invalidate cancel; `toReorderUrlItems` + 
 C7.22: refresh-metadata `lite=1` + AbortSignal timeouts; ListPage settleToast; drag activity `id`+email+slug guard; click densify mark; analytics `skipUnified`; Saving/Reordering toasts; Activity FIFO subtitle.
 C7.23: `sanitizeUrlMetadataForApi` + Zod nullish; archive `toReorderUrlItems` + `mergeArchivedAtOnWrite`; `shouldClearUrlMetadataCache`; UrlCard image retry + IO reset.
 C7.24: Toast soften; Dialog `titleAccessory`; Navbar `usePathname` glow; Comments session email + UserAvatar + clock/edited; densify-all edits + `url.title || metadata?.title`; `ReminderDateField`; soft-nav warm `ActivityChart`; Popular `SectionCountBadge`; Restore AlertDialog+pending; `data-url-id` scroll.
+C7.25: Reminder Lucide→`showPicker`; `ArchivedUrlCard`; `UI_ICON_INLINE_XS`; ApiDocs Insights-parity tabs; archive toast ownership; Comments knownCount loading; Browse title `SectionCountBadge`; archive/comment densify `skipUnified`.
 
 ## Insights
 Soft-nav warm `ActivityChart` when activity cached · single `LineChart` + non-zero `LabelList` (7/30) · pie slice-colored labels · `InsightsChartTooltip` · Popular/Global icon gaps via `UI_CONTROL_ICON_GAP` · Popular `SectionCountBadge`
@@ -49,7 +51,7 @@ Home: `WAS_AUTHED_COOKIE`+`session_token` SSR Marketing; guests redirect `/login
 
 ## Spacing
 `src/lib/ui-spacing.ts` — `PAGE_STACK` / `SECTION_STACK` / `MARKETING_STACK` / `FORM_STACK` / `LIST_STACK` / `HEADING_STACK` / `PAGE_HEADER` / `CARD_STACK` / `CARD_PAD`  
-`src/lib/ui/control-styles.ts` — `UI_CONTROL_ICON_GAP` (`gap-1`) · `UI_ICON_CONTROL` (`h-5 w-5`) · `UI_ICON_DECORATIVE` (`h-6 sm:h-8`) · `UI_LIST_CARD_META_BADGE` · `UI_ICON_MENU_TRIGGER` · `UI_SECTION_COUNT_BADGE` · `UI_GLASS_MENU_PANEL` / `ITEM` / `SEPARATOR` / `TRIGGER_FOCUS`  
+`src/lib/ui/control-styles.ts` — `UI_CONTROL_ICON_GAP` (`gap-1`) · `UI_ICON_CONTROL` (`h-5 w-5`) · `UI_ICON_INLINE_XS` (`h-3.5 w-3.5`) · `UI_ICON_DECORATIVE` (`h-6 sm:h-8`) · `UI_LIST_CARD_META_BADGE` · `UI_ICON_MENU_TRIGGER` · `UI_SECTION_COUNT_BADGE` · `UI_GLASS_MENU_PANEL` / `ITEM` / `SEPARATOR` / `TRIGGER_FOCUS`  
 `src/components/ui/dropdown-menu.tsx` — Radix `@radix-ui/react-dropdown-menu` + glass chrome (`modal={false}`); jobs, collab, profile, Auth guest, bulk import/export
 
 ## Glass UI

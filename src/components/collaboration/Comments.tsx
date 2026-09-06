@@ -13,6 +13,10 @@ import { AlertDialog } from "@/components/ui/AlertDialog";
 import { Trash2, Edit2, Check, MessageSquarePlus, Clock } from "lucide-react";
 import { invalidateMutationImpact } from "@/utils/queryInvalidation";
 import { listQueryKeys } from "@/lib/query-keys";
+import {
+  markUnifiedEventProcessed,
+  prependUnifiedActivity,
+} from "@/hooks/useListQueries";
 import { UI_ICON_CONTROL } from "@/lib/ui/control-styles";
 import { cn } from "@/lib/utils";
 import { useSession } from "@/hooks/useSession";
@@ -100,7 +104,11 @@ export function Comments({ listId, urlId, currentUserId, knownCount }: CommentsP
   const queryKey = useMemo(() => ["comments", listId, urlId], [listId, urlId]);
 
   // Fetch comments using React Query
-  const { data: commentsData, isLoading } = useQuery<{
+  const {
+    data: commentsData,
+    isLoading,
+    isFetching,
+  } = useQuery<{
     comments: Comment[];
     cached?: boolean;
   }>({
@@ -132,17 +140,51 @@ export function Comments({ listId, urlId, currentUserId, knownCount }: CommentsP
   });
 
   const comments = commentsData?.comments || [];
+  const awaitingKnownComments =
+    (knownCount ?? 0) > 0 &&
+    comments.length === 0 &&
+    (isLoading || isFetching);
 
   // Cached comments stay visible; an uncached dialog only shows feedback when
   // the request is genuinely slow, preventing an opening-state spinner flash.
   useEffect(() => {
-    if (skipFetch || !isLoading || commentsData) {
+    if (skipFetch || awaitingKnownComments) {
+      setShowColdLoading(awaitingKnownComments);
+      return;
+    }
+    if (!isLoading || commentsData) {
       setShowColdLoading(false);
       return;
     }
     const timeout = setTimeout(() => setShowColdLoading(true), 200);
     return () => clearTimeout(timeout);
-  }, [commentsData, isLoading, skipFetch]);
+  }, [awaitingKnownComments, commentsData, isLoading, skipFetch]);
+
+  const densifyCommentMutationImpact = (activity?: {
+    id?: string;
+    action?: string;
+    details?: Record<string, unknown> | null;
+    createdAt?: string;
+    user?: { id: string; email: string };
+  }) => {
+    const currentSlug = slug || list?.slug;
+    if (!currentSlug) return;
+    if (activity?.id && activity.user?.email) {
+      prependUnifiedActivity(queryClient, currentSlug, {
+        id: activity.id,
+        action: activity.action || "comment",
+        details: activity.details ?? null,
+        createdAt: activity.createdAt || new Date().toISOString(),
+        user: activity.user,
+      });
+      markUnifiedEventProcessed(`activity:${activity.id}`);
+      invalidateMutationImpact(queryClient, "comment", currentSlug, listId, {
+        skipUnified: true,
+      });
+      return;
+    }
+    invalidateMutationImpact(queryClient, "comment", currentSlug, listId);
+  };
 
   // Listen for real-time comment updates (from other clients)
   useEffect(() => {
@@ -231,11 +273,7 @@ export function Comments({ listId, urlId, currentUserId, knownCount }: CommentsP
         );
       }
 
-      // CRITICAL: Invalidate unified query to trigger updates?activityLimit=30 refetch
-      // This ensures activity feed gets complete updated list (matches edit/delete behavior)
-      // Same pattern as URL add/edit/delete mutations for consistency
-      const currentSlug = slug || list?.slug;
-      if (currentSlug) invalidateMutationImpact(queryClient, "comment", currentSlug, listId);
+      densifyCommentMutationImpact(data.activity);
     },
     onError: (error, _variables, context) => {
       // Rollback optimistic update
@@ -345,10 +383,7 @@ export function Comments({ listId, urlId, currentUserId, knownCount }: CommentsP
         );
       }
 
-      // CRITICAL: Invalidate unified query to trigger updates?activityLimit=30 refetch
-      // This ensures activity feed gets complete updated list
-      const currentSlug = slug || list?.slug;
-      if (currentSlug) invalidateMutationImpact(queryClient, "comment", currentSlug, listId);
+      densifyCommentMutationImpact(data.activity);
     },
     onError: (error, _variables, context) => {
       // Rollback optimistic update
@@ -428,15 +463,7 @@ export function Comments({ listId, urlId, currentUserId, knownCount }: CommentsP
         );
       }
 
-      // CRITICAL: Invalidate unified query to trigger updates?activityLimit=30 refetch
-      // This ensures activity feed gets complete updated list
-      const currentSlug = slug || list?.slug;
-      if (currentSlug) invalidateMutationImpact(queryClient, "comment", currentSlug, listId);
-
-      // Note: We don't dispatch "comment-updated" here because:
-      // 1. We've already updated the cache optimistically
-      // 2. The real-time system (SSE) will notify other clients automatically
-      // 3. Dispatching here would trigger our own listener and cause a redundant refetch
+      densifyCommentMutationImpact(data?.activity);
     },
     onError: (error, _variables, context) => {
       // Rollback optimistic update
@@ -518,7 +545,7 @@ export function Comments({ listId, urlId, currentUserId, knownCount }: CommentsP
 
       {/* Comments List */}
       <div className="space-y-2 sm:space-y-2 max-h-[400px] overflow-y-auto custom-scrollbar">
-        {showColdLoading ? (
+        {showColdLoading || awaitingKnownComments ? (
           <div className="text-xs sm:text-sm text-white/50 text-center py-3 sm:py-4">
             Loading comments...
           </div>

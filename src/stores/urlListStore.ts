@@ -1289,7 +1289,9 @@ export async function reorderUrls(startIndex: number, endIndex: number) {
 
 export async function archiveUrlFromList(urlId: string) {
   const current = currentList.get();
-  if (!current.id || !current.urls) return;
+  if (!current.id || !current.urls) {
+    throw new Error("List not ready");
+  }
 
   isLoading.set(true);
   error.set(null);
@@ -1399,7 +1401,24 @@ export async function archiveUrlFromList(urlId: string) {
     // Note: Activity feed will also update via real-time SSE event
     // But optimistic update provides instant feedback
 
-    return commitUrlMutation(current, list, list.urls as UrlItem[], "archive");
+    const activityForCache =
+      activityData?.id && activityData?.user?.email
+        ? {
+            id: activityData.id as string,
+            action: activityData.action as string,
+            details: (activityData.details ?? null) as Record<
+              string,
+              unknown
+            > | null,
+            createdAt: activityData.createdAt as string,
+            user: activityData.user as { id: string; email: string },
+          }
+        : undefined;
+
+    return commitUrlMutation(current, list, list.urls as UrlItem[], "archive", {
+      skipUnified: true,
+      activity: activityForCache,
+    });
   } catch (err) {
     error.set(err instanceof Error ? err.message : "Failed to archive URL");
     // Restore exactly the initiating snapshot; no refetch is needed to recover the UI.
@@ -1412,7 +1431,9 @@ export async function archiveUrlFromList(urlId: string) {
 
 export async function restoreArchivedUrl(urlId: string) {
   const current = currentList.get() as UrlList | undefined;
-  if (!current?.id || !current?.archivedUrls) return;
+  if (!current?.id || !current?.archivedUrls) {
+    throw new Error("List not ready");
+  }
 
   isLoading.set(true);
   error.set(null);
@@ -1527,12 +1548,30 @@ export async function restoreArchivedUrl(urlId: string) {
     // Note: Activity feed will also update via real-time SSE event
     // But optimistic update provides instant feedback
 
-    return commitUrlMutation(current, list, list.urls as UrlItem[], "archive");
+    const activityForCache =
+      activityData?.id && activityData?.user?.email
+        ? {
+            id: activityData.id as string,
+            action: activityData.action as string,
+            details: (activityData.details ?? null) as Record<
+              string,
+              unknown
+            > | null,
+            createdAt: activityData.createdAt as string,
+            user: activityData.user as { id: string; email: string },
+          }
+        : undefined;
+
+    return commitUrlMutation(current, list, list.urls as UrlItem[], "archive", {
+      skipUnified: true,
+      activity: activityForCache,
+    });
   } catch (err) {
     currentList.set(current);
     error.set(
       err instanceof Error ? err.message : "Failed to restore archived URL"
     );
+    throw err;
   } finally {
     isLoading.set(false);
   }

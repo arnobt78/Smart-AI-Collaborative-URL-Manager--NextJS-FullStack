@@ -878,3 +878,29 @@ Append-only. Newest entries at bottom.
 | Rationale | User screenshot/list polish after C7.23; approved plan `c7.24_ui_polish_batch`. |
 | Linked REQs | TASK-0060; GATE-0041 |
 | Status | Implemented and validated 2026-09-04. |
+
+---
+
+## DEC-0063 — Network-first Human-Verify before any C7.25 code
+
+| Field | Value |
+|---|---|
+| Timestamp | 2026-09-05 |
+| Agent | Cursor |
+| Decision | Open GATE-0042 / TASK-0061 as Human-Verify: user runs prod smoke on C7.23 + C7.24 and pastes Network timings + UX notes covering C7.21–C7.22 densify/toast behavior. Agent classifies expected vs improve vs bug. Do not code until a separate C7.25 fix plan (if needed) is explicitly approved. |
+| Rationale | User intent for today is evidence collection on live vercel.app, not new features. Same Network-first pattern as GATE-0038. |
+| Linked REQs | TASK-0061; GATE-0042 |
+| Status | Superseded by DEC-0064 — paste classified; C7.25 polish approved. |
+
+---
+
+## DEC-0064 — C7.25 polish (smoke Improve + screenshots)
+
+| Field | Value |
+|---|---|
+| Timestamp | 2026-09-06 |
+| Agent | Cursor |
+| Decision | Implement C7.25: ReminderDateField single clickable calendar; archived UrlCard-like chrome + ArchiveRestore; UI_ICON_INLINE_XS meta icons + font-medium counts; ApiDocs gaps; archive single toast; Comments empty flash; Browse SectionCountBadge; archive/comment densify skipUnified. Latency/SSE weight/console audit remain OOS. |
+| Rationale | GATE-0042 Network paste proved densify healthy; remaining Improve items + screenshot polish. |
+| Linked REQs | TASK-0062; GATE-0043 |
+| Status | Implemented and validated 2026-09-06. |

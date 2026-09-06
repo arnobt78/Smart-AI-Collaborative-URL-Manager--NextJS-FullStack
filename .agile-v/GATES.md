@@ -450,6 +450,46 @@ Implementation is locally verified. Production check remains with TASK-0039. Gat
 
 ---
 
+## GATE-0042 — Human-Verify (prod smoke C7.23–C7.24 + Network C7.21–C7.22)
+
+| Field | Value |
+|-------|-------|
+| Type | Human-Action / Human-Verify |
+| Status | **APPROVED / COMPLETE 2026-09-06** |
+| Checkpoint | `C7.25-HG-PROD-SMOKE-2026-09-05` → `C7.25-HG1-POLISH-2026-09-06` |
+| Evidence | TASK-0061; DEC-0063; Network paste + UX; C7.25 plan approved |
+| Required human action | Completed — paste classified; polish plan approved for implement. |
+| Scope | Acceptance classify complete. C7.25 polish under GATE-0043. |
+| Resume condition | Implement C7.25; commit-ready when verified. |
+
+---
+
+## GATE-0043 — Human Gate 1 (C7.25 polish)
+
+| Field | Value |
+|-------|-------|
+| Type | Human-Decision |
+| Status | **APPROVED 2026-09-06** |
+| Checkpoint | `C7.25-HG1-POLISH-2026-09-06` |
+| Evidence | TASK-0062; DEC-0064; plan `c7.25_ui_polish` |
+| Required human action | Completed — user approved C7.25 polish plan implement. |
+| Scope | Reminder calendar; archived card; inline icons; ApiDocs gaps; archive toast; Comments flash; Browse badge; archive/comment densify. |
+| Resume condition | Implement + verify; docs at commit-ready. |
+
+---
+
+## GATE-0043 — SCOPE COMPLETE (C7.25 commit-ready)
+
+| Field | Value |
+|-------|-------|
+| Type | Auto / commit-ready |
+| Status | **COMPLETE 2026-09-06** |
+| Checkpoint | `C7.25-COMMIT-READY-2026-09-06` |
+| Evidence | TASK-0062; DEC-0064; VALIDATION_SUMMARY C7.25 |
+| Scope | C7.25 polish shipped and verified (lint/tsc/jest/e2e/build). |
+
+---
+
 ## GATE-0002 — Human Gate 2 (release / acceptance)
 
 | Field | Value |

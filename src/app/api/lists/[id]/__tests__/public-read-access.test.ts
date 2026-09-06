@@ -5,6 +5,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { getListBySlugOrId, getCollaboratorsWithRoles, updateList } from "@/lib/db";
 import { getActivitiesForList } from "@/lib/db/activities";
 import { getCommentCountsForUrls } from "@/lib/db/comments";
+import { ACTIVITY_FEED_LIMIT } from "@/lib/activity-feed-limit";
 import { GET as getUpdates } from "../updates/route";
 import { GET as getCollaborators } from "../collaborators/route";
 
@@ -56,7 +57,10 @@ describe("authenticated public-list read routes", () => {
       collaborators: [],
     });
     expect(response.status).toBe(200);
-    expect(getActivitiesForList).toHaveBeenCalledWith(publicList.id, 30);
+    expect(getActivitiesForList).toHaveBeenCalledWith(
+      publicList.id,
+      ACTIVITY_FEED_LIMIT,
+    );
   });
 
   it("normalizes legacy URL positions without persisting from an anonymous read", async () => {

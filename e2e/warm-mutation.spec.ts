@@ -34,17 +34,17 @@ test("URL mutation survives immediate Back/Forward and list revisit", async ({
 
   await page.getByRole("link", { name: /my lists/i }).click();
   await expect(
-    page.getByRole("heading", { name: "E2E Warm List" }).first(),
+    page.getByRole("button", { name: "E2E Warm List" }).first(),
   ).toBeVisible({ timeout: 20_000 });
   // Soft-nav back via list title (history goBack is flaky with soft-nav shells).
-  await page.getByRole("heading", { name: "E2E Warm List" }).first().click();
+  await page.getByRole("button", { name: "E2E Warm List" }).first().click();
   await expect(page).toHaveURL(new RegExp(`/list/${slug}`), { timeout: 20_000 });
   await expect(page.getByText(/playwright\.example/i).first()).toBeVisible({
     timeout: 20_000,
   });
   await page.getByRole("link", { name: /my lists/i }).click();
   await expect(
-    page.getByRole("heading", { name: "E2E Warm List" }).first(),
+    page.getByRole("button", { name: "E2E Warm List" }).first(),
   ).toBeVisible({ timeout: 20_000 });
 
   expect(listId).toBeTruthy();

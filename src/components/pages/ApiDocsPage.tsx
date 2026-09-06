@@ -5,10 +5,15 @@ import { Badge } from "@/components/ui/Badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/Tabs";
 import { BookOpen, Code, Lock, Globe, Link2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { PAGE_STACK, CARD_PAD, HEADING_STACK } from "@/lib/ui-spacing";
+import { PAGE_STACK, CARD_PAD, HEADING_STACK, CARD_STACK, LIST_STACK } from "@/lib/ui-spacing";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { GlassIconTile } from "@/components/ui/GlassIconTile";
-import { UI_ICON_CONTROL, UI_IDENTITY_GAP } from "@/lib/ui/control-styles";
+import {
+  UI_CONTROL_ICON_GAP,
+  UI_ICON_CONTROL,
+  UI_ICON_INLINE_XS,
+  UI_IDENTITY_GAP,
+} from "@/lib/ui/control-styles";
 
 interface ApiEndpoint {
   method: "GET" | "POST" | "PATCH" | "DELETE";
@@ -376,7 +381,7 @@ export default function ApiDocsPage() {
             </div>
           </div>
         </CardHeader>
-        <CardContent className="flex flex-col gap-2">
+        <CardContent className={cn(CARD_STACK, "mt-0")}>
           <p className="text-white/80 text-sm">
             Most API endpoints require authentication via session cookie. Make
             sure you&apos;re logged in before making requests.
@@ -393,47 +398,62 @@ export default function ApiDocsPage() {
 
       {/* API Endpoints by Category */}
       <Tabs defaultValue="Authentication" className="w-full">
-        <TabsList className="grid w-full grid-cols-4 ">
+        <TabsList className="grid h-11 w-full grid-cols-4 items-center">
           <TabsTrigger
             value="Authentication"
-            className="flex items-center  text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2"
+            className={cn(
+              "flex h-full items-center justify-center text-xs sm:text-sm px-2 sm:px-3",
+              UI_CONTROL_ICON_GAP,
+            )}
           >
-            <Lock className={UI_ICON_CONTROL} />
-            <span className="hidden sm:inline">Auth</span>
-            <span className="sm:hidden">Auth</span>
+            <Lock className={UI_ICON_CONTROL} aria-hidden />
+            <span>Auth</span>
           </TabsTrigger>
           <TabsTrigger
             value="Lists"
-            className="flex items-center  text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2"
+            className={cn(
+              "flex h-full items-center justify-center text-xs sm:text-sm px-2 sm:px-3",
+              UI_CONTROL_ICON_GAP,
+            )}
           >
-            <Link2 className={UI_ICON_CONTROL} />
+            <Link2 className={UI_ICON_CONTROL} aria-hidden />
             Lists
           </TabsTrigger>
           <TabsTrigger
             value="Utility"
-            className="flex items-center  text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2"
+            className={cn(
+              "flex h-full items-center justify-center text-xs sm:text-sm px-2 sm:px-3",
+              UI_CONTROL_ICON_GAP,
+            )}
           >
-            <Code className={UI_ICON_CONTROL} />
+            <Code className={UI_ICON_CONTROL} aria-hidden />
             Utility
           </TabsTrigger>
           <TabsTrigger
             value="Business Insights"
-            className="flex items-center  text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2"
+            className={cn(
+              "flex h-full items-center justify-center text-xs sm:text-sm px-2 sm:px-3",
+              UI_CONTROL_ICON_GAP,
+            )}
           >
-            <Globe className={UI_ICON_CONTROL} />
-            <span className="hidden sm:inline">Insights</span>
-            <span className="sm:hidden">Insights</span>
+            <Globe className={UI_ICON_CONTROL} aria-hidden />
+            <span>Insights</span>
           </TabsTrigger>
         </TabsList>
 
         {Object.entries(allEndpoints).map(([category, endpoints]) => (
-          <TabsContent key={category} value={category} className="space-y-3">
+          <TabsContent key={category} value={category} className={LIST_STACK}>
             {endpoints.map((endpoint, index) => (
               <Card key={index} className={CARD_PAD}>
                 <CardHeader>
                   <div className="flex items-start justify-between gap-2 sm:gap-4">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 sm:gap-2  flex-wrap">
+                    <div className={cn(HEADING_STACK, "min-w-0 flex-1")}>
+                      <div
+                        className={cn(
+                          "flex flex-wrap items-center",
+                          UI_CONTROL_ICON_GAP,
+                        )}
+                      >
                         <Badge
                           variant={
                             endpoint.method === "GET"
@@ -452,8 +472,14 @@ export default function ApiDocsPage() {
                           {endpoint.path}
                         </code>
                         {endpoint.auth && (
-                          <Badge variant="secondary" className="text-xs">
-                            <Lock className={cn(UI_ICON_CONTROL, "mr-1")} />
+                          <Badge
+                            variant="secondary"
+                            className={cn(
+                              "inline-flex items-center text-xs",
+                              UI_CONTROL_ICON_GAP,
+                            )}
+                          >
+                            <Lock className={UI_ICON_INLINE_XS} aria-hidden />
                             <span className="hidden sm:inline">
                               Auth Required
                             </span>
@@ -461,8 +487,14 @@ export default function ApiDocsPage() {
                           </Badge>
                         )}
                         {!endpoint.auth && (
-                          <Badge variant="outline" className="text-xs">
-                            <Globe className={cn(UI_ICON_CONTROL, "mr-1")} />
+                          <Badge
+                            variant="outline"
+                            className={cn(
+                              "inline-flex items-center text-xs",
+                              UI_CONTROL_ICON_GAP,
+                            )}
+                          >
+                            <Globe className={UI_ICON_INLINE_XS} aria-hidden />
                             Public
                           </Badge>
                         )}

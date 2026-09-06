@@ -1,7 +1,7 @@
 "use client";
 
 import { Calendar, Clock } from "lucide-react";
-import { UI_ICON_CONTROL } from "@/lib/ui/control-styles";
+import { UI_ICON_INLINE_XS } from "@/lib/ui/control-styles";
 import { cn } from "@/lib/utils";
 
 export function formatListDate(date: string | Date | null | undefined): string {
@@ -85,7 +85,7 @@ export function ListMetaDates({
       {created && (
         <span className="inline-flex items-center gap-1">
           <Calendar
-            className={cn(UI_ICON_CONTROL, "text-green-400")}
+            className={cn(UI_ICON_INLINE_XS, "text-green-400")}
             aria-hidden
           />
           <span className="hidden sm:inline">Created</span>
@@ -97,7 +97,7 @@ export function ListMetaDates({
       {showUpdated && updated && (
         <span className="inline-flex items-center gap-1">
           <Clock
-            className={cn(UI_ICON_CONTROL, "text-orange-400")}
+            className={cn(UI_ICON_INLINE_XS, "text-orange-400")}
             aria-hidden
           />
           <span className="hidden sm:inline">Updated</span>

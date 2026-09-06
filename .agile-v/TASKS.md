@@ -268,6 +268,28 @@ RSC shells · densify/Zod/SHA/Next16
 **Out of scope:** latency; virtualization; Cloudinary destroy; `editedAt` column.
 **Validation:** lint 0 · tsc · Jest UrlAddForm · build PASS · verify-deep PASS WITH WARNINGS.
 
+### TASK-0061 — C7.25 Human-Verify prod smoke + Network notes — DONE
+
+1. User prod-smoked C7.23–C7.24; pasted Network + UX for C7.21–C7.22.
+2. Agent classified expected / improve / bug; densify healthy; polish plan drafted.
+3. GATE-0042 closed → GATE-0043 C7.25 polish approved.
+
+**Dependencies:** GATE-0042; DEC-0063; HEAD `90e80a3`.
+**Validation:** Network paste in chat; DEC-0064 / TASK-0062.
+
+### TASK-0062 — C7.25 polish (smoke Improve + screenshots) — DONE
+
+1. ~~ReminderDateField: hide native calendar; one clickable Lucide → showPicker.~~
+2. ~~Archived card: meta image + ArchiveRestore on Restore.~~
+3. ~~`UI_ICON_INLINE_XS` + font-medium counts on browse/lists/detail meta.~~
+4. ~~ApiDocs tab/heading gaps like Insights.~~
+5. ~~Archive single toast; Comments empty flash; Browse SectionCountBadge; archive/comment skipUnified densify (comment options forward).~~
+6. ~~Validate tsc/lint/Jest/e2e/build; docs sync at commit-ready.~~
+
+**Dependencies:** GATE-0043 APPROVED; DEC-0064; TASK-0061.
+**Out of scope:** cold latency; SSE weight; console audit; Cloudinary; virtualization; HA-0001.
+**Validation:** lint 0 · tsc · Jest 185 · e2e c725 densify/badge/apidocs · build · verify-deep PASS WITH WARNINGS.
+
 ### TASK-0040 — C6.5 instant dialogs and confirmed overlays — DONE
 
 1. Stop `useListDialogRouteState` from using `useSearchParams` or writing `?dialog=` search params; keep hydrated open/close in React state plus `history.state` on the same href.

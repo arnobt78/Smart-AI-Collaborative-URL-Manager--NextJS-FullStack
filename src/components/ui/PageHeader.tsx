@@ -9,6 +9,8 @@ interface PageHeaderProps {
   description: string;
   /** Optional right-side control (e.g. refresh) — justify-between with title block. */
   action?: ReactNode;
+  /** Optional accessory beside the title (e.g. SectionCountBadge). */
+  titleAccessory?: ReactNode;
   className?: string;
 }
 
@@ -21,6 +23,7 @@ export function PageHeader({
   title,
   description,
   action,
+  titleAccessory,
   className,
 }: PageHeaderProps) {
   return (
@@ -30,6 +33,7 @@ export function PageHeader({
         title={title}
         subtitle={description}
         action={action}
+        titleAccessory={titleAccessory}
         titleAs="h1"
       />
     </header>

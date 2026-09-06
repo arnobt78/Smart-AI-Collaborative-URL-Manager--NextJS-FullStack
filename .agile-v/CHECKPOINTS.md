@@ -80,5 +80,9 @@
 | 2026-09-04 | C7.23 commit-ready | Auto | DONE | `C7.23-COMMIT-READY-2026-09-04` | Waves + archivedAt merge verified; docs synced; local commit. |
 | 2026-09-04 | GATE-0041 | Human-Decision | APPROVED | `C7.24-HG1-UI-POLISH-2026-09-04` | User approved C7.24 UI polish plan and implement. |
 | 2026-09-04 | C7.24 commit-ready | Auto | DONE | `C7.24-COMMIT-READY-2026-09-04` | Waves verified; docs synced; local commit. |
+| 2026-09-05 | GATE-0042 | Human-Verify | PENDING | `C7.25-HG-PROD-SMOKE-2026-09-05` | Prod smoke C7.23+C7.24; Network timings + UX for C7.21–C7.22. No code until paste + plan approval. |
+| 2026-09-06 | GATE-0042 | Human-Verify | APPROVED | `C7.25-HG-PROD-SMOKE-2026-09-05` | Network paste classified; C7.25 polish plan approved. |
+| 2026-09-06 | GATE-0043 | Human-Decision | APPROVED | `C7.25-HG1-POLISH-2026-09-06` | User approved C7.25 polish implement. |
+| 2026-09-06 | C7.25 commit-ready | Auto | DONE | `C7.25-COMMIT-READY-2026-09-06` | Waves + densify fix verified; docs synced; local commit. |
 | 2026-08-18 | GATE-0012 complete: responsive header/footer chrome alignment; zero lint, typecheck, Jest, and production build pass. Prisma CLI audit remains RISK-0016. |
 | 2026-08-18 | User accepted RISK-0016: retain Prisma 6.19.3; no forced downgrade or breaking upgrade. Gate 2 still needs EvalGate and human acceptance. |

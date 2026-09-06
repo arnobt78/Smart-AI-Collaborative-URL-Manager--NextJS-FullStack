@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Globe } from "lucide-react";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { SectionCountBadge } from "@/components/ui/SectionCountBadge";
 import { usePublicListsQuery } from "@/hooks/useBrowseQueries";
 import { cn } from "@/lib/utils";
 import { CARD_PAD, PAGE_STACK } from "@/lib/ui-spacing";
@@ -28,6 +29,7 @@ export default function BrowsePage() {
   // Fetch page without per-keystroke server search — filter client-side for instant UI
   const { data, isLoading } = usePublicListsQuery(page, undefined);
   const totalPages = data?.pagination?.totalPages || 1;
+  const totalLists = data?.pagination?.total ?? 0;
 
   const isColdLoading = isLoading && !data;
 
@@ -68,6 +70,9 @@ export default function BrowsePage() {
         icon={Globe}
         title="Discover Public Lists"
         description="Browse and explore curated URL collections from the community"
+        titleAccessory={
+          <SectionCountBadge count={totalLists} loading={!data && isLoading} />
+        }
       />
 
       <BrowseSearchField value={filter} onChange={setFilter} />
