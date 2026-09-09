@@ -176,7 +176,7 @@ export function ApiStatusChrome({
       <PageHeader
         icon={Activity}
         title="API Status"
-        description="Real-time monitoring of all API endpoints"
+        description="In-process reachability probes (≤1s) for Lists, Metadata, Insights, and Auth — not live self-HTTP loops to those paths"
         action={headerAction}
       />
 

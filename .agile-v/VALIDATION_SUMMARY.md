@@ -829,3 +829,11 @@ Gate 2: BLOCKED — RISK-0016 is accepted; `EVAL_RESULTS.md` PASS/WAIVED evidenc
 
 **Still deferred:** absolute cold `_rsc` ms SLAs; Redis SUBSCRIBE rewrite.
 
+## 2026-09-09 — Docs sync (Track B + free-tier A–D)
+
+| Scope | Evidence | Result |
+|---|---|---|
+| README / ApiDocs / ApiStatus / `.env.example` | list-poll, urlCount, keep-warm, in-process probes | PASS |
+| Verifier / Security | PASS WITH WARNINGS / PASS | keep-warm badge UX only |
+| tsc / eslint (touched TSX) | exit 0 | PASS |
+

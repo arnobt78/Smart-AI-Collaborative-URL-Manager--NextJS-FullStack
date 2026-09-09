@@ -82,10 +82,22 @@ const listEndpoints: ApiEndpoint[] = [
   {
     method: "GET",
     path: "/api/lists",
-    description: "Get all user lists",
+    description:
+      "Get all user lists as card summaries (urlCount; urls omitted on the wire)",
     auth: true,
     response: {
-      lists: "array",
+      lists: [
+        {
+          id: "string",
+          slug: "string",
+          title: "string",
+          description: "string | null",
+          isPublic: "boolean",
+          urlCount: "number",
+          createdAt: "string",
+          updatedAt: "string",
+        },
+      ],
     },
   },
   {
@@ -223,7 +235,8 @@ const listEndpoints: ApiEndpoint[] = [
   {
     method: "GET",
     path: "/api/lists/public",
-    description: "Browse public lists",
+    description:
+      "Browse public lists as card summaries (urlCount; urls omitted on the wire)",
     auth: true,
     params: {
       page: "number (optional, default: 1)",
@@ -231,10 +244,21 @@ const listEndpoints: ApiEndpoint[] = [
       search: "string (optional)",
     },
     response: {
-      lists: "array",
-      total: "number",
-      page: "number",
-      limit: "number",
+      lists: [
+        {
+          id: "string",
+          slug: "string",
+          title: "string",
+          urlCount: "number",
+          isPublic: "boolean",
+        },
+      ],
+      pagination: {
+        page: "number",
+        limit: "number",
+        total: "number",
+        totalPages: "number",
+      },
     },
   },
 ];
@@ -255,6 +279,49 @@ const utilityEndpoints: ApiEndpoint[] = [
       image: "string | null",
       favicon: "string | null",
       siteName: "string",
+    },
+  },
+  {
+    method: "GET",
+    path: "/api/realtime/list/[listId]/events",
+    description:
+      "SSE stream for list updates (Upstash REST list-poll; lean urlCount enrich; pauses when tab hidden on the client)",
+    auth: true,
+    params: {
+      listId: "string (list id)",
+    },
+    response: {
+      type: "connected | heartbeat | list_updated | activity_created | …",
+      listId: "string",
+      list: "{ id, slug, title, isPublic, urlCount } (on enrich)",
+    },
+  },
+  {
+    method: "GET",
+    path: "/api/cron/keep-warm",
+    description:
+      "Free-tier keep-warm ping (Prisma + Redis). Not for browsers — requires header x-internal-job-secret (INTERNAL_JOB_SECRET) or QStash (not a session cookie). Does not guarantee absolute cold _rsc SLAs.",
+    auth: true,
+    response: {
+      ok: "boolean",
+      db: "boolean",
+      redis: "boolean",
+      at: "string (ISO)",
+      note: "string",
+    },
+  },
+  {
+    method: "POST",
+    path: "/api/cron/keep-warm",
+    description:
+      "Same as GET keep-warm (internal job / cron callers; header x-internal-job-secret, not session cookie)",
+    auth: true,
+    response: {
+      ok: "boolean",
+      db: "boolean",
+      redis: "boolean",
+      at: "string (ISO)",
+      note: "string",
     },
   },
 ];
@@ -341,7 +408,8 @@ const businessInsightsEndpoints: ApiEndpoint[] = [
   {
     method: "GET",
     path: "/api/business-insights/status",
-    description: "Get API status and health",
+    description:
+      "API status: in-process reachability probes (≤1s), not self-HTTP to each listed path",
     auth: true,
     response: {
       status: {

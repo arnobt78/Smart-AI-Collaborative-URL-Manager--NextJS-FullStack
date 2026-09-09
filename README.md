@@ -104,7 +104,13 @@ You do **not** need every third-party key to learn the codebase. See [Environmen
 - Collaborator emails + roles (owner / editor / viewer)
 - Comments on URL items
 - Activity feed
-- Server-Sent Events (SSE) for live list sync
+- Server-Sent Events (SSE) via **Upstash REST list-poll** (`LPUSH` / `LRANGE`) — not Redis `SUBSCRIBE` (serverless-safe on free Hobby)
+- EventSource pauses when the browser tab is hidden; reconnects on show / `pageshow`
+
+### Lists payload shape (Track B)
+
+- `GET /api/lists` and `GET /api/lists/public` return **card summaries** with `urlCount` and **omit** the `urls` JSON blob
+- List detail / unified hydrate still load full URL items for the open list
 
 ### Auth UI (portable guide)
 
@@ -116,8 +122,9 @@ You do **not** need every third-party key to learn the codebase. See [Environmen
 ### Insights and ops
 
 - Business insights charts (Recharts)
-- In-app API docs and status pages
+- In-app API docs and status pages (status uses **in-process** reachability probes, ≤1s — not self-HTTP loops)
 - QStash jobs: metadata refresh, URL health, session cleanup
+- Free-tier keep-warm: `GET|POST /api/cron/keep-warm` (auth: `INTERNAL_JOB_SECRET` / internal job gate); optional GitHub Actions schedule — **not** an absolute cold `_rsc` SLA
 
 ### UX and resilience
 
@@ -174,7 +181,7 @@ You do **not** need every third-party key to learn the codebase. See [Environmen
 | **Client island**        | `"use client"` for hooks / DnD / forms                  |
 | **React Query Infinity** | Very long `staleTime` so cached list data feels instant |
 | **Invalidation**         | Mark queries stale after mutation so UI refetches       |
-| **SSE**                  | Server pushes events over a long-lived HTTP stream      |
+| **SSE**                  | Server pushes events over a long-lived HTTP stream (list-poll Redis lists, not SUBSCRIBE) |
 | **JSON URLs column**     | `List.urls` stores URL objects as JSON                  |
 | **Slug**                 | Public path, e.g. `/list/my-travel-links`               |
 | **Env-gated**            | Feature idle until env vars exist                       |
@@ -330,6 +337,12 @@ DIRECT_URL=postgresql://USER:PASSWORD@HOST:5432/postgres
 | `UPSTASH_VECTOR_REST_URL` / `TOKEN` | Upstash Vector                                                |
 | `QSTASH_TOKEN`                      | Upstash QStash                                                |
 
+### Optional — Internal jobs / keep-warm
+
+| Variable              | Purpose                                                                 |
+| --------------------- | ----------------------------------------------------------------------- |
+| `INTERNAL_JOB_SECRET` | Header `x-internal-job-secret` for `/api/cron/keep-warm` and `/api/jobs/*` (also set on Vercel; optional matching GitHub Actions secret) |
+
 ### Optional — Cloudinary
 
 `CLOUDINARY_CLOUD_NAME` / `API_KEY` / `API_SECRET` — [cloudinary.com](https://cloudinary.com)
@@ -408,9 +421,18 @@ Under `src/app/api/**`. Auth sets cookies; most list routes need a session.
 | GET/POST/DELETE       | `/api/lists/[id]/comments`           |
 | GET                   | `/api/realtime/list/[listId]/events` |
 
-### AI, search, jobs, insights
+`GET /api/lists` and `GET /api/lists/public` return card rows with `urlCount` (no `urls` array on the wire). SSE enrich sends a lean list summary (`urlCount`) over list-poll Redis lists.
 
-Examples: `POST /api/ai/enhance-url`, `POST /api/search/smart`, `/api/metadata`, `/api/jobs/*`, `/api/business-insights/*`.
+### Jobs and keep-warm
+
+| Method   | Path                  | Notes                                                                                          |
+| -------- | --------------------- | ---------------------------------------------------------------------------------------------- |
+| GET/POST | `/api/cron/keep-warm` | Internal only: `x-internal-job-secret` = `INTERNAL_JOB_SECRET` (or QStash); free-tier ping      |
+| \*       | `/api/jobs/*`         | Metadata refresh, URL health, session cleanup (same internal auth)                             |
+
+### AI, search, insights
+
+Examples: `POST /api/ai/enhance-url`, `POST /api/search/smart`, `/api/metadata`, `/api/business-insights/*`.
 
 **Learner tip:** Open any `route.ts`, find `getCurrentUser()`, then follow the Prisma call.
 

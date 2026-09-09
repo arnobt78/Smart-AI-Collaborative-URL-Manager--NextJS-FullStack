@@ -25,9 +25,13 @@
 - **Gate:** free-tier A–D (post GATE-0048)
 - **Trace:** RISK-0033 accepted for absolute SLAs + SUBSCRIBE
 
+## Docs
+
+- README / ApiDocs / Api Status / `.env.example` synced for Track B + free-tier A–D (urlCount cards, list-poll SSE, keep-warm, in-process status probes).
+
 ## Next
 
 ```text
-1. User: push when ready; optional GH secret for keep-warm schedule.
+1. User: push when ready; optional GH secret for keep-warm schedule; light prod smoke.
 2. Absolute cold `_rsc` ms SLAs / Redis SUBSCRIBE remain deferred (free serverless).
 ```
