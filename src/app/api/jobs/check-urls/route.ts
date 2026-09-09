@@ -11,6 +11,9 @@ import { publishMessage, CHANNELS } from "@/lib/realtime/redis";
 import { isAuthorizedManualListJob } from "@/lib/jobs/authorization";
 import { jobListSchema, parseJsonBody } from "@/lib/api-validation";
 
+/** Align with refresh-metadata job ceiling (Track B Wave 1). */
+export const maxDuration = 60;
+
 /**
  * POST /api/jobs/check-urls
  * Check health of URLs in a specific list

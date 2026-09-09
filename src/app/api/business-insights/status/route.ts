@@ -2,14 +2,16 @@ import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
+const PROBE_TIMEOUT_MS = 1000;
+
 /**
- * C7.3: Lightweight reachability probe — no external metadata URL fetch
- * (that dominated ~3s wall time on SSR). Keeps status + endpoints[] shape.
+ * C7.3 / Track B Wave 1: Lightweight reachability probe.
+ * In-process checks only — no self-HTTP to /api/lists or overview (cold ~3.85s).
  */
-async function checkEndpoint(
+async function checkProbe(
   name: string,
   endpoint: string,
-  handler: () => Promise<Response>,
+  handler: () => Promise<{ ok: boolean }>,
 ): Promise<{
   name: string;
   endpoint: string;
@@ -18,29 +20,33 @@ async function checkEndpoint(
 }> {
   const startTime = Date.now();
   try {
-    const response = await Promise.race([
+    const result = await Promise.race([
       handler(),
-      new Promise<Response>((_, reject) =>
-        setTimeout(() => reject(new Error("Timeout")), 3000),
+      new Promise<{ ok: boolean }>((_, reject) =>
+        setTimeout(() => reject(new Error("Timeout")), PROBE_TIMEOUT_MS),
       ),
     ]);
 
     const responseTime = Date.now() - startTime;
-    const status = response.status < 500 ? "operational" : "degraded";
-
-    return { name, endpoint, status, responseTime };
+    return {
+      name,
+      endpoint,
+      status: result.ok ? "operational" : "degraded",
+      responseTime,
+    };
   } catch {
     const responseTime = Date.now() - startTime;
     return {
       name,
       endpoint,
       status: "degraded",
-      responseTime: Math.min(responseTime, 3000),
+      responseTime: Math.min(responseTime, PROBE_TIMEOUT_MS),
     };
   }
 }
 
-export async function GET(req: NextRequest) {
+export async function GET(request: NextRequest) {
+  void request;
   try {
     const user = await getCurrentUser();
     if (!user) {
@@ -57,58 +63,30 @@ export async function GET(req: NextRequest) {
       dbStatus = "degraded";
     }
 
-    const baseUrl =
-      process.env.NEXT_PUBLIC_BASE_URL ||
-      process.env.NEXTAUTH_URL ||
-      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null) ||
-      req.nextUrl.origin;
-
-    const cookieHeader = req.headers.get("cookie") || "";
-
-    // C7.3: lists + overview + session only — metadata external probe removed
     const endpointChecks = await Promise.allSettled([
-      checkEndpoint("Lists API", "/api/lists", async () => {
-        try {
-          return await fetch(`${baseUrl}/api/lists`, {
-            method: "GET",
-            headers: { cookie: cookieHeader },
-          });
-        } catch {
-          return new Response(null, { status: 500 });
-        }
+      checkProbe("Lists API", "/api/lists", async () => {
+        await prisma.list.findFirst({
+          where: { userId: user.id },
+          select: { id: true },
+        });
+        return { ok: true };
       }),
-      checkEndpoint("Metadata API", "/api/metadata", async () => {
-        // No network: route is configured / importable — avoid 5s external fetch
-        try {
-          await import("@/app/api/metadata/route");
-          return new Response(null, { status: 200 });
-        } catch {
-          return new Response(null, { status: 500 });
-        }
+      checkProbe("Metadata API", "/api/metadata", async () => {
+        await import("@/app/api/metadata/route");
+        return { ok: true };
       }),
-      checkEndpoint(
+      checkProbe(
         "Business Insights API",
         "/api/business-insights/overview",
         async () => {
-          try {
-            return await fetch(`${baseUrl}/api/business-insights/overview`, {
-              method: "GET",
-              headers: { cookie: cookieHeader },
-            });
-          } catch {
-            return new Response(null, { status: 500 });
-          }
+          // Cheap reachability — count only, no full overview scan
+          await prisma.list.count({ where: { userId: user.id } });
+          return { ok: true };
         },
       ),
-      checkEndpoint("Auth API", "/api/auth/session", async () => {
-        try {
-          return await fetch(`${baseUrl}/api/auth/session`, {
-            method: "GET",
-            headers: { cookie: cookieHeader },
-          });
-        } catch {
-          return new Response(null, { status: 500 });
-        }
+      checkProbe("Auth API", "/api/auth/session", async () => {
+        // Session already validated via getCurrentUser above
+        return { ok: Boolean(user.id) };
       }),
     ]);
 
@@ -129,7 +107,7 @@ export async function GET(req: NextRequest) {
       return {
         ...endpointNames[index],
         status: "degraded",
-        responseTime: 3000,
+        responseTime: PROBE_TIMEOUT_MS,
       };
     });
 

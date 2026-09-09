@@ -751,3 +751,18 @@ Gate 2: BLOCKED — RISK-0016 is accepted; `EVAL_RESULTS.md` PASS/WAIVED evidenc
 
 **Out of scope:** TASK-0064 Track B.
 
+## 2026-09-09 — GATE-0046 Track B Wave 1 (TASK-0064)
+
+| Scope | Command / evidence | Result | Notes |
+|---|---|---|---|
+| SSE slim | lean list + 20s heartbeat + connect filter; Jest 11/11 | PASS | No urls on wire |
+| Status probe | in-process Prisma/import; staleTime 20s | PASS | No self-HTTP lists/overview |
+| check-urls | maxDuration 60 | PASS | Align refresh-metadata |
+| HA-0001 | User confirmed Firewall | DONE | |
+| tsc / eslint | exit 0 | PASS | |
+| e2e c725+c726 | 9 passed | PASS | |
+| next build | exit 0 | PASS | |
+| Security / verifier | PASS / PASS WITH WARNINGS | Docs synced |
+
+**Deferred:** cold `_rsc` SLAs; SSE rewrite; SC/sync-vectors primary.
+

@@ -956,3 +956,16 @@ Append-only. Newest entries at bottom.
 | Rationale | Verify-deep + security found Comments-badge hydration and path-normalization open-redirect; RSC bounce dropped query via pathname-only header. |
 | Linked REQs | TASK-0065; GATE-0045; DEC-0067 |
 | Status | Implemented — commit-ready. |
+
+---
+
+## DEC-0069 — Track B Wave 1 (TASK-0064 SSE slim + status + check-urls)
+
+| Field | Value |
+|---|---|
+| Timestamp | 2026-09-09 |
+| Agent | Cursor |
+| Decision | Implement Track B **Wave 1 only**: SSE lean list summary (no full urls/user on wire), heartbeat every 20s on idle, filter events to `timestamp >= connectTime`; replace api-status self-HTTP with in-process probes + 1s cap + staleTime 20s; check-urls `maxDuration=60`. Mark HA-0001 DONE (user confirmed). **Defer:** cold `_rsc` SLAs, SSE rewrite, Cloudinary, virtualization, SC/sync-vectors as primary targets. |
+| Rationale | GATE-0044 measured SSE weight and ~3.85s status self-fetch; densify Track A is clean. |
+| Linked REQs | TASK-0064; GATE-0046 |
+| Status | Implemented — Wave 1 commit-ready. |

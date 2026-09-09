@@ -530,6 +530,32 @@ Implementation is locally verified. Production check remains with TASK-0039. Gat
 
 ---
 
+## GATE-0046 — Human Gate (Track B Wave 1 / TASK-0064)
+
+| Field | Value |
+|-------|-------|
+| Type | Human-Gate 1 (implement) |
+| Status | **APPROVED 2026-09-09** |
+| Checkpoint | `C7.27-HG1-TRACKB-W1-2026-09-09` |
+| Evidence | TASK-0064; DEC-0069; plan `track_b_wave_1_perf` |
+| Required human action | User approved Track B Wave 1 plan (SSE slim, status probe, check-urls; HA-0001 closed as done). |
+| Scope | SSE lean enrich + 20s heartbeat + connect-time filter; in-process api-status; check-urls maxDuration. **Out:** cold `_rsc` SLAs; SSE rewrite; Cloudinary; virtualization. |
+| Resume condition | Met — verify PASS; security PASS; commit-ready. |
+
+---
+
+## GATE-0046 — SCOPE COMPLETE (Track B Wave 1)
+
+| Field | Value |
+|-------|-------|
+| Type | Scope complete |
+| Status | **COMPLETE 2026-09-09** |
+| Checkpoint | `C7.27-COMMIT-READY-TRACKB-W1-2026-09-09` |
+| Evidence | TASK-0064 Wave 1; DEC-0069; VALIDATION_SUMMARY |
+| Scope | SSE slim + status probes + check-urls maxDuration; HA-0001 DONE. |
+
+---
+
 ## GATE-0002 — Human Gate 2 (release / acceptance)
 
 | Field | Value |
@@ -543,5 +569,5 @@ Implementation is locally verified. Production check remains with TASK-0039. Gat
 
 | ID | Action | Status |
 |----|--------|--------|
-| HA-0001 | Vercel Dashboard: Bot Protection = **Challenge**; AI Bots = **Deny**; Attack Mode **OFF** (no redeploy needed for toggles) | **PENDING human** — REQ-0002 code shipped |
+| HA-0001 | Vercel Dashboard: Bot Protection = **Challenge**; AI Bots = **Deny**; Attack Mode **OFF** (no redeploy needed for toggles) | **DONE** — user confirmed long ago (2026-09-09) |
 | HA-0002 | Confirm production DB host for README sync | PENDING question |

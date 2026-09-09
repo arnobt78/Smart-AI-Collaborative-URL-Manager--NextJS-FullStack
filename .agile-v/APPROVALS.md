@@ -54,3 +54,6 @@ Append-only record of Human Gate decisions.
 | 2026-09-09 | GATE-0044 | APPROVED | User | `C7.26-HG-PROD-SMOKE-2026-09-09` | Network+UX classified; densify healthy; Improve → C7.26 plan. |
 | 2026-09-09 | GATE-0045 | APPROVED | User | `C7.26-HG1-IMPROVE-2026-09-09` | User approved C7.26 Improve polish plan (Track A; Track B deferred). |
 | 2026-09-09 | GATE-0045 | SCOPE COMPLETE | Auto | `C7.26-COMMIT-READY-2026-09-09` | C7.26 + C7.26.1 verified PASS; security PASS; commit-ready docs synced. |
+| 2026-09-09 | GATE-0046 | APPROVED | User | `C7.27-HG1-TRACKB-W1-2026-09-09` | User approved Track B Wave 1 (TASK-0064) + HA-0001 closed as done. |
+| 2026-09-09 | HA-0001 | DONE | User | Firewall Challenge / Deny AI bots | Confirmed already set long ago. |
+| 2026-09-09 | GATE-0046 | SCOPE COMPLETE | Auto | `C7.27-COMMIT-READY-TRACKB-W1-2026-09-09` | Track B Wave 1 verified; docs synced. |

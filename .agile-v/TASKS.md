@@ -313,15 +313,21 @@ RSC shells · densify/Zod/SHA/Next16
 **Out of scope:** TASK-0064 Track B; Cloudinary; virtualization; HA-0001; SSE rewrite.
 **Status:** DONE 2026-09-09 — commit-ready (C7.26.1 hydration + auth-redirect + `x-search` included).
 
-### TASK-0064 — Production perf/stability track (SSE slim + cold mutation + urlCount + api-status) — BACKLOG
+### TASK-0064 — Production perf/stability track (SSE slim + cold mutation + urlCount + api-status) — WAVE 1 DONE / REMAINDER BACKLOG
 
-**Intent:** Production-standard, professional, optimized, scalable, clean architecture — **measured** improvements after Track A densify confidence. Separate plan + Human Gate before any code.
+**Intent:** Production-standard, professional, optimized, scalable, clean architecture — **measured** improvements after Track A densify confidence.
 
-1. **Cold PATCH / job latency** — measure Network durations; cut where cheap (payload strip, `lite` paths, client/server timeouts; extend C7.22 patterns). Goal: less user-felt delay on mutations/jobs without unnecessary loading flash.
-2. **SSE weight** — if `/events` remains large/slow: scoped shrink (leaner event shape, filter, pagination/window). **Not** a full realtime rewrite.
-3. **urlCount hydration race** — fix SSR vs densified client count mismatch once confirmed on prod (stability / no flash).
-4. **`/api/status` probe latency** — GATE-0044 evidence ~**3.85s** on prod; slim/cache/timeout the status probe so api-status page feels professional (chrome-first already shipped; probe duration remains Track B).
-5. **Cold serverless `_rsc` / route times** — Watch band ~1–3s on free tier; cut where cheap without absolute ms SLAs (auth session, browse/lists RSC cold paths).
+**Wave 1 DONE (GATE-0046 / DEC-0069):**
+1. SSE lean enrich (no full urls/user on wire) + 20s idle heartbeat + connect-time filter
+2. `/api/business-insights/status` in-process probes (no self-HTTP lists/overview) + client `staleTime` 20s
+3. check-urls `maxDuration=60`
+4. HA-0001 closed (user confirmed Firewall already set)
+5. urlCount hydration — already mitigated C7.26.1 (not re-opened)
+
+**Remainder backlog:**
+1. Cold PATCH / job wall-time where still measured after Wave 1
+2. Cold serverless `_rsc` / route times (no absolute ms SLAs in Wave 1)
+3. SC expand / sync-vectors as primary targets if still measured
 
 **Evidence (GATE-0044):**
 - api-status `status` ~**3.85s**
@@ -333,10 +339,10 @@ RSC shells · densify/Zod/SHA/Next16
 - Fav/pin/archive/comment mutations often **~3–5s** (densify OK; latency Track B)
 - Mild (C7.26 if still reproducible): delete sometimes **2×** `updates?`; intermittent edit **title** miss
 
-**Do not include in first Track B wave unless re-prioritized:** absolute every-cold-path ms targets; SSE architecture rewrite; console-error audit; Cloudinary destroy; list virtualization; HA-0001.
+**Do not include in remainder unless re-prioritized:** absolute every-cold-path ms targets; SSE architecture rewrite; console-error audit; Cloudinary destroy; list virtualization.
 
-**Dependencies:** GATE-0044 densify confidence (or explicit user pull-forward); DEC-0066; new GATE when plan drafted.
-**Status:** BACKLOG — plan after Network classify; implement only after approval.
+**Dependencies:** GATE-0046; DEC-0069; DEC-0066.
+**Status:** Wave 1 DONE 2026-09-09; remainder BACKLOG.
 
 ### TASK-0040 — C6.5 instant dialogs and confirmed overlays — DONE
 

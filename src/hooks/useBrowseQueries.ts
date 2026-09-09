@@ -309,8 +309,8 @@ export function useApiStatusQuery() {
       }
       return response.json();
     },
-    // Status needs to be fresh, but still cache for instant display
-    staleTime: 0, // Always consider stale for status monitoring
+    // Status: short stale window so 30s poll is not always a cold round-trip
+    staleTime: 20_000,
     gcTime: 5 * 60 * 1000, // Keep in cache for 5 minutes
     refetchOnWindowFocus: true, // Refetch when tab becomes active
     refetchOnMount: true,

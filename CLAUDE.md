@@ -15,9 +15,10 @@ Done: C7.8–C7.25 · **LLM** `c085f69` REQ-AI-0001 · **Icons** CONTROL/DECORAT
 **C7.25** Smoke polish: Reminder Lucide→`showPicker`; `ArchivedUrlCard`+`ArchiveRestore`; `UI_ICON_INLINE_XS`+font-medium meta; ApiDocs gaps; archive single toast; Comments knownCount loading; Browse `SectionCountBadge`; archive/comment `skipUnified` (comment options forward).
 **C7.26** Improve polish: pin scroll navbar offset; archive AlertDialog pending; comments Edited/`UI_ICON_INLINE_XS`; collab densify+avatar; invite `/login?next=` + Auth hard-nav; delete/collab `skipUnified`.
 **C7.26.1** Auth hard-nav; list urlCount/badge hydration (`resolveListDetailPaintList`, `urlsBadgeSignature`, `ListDetailHydrationBoundary`); `safeInternalNextPath` URL-normalize; proxy `x-search` + `requirePageUser` pathname+search.
+**C7.27 / Track B W1** SSE lean list summary + 20s heartbeat + connect-time filter; api-status in-process probes (`staleTime` 20s); check-urls `maxDuration=60`. HA-0001 DONE.
 Stack: Next **16.3.3** · React **19.2.8** · Node **24.x** · **`src/proxy.ts`** · Prisma **6.19.3**.
-Defer: `(auth)` route-group; lists/browse cold API slim; status API speed OOS; full metadata rewrite OOS; Prisma 7/8; Activity badge spinner; PATCH/job latency; virtualization; Cloudinary destroy; SSE weight (TASK-0064).
-Human: HA-0001; GATE-0045 SCOPE COMPLETE; next: prod re-smoke C7.26 after push.
+Defer: `(auth)` route-group; lists/browse cold API slim; full metadata rewrite OOS; Prisma 7/8; Activity badge spinner; absolute cold PATCH/`_rsc` SLAs; SSE rewrite; virtualization; Cloudinary destroy; SC/sync-vectors primary.
+Human: HA-0001 DONE; GATE-0046 Track B W1; next: push + prod re-smoke.
 Validate: Jest · lint 0 · tsc · build · e2e C7.25–C7.26 · audit 0. · Resume: `.agile-v/STATE.md`.
 
 
