@@ -1,0 +1,29 @@
+# Free-tier keep-warm (Phase C). Uses GitHub Actions free minutes — no Vercel Pro.
+# Does NOT guarantee absolute cold `_rsc` ms SLAs.
+#
+# Required repo secret: INTERNAL_JOB_SECRET (same value as Vercel env)
+# Optional repo variable: KEEP_WARM_URL (defaults to production)
+
+name: Keep warm (free)
+
+on:
+  schedule:
+    # Every 15 minutes — enough to reduce Hobby cold starts; not an SLA.
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping keep-warm
+        env:
+          SECRET: ${{ secrets.INTERNAL_JOB_SECRET }}
+          URL: ${{ vars.KEEP_WARM_URL }}
+        run: |
+          if [ -z "$SECRET" ]; then
+            echo "INTERNAL_JOB_SECRET not set — skip (configure repo secret to enable)."
+            exit 0
+          fi
+          TARGET="${URL:-https://daily-urlist.vercel.app/api/cron/keep-warm}"
+          curl -fsS -H "x-internal-job-secret: ${SECRET}" "${TARGET}"

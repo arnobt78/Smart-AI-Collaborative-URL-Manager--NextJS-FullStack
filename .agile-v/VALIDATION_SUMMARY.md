@@ -816,3 +816,16 @@ Gate 2: BLOCKED — RISK-0016 is accepted; `EVAL_RESULTS.md` PASS/WAIVED evidenc
 
 **Not claimed:** flawless 100%; absolute cold `_rsc` SLAs; Redis SUBSCRIBE.
 
+## 2026-09-09 — Free-tier A–D (post GATE-0048)
+
+| Scope | Command / evidence | Result | Notes |
+|---|---|---|---|
+| A MaxListeners | Playwright Sentry DSN clear; SSE once+cancel; Jest 14 | PASS | e2e MaxListeners count 0 |
+| B Track B smoke | `e2e/track-b-network-smoke` 4/4 | PASS | urlCount wire + SSE hide/show |
+| C Keep-warm | `/api/cron/keep-warm` + GH Actions; Jest 2 | PASS | GH secret optional; no SLA |
+| D Redis honesty | `REALTIME_TRANSPORT=list-poll` | PASS | SUBSCRIBE deferred free serverless |
+| tsc / eslint / build | exit 0 | PASS | |
+| Verifier / Security | PASS WITH WARNINGS / PASS | | GH keep-warm soft-skip if no secret |
+
+**Still deferred:** absolute cold `_rsc` ms SLAs; Redis SUBSCRIBE rewrite.
+

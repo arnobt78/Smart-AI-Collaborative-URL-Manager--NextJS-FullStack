@@ -157,11 +157,40 @@ export async function GET(
     "X-Accel-Buffering": "no", // Disable buffering in nginx
   });
 
+  let pollInterval: ReturnType<typeof setInterval> | undefined;
+  let onAbort: (() => void) | undefined;
+
+  const clearPoll = () => {
+    if (pollInterval !== undefined) {
+      clearInterval(pollInterval);
+      pollInterval = undefined;
+    }
+  };
+
+  const detachAbort = () => {
+    if (onAbort) {
+      request.signal.removeEventListener("abort", onAbort);
+      onAbort = undefined;
+    }
+  };
+
   const stream = new ReadableStream({
     async start(controller) {
       const encoder = new TextEncoder();
       const connectionStarted = Date.now();
       let lastHeartbeatAt = connectionStarted;
+
+      const closeStream = () => {
+        clearPoll();
+        detachAbort();
+        try {
+          controller.close();
+        } catch {
+          // already closed
+        }
+      };
+
+      onAbort = closeStream;
 
       // Send initial connection message
       controller.enqueue(
@@ -171,9 +200,8 @@ export async function GET(
       const processedMessageIds = new Set<string>(); // Track processed message IDs
 
       // Poll for events; heartbeat only every HEARTBEAT_MS when idle
-      const interval = setInterval(async () => {
+      pollInterval = setInterval(async () => {
         try {
-
           if (!redis) {
             return;
           }
@@ -182,17 +210,17 @@ export async function GET(
           const updateChannel = CHANNELS.listUpdate(authorizedListId);
           const commentChannel = CHANNELS.listComment(authorizedListId);
           const activityChannel = CHANNELS.listActivity(authorizedListId);
-          
+
           // Get messages from both channels (trim window — Wave 2)
           const [updateMessages, commentMessages, activityMessages] = await Promise.all([
             redis.lrange(`${updateChannel}:messages`, 0, REDIS_MESSAGE_WINDOW),
             redis.lrange(`${commentChannel}:messages`, 0, REDIS_MESSAGE_WINDOW),
             redis.lrange(`${activityChannel}:messages`, 0, REDIS_MESSAGE_WINDOW),
           ]);
-          
+
           // Combine messages from both channels
           const allMessages = [...updateMessages, ...commentMessages, ...activityMessages];
-          
+
           // Filter messages we haven't processed yet
           // Use timestamp to determine if message is new (only send messages after connection started)
           const seenMessageIds = new Set(processedMessageIds);
@@ -230,7 +258,7 @@ export async function GET(
           // Send new messages (only if we have truly new ones)
           // Check if controller is closed before trying to enqueue
           if (request.signal.aborted) {
-            clearInterval(interval);
+            closeStream();
             return;
           }
 
@@ -238,10 +266,10 @@ export async function GET(
             for (const message of newMessages) {
               // Check again before each message
               if (request.signal.aborted) {
-                clearInterval(interval);
+                closeStream();
                 return;
               }
-              
+
               processedMessageIds.add(message.id);
               try {
                 const enriched = await enrichAuthorizedEvent(message.data, authorizedListId);
@@ -253,7 +281,7 @@ export async function GET(
               } catch (enqueueError) {
                 // Controller might be closed, clean up and exit
                 if (enqueueError instanceof Error && enqueueError.message.includes("closed")) {
-                  clearInterval(interval);
+                  closeStream();
                   return;
                 }
                 throw enqueueError;
@@ -273,7 +301,7 @@ export async function GET(
             } catch (enqueueError) {
               // Controller might be closed, clean up and exit
               if (enqueueError instanceof Error && enqueueError.message.includes("closed")) {
-                clearInterval(interval);
+                closeStream();
                 return;
               }
               // Ignore heartbeat errors, connection might be closing
@@ -282,7 +310,7 @@ export async function GET(
         } catch (error) {
           // Check if error is due to closed controller
           if (error instanceof Error && error.message.includes("closed")) {
-            clearInterval(interval);
+            closeStream();
             return;
           }
           // Only try to send error message if controller is still open
@@ -295,17 +323,22 @@ export async function GET(
               );
             } catch {
               // Controller closed, ignore error
-              clearInterval(interval);
+              closeStream();
             }
           }
         }
       }, POLL_MS);
 
-      // Clean up on client disconnect
-      request.signal.addEventListener("abort", () => {
-        clearInterval(interval);
-        controller.close();
-      });
+      if (request.signal.aborted) {
+        closeStream();
+        return;
+      }
+      // once: true — avoid lingering AbortSignal listeners after disconnect
+      request.signal.addEventListener("abort", onAbort, { once: true });
+    },
+    cancel() {
+      clearPoll();
+      detachAbort();
     },
   });
 

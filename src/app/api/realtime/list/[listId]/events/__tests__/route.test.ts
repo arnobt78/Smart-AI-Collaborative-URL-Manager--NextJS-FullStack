@@ -286,6 +286,44 @@ describe("GET /api/realtime/list/[listId]/events", () => {
     jest.useRealTimers();
   });
 
+  it("registers abort cleanup with { once: true }", async () => {
+    const abort = new AbortController();
+    const addSpy = jest.spyOn(abort.signal, "addEventListener");
+    const response = await GET(
+      new NextRequest("http://localhost/api/realtime/list/list-1/events", {
+        signal: abort.signal,
+      }),
+      { params: Promise.resolve({ listId: "list-1" }) },
+    );
+    expect(response.status).toBe(200);
+    expect(addSpy).toHaveBeenCalledWith(
+      "abort",
+      expect.any(Function),
+      expect.objectContaining({ once: true }),
+    );
+    abort.abort();
+    await response.body?.cancel();
+    addSpy.mockRestore();
+  });
+
+  it("cancel clears the poll interval without throwing", async () => {
+    jest.useFakeTimers();
+    const clearSpy = jest.spyOn(global, "clearInterval");
+    const abort = new AbortController();
+    const response = await GET(
+      new NextRequest("http://localhost/api/realtime/list/list-1/events", {
+        signal: abort.signal,
+      }),
+      { params: Promise.resolve({ listId: "list-1" }) },
+    );
+    const reader = await readEvent(response);
+    await expect(reader.cancel()).resolves.toBeUndefined();
+    expect(clearSpy).toHaveBeenCalled();
+    abort.abort();
+    clearSpy.mockRestore();
+    jest.useRealTimers();
+  });
+
   it("drops pre-connect history messages", async () => {
     jest.useFakeTimers();
     const base = Date.now();

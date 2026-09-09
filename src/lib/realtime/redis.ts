@@ -1,6 +1,14 @@
 import { Redis } from "@upstash/redis";
 import type { RealtimeChannelEvent } from "@/lib/realtime/event-types";
 
+/**
+ * Free-tier realtime transport (Phase D / RISK-0033).
+ * Upstash REST list-poll (LPUSH + LRANGE) — NOT Redis SUBSCRIBE.
+ * Vercel serverless cannot hold long-lived SUBSCRIBE connections without a
+ * paid always-on worker; SUBSCRIBE rewrite remains accepted-deferred on Hobby.
+ */
+export const REALTIME_TRANSPORT = "list-poll" as const;
+
 let redis: Redis | null = null;
 
 if (
@@ -16,7 +24,7 @@ if (
 export { redis };
 
 /**
- * Channel names for pub/sub
+ * Channel names for list-poll Redis lists (not Redis PUBLISH/SUBSCRIBE).
  */
 export const CHANNELS = {
   listUpdate: (listId: string) => `list:${listId}:update`,
@@ -37,7 +45,8 @@ export async function publishMessage(
   }
 
   try {
-    // List-poll transport (Upstash REST): LPUSH + LTRIM only — no dead SETEX keys.
+    // List-poll only (REALTIME_TRANSPORT). Never Redis PUBLISH/SUBSCRIBE on
+    // this serverless free-tier stack — Upstash REST cannot hold SUBSCRIBE.
     const channelList = `${channel}:messages`;
     await redis.lpush(channelList, JSON.stringify(message));
     await redis.ltrim(channelList, 0, 9); // Match SSE consumer window (+ small buffer)

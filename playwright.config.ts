@@ -45,6 +45,10 @@ export default defineConfig({
       DATABASE_URL: e2eDatabaseUrl,
       DIRECT_URL: e2eDatabaseUrl,
       E2E_DATABASE_URL: e2eDatabaseUrl,
+      // Phase A: strip Sentry from Playwright webServer so Next+APM close-listener
+      // budget stays under Node's default 10 (MaxListenersExceededWarning).
+      SENTRY_DSN: "",
+      NEXT_PUBLIC_SENTRY_DSN: "",
       ...(allowSharedDb ? { E2E_ALLOW_SHARED_DB: "1" as const } : {}),
     },
   },
