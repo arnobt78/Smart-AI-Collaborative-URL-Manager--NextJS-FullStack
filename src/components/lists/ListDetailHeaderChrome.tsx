@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { DescriptionRow } from "@/components/ui/DescriptionRow";
 import { ListTitleRow } from "@/components/lists/ListTitleRow";
 import { Switch } from "@/components/ui/Switch";
-import { ArrowLeft, Blocks, Globe2, GlobeLock, Shield, Sparkles, Telescope } from "lucide-react";
+import { ArrowLeft, Activity, Blocks, Globe2, GlobeLock, Shield, Sparkles, Telescope } from "lucide-react";
 import { GLASS_LIST_CARD } from "@/lib/ui/glass-card-styles";
 import {
   UI_ICON_CONTROL,
@@ -285,6 +285,7 @@ export function ListDetailBodySections({ list }: { list: ListDetailBodyList }) {
 export function ListDetailBodySkeletons({
   urlCount,
   knownCollaboratorCount,
+  knownActivityCount,
 }: {
   /** When set, Smart Collections shell only renders when urlCount >= 2. */
   urlCount?: number;
@@ -293,10 +294,16 @@ export function ListDetailBodySkeletons({
    * 0 → empty chrome (no pulse). undefined → unknown → pulse rows.
    */
   knownCollaboratorCount?: number;
+  /**
+   * From hydrated unified activities only (not thin-seed `[]`).
+   * 0 → collapsed empty subtitle. undefined → collapsed non-pulse shell (no fake loader).
+   */
+  knownActivityCount?: number;
 } = {}) {
   const showSmartCollections =
     urlCount === undefined ? true : urlCount >= 2;
   const collaboratorsKnownEmpty = knownCollaboratorCount === 0;
+  const activityKnownEmpty = knownActivityCount === 0;
 
   return (
     <div className={LIST_STACK} aria-hidden={!collaboratorsKnownEmpty}>
@@ -347,9 +354,19 @@ export function ListDetailBodySkeletons({
         </ListDetailSection>
       ) : null}
 
-      <ListDetailSection className="animate-pulse p-0 sm:p-0">
+      {/* C7.28: collapsed Activity chrome — never pulse then swap to empty */}
+      <ListDetailSection className="p-0 sm:p-0">
         <div className={CARD_PAD}>
-          <SectionHeaderRowSkeleton actionClassName="h-4 w-4 rounded" />
+          <ListDetailSectionHeader
+            icon={Activity}
+            hue="blue"
+            title="Activity Feed"
+            subtitle={
+              activityKnownEmpty
+                ? "No activity yet · Start adding URLs to see activity here"
+                : `Latest ${ACTIVITY_FEED_LIMIT}`
+            }
+          />
         </div>
       </ListDetailSection>
     </div>

@@ -104,8 +104,6 @@ export function PermissionManager({
     return cached?.collaborators || [];
   })();
 
-  const isLoading = false; // No separate loading state needed - unified query handles it
-
   // Listen for collaborators from unified endpoint (real-time updates via SSE)
   useEffect(() => {
     const handleUnifiedCollaborators = (event: Event) => {
@@ -263,7 +261,7 @@ export function PermissionManager({
     </Button>
   );
 
-  const isEmpty = !isLoading && collaborators.length === 0;
+  const isEmpty = collaborators.length === 0;
 
   const headerLeft = (
     <ListDetailSectionHeader
@@ -271,11 +269,8 @@ export function PermissionManager({
       hue="blue"
       title="Collaborators"
       badge={
-        isLoading || collaborators.length > 0 ? (
-          <SectionCountBadge
-            count={collaborators.length}
-            loading={isLoading}
-          />
+        collaborators.length > 0 ? (
+          <SectionCountBadge count={collaborators.length} />
         ) : undefined
       }
       subtitle={
@@ -294,16 +289,7 @@ export function PermissionManager({
         {addCollaboratorButton}
       </div>
 
-      {isLoading ? (
-        <div className="space-y-2">
-          {[1, 2].map((i) => (
-            <div
-              key={i}
-              className="h-16 bg-white/5 border border-white/10 rounded-lg animate-pulse"
-            />
-          ))}
-        </div>
-      ) : isEmpty ? null : (
+      {isEmpty ? null : (
         <div className="space-y-2">
           {(collaborators as Collaborator[])
             .reduce<Collaborator[]>((acc, collaborator) => {

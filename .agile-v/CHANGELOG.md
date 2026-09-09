@@ -1,5 +1,13 @@
 # CHANGELOG.md
 
+## CR-0035 — C7.28 empty-state known-zero paint
+
+- **Cycle:** C7.28
+- **Change:** Shared MyLists/Browse empty components for soft-nav+pages; UrlList empty gated on `urlCount`; Activity thin non-pulse; dead isLoading cleanup.
+- **Rationale:** Soft-nav painted thinner/blank empties before page chrome; thin seed falsely showed “No URLs Added Yet!” when `urlCount>0`.
+- **Impact:** ListEmptyStates, OptimisticSoftNavSurface, ListsPage, BrowsePage, UrlList, soft-nav-cache, ActivityFeed, PermissionManager, docs.
+- **Requested by / approval:** empty_known-zero_paint plan; verify-deep PASS WITH WARNINGS; security PASS; `/commit-ready`.
+
 ## CR-0034 — Keep-warm Internal Secret badge + archive snapshot commit
 
 - **Cycle:** C7.27 follow-up

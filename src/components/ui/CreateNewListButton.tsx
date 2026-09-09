@@ -13,6 +13,8 @@ type CreateNewListButtonProps = {
   size?: "sm" | "md" | "lg";
   icon?: LucideIcon;
   onClick: () => void;
+  disabled?: boolean;
+  "aria-busy"?: boolean;
 };
 
 export function CreateNewListButton({
@@ -21,6 +23,8 @@ export function CreateNewListButton({
   size = "md",
   icon: Icon = FolderPlus,
   onClick,
+  disabled = false,
+  "aria-busy": ariaBusy,
 }: CreateNewListButtonProps) {
   return (
     <Button
@@ -28,6 +32,8 @@ export function CreateNewListButton({
       onClick={onClick}
       variant="glassPurple"
       size={size}
+      disabled={disabled}
+      aria-busy={ariaBusy}
       className={cn("w-full sm:w-auto", className)}
     >
       <Icon className={UI_ICON_CONTROL} aria-hidden />

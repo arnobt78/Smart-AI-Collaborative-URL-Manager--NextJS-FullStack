@@ -995,3 +995,16 @@ Append-only. Newest entries at bottom.
 | Rationale | Absolute SLAs and SUBSCRIBE do not fix free-tier TTFB; remaining wins are DB transfer + idle Redis. |
 | Linked REQs | TASK-0064; GATE-0048 |
 | Status | Implemented — Wave 3 commit-ready. |
+
+---
+
+## DEC-0072 — Soft-nav known-empty reuses page empty components
+
+| Field | Value |
+|---|---|
+| Timestamp | 2026-09-09 |
+| Agent | Cursor |
+| Decision | Soft-nav warm known-empty (`lists: []`) MUST render the same `MyListsEmptyState` / `BrowseEmptyState` as the hydrated pages. Never icon-less thin copy or blank Browse grid. Known-zero UrlList empty requires `resolveListUrlCount===0`; thin seed with `urlCount>0` paints a pending slot. Absolute cold unknown may still skeleton. |
+| Rationale | User screenshots showed soft-nav→page empty chrome swap and Browse blank→empty; SSR already dehydrates empty arrays. |
+| Linked REQs | REQ-0053; TASK-0059 |
+| Status | Implemented — C7.28 commit-ready. |

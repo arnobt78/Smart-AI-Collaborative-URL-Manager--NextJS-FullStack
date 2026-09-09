@@ -20,6 +20,7 @@ Done: C7.8–C7.25 · **LLM** `c085f69` REQ-AI-0001 · **Icons** CONTROL/DECORAT
 **C7.27 / Track B W3** card DB `jsonb_array_length` (no urls into Node); owner select id+email; SSE SETEX drop + LTRIM 0..9; EventSource pause when tab hidden.
 **C7.27 / Free-tier A–D** Playwright Sentry-off e2e + SSE cancel/once; Track B network smoke e2e; `/api/cron/keep-warm` + GH Actions (optional); `REALTIME_TRANSPORT=list-poll` (SUBSCRIBE deferred).
 **C7.27 follow-up** ApiDocs keep-warm `authMode: "internal"` badge; archive/restore commit uses operation-start snapshot (no late `currentList.get()`).
+**C7.28** Known-zero empty paint: shared MyLists/Browse empties on soft-nav+pages; UrlList `urlCount` empty gate + thin pending; Activity thin non-pulse (`knownActivityCount` left undefined on thin seed).
 Stack: Next **16.3.3** · React **19.2.8** · Node **24.x** · **`src/proxy.ts`** · Prisma **6.19.3**.
 Defer: `(auth)` route-group; absolute cold PATCH/`_rsc` SLAs; Redis SUBSCRIBE rewrite; virtualization; Cloudinary destroy; Prisma urlCount column.
 Human: HA-0001 DONE; Vercel `INTERNAL_JOB_SECRET` set; GH keep-warm secret optional; next: push + light prod smoke.

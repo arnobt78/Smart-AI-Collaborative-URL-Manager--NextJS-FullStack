@@ -24,6 +24,10 @@ import { MyListsCard } from "@/components/lists/MyListsCard";
 import { BrowsePublicListCard } from "@/components/lists/BrowsePublicListCard";
 import { BrowseSearchField } from "@/components/lists/BrowseSearchField";
 import {
+  BrowseEmptyState,
+  MyListsEmptyState,
+} from "@/components/lists/ListEmptyStates";
+import {
   ListDetailBodySections,
   ListDetailBodySkeletons,
   ListDetailHeaderChrome,
@@ -123,9 +127,7 @@ function ListsOptimisticSurface() {
       />
       <div className={LIST_STACK}>
         {lists.length === 0 ? (
-          <div className="rounded-xl border-2 border-dashed border-white/30 p-2 sm:p-4 text-center bg-white/5 backdrop-blur-md">
-            <p className="text-sm text-white/60">No Lists Yet</p>
-          </div>
+          <MyListsEmptyState createDisabled />
         ) : (
           lists.map((list) => (
             <MyListsCard
@@ -181,11 +183,15 @@ function BrowseOptimisticSurface() {
         }
       />
       <BrowseSearchField value={filter} onChange={setFilter} />
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {filtered.map((list) => (
-          <BrowsePublicListCard key={list.id} list={list} />
-        ))}
-      </div>
+      {filtered.length === 0 ? (
+        <BrowseEmptyState searchActive={Boolean(q)} />
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {filtered.map((list) => (
+            <BrowsePublicListCard key={list.id} list={list} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

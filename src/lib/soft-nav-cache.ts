@@ -204,6 +204,11 @@ export function syncCurrentListFromSeedRow(
     description: row.description ?? undefined,
     isPublic: row.isPublic,
     urls: Array.isArray(row.urls) ? (row.urls as UrlItem[]) : [],
+    // Preserve card urlCount when urls blob is omitted (Track B / thin seed).
+    urlCount:
+      typeof row.urlCount === "number" && Number.isFinite(row.urlCount)
+        ? row.urlCount
+        : undefined,
     createdAt: String(row.createdAt ?? row.created_at ?? ""),
     updatedAt: row.updatedAt
       ? String(row.updatedAt)

@@ -9,10 +9,10 @@ import { SectionCountBadge } from "@/components/ui/SectionCountBadge";
 import { usePublicListsQuery } from "@/hooks/useBrowseQueries";
 import { cn } from "@/lib/utils";
 import { CARD_PAD, PAGE_STACK } from "@/lib/ui-spacing";
-import { UI_ICON_DECORATIVE } from "@/lib/ui/control-styles";
 import { DataSurfaceSlot } from "@/components/ui/DataSurfaceSlot";
 import { BrowsePublicListCard } from "@/components/lists/BrowsePublicListCard";
 import { BrowseSearchField } from "@/components/lists/BrowseSearchField";
+import { BrowseEmptyState } from "@/components/lists/ListEmptyStates";
 
 /**
  * C7.0: Instant client filter on cached public lists; search row always present;
@@ -84,22 +84,7 @@ export default function BrowsePage() {
           className={CARD_PAD}
         />
       ) : filteredLists.length === 0 ? (
-        <div
-          className={cn(
-            "text-center py-8 sm:py-12 bg-white/5 border border-white/10 rounded-xl flex flex-col items-center gap-2",
-            CARD_PAD,
-          )}
-        >
-          <Globe className={cn(UI_ICON_DECORATIVE, "text-white/40")} />
-          <p className="text-white/60 text-base sm:text-lg">
-            {filter.trim()
-              ? "No lists found matching your search"
-              : "No public lists available yet"}
-          </p>
-          <p className="text-white/40 text-xs sm:text-sm">
-            Be the first to create a public list!
-          </p>
-        </div>
+        <BrowseEmptyState searchActive={Boolean(filter.trim())} />
       ) : (
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

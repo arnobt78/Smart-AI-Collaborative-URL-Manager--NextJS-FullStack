@@ -45,6 +45,7 @@ import {
 } from "@/stores/dragOrderCache";
 import { Button } from "@/components/ui/Button";
 import { SectionCountBadge } from "@/components/ui/SectionCountBadge";
+import { resolveListUrlCount } from "@/lib/list-card-dto";
 import { Input } from "@/components/ui/Input";
 import { useUrlMetadata } from "@/hooks/useUrlMetadata";
 import { useQueryClient } from "@tanstack/react-query";
@@ -2518,7 +2519,15 @@ export function UrlList() {
 
   if (!list.id || !list.urls) return null;
 
-  const archivedUrls = (list.archivedUrls || []) as UrlItem[];
+  const activeUrlCount = resolveListUrlCount(list);
+  const urlsHydrated = Array.isArray(list.urls) && list.urls.length > 0;
+  // Thin seed: urls=[] with urlCount>0 — never claim empty; wait for hydrate.
+  const activeUrlsPending =
+    !showArchived && activeUrlCount > 0 && list.urls.length === 0;
+  const activeUrlsKnownEmpty =
+    !showArchived && activeUrlCount === 0 && list.urls.length === 0;
+  const archivedUrlsKnown = Array.isArray(list.archivedUrls);
+  const archivedUrls = (archivedUrlsKnown ? list.archivedUrls : []) as UrlItem[];
   const archivedSearch = search.trim().toLowerCase();
   const archivedUrlsList = !showArchived
     ? []
@@ -2537,6 +2546,9 @@ export function UrlList() {
             .toLowerCase();
           return haystack.includes(archivedSearch);
         });
+  const archivedUrlsPending = showArchived && !archivedUrlsKnown;
+  const archivedUrlsKnownEmpty =
+    showArchived && archivedUrlsKnown && archivedUrlsList.length === 0;
 
   const handleRestore = async (urlId: string) => {
     // Set flag for restore operation
@@ -2616,7 +2628,7 @@ export function UrlList() {
             <Link2 className={UI_ICON_CONTROL} aria-hidden />
             <span className="inline-flex items-center gap-1.5">
               Active URLs
-              <SectionCountBadge count={list.urls?.length || 0} />
+              <SectionCountBadge count={activeUrlCount} />
             </span>
           </Button>
           <Button
@@ -2883,7 +2895,13 @@ export function UrlList() {
       {/* Archived URLs List */}
       {showArchived && (
         <div className="space-y-8">
-          {archivedUrlsList.length === 0 ? (
+          {archivedUrlsPending ? (
+            <div
+              className="h-16 rounded-xl border border-dashed border-white/20 bg-white/5 animate-pulse"
+              aria-busy="true"
+              aria-label="Loading archived URLs"
+            />
+          ) : archivedUrlsKnownEmpty ? (
             <div className="rounded-xl border-2 border-dashed border-white/30 p-4 sm:p-6 text-center bg-white/5 backdrop-blur-md">
               <div className="mx-auto w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-gray-500/20 via-gray-500/20 to-transparent rounded-full flex items-center justify-center shadow-inner border border-gray-400/30">
                 <ArchiveBoxIcon className={cn(UI_ICON_DECORATIVE, "text-gray-400")} />
@@ -2914,7 +2932,15 @@ export function UrlList() {
         </div>
       )}
 
-      {!showArchived && list.urls.length === 0 && (
+      {activeUrlsPending && (
+        <div
+          className="h-16 rounded-xl border border-dashed border-white/20 bg-white/5 animate-pulse"
+          aria-busy="true"
+          aria-label="Loading URLs"
+        />
+      )}
+
+      {activeUrlsKnownEmpty && (
         <div className="rounded-xl border-2 border-dashed border-white/30 p-4 sm:p-6 text-center bg-white/5 backdrop-blur-md">
           <div className="mx-auto w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-blue-500/20 via-blue-500/20 to-transparent rounded-full flex items-center justify-center shadow-inner border border-blue-400/30">
             <LinkIcon className={cn(UI_ICON_DECORATIVE, "text-blue-400")} />
@@ -2932,7 +2958,7 @@ export function UrlList() {
       )}
 
       {!showArchived &&
-        list.urls.length > 0 &&
+        urlsHydrated &&
         search.trim() !== "" &&
         filteredAndSortedUrls.length === 0 && (
           <div className="rounded-xl border-2 border-dashed border-white/30 p-4 sm:p-6 text-center bg-white/5 backdrop-blur-md">

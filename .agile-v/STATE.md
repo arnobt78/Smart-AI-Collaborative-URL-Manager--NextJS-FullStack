@@ -1,30 +1,26 @@
 # STATE.md
 
-**C7.27 follow-up — keep-warm badge + archive snapshot — commit-ready** | 2026-09-09
+**C7.28 — Empty-state known-zero paint — commit-ready** | 2026-09-09
 
 ## Reconciled (repo = docs)
 
-- ApiDocs keep-warm: `authMode: "internal"` → **Internal Secret** badge (not session Auth Required).
-- `urlListStore` archive/restore: operation-start `snapshot` + densify-safe `committedList`; no late `currentList.get()` on commit.
-- Prior: Free-tier A–D + Track B W1–W3 still shipped.
+- Shared `MyListsEmptyState` / `BrowseEmptyState` on soft-nav + pages (no icon-less / blank-grid flash).
+- UrlList: empty only when `resolveListUrlCount===0`; pending slot when thin `urls=[]` + `urlCount>0`; seed `urlCount`.
+- Activity thin: collapsed non-pulse shell; `knownActivityCount` intentionally undefined on thin seed.
+- Dead always-false `isLoading` removed from ActivityFeed / PermissionManager.
+- Prior: `065183e` badge/snapshot; Free-tier A–D + Track B W1–W3.
 - **Stack:** Next 16.3.3 · React 19.2.8 · Node 24.x · Prisma 6.19.3.
-
-## Human
-
-- HA-0001 Firewall — **DONE**
-- Vercel `INTERNAL_JOB_SECRET` — set by user
-- GitHub `INTERNAL_JOB_SECRET` — **optional** (leave unset = keep-warm schedule skips)
 
 ## Current checkpoint
 
-- **Stage:** follow-up badge + snapshot commit-ready
+- **Stage:** C7.28 commit-ready
 - **Cycle:** C7
-- **Status:** verify-deep PASS WITH WARNINGS; security PASS; local commit pending
-- **Trace:** RISK-0033 accepted for absolute SLAs + SUBSCRIBE
+- **Status:** verify PASS WITH WARNINGS; security PASS; local commit pending
+- **Trace:** REQ-0053, TASK-0059, DEC-0072
 
 ## Next
 
 ```text
-1. User: push when ready; optional GH secret for keep-warm; light prod smoke.
-2. Absolute cold `_rsc` ms SLAs / Redis SUBSCRIBE remain deferred (free serverless).
+1. User: push when ready; light prod smoke Lists↔Browse empty + thin-seed detail.
+2. Absolute cold `_rsc` / Redis SUBSCRIBE remain deferred.
 ```

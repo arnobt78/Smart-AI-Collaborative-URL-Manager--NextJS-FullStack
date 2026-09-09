@@ -94,6 +94,8 @@ describe("C6.9 soft-nav-cache", () => {
     expect(seeded?._softNavThinSeed).toBe(true);
     expect(currentList.get().slug).toBe("my-list");
     expect(currentList.get().title).toBe("My List");
+    expect(currentList.get().urlCount).toBe(5);
+    expect(currentList.get().urls).toEqual([]);
     expect(client.getQueryState(listQueryKeys.unified("my-list"))?.isInvalidated).toBe(
       true,
     );

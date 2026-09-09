@@ -49,7 +49,6 @@ export function ActivityFeed({
 }: ActivityFeedProps) {
   const [activities, setActivities] = useState<ActivityItem[]>([]);
   const [isExpanded, setIsExpanded] = useState(false);
-  const isLoading = false;
   const queryClient = useQueryClient();
   const params = useParams();
   const slug = typeof params?.slug === "string" ? params.slug : null;
@@ -409,11 +408,7 @@ export function ActivityFeed({
         aria-hidden={!isExpanded}
       >
         {isExpanded ? (
-          isLoading ? (
-          <div className="text-xs sm:text-sm text-white/50 text-center py-3 sm:py-4 px-2 sm:px-4">
-            Loading activities...
-          </div>
-        ) : activities.length === 0 ? (
+          activities.length === 0 ? (
           <div className="text-xs sm:text-sm text-white/50 text-center py-3 sm:py-4 px-2 sm:px-4">
             No activity yet. Start adding URLs to see activity here!
           </div>

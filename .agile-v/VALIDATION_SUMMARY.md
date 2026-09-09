@@ -847,3 +847,14 @@ Gate 2: BLOCKED — RISK-0016 is accepted; `EVAL_RESULTS.md` PASS/WAIVED evidenc
 | Jest | urlListStore.mutations + keep-warm route | PASS | |
 | Verifier / Security | PASS WITH WARNINGS / PASS | optional race UI tests not blocking |
 
+## 2026-09-09 — C7.28 empty-state known-zero paint
+
+| Scope | Command / evidence | Result | Notes |
+|---|---|---|---|
+| Soft-nav Lists/Browse empties | shared ListEmptyStates ≡ pages | PASS | no thin/blank flash |
+| UrlList urlCount gate | pending when count>0 + urls=[] | PASS | seed urlCount on thin sync |
+| Activity thin | non-pulse collapsed shell | PASS | knownActivityCount left undefined |
+| tsc / eslint (touched) | exit 0 | PASS | |
+| Jest | soft-nav-cache + mutations + list-card-dto | PASS | |
+| Verifier / Security | PASS WITH WARNINGS / PASS | leave knownActivityCount unwired |
+

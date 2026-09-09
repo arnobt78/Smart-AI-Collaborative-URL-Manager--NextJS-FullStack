@@ -48,6 +48,8 @@ export interface UrlList {
   title?: string;
   description?: string;
   urls: UrlItem[];
+  /** Track B card / thin-seed count when urls blob is omitted. */
+  urlCount?: number;
   archivedUrls?: UrlItem[]; // Array of archived URLs
   createdAt: string;
   updatedAt?: string;
@@ -144,6 +146,7 @@ function commitUrlMutation(
     ...previousList,
     ...server,
     urls,
+    urlCount: urls.length,
     // Densify-first summaries omit archivedUrls — keep optimistic archive state.
     archivedUrls: server.archivedUrls ?? previousList.archivedUrls,
   } as UrlList;

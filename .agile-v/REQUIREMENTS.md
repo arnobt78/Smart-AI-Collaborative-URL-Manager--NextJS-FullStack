@@ -1041,3 +1041,26 @@ These describe the current product as verified in code. They are **Accepted as b
 **Affected:** PermissionManager, UrlList, UrlCard, UrlEditModal, UrlAddForm, Comments, Button, AlertDialog, Dialog consumers.  
 **Trace:** TASK-0058.  
 **Status:** Completed and locally validated [C7.17] on 2026-09-02.
+
+---
+
+### REQ-0053 — C7.28 empty-state known-zero paint (approved 2026-09-09)
+
+**Priority:** P1  
+**Type:** UX / soft-nav / empty-state consistency  
+
+**Statement:** When lists/browse/detail surfaces already know length 0 (SSR dehydrate, RQ cache, `urlCount===0`, Comments `knownCount===0`), the UI MUST paint the **same final empty chrome** immediately. Soft-nav MUST NOT show a thinner empty (icon-less “No Lists Yet”) or a blank Browse grid before the page empty. UrlList MUST NOT claim “No URLs Added Yet!” when `urlCount > 0` but `urls` are still thin-seed empty. Absolute cold *unknown* may still use a brief skeleton.
+
+**Acceptance criteria:**
+
+- [x] Shared `MyListsEmptyState` / `BrowseEmptyState` used by soft-nav and pages (no chrome drift).
+- [x] Warm soft-nav Lists empty ≡ ListsPage empty (icon + CTA).
+- [x] Warm soft-nav Browse empty ≡ BrowsePage empty (no blank grid).
+- [x] UrlList empty gated on `resolveListUrlCount === 0`; pending slot when count &gt; 0 and urls missing.
+- [x] Activity thin skeleton: collapsed non-pulse shell (parity with SC / known-empty collaborators).
+- [x] Dead hardcoded `isLoading` empty branches cleaned where present.
+- [x] tsc, eslint touched files, targeted Jest, independent verifier.
+
+**Affected:** OptimisticSoftNavSurface, ListsPage, BrowsePage, UrlList, soft-nav-cache seed, ListDetailHeaderChrome, ActivityFeed, PermissionManager.  
+**Trace:** TASK-0059, DEC-0072.  
+**Status:** Implemented — verify PASS WITH WARNINGS [C7.28].

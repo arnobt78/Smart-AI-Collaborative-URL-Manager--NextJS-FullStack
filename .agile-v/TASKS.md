@@ -505,5 +505,13 @@ RSC shells · densify/Zod/SHA/Next16
 
 **Dependencies:** REQ-0052; plan approved 2026-09-02.
 
+### TASK-0059 — C7.28 empty-state known-zero paint — **DONE**
+
+1. ~~Reconcile STATE; REQ-0053 + DEC-0072.~~
+2. ~~Extract MyListsEmptyState + BrowseEmptyState; wire soft-nav + pages.~~
+3. ~~UrlList `urlCount` / archived-unknown gates; seed `urlCount` on thin list; Activity thin non-pulse; dead isLoading cleanup.~~
+4. ~~Validate tsc/eslint/Jest + implementation-verifier.~~
+
+**Dependencies:** REQ-0053; empty_known-zero_paint plan approved 2026-09-09.
 
 
