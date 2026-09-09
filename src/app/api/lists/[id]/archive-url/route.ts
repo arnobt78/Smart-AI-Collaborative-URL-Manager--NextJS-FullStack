@@ -11,6 +11,7 @@ import type { UrlMetadata } from "@/utils/urlMetadata";
 import { archiveUrlSchema, parseJsonBody } from "@/lib/api-validation";
 import { mergeArchivedAtOnWrite } from "@/lib/archive-url-payload";
 import type { ArchivedAtCarrier } from "@/lib/archive-url-payload";
+import { toListMutationSummary } from "@/lib/list-card-dto";
 
 export async function POST(
   req: NextRequest,
@@ -194,9 +195,9 @@ export async function POST(
     }
 
     
-    // Return unified response with activity data if available
+    // Return unified response with activity data if available (densify-first)
     return NextResponse.json({
-      list: updatedList,
+      list: toListMutationSummary(updatedList),
       metadata: urlMetadata, // Include metadata if restored (for caching)
       activity: activity
         ? {

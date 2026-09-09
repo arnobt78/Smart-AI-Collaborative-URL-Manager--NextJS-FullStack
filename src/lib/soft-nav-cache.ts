@@ -29,6 +29,8 @@ type SeedableListRow = {
   description?: string | null;
   isPublic?: boolean;
   urls?: unknown;
+  /** Track B W2: allLists/browse cards omit urls JSON and ship urlCount. */
+  urlCount?: number;
   createdAt?: string | Date | null;
   updatedAt?: string | Date | null;
   created_at?: string | Date | null;

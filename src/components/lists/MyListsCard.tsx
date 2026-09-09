@@ -10,6 +10,7 @@ import { ListTitleRow } from "@/components/lists/ListTitleRow";
 import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
 import { Blocks, Eye, Globe2, GlobeLock, Users } from "lucide-react";
 import type { UserList } from "@/hooks/useListQueries";
+import { resolveListUrlCount } from "@/lib/list-card-dto";
 import { ListMetaDates } from "@/lib/ui/list-meta-dates";
 import {
   UI_ICON_CONTROL,
@@ -62,7 +63,7 @@ export function MyListsCard({
 }: MyListsCardProps) {
   const createdDate = getListDate(list, "created");
   const updatedDate = getListDate(list, "updated");
-  const urlCount = list.urls?.length || 0;
+  const urlCount = resolveListUrlCount(list);
   const collaboratorCount = list.collaborators?.length || 0;
   const description = list.description?.trim() || "No description yet";
   const isPublic = list.isPublic ?? false;

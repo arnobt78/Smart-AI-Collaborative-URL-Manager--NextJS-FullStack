@@ -16,6 +16,7 @@ import {
 } from "@/lib/ui/glass-card-styles";
 import { UI_ICON_INLINE_XS } from "@/lib/ui/control-styles";
 import { CARD_PAD, CARD_STACK } from "@/lib/ui-spacing";
+import { resolveListUrlCount } from "@/lib/list-card-dto";
 import { cn, listShareUrl, resolveListShareUrl } from "@/lib/utils";
 import { displayNameFromEmail } from "@/lib/robohash";
 
@@ -24,6 +25,7 @@ export type BrowsePublicListCardModel = {
   slug: string;
   title: string;
   description?: string;
+  urlCount?: number;
   urls?: unknown[];
   /** Omitted when densify insert has no owner yet — do not invent a label. */
   user?: { email: string };
@@ -39,7 +41,7 @@ export function BrowsePublicListCard({
 }: {
   list: BrowsePublicListCardModel;
 }) {
-  const urlCount = Array.isArray(list.urls) ? list.urls.length : 0;
+  const urlCount = resolveListUrlCount(list);
   const description = list.description?.trim() || "No description yet";
   const [copied, setCopied] = useState(false);
   const slugOk = isBrowseableSlug(list.slug);

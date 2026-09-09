@@ -99,8 +99,20 @@ export async function GET(
     // Return unified response with list, activities, and collaborators
     // Format matches what getList expects for list, ActivityFeed expects for activities,
     // and PermissionManager expects for collaborators
+    const owner =
+      list.user && typeof list.user === "object"
+        ? {
+            id: (list.user as { id?: string }).id,
+            email: (list.user as { email?: string }).email,
+          }
+        : undefined;
     return NextResponse.json({
-      list,
+      list: {
+        ...list,
+        ...(owner?.email
+          ? { user: { id: owner.id, email: owner.email } }
+          : { user: undefined }),
+      },
       activities, // Fixed: was using undefined variable
       collaborators,
       urlOrder,

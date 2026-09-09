@@ -766,3 +766,53 @@ Gate 2: BLOCKED — RISK-0016 is accepted; `EVAL_RESULTS.md` PASS/WAIVED evidenc
 
 **Deferred:** cold `_rsc` SLAs; SSE rewrite; SC/sync-vectors primary.
 
+## 2026-09-09 — GATE-0047 Track B Wave 2 (TASK-0064)
+
+| Scope | Command / evidence | Result | Notes |
+|---|---|---|---|
+| Card DTOs | `toListCardSummary` on GET lists + public; Jest public | PASS | urlCount; no urls on wire |
+| SSE deepen | count-only `$queryRaw`; POLL 1500; window 4; Jest 11/11 | PASS | Slim re-auth preserved |
+| sync-vectors | idle removed; Similar `ensureListVectorsSynced` | PASS | |
+| SC | `useVectorSearch=false` first expand; Zod query schema | PASS | Refresh can enable vectors |
+| Mutations | densify-first summaries; archivedUrls preserve | PASS | Jobs keep full list |
+| Sentry | shared ignoreErrors + beforeSend | PASS | client/server/edge |
+| tsc / eslint | exit 0 | PASS | |
+| e2e c725+c726 | 9 passed | PASS | |
+| next build | exit 0 | PASS | |
+| Security | PASS | No medium+ findings |
+| Verifier | PASS after archive densify fix | |
+
+**Deferred:** absolute cold `_rsc` SLAs; full SSE Redis rewrite; Cloudinary; virtualization.
+
+## 2026-09-09 — GATE-0048 Track B Wave 3 (TASK-0064)
+
+| Scope | Command / evidence | Result | Notes |
+|---|---|---|---|
+| Card DB counts | `getUserListCards` / `getPublicListCards` jsonb_array_length | PASS | No urls into Node |
+| Owner select | id+email only; updates sanitize | PASS | No password on wire |
+| SSE publish | no SETEX; LTRIM 0..9 | PASS | |
+| SSE client | hide pause + pageshow/visibility reconnect | PASS | bfcache-safe |
+| tsc / eslint | exit 0 | PASS | |
+| Jest | public + SSE + list-route-access 17/17 | PASS | |
+| e2e c725+c726 | 9 passed | PASS | |
+| next build | exit 0 | PASS | |
+| Security | PASS | SQL param + password hygiene |
+| Verifier | PASS WITH WARNINGS → pagehide fixed | PASS |
+
+**Still deferred:** absolute cold `_rsc` ms SLAs; full Redis SUBSCRIBE rewrite.
+
+## 2026-09-09 — GATE-0048 commit-ready verify (W2+W3)
+
+| Scope | Command / evidence | Result | Notes |
+|---|---|---|---|
+| Verifier | uncommitted W2+W3 claims | PASS WITH WARNINGS → fixed | soft-nav `resolveListUrlCount` |
+| Security | uncommitted W2+W3 | PASS WITH WARNINGS → fixed | SSE `!row` minimal tombstone |
+| Soft-nav | header chrome + seed `urlCount` | PASS | Lists→detail badge flash |
+| SSE tombstone | deleted-list backlog test | PASS | no activity/email leak |
+| tsc / eslint | exit 0 | PASS | |
+| Jest | public+SSE+list-route+soft-nav 43 | PASS | |
+| e2e c725+c726 | 9 passed | PASS | residual MaxListeners noise |
+| next build | exit 0 | PASS | |
+
+**Not claimed:** flawless 100%; absolute cold `_rsc` SLAs; Redis SUBSCRIBE.
+

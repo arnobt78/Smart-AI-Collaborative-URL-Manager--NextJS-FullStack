@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
-import type { Prisma } from "@prisma/client";
+import { getPublicListCards } from "@/lib/db";
+import { toListCardSummary } from "@/lib/list-card-dto";
 
 export async function GET(req: NextRequest) {
   try {
@@ -11,51 +11,20 @@ export async function GET(req: NextRequest) {
     }
 
     const { searchParams } = new URL(req.url);
-    const page = parseInt(searchParams.get("page") || "1");
-    const limit = parseInt(searchParams.get("limit") || "20");
+    const page = parseInt(searchParams.get("page") || "1", 10);
+    const limit = parseInt(searchParams.get("limit") || "20", 10);
     const search = searchParams.get("search") || "";
 
-    const skip = (page - 1) * limit;
-
-    // Build where clause
-    const where: Prisma.ListWhereInput = {
-      isPublic: true,
-    };
-
-    if (search) {
-      where.OR = [
-        { title: { contains: search, mode: "insensitive" } },
-        { description: { contains: search, mode: "insensitive" } },
-      ];
-    }
-
-    const [lists, total] = await Promise.all([
-      prisma.list.findMany({
-        where,
-        include: {
-          user: {
-            select: {
-              email: true,
-            },
-          },
-        },
-        orderBy: {
-          updatedAt: "desc",
-        },
-        skip,
-        take: limit,
-      }),
-      prisma.list.count({ where }),
-    ]);
+    // Wave 3: count-only DB read — no urls jsonb into Node
+    const { lists, pagination } = await getPublicListCards({
+      page,
+      limit,
+      search,
+    });
 
     return NextResponse.json({
-      lists,
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit),
-      },
+      lists: lists.map(toListCardSummary),
+      pagination,
     });
   } catch (error) {
     const message =

@@ -37,17 +37,10 @@ export async function publishMessage(
   }
 
   try {
-    // Redis pub/sub via REST API
-    // Note: Upstash Redis REST API doesn't support native pub/sub
-    // We'll use a different approach: store messages in a list and poll or use SSE
-    // For now, we'll use a simple key-based approach with expiration
-    const messageKey = `${channel}:${Date.now()}`;
-    await redis.setex(messageKey, 10, JSON.stringify(message)); // 10 second TTL
-
-    // Also store in a list for the channel
+    // List-poll transport (Upstash REST): LPUSH + LTRIM only — no dead SETEX keys.
     const channelList = `${channel}:messages`;
     await redis.lpush(channelList, JSON.stringify(message));
-    await redis.ltrim(channelList, 0, 99); // Keep last 100 messages
+    await redis.ltrim(channelList, 0, 9); // Match SSE consumer window (+ small buffer)
     await redis.expire(channelList, 3600); // 1 hour expiration
 
   } catch (_error) {

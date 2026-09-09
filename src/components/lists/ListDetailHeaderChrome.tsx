@@ -24,12 +24,15 @@ import { useStore } from "@nanostores/react";
 import { collectionCreateInFlight } from "@/stores/urlListStore";
 import { ListDetailSectionHeader } from "@/components/lists/ListDetailSectionHeader";
 import { GlassIconTile } from "@/components/ui/GlassIconTile";
+import { resolveListUrlCount } from "@/lib/list-card-dto";
 export type ListDetailHeaderList = {
   slug: string;
   title?: string | null;
   description?: string | null;
   isPublic?: boolean;
   urls?: unknown[] | null;
+  /** Card / thin soft-nav seed may omit urls and ship urlCount only (Track B W2). */
+  urlCount?: number | null;
   createdAt?: string | Date | null;
   updatedAt?: string | Date | null;
 };
@@ -64,7 +67,7 @@ export function ListDetailHeaderChrome({
   shareRow,
   className,
 }: ListDetailHeaderChromeProps) {
-  const urlCount = Array.isArray(list.urls) ? list.urls.length : 0;
+  const urlCount = resolveListUrlCount(list);
   const isPublic = list.isPublic ?? false;
 
   const backButton =

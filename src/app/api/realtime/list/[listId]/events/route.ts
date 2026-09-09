@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { redis, CHANNELS } from "@/lib/realtime/redis";
 import { prisma } from "@/lib/prisma";
+import { getCurrentUser } from "@/lib/auth";
+import { getRoleForListUser } from "@/lib/collaboration/permissions";
 import { resolveAuthorizedList } from "@/lib/list-route-access";
 import {
   getRealtimeEventKey,
@@ -9,24 +11,68 @@ import {
   type RealtimeListSummary,
 } from "@/lib/realtime/event-types";
 
-/** Track B Wave 1: poll fast for events; heartbeat only every 20s when idle. */
-const POLL_MS = 1000;
+/** Track B Wave 2: slightly slower poll + smaller Redis window under idle tabs. */
+const POLL_MS = 1500;
 const HEARTBEAT_MS = 20_000;
+const REDIS_MESSAGE_WINDOW = 4;
 
-function leanListSummary(row: {
+type SlimListAuthRow = {
   id: string;
   slug: string;
   title: string | null;
   isPublic: boolean;
-  urls: unknown;
-}): RealtimeListSummary {
-  const urls = Array.isArray(row.urls) ? row.urls : [];
+  userId: string;
+  collaborators: string[];
+  collaboratorRoles: unknown;
+  urlCount: number | bigint;
+};
+
+/**
+ * Single count-only row for SSE enrich — no urls JSON blob, still enough for
+ * view-auth (userId / collaborators / roles / isPublic).
+ */
+async function loadSlimListForEnrich(
+  listId: string,
+): Promise<SlimListAuthRow | null> {
+  const rows = await prisma.$queryRaw<SlimListAuthRow[]>`
+    SELECT
+      id,
+      slug,
+      title,
+      is_public AS "isPublic",
+      user_id AS "userId",
+      collaborators,
+      collaborator_roles AS "collaboratorRoles",
+      COALESCE(jsonb_array_length(urls), 0)::int AS "urlCount"
+    FROM lists
+    WHERE id = ${listId}
+  `;
+  return rows[0] ?? null;
+}
+
+function leanListSummary(row: SlimListAuthRow): RealtimeListSummary {
   return {
     id: row.id,
     slug: row.slug,
     title: row.title,
     isPublic: row.isPublic,
-    urlCount: urls.length,
+    urlCount: Number(row.urlCount),
+  };
+}
+
+/** Tombstone only — never spread Redis backlog (activity / slug / titles). */
+function deletedListTombstone(
+  event: RealtimeChannelEvent,
+  listId: string,
+  eventKey: string,
+): RealtimeChannelEvent {
+  return {
+    type: event.type === "unauthorized" ? "list_updated" : event.type,
+    listId,
+    eventKey,
+    action: event.action ?? "list_updated",
+    timestamp: event.timestamp ?? new Date().toISOString(),
+    deleted: true,
   };
 }
 
@@ -35,14 +81,9 @@ async function enrichAuthorizedEvent(
   listId: string,
 ): Promise<RealtimeChannelEvent> {
   const eventKey = getRealtimeEventKey(event);
-  // A deleted list cannot be re-authorized/read, but subscribers that were
-  // authorized when their stream opened still need a non-sensitive tombstone.
-  if (event.action === "list_deleted") {
-    return { ...event, eventKey, deleted: true };
-  }
 
-  const access = await resolveAuthorizedList(listId, "view");
-  if (!access.ok) {
+  const user = await getCurrentUser();
+  if (!user) {
     return {
       type: "unauthorized",
       listId,
@@ -52,12 +93,36 @@ async function enrichAuthorizedEvent(
     };
   }
 
-  // Lean summary only — do not ship full urls/user on the wire (TASK-0064).
-  const row = await prisma.list.findUnique({
-    where: { id: access.list.id },
-    select: { id: true, slug: true, title: true, isPublic: true, urls: true },
-  });
-  if (!row) return { ...event, eventKey, deleted: true };
+  // Deleted / missing row: session still required; never re-emit Redis payload
+  // (revoked collaborators with a lingering SSE must not see backlog activity).
+  if (event.action === "list_deleted") {
+    return deletedListTombstone(event, listId, eventKey);
+  }
+
+  const row = await loadSlimListForEnrich(listId);
+  if (!row) {
+    return deletedListTombstone(event, listId, eventKey);
+  }
+
+  const role = getRoleForListUser(
+    {
+      userId: row.userId,
+      isPublic: row.isPublic,
+      collaborators: row.collaborators,
+      collaboratorRoles: row.collaboratorRoles,
+    },
+    user,
+  );
+  if (role === "none") {
+    return {
+      type: "unauthorized",
+      listId,
+      eventKey,
+      action: event.action ?? "list_updated",
+      timestamp: event.timestamp ?? new Date().toISOString(),
+    };
+  }
+
   return { ...event, eventKey, list: leanListSummary(row) };
 }
 
@@ -105,7 +170,7 @@ export async function GET(
 
       const processedMessageIds = new Set<string>(); // Track processed message IDs
 
-      // Poll every 1s for events; heartbeat only every HEARTBEAT_MS when idle
+      // Poll for events; heartbeat only every HEARTBEAT_MS when idle
       const interval = setInterval(async () => {
         try {
 
@@ -118,11 +183,11 @@ export async function GET(
           const commentChannel = CHANNELS.listComment(authorizedListId);
           const activityChannel = CHANNELS.listActivity(authorizedListId);
           
-          // Get messages from both channels (get more messages to ensure we don't miss any)
+          // Get messages from both channels (trim window — Wave 2)
           const [updateMessages, commentMessages, activityMessages] = await Promise.all([
-            redis.lrange(`${updateChannel}:messages`, 0, 9), // Get last 10 messages
-            redis.lrange(`${commentChannel}:messages`, 0, 9),
-            redis.lrange(`${activityChannel}:messages`, 0, 9), // Get last 10 messages
+            redis.lrange(`${updateChannel}:messages`, 0, REDIS_MESSAGE_WINDOW),
+            redis.lrange(`${commentChannel}:messages`, 0, REDIS_MESSAGE_WINDOW),
+            redis.lrange(`${activityChannel}:messages`, 0, REDIS_MESSAGE_WINDOW),
           ]);
           
           // Combine messages from both channels

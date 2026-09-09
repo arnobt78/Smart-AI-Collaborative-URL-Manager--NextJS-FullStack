@@ -7,6 +7,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { requirePermission } from "@/lib/collaboration/permissions";
 import type { UrlItem } from "@/stores/urlListStore";
 import { parseJsonBody, reorderUrlsSchema } from "@/lib/api-validation";
+import { toListMutationSummary } from "@/lib/list-card-dto";
 
 export async function POST(
   req: NextRequest,
@@ -195,7 +196,10 @@ export async function POST(
       }
     }
 
-    return NextResponse.json({ success: true, list: updated });
+    return NextResponse.json({
+      success: true,
+      list: toListMutationSummary(updated),
+    });
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Failed to reorder URLs";

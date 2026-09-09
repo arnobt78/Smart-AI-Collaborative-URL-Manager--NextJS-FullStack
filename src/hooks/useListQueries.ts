@@ -497,6 +497,8 @@ export interface UserList {
   slug: string;
   title: string | null;
   description?: string | null;
+  /** Card APIs return urlCount only; detail/unified may still include urls. */
+  urlCount?: number;
   urls?: Array<{ id: string; url: string; title?: string }>;
   created_at?: string;
   createdAt?: string | Date;

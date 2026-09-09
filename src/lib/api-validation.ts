@@ -108,6 +108,25 @@ export const collectionCreateSchema = z.object({
   urlIds: z.array(z.string().trim().min(1).max(128)).min(1).max(2_000),
 }).strict();
 
+/** GET /collections query — Wave 2 defaults vector search off for first expand. */
+export const collectionsQuerySchema = z.object({
+  includeDuplicates: z
+    .enum(["true", "false"])
+    .optional()
+    .transform((v) => v === "true"),
+  minGroupSize: z.coerce.number().int().min(2).max(50).optional().default(2),
+  maxCollections: z.coerce.number().int().min(1).max(50).optional().default(10),
+  clearCache: z
+    .enum(["true", "false"])
+    .optional()
+    .transform((v) => v === "true"),
+  useVectorSearch: z
+    .enum(["true", "false"])
+    .optional()
+    .transform((v) => (v === undefined ? false : v === "true")),
+  _t: z.string().optional(),
+});
+
 export const aiEnhanceSchema = z.object({
   url: z.string().url().max(2_048),
   title: optionalText(500),

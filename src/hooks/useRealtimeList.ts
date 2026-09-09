@@ -37,21 +37,48 @@ export function useRealtimeList(listId: string | null) {
         eventSourceRef.current = null;
       }
     };
-    const handlePageHide = () => {
-      isUnloading = true;
-      // Close connection when page is hidden (Firefox navigation)
-      if (eventSourceRef.current) {
-        eventSourceRef.current.close();
-        eventSourceRef.current = null;
+    const handlePageHide = (event: PageTransitionEvent) => {
+      // Always pause the stream; only mark permanent unload when not entering bfcache.
+      pauseForHiddenTab();
+      if (!event.persisted) {
+        isUnloading = true;
+      }
+    };
+    const handlePageShow = () => {
+      isUnloading = false;
+      if (typeof document !== "undefined" && !document.hidden) {
+        reconnectAttemptsRef.current = 0;
+        connect();
       }
     };
 
-    window.addEventListener("beforeunload", handleBeforeUnload);
-    window.addEventListener("pagehide", handlePageHide);
+    // pauseForHiddenTab + connect are defined below; wire listeners after connect exists.
+
+    const pauseForHiddenTab = () => {
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current);
+        reconnectTimeoutRef.current = null;
+      }
+      isConnectingRef.current = false;
+      if (eventSourceRef.current) {
+        const connectionKey = `list-${listId}`;
+        eventSourceRef.current.close();
+        if (activeConnections.get(connectionKey) === eventSourceRef.current) {
+          activeConnections.delete(connectionKey);
+        }
+        eventSourceRef.current = null;
+      }
+      setIsConnected(false);
+    };
 
     const connect = () => {
       // Don't connect if page is unloading
       if (isUnloading) return;
+
+      // Wave 3: stay disconnected while the tab is hidden (no idle Redis poll)
+      if (typeof document !== "undefined" && document.hidden) {
+        return;
+      }
 
       // Prevent duplicate connections
       if (isConnectingRef.current) {
@@ -380,6 +407,23 @@ export function useRealtimeList(listId: string | null) {
       };
     };
 
+    const handleVisibilityChange = () => {
+      if (typeof document === "undefined") return;
+      if (document.hidden) {
+        pauseForHiddenTab();
+        return;
+      }
+      if (!isUnloading) {
+        reconnectAttemptsRef.current = 0;
+        connect();
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    window.addEventListener("pagehide", handlePageHide);
+    window.addEventListener("pageshow", handlePageShow);
+
     // Initial connection - wait for page to be ready
     if (typeof window !== "undefined" && document.readyState === "complete") {
       // Page already loaded, connect immediately
@@ -406,6 +450,8 @@ export function useRealtimeList(listId: string | null) {
       // Remove event listeners
       window.removeEventListener("beforeunload", handleBeforeUnload);
       window.removeEventListener("pagehide", handlePageHide);
+      window.removeEventListener("pageshow", handlePageShow);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
 
       // Clean up connection
       if (eventSourceRef.current) {

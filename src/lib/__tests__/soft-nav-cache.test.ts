@@ -80,16 +80,17 @@ describe("C6.9 soft-nav-cache", () => {
           title: "My List",
           description: "desc",
           isPublic: false,
-          urls: [],
+          urlCount: 5,
         },
       ],
     });
     expect(isDestinationCacheWarm(client, "/list/my-list")).toBe(true);
     const seeded = client.getQueryData<{
-      list?: { title?: string };
+      list?: { title?: string; urlCount?: number; urls?: unknown[] };
       _softNavThinSeed?: boolean;
     }>(listQueryKeys.unified("my-list"));
     expect(seeded?.list?.title).toBe("My List");
+    expect(seeded?.list?.urlCount).toBe(5);
     expect(seeded?._softNavThinSeed).toBe(true);
     expect(currentList.get().slug).toBe("my-list");
     expect(currentList.get().title).toBe("My List");

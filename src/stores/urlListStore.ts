@@ -138,7 +138,15 @@ function commitUrlMutation(
     };
   },
 ): UrlList {
-  const next = { ...previous, ...serverList, urls } as UrlList;
+  const previousList = previous as UrlList;
+  const server = serverList as UrlList;
+  const next = {
+    ...previousList,
+    ...server,
+    urls,
+    // Densify-first summaries omit archivedUrls — keep optimistic archive state.
+    archivedUrls: server.archivedUrls ?? previousList.archivedUrls,
+  } as UrlList;
   currentList.set(next);
   patchListSummaryCache(next);
 
@@ -782,7 +790,9 @@ export async function addUrlToList(
 
     // Merge server response with optimistic state
     // Server response is the source of truth, but preserve optimistic order
-    const serverUrls = (list.urls as unknown as UrlItem[]) || [];
+    const serverUrls = Array.isArray(list?.urls)
+      ? (list.urls as unknown as UrlItem[])
+      : [];
     const serverUrlMap = new Map(serverUrls.map((u) => [u.id, u]));
 
     // Update optimistic URLs with server data (serverUrl has the final data)
@@ -992,7 +1002,9 @@ async function updateUrlInListInner(
       activity: activityData,
     } = await response.json();
 
-    const serverUrls = (list.urls as unknown as UrlItem[]) || [];
+    const serverUrls = Array.isArray(list?.urls)
+      ? (list.urls as unknown as UrlItem[])
+      : [];
     const serverUrlMap = new Map(serverUrls.map((u: UrlItem) => [u.id, u]));
 
     const finalUrls = updatedUrls.map((url) => {
@@ -1131,10 +1143,20 @@ export async function removeUrlFromList(
     // Merge server response but preserve optimistic order (urls order is already correct)
     // Preserve current list metadata to avoid triggering unnecessary getList calls
     // Only update URLs from server response to prevent false change detection
-    const serverUrls = (list.urls as unknown as UrlItem[]) || [];
+    const serverUrls = Array.isArray(list?.urls)
+      ? (list.urls as unknown as UrlItem[])
+      : [];
     const currentListData = currentList.get();
 
-    if (serverUrls.length === updatedUrls.length) {
+    if (serverUrls.length === 0) {
+      // Densify-first summary — keep optimistic urls
+      currentList.set({
+        ...currentListData,
+        ...list,
+        urls: updatedUrls,
+        updatedAt: list.updatedAt ?? currentListData.updatedAt,
+      });
+    } else if (serverUrls.length === updatedUrls.length) {
       // Same count, just confirm with server data (merge any server-side updates)
       const serverUrlMap = new Map(serverUrls.map((u) => [u.id, u]));
       const mergedUrls = updatedUrls.map((url) => {
@@ -1264,13 +1286,16 @@ export async function reorderUrls(startIndex: number, endIndex: number) {
     // Preserve optimistic order (don't overwrite with server response)
     // Server response confirms the order, but we keep our optimistic state
     const optimisticUrls = current.urls as unknown as UrlItem[];
-    const serverUrls = (list.urls as unknown as UrlItem[]) || [];
+    const serverUrls = Array.isArray(list?.urls)
+      ? (list.urls as unknown as UrlItem[])
+      : [];
     const optimisticOrder = optimisticUrls.map((u) => u.id).join(",");
     const serverOrder = serverUrls.map((u) => u.id).join(",");
 
-    const next = optimisticOrder === serverOrder
-      ? { ...list, urls: optimisticUrls }
-      : list;
+    const next =
+      serverUrls.length === 0 || optimisticOrder === serverOrder
+        ? { ...list, urls: optimisticUrls }
+        : { ...list, urls: serverUrls };
     const committed = commitUrlMutation(current, next, next.urls as UrlItem[]);
 
     // Dispatch activity events for optimistic feed update and refresh
@@ -1428,7 +1453,12 @@ export async function archiveUrlFromList(urlId: string) {
           }
         : undefined;
 
-    return commitUrlMutation(current, list, list.urls as UrlItem[], "archive", {
+    return commitUrlMutation(
+      currentList.get() as UrlList,
+      list,
+      (currentList.get().urls as UrlItem[]) || updatedUrls,
+      "archive",
+      {
       skipUnified: true,
       activity: activityForCache,
     });
@@ -1575,7 +1605,12 @@ export async function restoreArchivedUrl(urlId: string) {
           }
         : undefined;
 
-    return commitUrlMutation(current, list, list.urls as UrlItem[], "archive", {
+    return commitUrlMutation(
+      currentList.get() as UrlList,
+      list,
+      (currentList.get().urls as UrlItem[]) || updatedUrls,
+      "archive",
+      {
       skipUnified: true,
       activity: activityForCache,
     });

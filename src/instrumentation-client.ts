@@ -6,6 +6,10 @@
  */
 
 import * as Sentry from "@sentry/nextjs";
+import {
+  SENTRY_IGNORE_ERRORS,
+  sentryBeforeSend,
+} from "@/lib/sentry-noise";
 
 const dsn = process.env.NEXT_PUBLIC_SENTRY_DSN;
 
@@ -17,11 +21,10 @@ Sentry.init({
   tracesSampleRate: process.env.NODE_ENV === "production" ? 0.1 : 1.0,
   debug: false,
   // No Session Replay / console logging / profiling — keep client light
-  ignoreErrors: [
-    "top.GLOBALS",
-    "ResizeObserver loop limit exceeded",
-    "Non-Error promise rejection captured",
-  ],
+  ignoreErrors: SENTRY_IGNORE_ERRORS,
+  beforeSend(event) {
+    return sentryBeforeSend(event);
+  },
 });
 
 // Instrument App Router navigations when tracing is enabled

@@ -3,14 +3,18 @@
 import { NextRequest } from "next/server";
 import { GET } from "@/app/api/realtime/list/[listId]/events/route";
 import { resolveAuthorizedList } from "@/lib/list-route-access";
+import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redis } from "@/lib/realtime/redis";
 
 jest.mock("@/lib/list-route-access", () => ({
   resolveAuthorizedList: jest.fn(),
 }));
+jest.mock("@/lib/auth", () => ({
+  getCurrentUser: jest.fn(),
+}));
 jest.mock("@/lib/prisma", () => ({
-  prisma: { list: { findUnique: jest.fn() } },
+  prisma: { $queryRaw: jest.fn() },
 }));
 jest.mock("@/lib/realtime/redis", () => ({
   redis: { lrange: jest.fn() },
@@ -22,7 +26,8 @@ jest.mock("@/lib/realtime/redis", () => ({
 }));
 
 const resolveAccess = resolveAuthorizedList as jest.Mock;
-const findUnique = prisma.list.findUnique as jest.Mock;
+const currentUser = getCurrentUser as jest.Mock;
+const queryRaw = prisma.$queryRaw as unknown as jest.Mock;
 const lrange = (redis as unknown as { lrange: jest.Mock }).lrange;
 
 const allowed = {
@@ -32,12 +37,15 @@ const allowed = {
   role: "owner",
 };
 
-const leanRow = {
+const slimOwnerRow = {
   id: "list-1",
   slug: "warm",
   title: "Authoritative",
   isPublic: true,
-  urls: [{ id: "u1" }, { id: "u2" }],
+  userId: "user-1",
+  collaborators: [] as string[],
+  collaboratorRoles: null,
+  urlCount: 2,
 };
 
 async function readEvent(response: Response) {
@@ -49,8 +57,9 @@ async function readEvent(response: Response) {
 beforeEach(() => {
   jest.clearAllMocks();
   resolveAccess.mockResolvedValue(allowed);
+  currentUser.mockResolvedValue({ id: "user-1", email: "owner@example.test" });
   lrange.mockResolvedValue([]);
-  findUnique.mockResolvedValue(leanRow);
+  queryRaw.mockResolvedValue([slimOwnerRow]);
 });
 
 describe("GET /api/realtime/list/[listId]/events", () => {
@@ -102,12 +111,13 @@ describe("GET /api/realtime/list/[listId]/events", () => {
     );
     const reader = await readEvent(response);
     const next = reader.read();
-    await jest.advanceTimersByTimeAsync(1000);
+    await jest.advanceTimersByTimeAsync(1500);
     const value = new TextDecoder().decode((await next).value);
     expect(value).toContain('"title":"Authoritative"');
     expect(value).toContain('"urlCount":2');
     expect(value).not.toContain('"urls":');
-    expect(resolveAccess).toHaveBeenCalledTimes(2);
+    expect(resolveAccess).toHaveBeenCalledTimes(1);
+    expect(queryRaw).toHaveBeenCalled();
     abort.abort();
     await reader.cancel();
     jest.useRealTimers();
@@ -117,9 +127,8 @@ describe("GET /api/realtime/list/[listId]/events", () => {
     jest.useFakeTimers();
     const base = Date.now();
     jest.setSystemTime(base);
-    resolveAccess
-      .mockResolvedValueOnce(allowed)
-      .mockResolvedValueOnce({ ok: false, status: 403, error: "Forbidden" });
+    // Connect ok; enrich session gone (revoked cookie / signed out).
+    currentUser.mockResolvedValueOnce(null);
     const ts = new Date(base + 100).toISOString();
     lrange
       .mockResolvedValueOnce([
@@ -138,11 +147,52 @@ describe("GET /api/realtime/list/[listId]/events", () => {
     );
     const reader = await readEvent(response);
     const next = reader.read();
-    await jest.advanceTimersByTimeAsync(1000);
+    await jest.advanceTimersByTimeAsync(1500);
     const value = new TextDecoder().decode((await next).value);
     expect(value).toContain('"type":"unauthorized"');
     expect(value).not.toContain('"list":');
-    expect(findUnique).not.toHaveBeenCalled();
+    expect(queryRaw).not.toHaveBeenCalled();
+    abort.abort();
+    await reader.cancel();
+    jest.useRealTimers();
+  });
+
+  it("does not disclose Redis backlog payloads when the list row is already deleted", async () => {
+    jest.useFakeTimers();
+    const base = Date.now();
+    jest.setSystemTime(base);
+    queryRaw.mockResolvedValueOnce([]);
+    const ts = new Date(base + 100).toISOString();
+    lrange
+      .mockResolvedValueOnce([
+        JSON.stringify({
+          type: "activity_created",
+          listId: "list-1",
+          action: "url_updated",
+          timestamp: ts,
+          activity: {
+            id: "act-1",
+            action: "url_updated",
+            details: { title: "Secret URL Title" },
+            createdAt: ts,
+            user: { id: "user-1", email: "owner@example.test" },
+          },
+        }),
+      ])
+      .mockResolvedValue([]);
+    const abort = new AbortController();
+    const response = await GET(
+      new NextRequest("http://localhost/api/realtime/list/list-1/events", { signal: abort.signal }),
+      { params: Promise.resolve({ listId: "list-1" }) },
+    );
+    const reader = await readEvent(response);
+    const next = reader.read();
+    await jest.advanceTimersByTimeAsync(1500);
+    const value = new TextDecoder().decode((await next).value);
+    expect(value).toContain('"deleted":true');
+    expect(value).not.toContain("Secret URL Title");
+    expect(value).not.toContain('"activity"');
+    expect(value).not.toContain("owner@example.test");
     abort.abort();
     await reader.cancel();
     jest.useRealTimers();
@@ -180,7 +230,7 @@ describe("GET /api/realtime/list/[listId]/events", () => {
     const reader = await readEvent(response);
     const first = reader.read();
     const second = reader.read();
-    await jest.advanceTimersByTimeAsync(1000);
+    await jest.advanceTimersByTimeAsync(1500);
 
     const firstChunk = new TextDecoder().decode((await first).value);
     const secondChunk = new TextDecoder().decode((await second).value);
@@ -220,7 +270,7 @@ describe("GET /api/realtime/list/[listId]/events", () => {
     );
     const reader = await readEvent(response);
     const next = reader.read();
-    await jest.advanceTimersByTimeAsync(1000);
+    await jest.advanceTimersByTimeAsync(1500);
 
     const eventChunk = new TextDecoder().decode((await next).value);
     expect(eventChunk).toContain(`id: list:list-1:list_made_public:${ts}`);
@@ -229,7 +279,7 @@ describe("GET /api/realtime/list/[listId]/events", () => {
     await jest.advanceTimersByTimeAsync(20_000);
     const heartbeatChunk = new TextDecoder().decode((await heartbeat).value);
     expect(heartbeatChunk).toContain('"type":"heartbeat"');
-    expect(findUnique).toHaveBeenCalledTimes(1);
+    expect(queryRaw).toHaveBeenCalledTimes(1);
 
     abort.abort();
     await reader.cancel();
@@ -257,12 +307,14 @@ describe("GET /api/realtime/list/[listId]/events", () => {
     );
     const reader = await readEvent(response);
     const next = reader.read();
+    // First poll drops history; heartbeat needs HEARTBEAT_MS after connect.
+    await jest.advanceTimersByTimeAsync(1500);
     await jest.advanceTimersByTimeAsync(20_000);
     const value = new TextDecoder().decode((await next).value);
     expect(value).toContain('"type":"heartbeat"');
-    expect(findUnique).not.toHaveBeenCalled();
+    expect(queryRaw).not.toHaveBeenCalled();
     abort.abort();
     await reader.cancel();
     jest.useRealTimers();
-  });
+  }, 15_000);
 });

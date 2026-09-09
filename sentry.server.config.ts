@@ -4,6 +4,10 @@
  */
 
 import * as Sentry from "@sentry/nextjs";
+import {
+  SENTRY_IGNORE_ERRORS,
+  sentryBeforeSend,
+} from "@/lib/sentry-noise";
 
 const dsn = process.env.SENTRY_DSN || process.env.NEXT_PUBLIC_SENTRY_DSN;
 
@@ -13,4 +17,8 @@ Sentry.init({
   environment: process.env.NODE_ENV || "development",
   tracesSampleRate: process.env.NODE_ENV === "production" ? 0.1 : 1.0,
   debug: false,
+  ignoreErrors: SENTRY_IGNORE_ERRORS,
+  beforeSend(event) {
+    return sentryBeforeSend(event);
+  },
 });

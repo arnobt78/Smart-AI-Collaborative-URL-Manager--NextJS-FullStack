@@ -16,9 +16,11 @@ Done: C7.8–C7.25 · **LLM** `c085f69` REQ-AI-0001 · **Icons** CONTROL/DECORAT
 **C7.26** Improve polish: pin scroll navbar offset; archive AlertDialog pending; comments Edited/`UI_ICON_INLINE_XS`; collab densify+avatar; invite `/login?next=` + Auth hard-nav; delete/collab `skipUnified`.
 **C7.26.1** Auth hard-nav; list urlCount/badge hydration (`resolveListDetailPaintList`, `urlsBadgeSignature`, `ListDetailHydrationBoundary`); `safeInternalNextPath` URL-normalize; proxy `x-search` + `requirePageUser` pathname+search.
 **C7.27 / Track B W1** SSE lean list summary + 20s heartbeat + connect-time filter; api-status in-process probes (`staleTime` 20s); check-urls `maxDuration=60`. HA-0001 DONE.
+**C7.27 / Track B W2** lists/browse `urlCount` DTOs; SSE count-only + POLL 1.5s; defer idle sync-vectors (Similar on-demand); SC first expand no vectors; densify-first mutation strip; Sentry noise filters.
+**C7.27 / Track B W3** card DB `jsonb_array_length` (no urls into Node); owner select id+email; SSE SETEX drop + LTRIM 0..9; EventSource pause when tab hidden.
 Stack: Next **16.3.3** · React **19.2.8** · Node **24.x** · **`src/proxy.ts`** · Prisma **6.19.3**.
-Defer: `(auth)` route-group; lists/browse cold API slim; full metadata rewrite OOS; Prisma 7/8; Activity badge spinner; absolute cold PATCH/`_rsc` SLAs; SSE rewrite; virtualization; Cloudinary destroy; SC/sync-vectors primary.
-Human: HA-0001 DONE; GATE-0046 Track B W1; next: push + prod re-smoke.
+Defer: `(auth)` route-group; absolute cold PATCH/`_rsc` SLAs; full SSE Redis rewrite; virtualization; Cloudinary destroy; Prisma urlCount column.
+Human: HA-0001 DONE; GATE-0048 Track B W3; next: push + prod re-smoke.
 Validate: Jest · lint 0 · tsc · build · e2e C7.25–C7.26 · audit 0. · Resume: `.agile-v/STATE.md`.
 
 

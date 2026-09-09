@@ -18,6 +18,7 @@ import {
   parseRouteParams,
   updateUrlSchema,
 } from "@/lib/api-validation";
+import { toListMutationSummary } from "@/lib/list-card-dto";
 
 type RouteContext = { params: Promise<{ id: string }> };
 
@@ -471,11 +472,12 @@ export async function POST(req: NextRequest, context: RouteContext) {
       });
     }
 
-    // Return unified response
+    // Return unified response (densify-first — no full urls blob)
     return NextResponse.json({
       success: true,
-      list: updated,
+      list: toListMutationSummary(updated),
       url: newUrl,
+      urlCount: toListMutationSummary(updated).urlCount,
       metadata: finalMetadata,
       activity: {
         id: activity.id,
@@ -857,10 +859,10 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
     if (isReorderOperation) {
       const _savedOrder =
         (updated.urls as unknown as UrlItem[])?.map((u: UrlItem) => u.id) || [];
-      // Return unified response for reorder
+      // Return unified response for reorder (densify-first — no full urls blob)
       return NextResponse.json({
         success: true,
-        list: updated,
+        list: toListMutationSummary(updated),
         activity: {
           id: activity.id,
           action: activityAction,
@@ -876,7 +878,7 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
       // Return unified response for single URL update
       return NextResponse.json({
         success: true,
-        list: updated,
+        list: toListMutationSummary(updated),
         url: updatedUrl,
         metadata: urlMetadata, // Include metadata if URL changed
         activity: {
@@ -1026,7 +1028,7 @@ export async function DELETE(req: NextRequest, context: RouteContext) {
     // Return unified response with user info in activity to avoid client-side session fetch
     return NextResponse.json({
       success: true,
-      list: updated,
+      list: toListMutationSummary(updated),
       activity: {
         id: activity.id,
         action: "url_deleted",

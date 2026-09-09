@@ -36,6 +36,7 @@ import { useWarmSoftNav } from "@/hooks/useWarmSoftNav";
 import { LIST_STACK, PAGE_STACK, HEADING_STACK } from "@/lib/ui-spacing";
 import { cn } from "@/lib/utils";
 import { syncCurrentListFromSeedRow, isUnifiedListHydrated, syncUnifiedSubCachesFromUnified } from "@/lib/soft-nav-cache";
+import { resolveListUrlCount } from "@/lib/list-card-dto";
 import { Button } from "@/components/ui/Button";
 
 /**
@@ -87,6 +88,7 @@ type UnifiedCache = {
     title?: string | null;
     isPublic?: boolean;
     urls?: unknown[];
+    urlCount?: number;
     description?: string | null;
     createdAt?: string | Date | null;
     updatedAt?: string | Date | null;
@@ -251,6 +253,7 @@ function ListDetailOptimisticSurface() {
       description: list.description,
       isPublic: list.isPublic,
       urls: list.urls,
+      urlCount: list.urlCount,
       createdAt: list.createdAt,
       updatedAt: list.updatedAt,
       collaborators: list.collaborators,
@@ -290,7 +293,7 @@ function ListDetailOptimisticSurface() {
   }
 
   const listSlug = list.slug;
-  const urlCount = Array.isArray(list.urls) ? list.urls.length : 0;
+  const urlCount = resolveListUrlCount(list);
   const knownCollaboratorCount = Array.isArray(list.collaborators)
     ? list.collaborators.length
     : undefined;
@@ -304,6 +307,7 @@ function ListDetailOptimisticSurface() {
           description: list.description,
           isPublic: list.isPublic,
           urls: Array.isArray(list.urls) ? list.urls : [],
+          urlCount: resolveListUrlCount(list),
           createdAt: list.createdAt,
           updatedAt: list.updatedAt,
         }}

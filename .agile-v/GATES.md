@@ -556,6 +556,58 @@ Implementation is locally verified. Production check remains with TASK-0039. Gat
 
 ---
 
+## GATE-0047 — Human Gate (Track B Wave 2 / TASK-0064)
+
+| Field | Value |
+|-------|-------|
+| Type | Human-Gate 1 (implement) |
+| Status | **APPROVED 2026-09-09** |
+| Checkpoint | `C7.27-HG1-TRACKB-W2-2026-09-09` |
+| Evidence | TASK-0064 Wave 2; DEC-0070; plan `track_b_wave_2` |
+| Required human action | User approved Track B Wave 2 plan (cold payload + SSE/SC/mutation cuts). |
+| Scope | Card DTOs; SSE count-only; defer sync-vectors; SC no-vector first expand; mutation strip; Sentry noise. **Out:** absolute `_rsc` SLAs; SSE rewrite; TanStack Start. |
+| Resume condition | Met — verify PASS; security PASS; commit-ready. |
+
+---
+
+## GATE-0047 — SCOPE COMPLETE (Track B Wave 2)
+
+| Field | Value |
+|-------|-------|
+| Type | Scope complete |
+| Status | **COMPLETE 2026-09-09** |
+| Checkpoint | `C7.27-COMMIT-READY-TRACKB-W2-2026-09-09` |
+| Evidence | TASK-0064 Wave 2; DEC-0070; VALIDATION_SUMMARY |
+| Scope | lists/browse urlCount DTOs; SSE deepen; SC/sync-vectors cuts; densify-first mutations; Sentry filters. |
+
+---
+
+## GATE-0048 — Human Gate (Track B Wave 3 / TASK-0064)
+
+| Field | Value |
+|-------|-------|
+| Type | Human-Gate 1 (implement) |
+| Status | **APPROVED 2026-09-09** |
+| Checkpoint | `C7.27-HG1-TRACKB-W3-2026-09-09` |
+| Evidence | TASK-0064 Wave 3; DEC-0071; plan `track_b_wave_3` |
+| Required human action | User approved Track B Wave 3 plan (cold path DB cuts + SSE deepen; no SLA / no rewrite). |
+| Scope | Card count-only Prisma; slim owner select; publish hygiene; EventSource visibility pause. **Out:** absolute `_rsc` SLAs; Redis SUBSCRIBE rewrite. |
+| Resume condition | Met — verify PASS; security PASS; commit-ready. |
+
+---
+
+## GATE-0048 — SCOPE COMPLETE (Track B Wave 3)
+
+| Field | Value |
+|-------|-------|
+| Type | Scope complete |
+| Status | **COMPLETE 2026-09-09** |
+| Checkpoint | `C7.27-COMMIT-READY-TRACKB-W3-2026-09-09` |
+| Evidence | TASK-0064 Wave 3; DEC-0071; VALIDATION_SUMMARY |
+| Scope | DB card counts; password-safe owner select; SSE idle deepen. |
+
+---
+
 ## GATE-0002 — Human Gate 2 (release / acceptance)
 
 | Field | Value |

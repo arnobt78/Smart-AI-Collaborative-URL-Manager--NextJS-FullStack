@@ -6,7 +6,11 @@ import {
   smartCollectionsService,
   type DuplicateDetection,
 } from "@/lib/ai/collections";
-import { collectionCreateSchema, parseJsonBody } from "@/lib/api-validation";
+import {
+  collectionCreateSchema,
+  collectionsQuerySchema,
+  parseJsonBody,
+} from "@/lib/api-validation";
 
 /**
  * GET /api/lists/[id]/collections
@@ -20,13 +24,29 @@ export async function GET(
   try {
     const { id } = await params;
     const { searchParams } = new URL(req.url);
-    const includeDuplicates = searchParams.get("includeDuplicates") === "true";
-    const minGroupSize = parseInt(searchParams.get("minGroupSize") || "2", 10);
-    const maxCollections = parseInt(
-      searchParams.get("maxCollections") || "10",
-      10
-    );
-    const clearCache = searchParams.get("clearCache") === "true" || !!searchParams.get("_t"); // Cache-busting param (any _t param triggers cache clear)
+    const parsedQuery = collectionsQuerySchema.safeParse({
+      includeDuplicates: searchParams.get("includeDuplicates") ?? undefined,
+      minGroupSize: searchParams.get("minGroupSize") ?? undefined,
+      maxCollections: searchParams.get("maxCollections") ?? undefined,
+      clearCache: searchParams.get("clearCache") ?? undefined,
+      useVectorSearch: searchParams.get("useVectorSearch") ?? undefined,
+      _t: searchParams.get("_t") ?? undefined,
+    });
+    if (!parsedQuery.success) {
+      return NextResponse.json(
+        { error: "Invalid query parameters", details: parsedQuery.error.flatten() },
+        { status: 400 },
+      );
+    }
+    const {
+      includeDuplicates,
+      minGroupSize,
+      maxCollections,
+      clearCache: clearCacheFlag,
+      useVectorSearch,
+      _t,
+    } = parsedQuery.data;
+    const clearCache = clearCacheFlag || Boolean(_t);
 
     const list = await getListBySlug(id);
 
@@ -59,7 +79,7 @@ export async function GET(
       {
         minGroupSize,
         maxCollections,
-        useVectorSearch: true,
+        useVectorSearch,
         clearCache: clearCache || false, // Force cache clear on refresh
       }
     );

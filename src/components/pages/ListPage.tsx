@@ -34,6 +34,7 @@ import {
   ListDetailHeaderChrome,
 } from "@/components/lists/ListDetailHeaderChrome";
 import { HEADING_STACK, PAGE_STACK } from "@/lib/ui-spacing";
+import { resolveListUrlCount } from "@/lib/list-card-dto";
 import { invalidateMutationImpact } from "@/utils/queryInvalidation";
 import type { UnifiedActivity } from "@/lib/unified-list-response";
 import type { UrlList as UrlListModel } from "@/stores/urlListStore";
@@ -94,8 +95,6 @@ export default function ListPageClient() {
   const [isCheckingHealth, setIsCheckingHealth] = useState(false);
   const [isRefreshingMetadata, setIsRefreshingMetadata] = useState(false);
   const [isSettingUpSchedule, setIsSettingUpSchedule] = useState(false);
-  const hasSyncedVectors = useRef<string | null>(null); // Track which list ID we've synced (in-memory)
-  const syncInProgress = useRef<string | null>(null); // Track if sync is currently in progress for a list
   const hasRedirectedRef = useRef<boolean>(false); // Track if we've already redirected to prevent duplicate redirects
 
   // Prefer RQ cache for the active slug — include same-slug placeholder for warm soft-nav
@@ -172,54 +171,6 @@ export default function ListPageClient() {
   useEffect(() => {
     setMounted(true);
   }, []);
-
-  // Check localStorage and sessionStorage for persistent vector sync status
-  // Uses both localStorage (persists across sessions) and sessionStorage (persists in current session)
-  // This provides redundancy in case localStorage is cleared (e.g., by Fast Refresh in development)
-  const hasListSyncedVectors = (listId: string): boolean => {
-    if (typeof window === "undefined") return false;
-
-    // Check localStorage (persists across sessions)
-    const localSyncedLists = JSON.parse(
-      localStorage.getItem("vector-synced-lists") || "[]",
-    );
-    if (localSyncedLists.includes(listId)) {
-      return true;
-    }
-
-    // Check sessionStorage as backup (persists in current session, survives Fast Refresh better)
-    const sessionSyncedLists = JSON.parse(
-      sessionStorage.getItem("vector-synced-lists") || "[]",
-    );
-    return sessionSyncedLists.includes(listId);
-  };
-
-  // Mark list as vector synced in both localStorage and sessionStorage
-  const markListVectorSynced = (listId: string) => {
-    if (typeof window === "undefined") return;
-
-    // Mark in localStorage (persists across sessions)
-    const localSyncedLists = JSON.parse(
-      localStorage.getItem("vector-synced-lists") || "[]",
-    );
-    if (!localSyncedLists.includes(listId)) {
-      localSyncedLists.push(listId);
-      // Keep only last 100 lists to prevent localStorage bloat
-      const trimmed = localSyncedLists.slice(-100);
-      localStorage.setItem("vector-synced-lists", JSON.stringify(trimmed));
-    }
-
-    // Also mark in sessionStorage as backup (survives Fast Refresh better)
-    const sessionSyncedLists = JSON.parse(
-      sessionStorage.getItem("vector-synced-lists") || "[]",
-    );
-    if (!sessionSyncedLists.includes(listId)) {
-      sessionSyncedLists.push(listId);
-      // Keep only last 100 lists to prevent sessionStorage bloat
-      const trimmed = sessionSyncedLists.slice(-100);
-      sessionStorage.setItem("vector-synced-lists", JSON.stringify(trimmed));
-    }
-  };
 
   // CRITICAL: Check authentication and redirect to login if user is not logged in
   // This handles the case where a collaborator clicks an invitation link without being logged in
@@ -518,97 +469,8 @@ export default function ListPageClient() {
     unifiedData?.list,
   ]);
 
-  // Auto-sync vectors is a background index operation: it intentionally does not
-  // invalidate list data because the route does not change any rendered list field.
-  useEffect(() => {
-    if (!list?.id || !list.urls?.length) return;
-
-    const listId = list.id;
-    if (
-      hasListSyncedVectors(listId) ||
-      hasSyncedVectors.current === listId ||
-      syncInProgress.current === listId
-    ) {
-      hasSyncedVectors.current = listId;
-      return;
-    }
-
-    const clearVectorSyncMarker = () => {
-      if (typeof window === "undefined") return;
-      try {
-        const stored = JSON.parse(
-          localStorage.getItem("vector-synced-lists") || "[]",
-        ) as string[];
-        localStorage.setItem(
-          "vector-synced-lists",
-          JSON.stringify(stored.filter((id) => id !== listId)),
-        );
-        const sessionStored = JSON.parse(
-          sessionStorage.getItem("vector-synced-lists") || "[]",
-        ) as string[];
-        sessionStorage.setItem(
-          "vector-synced-lists",
-          JSON.stringify(sessionStored.filter((id) => id !== listId)),
-        );
-      } catch {
-        localStorage.removeItem("vector-synced-lists");
-        sessionStorage.removeItem("vector-synced-lists");
-      }
-    };
-
-    async function syncVectors() {
-      syncInProgress.current = listId;
-      hasSyncedVectors.current = listId;
-      markListVectorSynced(listId);
-
-      try {
-        const response = await fetch(`/api/lists/${listId}/sync-vectors`, {
-          method: "POST",
-        });
-        if (!response.ok) throw new Error("Vector sync failed");
-        if (!hasListSyncedVectors(listId)) markListVectorSynced(listId);
-      } catch {
-        clearVectorSyncMarker();
-        hasSyncedVectors.current = null;
-      } finally {
-        syncInProgress.current = null;
-      }
-    }
-
-    let cancelled = false;
-    const runSync = () => {
-      if (cancelled) return;
-      cancelled = true;
-      if (list && !isLoading && list.id) {
-        void syncVectors();
-      }
-    };
-
-    let idleId: number | undefined;
-    let timeoutId: number | undefined;
-    const scheduleIdle =
-      typeof window !== "undefined" && "requestIdleCallback" in window
-        ? window.requestIdleCallback.bind(window)
-        : null;
-    const cancelIdle =
-      typeof window !== "undefined" && "cancelIdleCallback" in window
-        ? window.cancelIdleCallback.bind(window)
-        : null;
-
-    if (scheduleIdle) {
-      // timeout: 5s forces run even if the main thread stays busy
-      idleId = scheduleIdle(runSync, { timeout: 5000 });
-    } else {
-      timeoutId = window.setTimeout(runSync, 5000);
-    }
-
-    return () => {
-      cancelled = true;
-      if (idleId != null && cancelIdle) cancelIdle(idleId);
-      if (timeoutId != null) window.clearTimeout(timeoutId);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [list?.id]); // Only run when list ID changes
+  // Auto-sync vectors deferred to Similar / smart-search first use
+  // (`ensureListVectorsSynced`) so idle sync does not compete with cold detail.
 
   // Matched slug only — never treat another list's placeholder as "have data"
   const hasAnyData = !!(list && list.id && list.slug === listSlug);
@@ -666,6 +528,7 @@ export default function ListPageClient() {
           description: list.description,
           isPublic: list.isPublic,
           urls: list.urls ?? [],
+          urlCount: resolveListUrlCount(list),
           createdAt: list.createdAt,
           updatedAt: list.updatedAt,
         }}
@@ -679,7 +542,7 @@ export default function ListPageClient() {
         }}
         actions={
           <ListDetailJobsMenu
-            hasUrls={Boolean(list.urls && list.urls.length > 0)}
+            hasUrls={resolveListUrlCount(list) > 0}
             isSettingUpSchedule={isSettingUpSchedule}
             isRefreshingMetadata={isRefreshingMetadata}
             isCheckingHealth={isCheckingHealth}
@@ -759,8 +622,16 @@ export default function ListPageClient() {
                 const data = await response.json().catch(() => ({}));
                 if (response.ok) {
                   if (data.list) {
+                    const previous = currentList.get();
+                    const mergedList = {
+                      ...previous,
+                      ...data.list,
+                      urls: Array.isArray(data.list.urls)
+                        ? data.list.urls
+                        : previous.urls,
+                    } as UrlListModel;
                     flushSync(() => {
-                      currentList.set(data.list);
+                      currentList.set(mergedList);
                     });
                     if (typeof slug === "string") {
                       queryClient.setQueryData(
@@ -768,12 +639,12 @@ export default function ListPageClient() {
                         (cached: { list: UrlListModel | null; activities?: UnifiedActivity[] } | undefined) => {
                           if (!cached) {
                             return {
-                              list: data.list as UrlListModel,
+                              list: mergedList,
                               activities: [],
                               commentCounts: {},
                             };
                           }
-                          return { ...cached, list: data.list as UrlListModel };
+                          return { ...cached, list: mergedList };
                         },
                       );
                     }
@@ -882,8 +753,16 @@ export default function ListPageClient() {
                 const data = await response.json().catch(() => ({}));
                 if (response.ok) {
                   if (data.list) {
+                    const previous = currentList.get();
+                    const mergedList = {
+                      ...previous,
+                      ...data.list,
+                      urls: Array.isArray(data.list.urls)
+                        ? data.list.urls
+                        : previous.urls,
+                    } as UrlListModel;
                     flushSync(() => {
-                      currentList.set(data.list);
+                      currentList.set(mergedList);
                     });
                     if (typeof slug === "string") {
                       queryClient.setQueryData(
@@ -891,12 +770,12 @@ export default function ListPageClient() {
                         (cached: { list: UrlListModel | null; activities?: UnifiedActivity[] } | undefined) => {
                           if (!cached) {
                             return {
-                              list: data.list as UrlListModel,
+                              list: mergedList,
                               activities: [],
                               commentCounts: {},
                             };
                           }
-                          return { ...cached, list: data.list as UrlListModel };
+                          return { ...cached, list: mergedList };
                         },
                       );
                     }
@@ -912,7 +791,7 @@ export default function ListPageClient() {
                       window.dispatchEvent(
                         new CustomEvent("activity-added", {
                           detail: {
-                            listId: data.list.id || list?.id,
+                            listId: mergedList.id || list?.id,
                             activity: data.activity,
                           },
                         }),
@@ -1058,7 +937,7 @@ export default function ListPageClient() {
       {/* C7.10: UrlList paints from thin seed; only collab / SC / activity stay skeleton */}
       {showThinBodySkeletons ? (
         <ListDetailBodySkeletons
-          urlCount={Array.isArray(list.urls) ? list.urls.length : 0}
+          urlCount={resolveListUrlCount(list)}
           knownCollaboratorCount={
             Array.isArray(list.collaborators)
               ? list.collaborators.length

@@ -10,6 +10,7 @@ import {
   listUrlRouteParamsSchema,
   parseRouteParams,
 } from "@/lib/api-validation";
+import { toListMutationSummary } from "@/lib/list-card-dto";
 import type { UrlItem as StoreUrlItem } from "@/stores/urlListStore";
 
 type RouteContext = { params: Promise<{ id: string; urlId: string }> };
@@ -144,7 +145,9 @@ export async function POST(req: NextRequest, context: RouteContext) {
     return NextResponse.json({
       success: true,
       clickCount: newClickCount,
-      list: fullUpdatedList,
+      urlId,
+      urlCount: toListMutationSummary(fullUpdatedList).urlCount,
+      list: toListMutationSummary(fullUpdatedList),
     });
   } catch (error) {
     const message =

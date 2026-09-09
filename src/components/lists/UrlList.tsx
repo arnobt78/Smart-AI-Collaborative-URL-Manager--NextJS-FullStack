@@ -1018,8 +1018,10 @@ export function UrlList() {
         const data = await response.json();
 
         // Update with server response to ensure accuracy
-        if (data.list) {
-          const serverUrls = (data.list.urls as unknown as UrlItem[]) || [];
+        if (data.list || typeof data.clickCount === "number") {
+          const serverUrls = Array.isArray(data.list?.urls)
+            ? (data.list.urls as unknown as UrlItem[])
+            : [];
           const serverUrlMap = new Map(
             serverUrls.map((u: UrlItem) => [u.id, u]),
           );
@@ -1034,6 +1036,9 @@ export function UrlList() {
                 clickCount: serverUrl.clickCount ?? url.clickCount,
               };
             }
+            if (url.id === urlId && typeof data.clickCount === "number") {
+              return { ...url, clickCount: data.clickCount };
+            }
             return { ...url }; // Create new reference even if no server update
           });
 
@@ -1044,7 +1049,7 @@ export function UrlList() {
           // Adding updatedAt timestamp ensures nanostores detects the change
           const updatedListData = {
             ...currentListState, // Preserve existing fields
-            ...data.list, // Override with server data
+            ...(data.list || {}), // Override with server summary when present
             urls: finalUrls.map((u) => ({ ...u })), // Create completely new object references
             updatedAt: new Date().toISOString(), // Timestamp to force change detection
           };

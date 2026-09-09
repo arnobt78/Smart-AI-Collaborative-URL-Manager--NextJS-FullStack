@@ -29,6 +29,7 @@ import type { SearchResult } from "@/lib/ai/search";
 import { Dialog } from "@/components/ui/Dialog";
 import { SectionCountBadge } from "@/components/ui/SectionCountBadge";
 import { currentList } from "@/stores/urlListStore";
+import { ensureListVectorsSynced } from "@/lib/vector-sync-client";
 import { UrlHealthIndicator } from "@/components/urls/UrlHealthIndicator";
 import { Comments } from "@/components/collaboration/Comments";
 import { MessageSquare } from "lucide-react";
@@ -135,6 +136,7 @@ export const UrlCard: React.FC<UrlCardProps> = ({
   } = useQuery<{ results: SearchResult[] }, Error, SearchResult[]>({
     queryKey: ["similar", listIdForSimilar, url.id],
     queryFn: async () => {
+      ensureListVectorsSynced(listIdForSimilar);
       const response = await fetch(
         `/api/search/smart?listId=${listIdForSimilar}&urlId=${url.id}`,
       );
@@ -180,7 +182,9 @@ export const UrlCard: React.FC<UrlCardProps> = ({
 
   // Find similar URLs — open dialog; RQ cache paints instantly on revisit
   const handleFindSimilar = () => {
-    if (!currentList.get()?.id) return;
+    const listId = currentList.get()?.id;
+    if (!listId) return;
+    ensureListVectorsSynced(listId);
     setSimilarUrlsOpen(true);
   };
 

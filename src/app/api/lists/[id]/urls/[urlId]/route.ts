@@ -9,6 +9,7 @@ import {
   listUrlRouteParamsSchema,
   parseRouteParams,
 } from "@/lib/api-validation";
+import { toListMutationSummary } from "@/lib/list-card-dto";
 import type { UrlItem } from "@/stores/urlListStore";
 
 type RouteContext = { params: Promise<{ id: string; urlId: string }> };
@@ -123,10 +124,10 @@ export async function DELETE(
       });
     }
 
-    // Return unified response with updated list and activity info
+    // Return unified response with updated list and activity info (densify-first)
     return NextResponse.json({
       success: true,
-      list: updated,
+      list: toListMutationSummary(updated),
       activity: {
         id: activity.id,
         action: "url_deleted",

@@ -57,3 +57,7 @@ Append-only record of Human Gate decisions.
 | 2026-09-09 | GATE-0046 | APPROVED | User | `C7.27-HG1-TRACKB-W1-2026-09-09` | User approved Track B Wave 1 (TASK-0064) + HA-0001 closed as done. |
 | 2026-09-09 | HA-0001 | DONE | User | Firewall Challenge / Deny AI bots | Confirmed already set long ago. |
 | 2026-09-09 | GATE-0046 | SCOPE COMPLETE | Auto | `C7.27-COMMIT-READY-TRACKB-W1-2026-09-09` | Track B Wave 1 verified; docs synced. |
+| 2026-09-09 | GATE-0047 | APPROVED | User | `C7.27-HG1-TRACKB-W2-2026-09-09` | User approved Track B Wave 2 plan. |
+| 2026-09-09 | GATE-0047 | SCOPE COMPLETE | Auto | `C7.27-COMMIT-READY-TRACKB-W2-2026-09-09` | Track B Wave 2 verified; docs synced. |
+| 2026-09-09 | GATE-0048 | APPROVED | User | `C7.27-HG1-TRACKB-W3-2026-09-09` | User approved Track B Wave 3 plan. |
+| 2026-09-09 | GATE-0048 | SCOPE COMPLETE | Auto | `C7.27-COMMIT-READY-TRACKB-W3-2026-09-09` | Track B Wave 3 verified; docs synced. |

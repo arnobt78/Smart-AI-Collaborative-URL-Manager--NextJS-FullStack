@@ -313,7 +313,7 @@ RSC shells · densify/Zod/SHA/Next16
 **Out of scope:** TASK-0064 Track B; Cloudinary; virtualization; HA-0001; SSE rewrite.
 **Status:** DONE 2026-09-09 — commit-ready (C7.26.1 hydration + auth-redirect + `x-search` included).
 
-### TASK-0064 — Production perf/stability track (SSE slim + cold mutation + urlCount + api-status) — WAVE 1 DONE / REMAINDER BACKLOG
+### TASK-0064 — Production perf/stability track (SSE slim + cold mutation + urlCount + api-status) — WAVE 1+2+3 DONE
 
 **Intent:** Production-standard, professional, optimized, scalable, clean architecture — **measured** improvements after Track A densify confidence.
 
@@ -324,25 +324,27 @@ RSC shells · densify/Zod/SHA/Next16
 4. HA-0001 closed (user confirmed Firewall already set)
 5. urlCount hydration — already mitigated C7.26.1 (not re-opened)
 
-**Remainder backlog:**
-1. Cold PATCH / job wall-time where still measured after Wave 1
-2. Cold serverless `_rsc` / route times (no absolute ms SLAs in Wave 1)
-3. SC expand / sync-vectors as primary targets if still measured
+**Wave 2 DONE (GATE-0047 / DEC-0070):**
+1. GET `/api/lists` + `/api/lists/public` → `toListCardSummary` (`urlCount`, no `urls`) for cold dehydrate
+2. SSE count-only `$queryRaw` + slim re-auth + `POLL_MS=1500` + Redis window 4
+3. Remove ListPage idle `sync-vectors`; `ensureListVectorsSynced` on Similar open
+4. SC first expand `useVectorSearch=false` (Zod `collectionsQuerySchema`); refresh can re-enable vectors
+5. Densify-first URL mutation responses strip full `urls`; clients preserve optimistic urls/archivedUrls
+6. Shared Sentry noise filters (abort / hydration / MaxListeners) client+server+edge
 
-**Evidence (GATE-0044):**
-- api-status `status` ~**3.85s**
-- cold `_rsc`/API often **1–3s**; list detail open `_rsc`/`metadata` ~**3.7–4.0s**
-- jobs: `refresh-metadata` ~**8.2s**, `check-urls` ~**4.4s**, `setup-schedule` ~1.5s OK
-- mutations (add/edit/delete URL, list edit): often **~3–5s**
-- SSE `events`: duration **~22s–1.4 min**; size **~33–303 kB** (slim target; worst SC expand ~**303 kB**)
-- Smart Collections `collections` often **~3–11s**; Create Collection POST ~**3.8s**; `sync-vectors` ~**3.4s**
-- Fav/pin/archive/comment mutations often **~3–5s** (densify OK; latency Track B)
-- Mild (C7.26 if still reproducible): delete sometimes **2×** `updates?`; intermittent edit **title** miss
+**Wave 3 DONE (GATE-0048 / DEC-0071):**
+1. `getUserListCards` / `getPublicListCards` — `jsonb_array_length` (no urls JSON into Node)
+2. `getListById` / `getListBySlugOrId` owner `select: { id, email }` (no password); updates sanitize user
+3. SSE publish: drop dead SETEX; `LTRIM 0..9`
+4. EventSource pause when `document.hidden`; reconnect on visible / pageshow (bfcache-safe)
 
-**Do not include in remainder unless re-prioritized:** absolute every-cold-path ms targets; SSE architecture rewrite; console-error audit; Cloudinary destroy; list virtualization.
+**Still deferred:**
+1. Absolute cold serverless `_rsc` ms SLAs / keep-warm
+2. Full SSE Redis pub/sub rewrite
+3. Cloudinary destroy; list virtualization; Prisma `urlCount` column
 
-**Dependencies:** GATE-0046; DEC-0069; DEC-0066.
-**Status:** Wave 1 DONE 2026-09-09; remainder BACKLOG.
+**Dependencies:** GATE-0048; DEC-0071; DEC-0070; DEC-0069.
+**Status:** Wave 1+2+3 DONE 2026-09-09.
 
 ### TASK-0040 — C6.5 instant dialogs and confirmed overlays — DONE
 

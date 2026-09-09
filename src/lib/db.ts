@@ -27,7 +27,7 @@ export interface UrlItem {
 }
 
 /**
- * Get all lists for a user
+ * Get all lists for a user (full rows — SC duplicate detection, etc.)
  */
 export async function getUserLists(userId: string) {
   return prisma.list.findMany({
@@ -35,6 +35,137 @@ export async function getUserLists(userId: string) {
     orderBy: { createdAt: "desc" },
   });
 }
+
+type UserListCardRow = {
+  id: string;
+  slug: string;
+  title: string;
+  description: string | null;
+  isPublic: boolean;
+  urlCount: number | bigint;
+  createdAt: Date;
+  updatedAt: Date;
+  collaborators: string[];
+};
+
+/**
+ * My Lists card grid — urlCount via jsonb_array_length; never loads urls JSON.
+ */
+export async function getUserListCards(userId: string) {
+  const rows = await prisma.$queryRaw<UserListCardRow[]>`
+    SELECT
+      id,
+      slug,
+      title,
+      description,
+      is_public AS "isPublic",
+      COALESCE(jsonb_array_length(urls), 0)::int AS "urlCount",
+      created_at AS "createdAt",
+      updated_at AS "updatedAt",
+      collaborators
+    FROM lists
+    WHERE user_id = ${userId}
+    ORDER BY created_at DESC
+  `;
+
+  return rows.map((row) => ({
+    id: row.id,
+    slug: row.slug,
+    title: row.title,
+    description: row.description,
+    isPublic: row.isPublic,
+    urlCount: Number(row.urlCount),
+    createdAt: row.createdAt,
+    updatedAt: row.updatedAt,
+    collaborators: row.collaborators ?? [],
+  }));
+}
+
+type PublicListCardRow = UserListCardRow & { ownerEmail: string | null };
+
+/**
+ * Browse public cards — count-only urls + owner email; no urls JSON blob.
+ */
+export async function getPublicListCards(options: {
+  page: number;
+  limit: number;
+  search?: string;
+}) {
+  const page = Math.max(1, options.page);
+  const limit = Math.min(100, Math.max(1, options.limit));
+  const skip = (page - 1) * limit;
+  const search = options.search?.trim() ?? "";
+  const searchPattern = search.length > 0 ? `%${search}%` : null;
+
+  const [rows, countRows] = await Promise.all([
+    prisma.$queryRaw<PublicListCardRow[]>`
+      SELECT
+        l.id,
+        l.slug,
+        l.title,
+        l.description,
+        l.is_public AS "isPublic",
+        COALESCE(jsonb_array_length(l.urls), 0)::int AS "urlCount",
+        l.created_at AS "createdAt",
+        l.updated_at AS "updatedAt",
+        l.collaborators,
+        u.email AS "ownerEmail"
+      FROM lists l
+      INNER JOIN users u ON u.id = l.user_id
+      WHERE l.is_public = true
+        AND (
+          ${searchPattern}::text IS NULL
+          OR l.title ILIKE ${searchPattern}
+          OR l.description ILIKE ${searchPattern}
+        )
+      ORDER BY l.updated_at DESC
+      LIMIT ${limit} OFFSET ${skip}
+    `,
+    prisma.$queryRaw<Array<{ count: number | bigint }>>`
+      SELECT COUNT(*)::int AS count
+      FROM lists l
+      WHERE l.is_public = true
+        AND (
+          ${searchPattern}::text IS NULL
+          OR l.title ILIKE ${searchPattern}
+          OR l.description ILIKE ${searchPattern}
+        )
+    `,
+  ]);
+
+  const total = Number(countRows[0]?.count ?? 0);
+  const lists = rows.map((row) => {
+    const email = row.ownerEmail?.trim();
+    return {
+      id: row.id,
+      slug: row.slug,
+      title: row.title,
+      description: row.description,
+      isPublic: row.isPublic,
+      urlCount: Number(row.urlCount),
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt,
+      collaborators: row.collaborators ?? [],
+      ...(email ? { user: { email } } : {}),
+    };
+  });
+
+  return {
+    lists,
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit) || 0,
+    },
+  };
+}
+
+/** Owner fields safe for API / dehydrate — never include password. */
+const listOwnerSelect = {
+  id: true,
+  email: true,
+} as const;
 
 /**
  * Get a list by slug
@@ -51,7 +182,7 @@ export async function getListBySlug(slug: string) {
 export async function getListById(id: string) {
   return prisma.list.findUnique({
     where: { id },
-    include: { user: true },
+    include: { user: { select: listOwnerSelect } },
   });
 }
 
@@ -64,14 +195,14 @@ export async function getListBySlugOrId(identifier: string) {
   // Try slug first (most common case)
   let list = await prisma.list.findUnique({
     where: { slug: identifier },
-    include: { user: true },
+    include: { user: { select: listOwnerSelect } },
   });
 
   // If not found by slug, try by ID
   if (!list) {
     list = await prisma.list.findUnique({
       where: { id: identifier },
-      include: { user: true },
+      include: { user: { select: listOwnerSelect } },
     });
   }
 

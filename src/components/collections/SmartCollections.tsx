@@ -75,7 +75,7 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
         throw new Error("List slug required");
       }
       const response = await fetch(
-        `/api/lists/${listSlug}/collections?includeDuplicates=false&minGroupSize=2&maxCollections=10`,
+        `/api/lists/${listSlug}/collections?includeDuplicates=false&minGroupSize=2&maxCollections=10&useVectorSearch=false`,
       );
 
       if (!response.ok) {
@@ -123,7 +123,7 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
     queryFn: async () => {
       // Use unified API endpoint without cache-busting - React Query handles caching
       const response = await fetch(
-        `/api/lists/${listSlug}/collections?includeDuplicates=true&minGroupSize=2&maxCollections=10`,
+        `/api/lists/${listSlug}/collections?includeDuplicates=true&minGroupSize=2&maxCollections=10&useVectorSearch=false`,
       );
       if (!response.ok) {
         throw new Error("Failed to fetch duplicates");
@@ -185,7 +185,7 @@ export function SmartCollections({ listId, listSlug }: SmartCollectionsProps) {
       // The refresh endpoint returns the newly computed suggestions, so one request
       // both clears server cache and commits the replacement client value.
       const result = await fetch(
-        `/api/lists/${listSlug}/collections?clearCache=true&_t=${Date.now()}`,
+        `/api/lists/${listSlug}/collections?clearCache=true&useVectorSearch=true&_t=${Date.now()}`,
       );
       if (!result.ok)
         throw new Error("Failed to refresh collection suggestions");

@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
-import { getUserLists, createList as createListDB } from "@/lib/db";
+import { getUserListCards, createList as createListDB } from "@/lib/db";
 import type { UrlItem } from "@/lib/db";
 import { listCreateSchema, parseJsonBody } from "@/lib/api-validation";
+import { toListCardSummary } from "@/lib/list-card-dto";
 
 export async function GET() {
   try {
@@ -11,7 +12,8 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const lists = await getUserLists(user.id);
+    // Wave 3: count-only DB read — no urls jsonb into Node
+    const lists = (await getUserListCards(user.id)).map(toListCardSummary);
     return NextResponse.json({ lists });
   } catch (error) {
     const message =

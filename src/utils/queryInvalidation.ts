@@ -14,6 +14,7 @@
 import { QueryClient } from "@tanstack/react-query";
 import { browseQueryKeys } from "@/lib/browse-query-keys";
 import { listQueryKeys } from "@/lib/query-keys";
+import { resolveListUrlCount } from "@/lib/list-card-dto";
 
 /** REQ-0025: One typed impact contract prevents mutation families drifting apart. */
 export type MutationImpact =
@@ -36,6 +37,7 @@ export type BrowseDensifyList = {
   title?: string | null;
   description?: string | null;
   isPublic?: boolean;
+  urlCount?: number;
   urls?: unknown[];
   user?: { email: string };
 };
@@ -46,6 +48,7 @@ export type AllListsDensifyList = {
   slug: string;
   title?: string | null;
   description?: string | null;
+  urlCount?: number;
   urls?: Array<{ id: string; url: string; title?: string }>;
   isPublic?: boolean;
   collaborators?: string[];
@@ -136,8 +139,8 @@ export function projectBusinessInsightsFromListDelta(
 ): void {
   if (!previous && !next) return;
 
-  const prevUrls = previous?.urls?.length ?? 0;
-  const nextUrls = next?.urls?.length ?? 0;
+  const prevUrls = previous ? resolveListUrlCount(previous) : 0;
+  const nextUrls = next ? resolveListUrlCount(next) : 0;
   const deltaUrls = nextUrls - prevUrls;
   const deltaLists = previous ? (next ? 0 : -1) : 1;
   const deltaPublic = (next?.isPublic ? 1 : 0) - (previous?.isPublic ? 1 : 0);
@@ -326,13 +329,21 @@ export function densifyBrowsePublicLists(
       const existing = index >= 0 ? current.lists[index] : undefined;
       // Prefer incoming user; never invent you@local over a known browse email.
       const user = list.user ?? existing?.user;
+      const urls = list.urls ?? existing?.urls;
+      const urlCount =
+        typeof list.urlCount === "number"
+          ? list.urlCount
+          : Array.isArray(urls)
+            ? urls.length
+            : existing?.urlCount;
       const row: BrowseDensifyList = {
         id: list.id,
         slug: list.slug,
         title: list.title ?? list.slug,
         description: list.description ?? undefined,
         isPublic: true,
-        urls: list.urls ?? existing?.urls ?? [],
+        ...(typeof urlCount === "number" ? { urlCount } : {}),
+        ...(urls !== undefined ? { urls } : {}),
         ...(user ? { user } : {}),
       };
 

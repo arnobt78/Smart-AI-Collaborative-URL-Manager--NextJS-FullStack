@@ -969,3 +969,29 @@ Append-only. Newest entries at bottom.
 | Rationale | GATE-0044 measured SSE weight and ~3.85s status self-fetch; densify Track A is clean. |
 | Linked REQs | TASK-0064; GATE-0046 |
 | Status | Implemented — Wave 1 commit-ready. |
+
+---
+
+## DEC-0070 — Track B Wave 2 (TASK-0064 cold payload + SSE/SC/mutation cuts)
+
+| Field | Value |
+|---|---|
+| Timestamp | 2026-09-09 |
+| Agent | Cursor |
+| Decision | Implement Track B **Wave 2**: slim lists/browse card DTOs (`urlCount`); SSE count-only Prisma + POLL 1.5s + slim re-auth; defer idle sync-vectors to Similar; SC first expand without vectors; densify-first mutation summaries (preserve archivedUrls); Sentry noise filters. **Defer:** absolute cold `_rsc` SLAs, full SSE Redis rewrite, TanStack Start. |
+| Rationale | Wave 1 cut SSE wire + api-status; remaining measured cost is dehydrate bytes, competing sync-vectors, SC vector cost, mutation echo payloads, Sentry noise. |
+| Linked REQs | TASK-0064; GATE-0047 |
+| Status | Implemented — Wave 2 commit-ready. |
+
+---
+
+## DEC-0071 — Track B Wave 3 (cold path DB + SSE deepen)
+
+| Field | Value |
+|---|---|
+| Timestamp | 2026-09-09 |
+| Agent | Cursor |
+| Decision | Implement Track B **Wave 3**: DB-side `jsonb_array_length` card queries (no urls blob load); slim list owner select (id+email only); SSE publish hygiene (drop SETEX, LTRIM 0..9); pause EventSource when tab hidden with pageshow/visibility reconnect. **Still defer:** absolute cold `_rsc` ms SLAs; full Redis SUBSCRIBE rewrite. |
+| Rationale | Absolute SLAs and SUBSCRIBE do not fix free-tier TTFB; remaining wins are DB transfer + idle Redis. |
+| Linked REQs | TASK-0064; GATE-0048 |
+| Status | Implemented — Wave 3 commit-ready. |
