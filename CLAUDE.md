@@ -13,10 +13,13 @@ Done: C7.8–C7.25 · **LLM** `c085f69` REQ-AI-0001 · **Icons** CONTROL/DECORAT
 **C7.23** UrlCard parked: metadata sanitize/Zod nullish (Add URL 400); archive strip + `mergeArchivedAtOnWrite`; dup-delete RQ guard; UrlCard image retry + viewport reset.
 **C7.24** UI polish: toast enter soften; Dialog `titleAccessory` + Comments/Similar badges; Navbar active glow; Comments email/avatar/times; Edit densify-all + title precedence; Add `ReminderDateField`; Insights soft-nav warm chart; Popular badges; Restore pending dialog; scroll-to-card.
 **C7.25** Smoke polish: Reminder Lucide→`showPicker`; `ArchivedUrlCard`+`ArchiveRestore`; `UI_ICON_INLINE_XS`+font-medium meta; ApiDocs gaps; archive single toast; Comments knownCount loading; Browse `SectionCountBadge`; archive/comment `skipUnified` (comment options forward).
+**C7.26** Improve polish: pin scroll navbar offset; archive AlertDialog pending; comments Edited/`UI_ICON_INLINE_XS`; collab densify+avatar; invite `/login?next=` + Auth hard-nav; delete/collab `skipUnified`.
+**C7.26.1** Auth hard-nav; list urlCount/badge hydration (`resolveListDetailPaintList`, `urlsBadgeSignature`, `ListDetailHydrationBoundary`); `safeInternalNextPath` URL-normalize; proxy `x-search` + `requirePageUser` pathname+search.
 Stack: Next **16.3.3** · React **19.2.8** · Node **24.x** · **`src/proxy.ts`** · Prisma **6.19.3**.
-Defer: `(auth)` route-group; lists/browse cold API slim; status API speed OOS; full metadata rewrite OOS; Prisma 7/8; Activity badge spinner; PATCH/job latency; virtualization; Cloudinary destroy; SSE weight; urlCount hydration race.
-Human: HA-0001; GATE-0043 closed; next: prod re-smoke C7.25 polish.
-Validate: Jest · lint 0 · tsc · build · e2e C7.21–C7.25 · audit 0. · Resume: `.agile-v/STATE.md`.
+Defer: `(auth)` route-group; lists/browse cold API slim; status API speed OOS; full metadata rewrite OOS; Prisma 7/8; Activity badge spinner; PATCH/job latency; virtualization; Cloudinary destroy; SSE weight (TASK-0064).
+Human: HA-0001; GATE-0045 SCOPE COMPLETE; next: prod re-smoke C7.26 after push.
+Validate: Jest · lint 0 · tsc · build · e2e C7.25–C7.26 · audit 0. · Resume: `.agile-v/STATE.md`.
+
 
 ## Stack
 Next 16.3.3 · React 19.2 · RQ · Prisma 6.19 · cookie auth · Upstash · Sentry tunnel · PostHog · Jest · Node 24.x (Vercel + `.nvmrc`)

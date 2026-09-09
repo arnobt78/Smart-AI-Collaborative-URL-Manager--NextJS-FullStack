@@ -10,9 +10,13 @@ import {
   peekWarmSoftNav,
   prepareWarmSoftNav,
   resetWarmSoftNavForTests,
+  resolveListDetailPaintList,
   seedUnifiedFromAllLists,
   shouldPaintWarmSoftNav,
   syncUnifiedSubCachesFromUnified,
+  evictThinUnifiedBlockingDehydrate,
+  urlsBadgeSignature,
+  SOFT_NAV_THIN_SEED,
 } from "@/lib/soft-nav-cache";
 import { currentList } from "@/stores/urlListStore";
 
@@ -171,5 +175,152 @@ describe("C6.9 soft-nav-cache", () => {
         listQueryKeys.collaborators("list-1"),
       )?.collaborators,
     ).toHaveLength(1);
+  });
+
+  it("resolveListDetailPaintList prefers RQ urls over disagreeing store until hydrated", () => {
+    const rq = {
+      id: "1",
+      slug: "my-list",
+      urls: [{ id: "u1" }, { id: "u2" }],
+    };
+    const store = {
+      id: "1",
+      slug: "my-list",
+      urls: [],
+    };
+    const thin = {
+      list: rq,
+      [SOFT_NAV_THIN_SEED]: true,
+    };
+    const painted = resolveListDetailPaintList({
+      slug: "my-list",
+      rqList: rq,
+      storeList: store,
+      unifiedPayload: thin,
+    });
+    expect(painted?.urls).toHaveLength(2);
+
+    const hydrated = resolveListDetailPaintList({
+      slug: "my-list",
+      rqList: rq,
+      storeList: store,
+      unifiedPayload: { list: rq },
+    });
+    expect(hydrated).toBe(rq);
+  });
+
+  it("evictThinUnifiedBlockingDehydrate removes blocking unified cache only", () => {
+    const client = new QueryClient();
+    const key = listQueryKeys.unified("my-list");
+    const thin = {
+      list: { id: "1", slug: "my-list", urls: [] },
+      [SOFT_NAV_THIN_SEED]: true,
+    };
+    const full = {
+      list: { id: "1", slug: "my-list", urls: [{ id: "u1" }, { id: "u2" }] },
+      activities: [],
+      collaborators: [],
+    };
+    const makeState = (dataUpdatedAt: number) => ({
+      mutations: [],
+      queries: [
+        {
+          queryHash: JSON.stringify(key),
+          queryKey: key,
+          state: {
+            data: full,
+            dataUpdateCount: 1,
+            dataUpdatedAt,
+            error: null,
+            errorUpdateCount: 0,
+            errorUpdatedAt: 0,
+            fetchFailureCount: 0,
+            fetchFailureReason: null,
+            fetchMeta: null,
+            isInvalidated: false,
+            status: "success" as const,
+            fetchStatus: "idle" as const,
+          },
+        },
+      ],
+    });
+
+    client.setQueryData(key, thin);
+    evictThinUnifiedBlockingDehydrate(client, makeState(Date.now()));
+    expect(client.getQueryData(key)).toBeUndefined();
+
+    // Same-or-newer hydrated entry must survive re-render (do not re-evict)
+    const hydratedAt = Date.now();
+    client.setQueryData(key, full);
+    const entry = client.getQueryCache().find({ queryKey: key, exact: true });
+    entry?.setState({ dataUpdatedAt: hydratedAt });
+    evictThinUnifiedBlockingDehydrate(client, makeState(hydratedAt));
+    expect(client.getQueryData(key)).toEqual(full);
+
+    // Older cache yields to newer dehydrate
+    entry?.setState({ dataUpdatedAt: hydratedAt - 1000 });
+    evictThinUnifiedBlockingDehydrate(client, makeState(hydratedAt));
+    expect(client.getQueryData(key)).toBeUndefined();
+  });
+
+  it("evictThinUnifiedBlockingDehydrate also clears stale session for dehydrate", () => {
+    const client = new QueryClient();
+    const key = ["session"] as const;
+    client.setQueryData(key, { user: { id: "old", email: "old@test.com" } });
+    const entry = client.getQueryCache().find({ queryKey: [...key], exact: true });
+    const hydratedAt = Date.now();
+    entry?.setState({ dataUpdatedAt: hydratedAt - 5000 });
+    evictThinUnifiedBlockingDehydrate(client, {
+      mutations: [],
+      queries: [
+        {
+          queryHash: JSON.stringify(key),
+          queryKey: [...key],
+          state: {
+            data: { user: { id: "new", email: "new@test.com" } },
+            dataUpdateCount: 1,
+            dataUpdatedAt: hydratedAt,
+            error: null,
+            errorUpdateCount: 0,
+            errorUpdatedAt: 0,
+            fetchFailureCount: 0,
+            fetchFailureReason: null,
+            fetchMeta: null,
+            isInvalidated: false,
+            status: "success" as const,
+            fetchStatus: "idle" as const,
+          },
+        },
+      ],
+    });
+    expect(client.getQueryData(key)).toBeUndefined();
+  });
+
+  it("urlsBadgeSignature changes when commentCount differs at same length", () => {
+    const a = [{ id: "u1", commentCount: 0, clickCount: 0 }];
+    const b = [{ id: "u1", commentCount: 1, clickCount: 0 }];
+    expect(urlsBadgeSignature(a)).not.toBe(urlsBadgeSignature(b));
+    expect(urlsBadgeSignature(a)).toBe("u1:0:0");
+    expect(urlsBadgeSignature(b)).toBe("u1:1:0");
+  });
+
+  it("resolveListDetailPaintList prefers RQ when commentCount disagrees at same length", () => {
+    const rq = {
+      id: "1",
+      slug: "my-list",
+      urls: [{ id: "u1", commentCount: 1 }],
+    };
+    const store = {
+      id: "1",
+      slug: "my-list",
+      urls: [{ id: "u1" }],
+    };
+    const painted = resolveListDetailPaintList({
+      slug: "my-list",
+      rqList: rq,
+      storeList: store,
+      unifiedPayload: { list: rq, [SOFT_NAV_THIN_SEED]: true },
+    });
+    expect(painted?.urls).toEqual(rq.urls);
   });
 });

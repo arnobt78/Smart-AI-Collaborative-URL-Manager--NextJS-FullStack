@@ -290,6 +290,54 @@ RSC shells · densify/Zod/SHA/Next16
 **Out of scope:** cold latency; SSE weight; console audit; Cloudinary; virtualization; HA-0001.
 **Validation:** lint 0 · tsc · Jest 185 · e2e c725 densify/badge/apidocs · build · verify-deep PASS WITH WARNINGS.
 
+### TASK-0063 — C7.25 Human-Verify Network smoke + screenshot polish notes — DONE
+
+1. User re-tested C7.25 on prod with per-feature Network + UX + screenshots.
+2. Agent classified; densify healthy; Improve → C7.26 plan (DEC-0067 / GATE-0045).
+3. Track B remains TASK-0064 backlog.
+
+**Dependencies:** GATE-0044; DEC-0065; HEAD `e780476` on origin.
+**Status:** DONE 2026-09-09 — classify complete; implement under TASK-0065.
+
+### TASK-0065 — C7.26 Improve polish (Track A) — DONE
+
+1. Pin `scrollToUrlCard` navbar offset — DONE
+2. Archive AlertDialog pending until mutation settles + toast — DONE (lifted to UrlList)
+3. Comments: open flicker/empty path; `Edited` + `UI_ICON_INLINE_XS` / `text-xs` — DONE
+4. Collab: invite densify dates; Robohash “Added by”; role badge + email template icons — DONE
+5. Invite auth: `requirePageUser` → `/login?next=`; Auth honor next; soft post-login list nav — DONE
+6. Mild 2× `updates?`: delete + collaborator `skipUnified` (+ delete activity densify) — DONE
+7. Verify: tsc · lint · Jest · build · e2e c725+c726 · implementation-verifier · security — DONE
+
+**Dependencies:** GATE-0045; DEC-0067; DEC-0068; TASK-0063 DONE.
+**Out of scope:** TASK-0064 Track B; Cloudinary; virtualization; HA-0001; SSE rewrite.
+**Status:** DONE 2026-09-09 — commit-ready (C7.26.1 hydration + auth-redirect + `x-search` included).
+
+### TASK-0064 — Production perf/stability track (SSE slim + cold mutation + urlCount + api-status) — BACKLOG
+
+**Intent:** Production-standard, professional, optimized, scalable, clean architecture — **measured** improvements after Track A densify confidence. Separate plan + Human Gate before any code.
+
+1. **Cold PATCH / job latency** — measure Network durations; cut where cheap (payload strip, `lite` paths, client/server timeouts; extend C7.22 patterns). Goal: less user-felt delay on mutations/jobs without unnecessary loading flash.
+2. **SSE weight** — if `/events` remains large/slow: scoped shrink (leaner event shape, filter, pagination/window). **Not** a full realtime rewrite.
+3. **urlCount hydration race** — fix SSR vs densified client count mismatch once confirmed on prod (stability / no flash).
+4. **`/api/status` probe latency** — GATE-0044 evidence ~**3.85s** on prod; slim/cache/timeout the status probe so api-status page feels professional (chrome-first already shipped; probe duration remains Track B).
+5. **Cold serverless `_rsc` / route times** — Watch band ~1–3s on free tier; cut where cheap without absolute ms SLAs (auth session, browse/lists RSC cold paths).
+
+**Evidence (GATE-0044):**
+- api-status `status` ~**3.85s**
+- cold `_rsc`/API often **1–3s**; list detail open `_rsc`/`metadata` ~**3.7–4.0s**
+- jobs: `refresh-metadata` ~**8.2s**, `check-urls` ~**4.4s**, `setup-schedule` ~1.5s OK
+- mutations (add/edit/delete URL, list edit): often **~3–5s**
+- SSE `events`: duration **~22s–1.4 min**; size **~33–303 kB** (slim target; worst SC expand ~**303 kB**)
+- Smart Collections `collections` often **~3–11s**; Create Collection POST ~**3.8s**; `sync-vectors` ~**3.4s**
+- Fav/pin/archive/comment mutations often **~3–5s** (densify OK; latency Track B)
+- Mild (C7.26 if still reproducible): delete sometimes **2×** `updates?`; intermittent edit **title** miss
+
+**Do not include in first Track B wave unless re-prioritized:** absolute every-cold-path ms targets; SSE architecture rewrite; console-error audit; Cloudinary destroy; list virtualization; HA-0001.
+
+**Dependencies:** GATE-0044 densify confidence (or explicit user pull-forward); DEC-0066; new GATE when plan drafted.
+**Status:** BACKLOG — plan after Network classify; implement only after approval.
+
 ### TASK-0040 — C6.5 instant dialogs and confirmed overlays — DONE
 
 1. Stop `useListDialogRouteState` from using `useSearchParams` or writing `?dialog=` search params; keep hydrated open/close in React state plus `history.state` on the same href.

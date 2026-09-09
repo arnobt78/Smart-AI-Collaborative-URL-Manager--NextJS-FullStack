@@ -34,6 +34,7 @@ import { displayNameFromEmail, robohashUrl } from "@/lib/robohash";
 import { queueAuthToast } from "@/lib/auth-toast";
 import { setWasAuthedHintClient } from "@/lib/was-authed";
 import { clearForceGuest } from "@/lib/logout-client";
+import { safeInternalNextPath } from "@/lib/auth-redirect";
 import { cn } from "@/lib/utils";
 import {
   CARD_PAD,
@@ -94,16 +95,36 @@ export default function Auth() {
   const [pinLogin, setPinLogin] = useState(true);
   const loginColRef = useRef<HTMLElement>(null);
 
-  // Get redirect URL from sessionStorage (set when user tries to access protected resource)
+  // Prefer ?next= (invite deep-link), then sessionStorage authRedirect
   const getRedirectUrl = () => {
-    if (typeof window !== "undefined") {
+    if (typeof window === "undefined") return null;
+    const fromQuery = safeInternalNextPath(
+      new URLSearchParams(window.location.search).get("next"),
+    );
+    if (fromQuery) {
+      try {
+        sessionStorage.removeItem("authRedirect");
+      } catch {
+        // ignore
+      }
+      return fromQuery;
+    }
+    try {
       const redirect = sessionStorage.getItem("authRedirect");
       if (redirect) {
-        sessionStorage.removeItem("authRedirect"); // Clear after reading
-        return redirect;
+        sessionStorage.removeItem("authRedirect");
+        return safeInternalNextPath(redirect);
       }
+    } catch {
+      // ignore
     }
     return null;
+  };
+
+  const navigateAfterAuth = (redirectUrl: string | null) => {
+    // Hard nav so the session cookie is on the first RSC of the destination
+    // (soft replace for /list/ raced cookie paint — C7.26.1).
+    window.location.href = redirectUrl || "/";
   };
 
   const { displayText: typewriterText, isComplete: isMainComplete } =
@@ -234,12 +255,7 @@ export default function Auth() {
 
             // Check if there's a redirect URL (user was trying to access a protected resource)
             const redirectUrl = getRedirectUrl();
-            const finalRedirectUrl = redirectUrl || "/"; // Default to homepage if no redirect URL
-
-            // Redirect to the destination after successful signup
-            // Use full page reload to ensure session is properly recognized by HomePage
-            // This ensures the session cookie is included in the request
-            window.location.href = finalRedirectUrl;
+            navigateAfterAuth(redirectUrl);
           }, 1500); // Give time for cookie to be set and session to be ready
         }
         // Keep loading until hard nav — do not re-enable CTA
@@ -325,12 +341,7 @@ export default function Auth() {
 
             // Check if there's a redirect URL (user was trying to access a protected resource)
             const redirectUrl = getRedirectUrl();
-            const finalRedirectUrl = redirectUrl || "/"; // Default to homepage if no redirect URL
-
-            // Redirect to the destination after successful login
-            // Use full page reload to ensure session is properly recognized by HomePage
-            // This ensures the session cookie is included in the request
-            window.location.href = finalRedirectUrl;
+            navigateAfterAuth(redirectUrl);
           }, 1200); // Give time for cookie to be set and session to be ready
         }
         // Keep loading until hard nav — do not re-enable CTA

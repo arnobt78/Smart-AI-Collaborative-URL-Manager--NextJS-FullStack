@@ -79,6 +79,17 @@ const metadataBatchInFlight = new Map<
   { promise: Promise<void>; controller: AbortController; subscribers: number }
 >();
 
+/** Sticky navbar offset for scroll-into-view (C7.26). Fallback matches Navbar `h-14`. */
+function getStickyNavbarOffsetPx(): number {
+  if (typeof document === "undefined") return 56;
+  const nav =
+    document.querySelector<HTMLElement>("[data-navbar]") ??
+    document.querySelector<HTMLElement>("nav.sticky");
+  const height = nav?.getBoundingClientRect().height;
+  const measured = typeof height === "number" && height > 0 ? height : 56;
+  return measured + 8; // small gap below sticky chrome
+}
+
 function scrollToUrlCard(urlId: string) {
   if (typeof document === "undefined" || !urlId) return;
   requestAnimationFrame(() => {
@@ -86,7 +97,15 @@ function scrollToUrlCard(urlId: string) {
     const el = document.querySelector<HTMLElement>(
       `[data-url-id="${urlId.replace(/"/g, "")}"]`,
     );
-    el?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    if (!el) return;
+    el.scrollIntoView({ behavior: "smooth", block: "start" });
+    // scrollIntoView ignores sticky nav — pull down by measured navbar height
+    requestAnimationFrame(() => {
+      const offset = getStickyNavbarOffsetPx();
+      if (offset > 0) {
+        window.scrollBy({ top: -offset, behavior: "smooth" });
+      }
+    });
   });
 }
 
@@ -179,7 +198,7 @@ function UrlCardWrapper({
   const finalMetadata = cachedMetadata || metadata;
 
   return (
-    <div ref={setNodeRef} style={style} {...containerAttributes}>
+    <div ref={setNodeRef} style={style} {...containerAttributes} suppressHydrationWarning>
       <div
         className={`flex-1 transition-all duration-200 ${
           isDragging ? "dragging shadow-2xl" : ""
@@ -280,6 +299,10 @@ export function UrlList() {
   const [restoreDialogOpen, setRestoreDialogOpen] = useState(false);
   const [restorePending, setRestorePending] = useState(false);
   const [restoreTargetId, setRestoreTargetId] = useState<string | null>(null);
+  const [archiveDialogOpen, setArchiveDialogOpen] = useState(false);
+  const [archivePending, setArchivePending] = useState(false);
+  const [archiveTargetId, setArchiveTargetId] = useState<string | null>(null);
+  const [archiveTargetLabel, setArchiveTargetLabel] = useState<string>("URL");
 
   // CRITICAL: Track sortable context version to force remount after drag ends
   // This ensures dnd-kit uses the updated order instead of reverting to cached positions
@@ -1382,25 +1405,39 @@ export function UrlList() {
     // Notify activity feed to skip fetch after local operation
     window.dispatchEvent(new CustomEvent("local-operation"));
 
+    setArchivePending(true);
     try {
       const current = currentList.get();
       if (!current.urls || !current.id) {
         throw new Error("List not ready");
       }
+      const urlToArchive = (current.urls as unknown as UrlItem[]).find(
+        (u) => u.id === id,
+      );
+      const urlTitle = urlToArchive?.title || urlToArchive?.url || "URL";
+
       const { archiveUrlFromList } = await import("@/stores/urlListStore");
       await archiveUrlFromList(id);
-      // Success toast owned by UrlCard (match delete) — avoid double toast.
+
+      toast({
+        title: "URL Archived",
+        description: `"${urlTitle}" has been archived and removed from the list.`,
+        variant: "success",
+      });
+      requestAnimationFrame(() => {
+        setArchiveDialogOpen(false);
+        setArchiveTargetId(null);
+        setArchiveTargetLabel("URL");
+      });
     } catch (err) {
-      // Show error toast
       toast({
         title: "Archive Failed",
         description:
           err instanceof Error ? err.message : "Failed to archive URL",
         variant: "error",
       });
-      throw err;
     } finally {
-      // Clear the flag after a delay
+      setArchivePending(false);
       setTimeout(() => {
         isLocalOperationRef.current = false;
       }, 1000);
@@ -2550,6 +2587,14 @@ export function UrlList() {
         (u) => u.id === restoreTargetId,
       )
     : undefined;
+  const archiveTarget = archiveTargetId
+    ? ((list.urls || []) as UrlItem[]).find((u) => u.id === archiveTargetId)
+    : undefined;
+  const archiveDialogLabel =
+    archiveTarget?.title ||
+    archiveTarget?.url ||
+    archiveTargetLabel ||
+    "this URL";
 
   return (
     <div className={LIST_STACK}>
@@ -2686,6 +2731,7 @@ export function UrlList() {
       {/* Active URLs List */}
       {!showArchived && (
         <DndContext
+          id={list.id ? `url-list-${list.id}` : undefined}
           sensors={sensors}
           collisionDetection={closestCenter}
           modifiers={[restrictToVerticalAxis]}
@@ -2807,7 +2853,16 @@ export function UrlList() {
                     onShare={handleShare}
                     onUrlClick={handleUrlClick}
                     onDuplicate={handleDuplicate}
-                    onArchive={handleArchive}
+                    onArchive={(id) => {
+                      const target = (
+                        (list.urls || []) as UrlItem[]
+                      ).find((u) => u.id === id);
+                      setArchiveTargetId(id);
+                      setArchiveTargetLabel(
+                        target?.title || target?.url || "URL",
+                      );
+                      setArchiveDialogOpen(true);
+                    }}
                     onPin={handlePin}
                     shareTooltip={shareTooltip}
                     isMetadataReady={isMetadataReady}
@@ -2903,6 +2958,30 @@ export function UrlList() {
       )}
 
       <AlertDialog
+        open={archiveDialogOpen}
+        onOpenChange={(open) => {
+          if (!archivePending) {
+            setArchiveDialogOpen(open);
+            if (!open) {
+              setArchiveTargetId(null);
+              setArchiveTargetLabel("URL");
+            }
+          }
+        }}
+        title="Archive URL"
+        description={`Are you sure you want to archive "${archiveDialogLabel}"? It will be removed from the list.`}
+        confirmText="Archive"
+        cancelText="Cancel"
+        onConfirm={async () => {
+          if (archiveTargetId) await handleArchive(archiveTargetId);
+        }}
+        variant="default"
+        pending={archivePending}
+        pendingText="Archiving…"
+        closeOnConfirm={false}
+      />
+
+      <AlertDialog
         open={restoreDialogOpen}
         onOpenChange={(open) => {
           if (!restorePending) {
@@ -2916,8 +2995,8 @@ export function UrlList() {
         }" back to the active list?`}
         confirmText="Restore"
         cancelText="Cancel"
-        onConfirm={() => {
-          if (restoreTargetId) void handleRestore(restoreTargetId);
+        onConfirm={async () => {
+          if (restoreTargetId) await handleRestore(restoreTargetId);
         }}
         variant="default"
         pending={restorePending}

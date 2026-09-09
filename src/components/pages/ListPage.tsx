@@ -38,9 +38,15 @@ import { invalidateMutationImpact } from "@/utils/queryInvalidation";
 import type { UnifiedActivity } from "@/lib/unified-list-response";
 import type { UrlList as UrlListModel } from "@/stores/urlListStore";
 import { useListDialogRouteState } from "@/hooks/useListDialogRouteState";
-import { isUnifiedListHydrated } from "@/lib/soft-nav-cache";
+import {
+  isSoftNavThinSeed,
+  resolveListDetailPaintList,
+  urlsBadgeSignature,
+  SOFT_NAV_THIN_SEED,
+} from "@/lib/soft-nav-cache";
 import { cn } from "@/lib/utils";
 import { useWarmSoftNav } from "@/hooks/useWarmSoftNav";
+import { loginHrefWithNext } from "@/lib/auth-redirect";
 
 export default function ListPageClient() {
   const { toast, updateToast } = useToast();
@@ -74,20 +80,6 @@ export default function ListPageClient() {
     isError: isUnifiedError,
   } = useUnifiedListQuery(listSlug, !!listSlug);
 
-  // Prefer RQ cache for the active slug — include same-slug placeholder for warm soft-nav
-  const cachedUnified = listSlug
-    ? queryClient.getQueryData<{ list?: typeof storeList }>(
-        listQueryKeys.unified(listSlug),
-      )
-    : undefined;
-  const list =
-    (unifiedData?.list?.slug === listSlug ? unifiedData.list : undefined) ??
-    (cachedUnified?.list?.slug === listSlug ? cachedUnified.list : undefined) ??
-    (storeList?.id && storeList.slug === listSlug ? storeList : undefined);
-
-  // C7.9: permissions from RQ list so Switch enables before store sync
-  const permissions = useListPermissions(list);
-
   // CRITICAL: Start with loading=false to show cached data immediately
   // Only show loading if we truly have no data
   const [isLoading, setIsLoading] = useState(false);
@@ -105,6 +97,54 @@ export default function ListPageClient() {
   const hasSyncedVectors = useRef<string | null>(null); // Track which list ID we've synced (in-memory)
   const syncInProgress = useRef<string | null>(null); // Track if sync is currently in progress for a list
   const hasRedirectedRef = useRef<boolean>(false); // Track if we've already redirected to prevent duplicate redirects
+
+  // Prefer RQ cache for the active slug — include same-slug placeholder for warm soft-nav
+  const cachedUnified = listSlug
+    ? queryClient.getQueryData<{
+        list?: typeof storeList;
+        activities?: unknown[];
+        collaborators?: unknown[];
+        commentCounts?: Record<string, number>;
+        [SOFT_NAV_THIN_SEED]?: boolean;
+      }>(listQueryKeys.unified(listSlug))
+    : undefined;
+  const rqList =
+    (unifiedData?.list?.slug === listSlug ? unifiedData.list : undefined) ??
+    (cachedUnified?.list?.slug === listSlug ? cachedUnified.list : undefined);
+  const unifiedForPaint =
+    unifiedData?.list?.slug === listSlug
+      ? unifiedData
+      : cachedUnified?.list?.slug === listSlug
+        ? cachedUnified
+        : undefined;
+  // C7.26.1: RQ dehydrate wins over stale store urls.length until hydrated (RISK-0035).
+  // Ignore nanostore until mounted so SSR + first client paint share RQ-only source.
+  const list = resolveListDetailPaintList({
+    slug: listSlug,
+    rqList,
+    storeList: mounted ? storeList : undefined,
+    unifiedPayload: unifiedForPaint,
+  });
+
+  // C7.26.1: UrlList reads nanostore; sync during render so SSR + first client paint
+  // share RQ urls including commentCount/clickCount (Comments badge hydration).
+  if (list?.id && list.slug === listSlug) {
+    const store = currentList.get();
+    const rqUrls = Array.isArray(list.urls) ? list.urls : undefined;
+    const storeUrls = Array.isArray(store.urls) ? store.urls : undefined;
+    if (
+      store.id !== list.id ||
+      store.slug !== list.slug ||
+      (rqUrls && (!storeUrls || storeUrls.length !== rqUrls.length)) ||
+      (rqUrls &&
+        urlsBadgeSignature(storeUrls) !== urlsBadgeSignature(rqUrls))
+    ) {
+      currentList.set(list);
+    }
+  }
+
+  // C7.9: permissions from RQ list so Switch enables before store sync
+  const permissions = useListPermissions(list);
 
   // Clear stale store when navigating to a different slug (cache-hit skips queryFn).
   // useLayoutEffect so UrlList (reads currentList) does not paint the previous slug.
@@ -213,7 +253,7 @@ export default function ListPageClient() {
       hasCheckedAuthRef.current = true;
       hasRedirectedRef.current = true;
 
-      // Store current URL in sessionStorage for redirect after login
+      // Store current URL for redirect after login (?next= primary; sessionStorage fallback)
       const currentPath = window.location.pathname + window.location.search;
       sessionStorage.setItem("authRedirect", currentPath);
 
@@ -226,8 +266,8 @@ export default function ListPageClient() {
         duration: 5000,
       });
 
-      // Redirect to login page immediately (no delay to prevent flicker)
-      router.push("/login");
+      // Mirror server requirePageUser: /login?next=…
+      router.push(loginHrefWithNext(currentPath));
     } else {
       // The authenticated session or loaded list remains available.
       hasCheckedAuthRef.current = true;
@@ -573,22 +613,26 @@ export default function ListPageClient() {
   // Matched slug only — never treat another list's placeholder as "have data"
   const hasAnyData = !!(list && list.id && list.slug === listSlug);
 
-  // C7.9/C7.10.1: thin soft-nav seed keeps body skeletons until hydrate clears marker.
   const unifiedForGate =
     unifiedData?.list?.slug === listSlug
       ? unifiedData
       : cachedUnified?.list?.slug === listSlug
         ? cachedUnified
         : undefined;
+  // C7.9/C7.10.1: thin soft-nav seed keeps body skeletons until hydrate clears marker.
+  // C7.26.1 verify-deep: only when payload is explicitly thin — `!isUnifiedListHydrated`
+  // is also true for undefined gate and caused SSR BodySections vs client skeletons
+  // HTML mismatch (LIST_STACK missing on first client paint).
   const showThinBodySkeletons =
     hasAnyData &&
     !isUnifiedError &&
     Boolean(listSlug) &&
-    !isUnifiedListHydrated(unifiedForGate, listSlug);
+    isSoftNavThinSeed(unifiedForGate);
 
-  // C6.9: paint immediately when RQ/store has this slug; skeleton only when cold
+  // C6.9: paint immediately when RQ has this slug; skeleton only when cold.
+  // C7.26.1: do not wait on sessionLoading — dehydrate/RQ list is enough for chrome.
   const shouldShowLoading =
-    Boolean(listSlug) && !hasAnyData && (isLoadingQuery || sessionLoading);
+    Boolean(listSlug) && !hasAnyData && isLoadingQuery;
 
   if (shouldShowLoading) {
     return <ListDetailRouteSkeleton />;

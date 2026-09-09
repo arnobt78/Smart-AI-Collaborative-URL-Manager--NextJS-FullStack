@@ -17,7 +17,7 @@ import {
   markUnifiedEventProcessed,
   prependUnifiedActivity,
 } from "@/hooks/useListQueries";
-import { UI_ICON_CONTROL } from "@/lib/ui/control-styles";
+import { UI_ICON_CONTROL, UI_ICON_INLINE_XS } from "@/lib/ui/control-styles";
 import { cn } from "@/lib/utils";
 import { useSession } from "@/hooks/useSession";
 import { UserAvatar } from "@/components/ui/UserAvatar";
@@ -543,14 +543,16 @@ export function Comments({ listId, urlId, currentUserId, knownCount }: CommentsP
         </form>
       )}
 
-      {/* Comments List */}
-      <div className="space-y-2 sm:space-y-2 max-h-[400px] overflow-y-auto custom-scrollbar">
+      {/* Comments List — min-h reserves space so open doesn't expand then collapse */}
+      <div className="max-h-[400px] min-h-[4.5rem] space-y-2 overflow-y-auto custom-scrollbar sm:space-y-2">
         {showColdLoading || awaitingKnownComments ? (
-          <div className="text-xs sm:text-sm text-white/50 text-center py-3 sm:py-4">
+          <div className="py-3 text-center text-xs text-white/50 sm:py-4 sm:text-sm">
             Loading comments...
           </div>
-        ) : isLoading && !commentsData ? null : comments.length === 0 ? (
-          <div className="text-xs sm:text-sm text-white/50 text-center py-3 sm:py-4">
+        ) : isLoading && !commentsData ? (
+          <div className="py-3 sm:py-4" aria-hidden />
+        ) : comments.length === 0 ? (
+          <div className="py-3 text-center text-xs text-white/50 sm:py-4 sm:text-sm">
             No comments yet. Be the first to comment!
           </div>
         ) : (
@@ -605,21 +607,23 @@ export function Comments({ listId, urlId, currentUserId, knownCount }: CommentsP
                             {comment.user.email}
                           </div>
                           <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-white/50">
-                            <span className="inline-flex items-center gap-1">
+                            <span className="inline-flex items-center gap-1 text-xs">
                               <Clock
-                                className={cn(UI_ICON_CONTROL, "opacity-70")}
+                                className={cn(UI_ICON_INLINE_XS, "opacity-70")}
                                 aria-hidden
                               />
                               <span className="sr-only">Created </span>
                               {formatDate(comment.createdAt)}
                             </span>
                             {comment.updatedAt !== comment.createdAt ? (
-                              <span className="inline-flex items-center gap-1">
+                              <span className="inline-flex items-center gap-1 text-xs">
                                 <Edit2
-                                  className={cn(UI_ICON_CONTROL, "opacity-70")}
+                                  className={cn(UI_ICON_INLINE_XS, "opacity-70")}
                                   aria-hidden
                                 />
-                                <span>edited {formatDate(comment.updatedAt)}</span>
+                                <span>
+                                  Edited {formatDate(comment.updatedAt)}
+                                </span>
                               </span>
                             ) : null}
                           </div>

@@ -51,3 +51,6 @@ Append-only record of Human Gate decisions.
 | 2026-09-06 | GATE-0042 | APPROVED | User | `C7.25-HG-PROD-SMOKE-2026-09-05` | Network paste + UX classified; C7.25 polish plan approved for implement. |
 | 2026-09-06 | GATE-0043 | APPROVED | User | `C7.25-HG1-POLISH-2026-09-06` | User approved C7.25 polish plan (smoke Improve + screenshots). |
 | 2026-09-06 | GATE-0043 | SCOPE COMPLETE | Auto | `C7.25-COMMIT-READY-2026-09-06` | C7.25 verified PASS WITH WARNINGS; commit-ready docs synced. |
+| 2026-09-09 | GATE-0044 | APPROVED | User | `C7.26-HG-PROD-SMOKE-2026-09-09` | Network+UX classified; densify healthy; Improve → C7.26 plan. |
+| 2026-09-09 | GATE-0045 | APPROVED | User | `C7.26-HG1-IMPROVE-2026-09-09` | User approved C7.26 Improve polish plan (Track A; Track B deferred). |
+| 2026-09-09 | GATE-0045 | SCOPE COMPLETE | Auto | `C7.26-COMMIT-READY-2026-09-09` | C7.26 + C7.26.1 verified PASS; security PASS; commit-ready docs synced. |

@@ -145,6 +145,7 @@ export default function Navbar({ initialWasAuthed = false }: NavbarProps) {
 
   return (
     <nav
+      data-navbar
       className={cn(
         "sticky top-0 z-50 shrink-0 isolation-isolate bg-transparent transition-colors duration-200",
         showGlass && "backdrop-blur-md",

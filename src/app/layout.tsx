@@ -7,12 +7,15 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import FloatingBackground from "@/components/layout/FloatingBackground";
 import { QueryProvider } from "@/components/providers/QueryProvider";
+import { ListDetailHydrationBoundary } from "@/components/providers/ListDetailHydrationBoundary";
 import { PostHogPageview } from "@/components/providers/PostHogProvider";
 import { ToastProvider } from "@/components/ui/Toaster";
 import { AuthToastBridge } from "@/components/AuthToastBridge";
 import { WAS_AUTHED_COOKIE, FORCE_GUEST_COOKIE } from "@/constants/auth";
 import { isWasAuthedCookieValue } from "@/lib/was-authed";
 import { isForceGuestCookieValue } from "@/lib/logout-client";
+import { getCurrentUser } from "@/lib/auth";
+import { createServerQueryClient, dehydrate } from "@/lib/server-query";
 // DISABLED: UserDataPrefetcher causes duplicate API calls
 // import { UserDataPrefetcher } from "@/components/prefetch/UserDataPrefetcher";
 
@@ -181,6 +184,20 @@ export default async function RootLayout({
   const pathname = (await headers()).get("x-pathname") ?? "";
   const isAuthRoute = pathname === "/login";
 
+  // C7.26.1 verify-deep: dehydrate session above Navbar so profile Switch/avatar
+  // and list canInvite share one SSR/client paint source.
+  let sessionDehydrated: ReturnType<typeof dehydrate> | undefined;
+  if (initialWasAuthed) {
+    const user = await getCurrentUser();
+    if (user?.id && user.email) {
+      const sessionClient = createServerQueryClient();
+      sessionClient.setQueryData(["session"], {
+        user: { id: user.id, email: user.email },
+      });
+      sessionDehydrated = dehydrate(sessionClient);
+    }
+  }
+
   const jsonLd = {
     "@context": "https://schema.org",
     "@graph": [
@@ -229,6 +246,7 @@ export default async function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
         <QueryProvider>
+          <ListDetailHydrationBoundary state={sessionDehydrated}>
           <ToastProvider>
             {/* Pending welcome/goodbye toasts survive hard redirects */}
             <AuthToastBridge />
@@ -255,6 +273,7 @@ export default async function RootLayout({
               <PostHogPageview />
             </Suspense>
           </ToastProvider>
+          </ListDetailHydrationBoundary>
         </QueryProvider>
       </body>
     </html>

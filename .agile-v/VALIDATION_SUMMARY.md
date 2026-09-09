@@ -694,3 +694,60 @@ Gate 2: BLOCKED — RISK-0016 is accepted; `EVAL_RESULTS.md` PASS/WAIVED evidenc
 | Toast / Comments flash | UrlCard-only archive toast; awaitingKnownComments | PASS | restore rethrow + readiness throws |
 | Validation | lint 0; tsc; Jest 185; e2e c725+warm; build; verify-deep | PASS WITH WARNINGS | urlCount hydration race OOS |
 | Deploy | push / prod re-smoke | PENDING USER | Docs at commit-ready |
+
+## 2026-09-09 — GATE-0044 opened (Human-Verify C7.25 Network smoke)
+
+| Scope | Command / evidence | Result | Notes |
+|---|---|---|---|
+| Reconcile | HEAD = origin `e780476` (C7.25) | PASS | Already on remote |
+| Gate | GATE-0044 / TASK-0063 / DEC-0065 | PENDING | No code until Network + screenshots + plan |
+| Human | Per-feature Network + UX + polish shots | PENDING USER | Checklist in session plan |
+| Track B backlog | TASK-0064 / DEC-0066 | RECORDED | SSE slim + cold PATCH/job + urlCount + api-status ~3.85s + cold `_rsc` |
+| Nav/Browse/Insights soft-nav | Instant warm shells; Insights tab first-visit spinner | EXPECTED | Continue list-detail Network |
+| api-status `status` | ~3.85s | TRACK B | Not densify fail |
+| Fav/pin densify + toaster | Instant UI; PATCH ~3–5s | GOOD / TRACK B latency | Pin scroll under navbar → Improve |
+| Unpin auto-scroll | None | LEAVE | OK as-is |
+| Dup/delete | 2× `updates?` sometimes | MILD IMPROVE | Logged TASK-0063 |
+| Archive / restore | Archive: instant strip, weak pending UX; restore dialog OK | IMPROVE / GOOD | Toast or hold AlertDialog |
+| Similar / comments densify | smart ~1s; comment CRUD 1× updates | GOOD | Open flicker + Edited/`text-xs` → Improve |
+| SSE `events` | up to ~185 kB / ~1.4 min | TRACK B | TASK-0064 |
+| Smart Collections expand/dupes/refresh | Skeleton OK; collections ~3–11s; SSE ~303 kB on expand | GOOD / TRACK B | Remove-dupe stacked refetch mild |
+| Create Collection + stay | Empty active expected; POST ~3.8s | GOOD / TRACK B | Follow-up collections ~0.6s |
+| Back lists / open new list | lists `_rsc` ~3s; detail cold + dual events + sync-vectors | EXPECTED / TRACK B | Soft-nav warm when cached |
+| Collab invite + densify | Works; “Updated Just now” late after dialog; collab ~5.5s | IMPROVE / TRACK B | Robohash “Added by”; badge icon size |
+| Invite View List logged out | Flash home → login | IMPROVE | Deep-link gate without marketing flash |
+| Post-login miss shared list | Lands My Lists not invite URL | IMPROVE | returnTo after sign-in |
+| Invite while authed | Full-page section skeletons | IMPROVE | Thin/warm paint |
+| Yahoo Viewer/Editor flows | Comment + Create Collection OK; source 0 URLs | GOOD / EXPECTED | Empty card after move OK |
+## 2026-09-09 — GATE-0045 C7.26 Improve polish (implement)
+
+| Scope | Command / evidence | Result | Notes |
+|---|---|---|---|
+| Pin scroll | `scrollToUrlCard` + `data-navbar` offset | PASS | Measured sticky height + 8px gap |
+| Archive dialog | Lifted to UrlList; pending until settle | PASS | Survives optimistic strip |
+| Comments | min-h + Edited + INLINE_XS | PASS | |
+| Collab densify | invite dates + Added-by avatar + badge icons | PASS | |
+| Invite auth | `/login?next=` + Auth honor + soft `/list/` | PASS | `auth-redirect` tests |
+| 2× updates | delete + collaborator `skipUnified` | PASS | delete also densifies activity |
+| tsc / eslint touched | exit 0 | PASS | |
+| Jest | auth-redirect + queryInvalidation + soft-nav | PASS | 35+ |
+| next build | exit 0 | PASS | SENTRY upload off |
+| implementation-verifier | PASS WITH WARNINGS | Soft nav cookie race note; e2e not run |
+
+**Out of scope:** TASK-0064 Track B.
+
+## 2026-09-09 — GATE-0045 SCOPE COMPLETE (C7.26 + C7.26.1 commit-ready)
+
+| Scope | Command / evidence | Result | Notes |
+|---|---|---|---|
+| Auth redirect | `safeInternalNextPath` URL-normalize; `loginHrefWithNext`; `x-search` | PASS | Open-redirect bypasses rejected; RSC keeps query |
+| Hydration | `urlsBadgeSignature`; ListDetailHydrationBoundary; session dehydrate | PASS | e2e Hydration failed = 0 |
+| tsc / eslint | exit 0 | PASS | |
+| Jest | auth-redirect + soft-nav + session + queryInvalidation | PASS | 47 |
+| e2e | c725 + c726 | PASS | 9/9; guest `?tab=1` next= |
+| next build | SENTRY_UPLOAD_SOURCEMAPS=0 | PASS | |
+| Security review | auth-redirect + x-search | PASS | No medium+ |
+| implementation-verifier | PASS WITH WARNINGS | Track B / human re-smoke only |
+
+**Out of scope:** TASK-0064 Track B.
+

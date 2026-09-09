@@ -490,6 +490,46 @@ Implementation is locally verified. Production check remains with TASK-0039. Gat
 
 ---
 
+## GATE-0044 — Human Gate (C7.25 prod Network smoke + polish notes)
+
+| Field | Value |
+|-------|-------|
+| Type | Human-Verify |
+| Status | **APPROVED 2026-09-09** |
+| Checkpoint | `C7.26-HG-PROD-SMOKE-2026-09-09` |
+| Evidence | TASK-0063 classify log; DEC-0065; DEC-0067; HEAD `e780476` |
+| Required human action | Prod re-smoke C7.25; paste per-feature Network + UX; attach polish screenshots. |
+| Scope | Classify expected / improve / bug. Densify healthy; Improve → C7.26. Track B = TASK-0064 backlog. |
+| Resume condition | Met — C7.26 Improve plan approved; implement under GATE-0045. |
+
+---
+
+## GATE-0045 — Human Gate (C7.26 Improve polish implement)
+
+| Field | Value |
+|-------|-------|
+| Type | Human-Gate 1 (implement) |
+| Status | **APPROVED 2026-09-09** |
+| Checkpoint | `C7.26-HG1-IMPROVE-2026-09-09` |
+| Evidence | TASK-0065; DEC-0067; GATE-0044 classify |
+| Required human action | User approved C7.26 Improve polish plan (Track A only). |
+| Scope | Pin scroll offset; archive dialog pending; comments empty/meta; collab densify+avatar+badges; invite `/login?next=`; mild 2× updates if clear. **Out:** Track B TASK-0064. |
+| Resume condition | Met — verify-deep PASS; security PASS; commit-ready. |
+
+---
+
+## GATE-0045 — SCOPE COMPLETE (C7.26 commit-ready)
+
+| Field | Value |
+|-------|-------|
+| Type | Scope complete |
+| Status | **COMPLETE 2026-09-09** |
+| Checkpoint | `C7.26-COMMIT-READY-2026-09-09` |
+| Evidence | TASK-0065; DEC-0067; DEC-0068; VALIDATION_SUMMARY C7.26 |
+| Scope | C7.26 Improve + C7.26.1 hydration/auth harden + `x-search` verified and documented. |
+
+---
+
 ## GATE-0002 — Human Gate 2 (release / acceptance)
 
 | Field | Value |

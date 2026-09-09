@@ -118,10 +118,8 @@ export const UrlCard: React.FC<UrlCardProps> = ({
   );
   const [toastMessage, setToastMessage] = React.useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
-  const [archiveDialogOpen, setArchiveDialogOpen] = React.useState(false);
   const [duplicateDialogOpen, setDuplicateDialogOpen] = React.useState(false);
   const [deletePending, setDeletePending] = React.useState(false);
-  const [archivePending, setArchivePending] = React.useState(false);
   const [duplicatePending, setDuplicatePending] = React.useState(false);
   const [similarUrlsOpen, setSimilarUrlsOpen] = React.useState(false);
   const [commentsOpen, setCommentsOpen] = React.useState(false);
@@ -208,26 +206,6 @@ export const UrlCard: React.FC<UrlCardProps> = ({
       });
     } finally {
       setDeletePending(false);
-    }
-  };
-
-  const handleArchiveConfirm = async () => {
-    if (!onArchive) return;
-    setArchivePending(true);
-    try {
-      await onArchive(url.id);
-      toast({
-        title: "URL Archived",
-        description: `"${
-          url.title || url.url
-        }" has been archived and removed from the list.`,
-        variant: "success",
-      });
-      requestAnimationFrame(() => setArchiveDialogOpen(false));
-    } catch {
-      // Store/query rollback and error toasts remain with the mutation owner.
-    } finally {
-      setArchivePending(false);
     }
   };
 
@@ -709,7 +687,9 @@ export const UrlCard: React.FC<UrlCardProps> = ({
                     {onArchive && (
                       <IconButton
                         icon={<ArchiveBoxIcon className={UI_ICON_CONTROL} />}
-                        onClick={() => setArchiveDialogOpen(true)}
+                        onClick={() => {
+                          void onArchive(url.id);
+                        }}
                         tooltip="Archive URL"
                         disabled={!canEdit}
                       />
@@ -809,26 +789,6 @@ export const UrlCard: React.FC<UrlCardProps> = ({
         pendingText="Deleting…"
         closeOnConfirm={false}
       />
-
-      {onArchive && (
-        <AlertDialog
-          open={archiveDialogOpen}
-          onOpenChange={(open) => {
-            if (!archivePending) setArchiveDialogOpen(open);
-          }}
-          title="Archive URL"
-          description={`Are you sure you want to archive "${
-            url.title || url.url
-          }"? It will be removed from the list.`}
-          confirmText="Archive"
-          cancelText="Cancel"
-          onConfirm={handleArchiveConfirm}
-          variant="default"
-          pending={archivePending}
-          pendingText="Archiving…"
-          closeOnConfirm={false}
-        />
-      )}
 
       {onDuplicate && (
         <AlertDialog

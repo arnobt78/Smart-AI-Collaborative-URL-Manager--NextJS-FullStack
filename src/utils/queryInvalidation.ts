@@ -450,7 +450,7 @@ export function invalidateMutationImpact(
 ): void {
   switch (impact) {
     case "collaborator":
-      invalidateCollaboratorQueries(queryClient, listSlug);
+      invalidateCollaboratorQueries(queryClient, listSlug, options);
       return;
     case "metadata":
       invalidateUrlQueries(queryClient, listSlug, listId, true, options);
@@ -683,14 +683,16 @@ export function invalidateListMetadataQueries(
  */
 export function invalidateCollaboratorQueries(
   queryClient: QueryClient,
-  listSlug: string
+  listSlug: string,
+  options?: { skipUnified?: boolean },
 ): void {
-  // CRITICAL: Invalidate unified query (contains collaborators, permissions, activities)
-  // This is the same as invalidateUrlQueries - ensures consistent behavior
-  // When this is called, it triggers updates?activityLimit=20 refetch
-  queryClient.invalidateQueries({
-    queryKey: listQueryKeys.unified(listSlug),
-  });
+  // Unified holds collaborators + activity; skip when mutation densified already
+  // (avoids owner double updates?activityLimit=20 — mutation + optional SSE).
+  if (!options?.skipUnified) {
+    queryClient.invalidateQueries({
+      queryKey: listQueryKeys.unified(listSlug),
+    });
+  }
 
   // Invalidate all lists query (for lists page - shows collaborator count)
   queryClient.invalidateQueries({

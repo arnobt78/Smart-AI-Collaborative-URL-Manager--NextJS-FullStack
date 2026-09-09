@@ -904,3 +904,55 @@ Append-only. Newest entries at bottom.
 | Rationale | GATE-0042 Network paste proved densify healthy; remaining Improve items + screenshot polish. |
 | Linked REQs | TASK-0062; GATE-0043 |
 | Status | Implemented and validated 2026-09-06. |
+
+---
+
+## DEC-0065 — Network-first Human-Verify of C7.25 before any C7.26 code
+
+| Field | Value |
+|---|---|
+| Timestamp | 2026-09-09 |
+| Agent | Cursor |
+| Decision | Open GATE-0044 / TASK-0063 as Human-Verify: user re-tests C7.25 on prod with per-feature Network timings + UX notes + polish screenshots. Agent classifies expected vs improve vs bug. Do not code until a separate C7.26 (or fix) plan is explicitly approved. |
+| Rationale | Same Network-first pattern as GATE-0038/0042. Brief visual OK is not enough; need Network evidence + screenshot-scoped polish. |
+| Linked REQs | TASK-0063; GATE-0044 |
+| Status | Active — awaiting Network paste + screenshots. |
+
+---
+
+## DEC-0066 — Two-track: smoke classify now; prod perf/stability backlog next
+
+| Field | Value |
+|---|---|
+| Timestamp | 2026-09-09 |
+| Agent | Cursor |
+| Decision | **Track A:** GATE-0044 Network + screenshots → classify; ship densify confidence; scoped C7.26 only for measured Improve/bug / screenshot polish. **Track B (backlog):** After densify is clean, open a **separate** production-standard perf/stability plan covering: (1) cold PATCH/job latency; (2) SSE weight — scoped slim, not rewrite; (3) urlCount hydration race; (4) `/api/status` probe ~3.85s (GATE-0044 evidence); (5) cold serverless `_rsc`/route times (~1–3s Watch). Remains out until that plan is approved: absolute cold-path SLAs, SSE rewrite, console audit, Cloudinary destroy, virtualization, HA-0001. |
+| Rationale | User wants professional stability without expanding today’s smoke into a mega-batch. Pro = measured densify first, then dedicated perf track. |
+| Linked REQs | TASK-0063; TASK-0064; GATE-0044; DEC-0065 |
+| Status | Accepted — Track A → C7.26 Improve (DEC-0067); Track B pending separate plan approval. |
+
+---
+
+## DEC-0067 — C7.26 Improve polish (GATE-0044 classify)
+
+| Field | Value |
+|---|---|
+| Timestamp | 2026-09-09 |
+| Agent | Cursor |
+| Decision | Implement scoped C7.26 Improve only: pin scroll navbar offset; archive AlertDialog pending until settle; comments open/empty + Edited/`UI_ICON_INLINE_XS`; collab invite densify dates + Robohash “Added by” + role-badge inline icons + email template icon; `requirePageUser` → `/login?next=` + Auth honor next + softer post-login list paint; fix clear duplicate `updates?` only if found. **Defer** all TASK-0064 Track B (SSE slim, cold latency, status, urlCount). Leave unpin-no-scroll and empty card after Create Collection move. |
+| Rationale | GATE-0044 densify healthy; remaining items are UX/polish + invite deep-link, not densify rewrite. |
+| Linked REQs | TASK-0065; GATE-0045; DEC-0066 |
+| Status | Implemented — C7.26 + C7.26.1 commit-ready (DEC-0068). |
+
+---
+
+## DEC-0068 — C7.26.1 hydration + auth-redirect harden + x-search
+
+| Field | Value |
+|---|---|
+| Timestamp | 2026-09-09 |
+| Agent | Cursor |
+| Decision | Close residual list HTML hydration (session dehydrate, RQ→store sync, `urlsBadgeSignature` comment/click counts, stable dnd id, `ListDetailHydrationBoundary`); harden `safeInternalNextPath` (loop-decode, residual `%`, URL normalize vs SAFE_ORIGIN, case-insensitive `/login`); client `loginHrefWithNext`; proxy `x-search` + `requirePageUser` pathname+search. Auth post-login always hard `location.href`. |
+| Rationale | Verify-deep + security found Comments-badge hydration and path-normalization open-redirect; RSC bounce dropped query via pathname-only header. |
+| Linked REQs | TASK-0065; GATE-0045; DEC-0067 |
+| Status | Implemented — commit-ready. |

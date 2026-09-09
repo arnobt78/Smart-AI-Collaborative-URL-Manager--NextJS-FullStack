@@ -137,6 +137,7 @@ export function useUnifiedListQuery(slug: string, enabled: boolean = true) {
 export function useAddCollaborator(listId: string, listSlug?: string) {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { user: sessionUser } = useSession();
 
   return useMutation({
     mutationFn: async ({
@@ -166,14 +167,29 @@ export function useAddCollaborator(listId: string, listSlug?: string) {
       await queryClient.cancelQueries({ queryKey: listQueryKeys.allLists() });
 
       const previous = queryClient.getQueryData<{
-        collaborators: Array<{ email: string; role: string }>;
+        collaborators: Array<{
+          email: string;
+          role: string;
+          invitedByEmail?: string | null;
+          invitedAt?: string | null;
+          updatedAt?: string | null;
+        }>;
       }>(queryKey);
       const previousAllLists = queryClient.getQueryData<{ lists: UserList[] }>(
         listQueryKeys.allLists(),
       );
+      const previousCurrent = currentList.get();
+      const nowIso = new Date().toISOString();
+      const invitedByEmail = sessionUser?.email ?? null;
 
       queryClient.setQueryData<{
-        collaborators: Array<{ email: string; role: string }>;
+        collaborators: Array<{
+          email: string;
+          role: string;
+          invitedByEmail?: string | null;
+          invitedAt?: string | null;
+          updatedAt?: string | null;
+        }>;
       }>(queryKey, (old) => {
         const existing = old?.collaborators || [];
         const trimmedEmail = email.trim().toLowerCase();
@@ -184,13 +200,24 @@ export function useAddCollaborator(listId: string, listSlug?: string) {
         if (exists) {
           return {
             collaborators: existing.map((c) =>
-              c.email.toLowerCase() === trimmedEmail ? { ...c, role } : c
+              c.email.toLowerCase() === trimmedEmail
+                ? { ...c, role, updatedAt: nowIso }
+                : c
             ),
           };
         }
 
         return {
-          collaborators: [...existing, { email: email.trim(), role }],
+          collaborators: [
+            ...existing,
+            {
+              email: email.trim(),
+              role,
+              invitedByEmail,
+              invitedAt: nowIso,
+              updatedAt: nowIso,
+            },
+          ],
         };
       });
 
@@ -202,7 +229,24 @@ export function useAddCollaborator(listId: string, listSlug?: string) {
         return exists ? emails : [...emails, trimmed];
       });
 
-      return { previous, previousAllLists };
+      // Densify list header "Updated Just now" with invite success paint
+      if (previousCurrent.id === listId) {
+        currentList.set({ ...previousCurrent, updatedAt: nowIso });
+      }
+      if (listSlug) {
+        queryClient.setQueryData<UnifiedListResponse>(
+          listQueryKeys.unified(listSlug),
+          (cached) => {
+            if (!cached?.list) return cached;
+            return {
+              ...cached,
+              list: { ...cached.list, updatedAt: nowIso },
+            };
+          },
+        );
+      }
+
+      return { previous, previousAllLists, previousCurrent };
     },
     onSuccess: (data, variables) => {
       toast({
@@ -217,7 +261,9 @@ export function useAddCollaborator(listId: string, listSlug?: string) {
       // Invalidates unified query and all lists query
       if (listSlug) {
         // Invalidate on owner's screen immediately
-        invalidateMutationImpact(queryClient, "collaborator", listSlug, listId);
+        invalidateMutationImpact(queryClient, "collaborator", listSlug, listId, {
+          skipUnified: true,
+        });
 
         // NOTE: We don't dispatch unified-update event here because:
         // 1. Owner screen already updated via invalidateCollaboratorQueries
@@ -239,6 +285,12 @@ export function useAddCollaborator(listId: string, listSlug?: string) {
           listQueryKeys.allLists(),
           context.previousAllLists,
         );
+      }
+      if (
+        context?.previousCurrent &&
+        context.previousCurrent.id === listId
+      ) {
+        currentList.set(context.previousCurrent);
       }
 
       toast({
@@ -309,7 +361,9 @@ export function useUpdateCollaboratorRole(listId: string, listSlug?: string) {
       // Invalidates unified query and all lists query
       if (listSlug) {
         // Invalidate on owner's screen immediately
-        invalidateMutationImpact(queryClient, "collaborator", listSlug, listId);
+        invalidateMutationImpact(queryClient, "collaborator", listSlug, listId, {
+          skipUnified: true,
+        });
 
         // NOTE: We don't dispatch unified-update event here because:
         // 1. Owner screen already updated via invalidateCollaboratorQueries
@@ -398,7 +452,9 @@ export function useRemoveCollaborator(listId: string, listSlug?: string) {
       // Invalidates unified query and all lists query
       if (listSlug) {
         // Invalidate on owner's screen immediately
-        invalidateMutationImpact(queryClient, "collaborator", listSlug, listId);
+        invalidateMutationImpact(queryClient, "collaborator", listSlug, listId, {
+          skipUnified: true,
+        });
 
         // NOTE: We don't dispatch unified-update event here because:
         // 1. Owner screen already updated via invalidateCollaboratorQueries

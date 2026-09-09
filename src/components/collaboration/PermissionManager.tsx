@@ -37,7 +37,7 @@ import {
   useRemoveCollaborator,
   listQueryKeys,
 } from "@/hooks/useListQueries";
-import { UI_ICON_CONTROL, UI_ICON_DECORATIVE, UI_ICON_MENU_TRIGGER } from "@/lib/ui/control-styles";
+import { UI_ICON_CONTROL, UI_ICON_DECORATIVE, UI_ICON_INLINE_XS, UI_ICON_MENU_TRIGGER } from "@/lib/ui/control-styles";
 import { CARD_PAD, CARD_STACK } from "@/lib/ui-spacing";
 import { Dialog } from "@/components/ui/Dialog";
 import { cn } from "@/lib/utils";
@@ -238,9 +238,9 @@ export function PermissionManager({
 
   const getRoleIcon = (role: "editor" | "viewer") => {
     return role === "editor" ? (
-      <Edit3 className={UI_ICON_CONTROL} />
+      <Edit3 className={UI_ICON_INLINE_XS} />
     ) : (
-      <Eye className={UI_ICON_CONTROL} />
+      <Eye className={UI_ICON_INLINE_XS} />
     );
   };
 
@@ -353,23 +353,36 @@ export function PermissionManager({
                             </span>
                           </div>
                           {collaborator.invitedByEmail || invitedAt ? (
-                            <span className="inline-flex items-center gap-1 min-w-0">
+                            <span className="inline-flex min-w-0 items-center gap-1 text-xs">
                               <CalendarPlus
-                                className={UI_ICON_CONTROL}
+                                className={UI_ICON_INLINE_XS}
                                 aria-hidden
                               />
-                              <span className="break-words">
-                                {collaborator.invitedByEmail
-                                  ? `Added by ${collaborator.invitedByEmail}`
-                                  : "Added"}
-                                {invitedAt ? ` · ${invitedAt}` : ""}
-                              </span>
+                              {collaborator.invitedByEmail ? (
+                                <span className="inline-flex min-w-0 items-center gap-1">
+                                  <span className="shrink-0">Added by</span>
+                                  <UserAvatar
+                                    seed={collaborator.invitedByEmail}
+                                    size={16}
+                                    alt=""
+                                    className="size-4 shrink-0 border border-white/20"
+                                  />
+                                  <span className="min-w-0 break-words">
+                                    {collaborator.invitedByEmail}
+                                    {invitedAt ? ` · ${invitedAt}` : ""}
+                                  </span>
+                                </span>
+                              ) : (
+                                <span className="break-words">
+                                  Added{invitedAt ? ` · ${invitedAt}` : ""}
+                                </span>
+                              )}
                             </span>
                           ) : null}
                           {updatedAt ? (
-                            <span className="inline-flex min-w-0 items-center gap-1 break-words">
+                            <span className="inline-flex min-w-0 items-center gap-1 break-words text-xs">
                               <CalendarArrowUp
-                                className={UI_ICON_CONTROL}
+                                className={UI_ICON_INLINE_XS}
                                 aria-hidden
                               />
                               Updated {updatedAt}

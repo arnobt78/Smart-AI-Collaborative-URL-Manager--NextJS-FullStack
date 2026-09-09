@@ -186,7 +186,9 @@ export function getCollaboratorInviteEmail({
                         <h3 style="color: #ffffff; font-size: 20px; margin: 0; font-weight: bold;">📋 ${listTitle}</h3>
                       </div>
                       <div bgcolor="#1e3a5f" style="background-color: #1e3a5f; border-left: 4px solid #3b82f6; padding: 20px; margin: 30px 0; border-radius: 8px;">
-                        <h3 style="color: #ffffff; font-size: 18px; margin: 0 0 10px 0;">${roleIcon} Your Role: ${roleTitle}</h3>
+                        <h3 style="color: #ffffff; font-size: 18px; margin: 0 0 10px 0; line-height: 1.4;">
+                          <span style="font-size: 18px; line-height: 1; vertical-align: -2px; margin-right: 6px;">${roleIcon}</span>Your Role: ${roleTitle}
+                        </h3>
                         <p style="color: #e0e0e0; font-size: 15px; line-height: 1.6; margin: 0;">
                           ${roleDescription}
                         </p>

@@ -17,6 +17,7 @@ import {
   getCachedDragOrder,
   clearDragOrderCache,
 } from "./dragOrderCache";
+import { loginHrefWithNext } from "@/lib/auth-redirect";
 
 export interface UrlItem {
   id: string;
@@ -323,13 +324,13 @@ export async function getList(
     if (response.status === 401) {
       // Store the current URL for redirect after login
       if (typeof window !== "undefined") {
-        const currentPath = window.location.pathname;
+        const currentPath =
+          window.location.pathname + window.location.search;
         sessionStorage.setItem("authRedirect", currentPath);
-        
-        // IMMEDIATELY redirect to login page - synchronous redirect
-        // Use replace() to prevent back button issues and ensure immediate redirect
-        window.location.replace("/login");
-        
+
+        // Mirror server requirePageUser: /login?next=…
+        window.location.replace(loginHrefWithNext(currentPath));
+
         // Also throw error so component can handle it if redirect somehow fails
         throw createRequestError("Unauthorized - Please login to access this list", {
           status: 401,
@@ -1188,7 +1189,19 @@ export async function removeUrlFromList(
     }
 
     const finalUrls = currentList.get().urls as UrlItem[];
-    return commitUrlMutation(snapshot, list, finalUrls);
+    return commitUrlMutation(snapshot, list, finalUrls, "url", {
+      skipUnified: true,
+      activity:
+        activity?.id && activity?.user?.email
+          ? {
+              id: activity.id,
+              action: activity.action,
+              details: activity.details ?? null,
+              createdAt: activity.createdAt,
+              user: activity.user,
+            }
+          : undefined,
+    });
   } catch (err) {
     currentList.set(snapshot);
     error.set(err instanceof Error ? err.message : "Failed to update list");

@@ -1,4 +1,4 @@
-import type { QueryClient } from "@tanstack/react-query";
+import type { DehydratedState, QueryClient } from "@tanstack/react-query";
 import { browseQueryKeys } from "@/lib/browse-query-keys";
 import { listQueryKeys } from "@/lib/query-keys";
 import { currentList, type UrlItem, type UrlList } from "@/stores/urlListStore";
@@ -58,6 +58,119 @@ export function isUnifiedListHydrated(
   slug: string,
 ): boolean {
   return Boolean(data?.list?.slug === slug && !isSoftNavThinSeed(data));
+}
+
+/**
+ * Signature for UrlCard comment/click badges — used so RQ→store sync overwrites
+ * stale SSR singleton urls that share length but lack commentCount (hydration).
+ */
+export function urlsBadgeSignature(urls: unknown): string {
+  if (!Array.isArray(urls)) return "";
+  return urls
+    .map((raw) => {
+      const url = raw as { id?: string; commentCount?: number; clickCount?: number };
+      if (!url?.id) return "";
+      return `${url.id}:${url.commentCount ?? 0}:${url.clickCount ?? 0}`;
+    })
+    .join("|");
+}
+
+/**
+ * C7.26.1 / RISK-0035: pick list chrome paint source so urlCount matches SSR dehydrate.
+ * Until unified is fully hydrated for this slug, RQ (dehydrate / seed) wins over nanostore
+ * when `urls.length` disagrees — prevents hydration badge flash.
+ */
+export function resolveListDetailPaintList<
+  T extends { id?: string; slug?: string | null; urls?: unknown },
+>(args: {
+  slug: string;
+  rqList?: T | null;
+  storeList?: T | null;
+  unifiedPayload?: UnifiedCacheShape | null;
+}): T | undefined {
+  const { slug } = args;
+  const rq = args.rqList?.slug === slug ? args.rqList : undefined;
+  const store =
+    args.storeList?.id && args.storeList.slug === slug
+      ? args.storeList
+      : undefined;
+  if (!rq && !store) return undefined;
+  if (!rq) return store;
+
+  if (isUnifiedListHydrated(args.unifiedPayload, slug)) {
+    return rq;
+  }
+
+  if (store?.id && rq.id && store.id === rq.id) {
+    const rqLen = Array.isArray(rq.urls) ? rq.urls.length : 0;
+    const storeLen = Array.isArray(store.urls) ? store.urls.length : 0;
+    if (storeLen !== rqLen || urlsBadgeSignature(store.urls) !== urlsBadgeSignature(rq.urls)) {
+      return {
+        ...store,
+        ...rq,
+        urls: Array.isArray(rq.urls) ? rq.urls : [],
+      };
+    }
+  }
+  return rq;
+}
+
+/**
+ * C7.26.1 / RISK-0035: HydrationBoundary defers overwrite of *existing* queries to
+ * useEffect — thin soft-nav seeds (often newer than RSC) can keep urlCount=0 on
+ * first paint while server HTML has N. Evict only when a cache entry would block
+ * or defer dehydrate; never evict a just-hydrated entry on re-render.
+ *
+ * On SSR, also drop Provider-singleton unified/session entries whose dataUpdatedAt
+ * does not already match this request's dehydrate (request-scoped paint).
+ * Session dehydrate keeps owner Switch canInvite aligned (verify-deep HTML fix).
+ */
+export function evictThinUnifiedBlockingDehydrate(
+  queryClient: QueryClient,
+  state: DehydratedState | null | undefined,
+): void {
+  const queries = state?.queries;
+  if (!queries?.length) return;
+
+  const queryCache = queryClient.getQueryCache();
+  const isServer = typeof window === "undefined";
+
+  for (const dehydrated of queries) {
+    const queryKey = dehydrated.queryKey;
+    const isUnified =
+      Array.isArray(queryKey) &&
+      queryKey[0] === "unified-list" &&
+      typeof queryKey[1] === "string";
+    const isSession =
+      Array.isArray(queryKey) &&
+      queryKey.length === 1 &&
+      queryKey[0] === "session";
+    if (!isUnified && !isSession) continue;
+
+    const existing =
+      (typeof dehydrated.queryHash === "string"
+        ? queryCache.get(dehydrated.queryHash)
+        : undefined) ?? queryCache.find({ queryKey, exact: true });
+    if (!existing) continue;
+
+    const existingData = existing.state.data as UnifiedCacheShape | undefined;
+    if (isUnified && isSoftNavThinSeed(existingData)) {
+      queryClient.removeQueries({ queryKey, exact: true });
+      continue;
+    }
+
+    if (isServer) {
+      if (existing.state.dataUpdatedAt !== dehydrated.state.dataUpdatedAt) {
+        queryClient.removeQueries({ queryKey, exact: true });
+      }
+      continue;
+    }
+
+    // Client: newer dehydrate would otherwise wait for useEffect — force in-render
+    if (dehydrated.state.dataUpdatedAt > existing.state.dataUpdatedAt) {
+      queryClient.removeQueries({ queryKey, exact: true });
+    }
+  }
 }
 
 /** Seed collaborators sub-cache from hydrated unified data (PermissionManager reads this key). */

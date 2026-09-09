@@ -34,3 +34,7 @@
 | RISK-0030 | Await-signout logout feels slow (~500–600ms Marketing wait) | Medium | Closed | C7.7 optimistic Auth + background keepalive signout | REQ-0048 |
 | RISK-0031 | Clear forceGuest on brief empty session → Auth↔Marketing flicker | Medium | Closed | Keep forceGuest until login; disable session query while forceGuest | REQ-0048 |
 | RISK-0032 | C7.16 token migration touches many list/browse/card call sites → unintended layout shift or soft-nav skeleton drift | Medium | Medium | Vertical slice list-detail first; snapshot key viewports; keep `RoutePageSkeleton` parity with page chrome; no mutation/cache changes | REQ-0051 |
+| RISK-0033 | Cold PATCH/job latency + cold serverless `_rsc` (~1–3s) remain user-visible on free tier; absolute ms SLAs waste cycles | Medium | High | Track B TASK-0064: measure then cut payloads/lite/timeouts/`_rsc` where cheap | DEC-0066 |
+| RISK-0034 | Heavy SSE `/events` payloads raise cost, stall clients, and amplify multi-tab churn | Medium | Medium | Track B: scoped event slim/filter/pagination — not full rewrite | DEC-0066 |
+| RISK-0035 | SSR vs densified `urlCount` / Comments badge HTML hydration | Low | Medium | **Mitigated C7.26.1** (`resolveListDetailPaintList`, `urlsBadgeSignature`, session dehydrate); residual Track B only if new vectors appear | DEC-0066; DEC-0068 |
+| RISK-0036 | `/api/status` probe ~3.85s on prod (GATE-0044) makes api-status feel stuck despite chrome-first UI | Medium | High | Track B TASK-0064 item 4: slim/cache/timeout status probe | DEC-0066 |
