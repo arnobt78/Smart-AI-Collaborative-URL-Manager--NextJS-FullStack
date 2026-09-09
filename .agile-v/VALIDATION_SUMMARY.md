@@ -858,3 +858,16 @@ Gate 2: BLOCKED — RISK-0016 is accepted; `EVAL_RESULTS.md` PASS/WAIVED evidenc
 | Jest | soft-nav-cache + mutations + list-card-dto | PASS | |
 | Verifier / Security | PASS WITH WARNINGS / PASS | leave knownActivityCount unwired |
 
+## 2026-09-09 — C7.29 deps audit + Node 24
+
+| Scope | Command / evidence | Result | Notes |
+|---|---|---|---|
+| Node engines | `24.x` + `.nvmrc` = `24` | PASS | no rewrite needed |
+| Direct bumps | next/eslint-config-next 16.3.4; nodemailer 9.1.1; csv-parse 7.0.2 | PASS | seed `csv-parse/sync` OK |
+| Overrides | sharp 0.35.4; humanfs; fast-uri; js-yaml 4.3.2; postcss-selector-parser 6.1.4 | PASS | audit clear |
+| `npm audit` | 0 vulnerabilities | PASS | install-scripts warnings informational |
+| eslint / tsc | exit 0 | PASS | |
+| Jest | 43 suites / 200 passed / 2 skipped | PASS | |
+| `npm run build` | exit 0 | PASS | |
+| Verifier / Security | PASS WITH WARNINGS / PASS | js-yaml major override over babel-jest range (dev-only) |
+

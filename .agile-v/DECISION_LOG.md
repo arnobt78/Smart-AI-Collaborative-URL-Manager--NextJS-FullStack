@@ -1008,3 +1008,16 @@ Append-only. Newest entries at bottom.
 | Rationale | User screenshots showed soft-nav→page empty chrome swap and Browse blank→empty; SSR already dehydrates empty arrays. |
 | Linked REQs | REQ-0053; TASK-0059 |
 | Status | Implemented — C7.28 commit-ready. |
+
+---
+
+## DEC-0073 — Safe same-line audit cleanup; no major framework jumps
+
+| Field | Value |
+|---|---|
+| Timestamp | 2026-09-09 |
+| Agent | Cursor |
+| Decision | Clear `npm audit` to 0 via Next 16.3.4, sharp 0.35.4 override, nodemailer 9.1.1, csv-parse 7.0.2, and precise transitive overrides. Keep Node `engines`/`nvmrc` at 24.x. **Do not** upgrade Prisma 7/8, Tailwind 4, Zod 4, ESLint 10, TypeScript 7, lucide 1.x, or Babel 8 in this pass. |
+| Rationale | Vercel Node 20 EOL already satisfied in repo; CVEs are patchable without architectural churn. |
+| Linked REQs | REQ-0054; TASK-0060 |
+| Status | Implemented — C7.29 verify PASS WITH WARNINGS. |

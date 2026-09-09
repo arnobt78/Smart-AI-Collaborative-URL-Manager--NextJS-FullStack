@@ -514,4 +514,13 @@ RSC shells · densify/Zod/SHA/Next16
 
 **Dependencies:** REQ-0053; empty_known-zero_paint plan approved 2026-09-09.
 
+### TASK-0060 — C7.29 deps audit + Node 24 — **DONE**
+
+1. ~~Reconcile STATE; REQ-0054 + DEC-0073; confirm engines 24.x.~~
+2. ~~Bump next/sharp/nodemailer/csv-parse + overrides until `npm audit` = 0.~~
+3. ~~Low-risk same-major outdated bumps.~~
+4. ~~eslint / tsc / jest / build + independent verifier.~~
+
+**Dependencies:** REQ-0054; deps_audit_node24 plan approved 2026-09-09.
+
 

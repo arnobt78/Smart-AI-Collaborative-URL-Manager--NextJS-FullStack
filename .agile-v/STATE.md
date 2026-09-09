@@ -1,26 +1,40 @@
 # STATE.md
 
-**C7.28 — Empty-state known-zero paint — commit-ready** | 2026-09-09
+**C7.29 — Dependency audit + Node 24 guardrails** | 2026-09-09
 
 ## Reconciled (repo = docs)
 
-- Shared `MyListsEmptyState` / `BrowseEmptyState` on soft-nav + pages (no icon-less / blank-grid flash).
-- UrlList: empty only when `resolveListUrlCount===0`; pending slot when thin `urls=[]` + `urlCount>0`; seed `urlCount`.
-- Activity thin: collapsed non-pulse shell; `knownActivityCount` intentionally undefined on thin seed.
-- Dead always-false `isLoading` removed from ActivityFeed / PermissionManager.
-- Prior: `065183e` badge/snapshot; Free-tier A–D + Track B W1–W3.
-- **Stack:** Next 16.3.3 · React 19.2.8 · Node 24.x · Prisma 6.19.3.
+- Prior C7.28 empty-state: `5951aa4`.
+- **Node:** `engines.node` = `24.x`; `.nvmrc` = `24` (unchanged).
+- **Audit:** `npm audit` = **0** — next **16.3.4**, sharp **0.35.4**, nodemailer **9.1.1**, csv-parse **7.0.2**, overrides `@humanfs/node` / `fast-uri` / `js-yaml` / `postcss-selector-parser`.
+- **Same-major:** sentry, playwright, upstash redis, posthog, resend, nanostores, jest 30.5.x — no Prisma 7/8, Tailwind 4, Zod 4, ESLint 10.
+- **Stack:** Next 16.3.4 · React 19.2.x · Node 24.x · Prisma 6.19.3.
 
 ## Current checkpoint
 
-- **Stage:** C7.28 commit-ready
+- **Stage:** C7.29 commit-ready
 - **Cycle:** C7
-- **Status:** verify PASS WITH WARNINGS; security PASS; local commit pending
-- **Trace:** REQ-0053, TASK-0059, DEC-0072
+- **Status:** verify PASS WITH WARNINGS; security PASS WITH WARNINGS; docs synced
+- **Trace:** REQ-0054 DONE, TASK-0060 DONE, DEC-0073 DONE
+
+## Validation (2026-09-09)
+
+| Check | Result |
+|-------|--------|
+| `npm audit` | 0 |
+| eslint / tsc / Jest / build | PASS |
+| implementation-verifier | PASS WITH WARNINGS |
+| security-review | PASS WITH WARNINGS |
+
+## Human
+
+- Local: `nvm use` 24 (agent shell may be 22).
+- Vercel dashboard Node = 24.x if override exists.
+- Optional install-scripts approve — not CVE-related.
 
 ## Next
 
 ```text
-1. User: push when ready; light prod smoke Lists↔Browse empty + thin-seed detail.
-2. Absolute cold `_rsc` / Redis SUBSCRIBE remain deferred.
+1. Push when directed + light prod smoke.
+2. Next product cycle from backlog.
 ```

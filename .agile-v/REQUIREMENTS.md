@@ -1064,3 +1064,24 @@ These describe the current product as verified in code. They are **Accepted as b
 **Affected:** OptimisticSoftNavSurface, ListsPage, BrowsePage, UrlList, soft-nav-cache seed, ListDetailHeaderChrome, ActivityFeed, PermissionManager.  
 **Trace:** TASK-0059, DEC-0072.  
 **Status:** Implemented — verify PASS WITH WARNINGS [C7.28].
+
+---
+
+### REQ-0054 — C7.29 dependency audit + Node 24 guardrails (approved 2026-09-09)
+
+**Priority:** P1  
+**Type:** Security / supply-chain / runtime  
+
+**Statement:** `npm audit` MUST report **0** vulnerabilities after safe same-line bumps and precise `overrides`. Node runtime target MUST remain **24.x** (`engines` + `.nvmrc`) for Vercel post–Node-20 EOL. MUST NOT jump Prisma 7/8, Tailwind 4, Zod 4, ESLint 10, or other major framework lines unless a CVE forces it.
+
+**Acceptance criteria:**
+
+- [x] `engines.node` = `24.x` and `.nvmrc` = `24` confirmed.
+- [x] `next` / `eslint-config-next` ≥ 16.3.4; `sharp` override ≥ 0.35.4; `nodemailer` ≥ 9.1.1; `csv-parse` ≥ 7.0.2 with seed import intact.
+- [x] Transitive overrides clear `@humanfs/node`, `fast-uri`, `js-yaml`, `postcss-selector-parser` advisories as needed.
+- [x] Low-risk same-major outdated bumps applied after audit is clean.
+- [x] `npm audit` = 0; `eslint .` = 0 errors; `tsc --noEmit`; targeted Jest; `npm run build`.
+
+**Affected:** `package.json`, `package-lock.json`, `prisma/seed.ts` (csv-parse), Agile V docs.  
+**Trace:** TASK-0060, DEC-0073.  
+**Status:** Implemented — verify PASS WITH WARNINGS [C7.29].
