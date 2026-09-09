@@ -1330,6 +1330,7 @@ export async function archiveUrlFromList(urlId: string) {
   if (!current.id || !current.urls) {
     throw new Error("List not ready");
   }
+  const snapshot = current as UrlList;
 
   isLoading.set(true);
   error.set(null);
@@ -1453,19 +1454,26 @@ export async function archiveUrlFromList(urlId: string) {
           }
         : undefined;
 
-    return commitUrlMutation(
-      currentList.get() as UrlList,
-      list,
-      (currentList.get().urls as UrlItem[]) || updatedUrls,
-      "archive",
-      {
+    const serverArchived = Array.isArray((list as UrlList).archivedUrls)
+      ? ((list as UrlList).archivedUrls as UrlItem[])
+      : updatedArchivedUrls;
+    const serverActive = Array.isArray(list?.urls)
+      ? ((list.urls as unknown as UrlItem[]) || updatedUrls)
+      : updatedUrls;
+    const committedList = {
+      ...(list as UrlList),
+      urls: serverActive,
+      archivedUrls: serverArchived,
+    } as UrlList;
+
+    return commitUrlMutation(snapshot, committedList, serverActive, "archive", {
       skipUnified: true,
       activity: activityForCache,
     });
   } catch (err) {
     error.set(err instanceof Error ? err.message : "Failed to archive URL");
     // Restore exactly the initiating snapshot; no refetch is needed to recover the UI.
-    currentList.set(current);
+    currentList.set(snapshot);
     throw err;
   } finally {
     isLoading.set(false);
@@ -1477,6 +1485,7 @@ export async function restoreArchivedUrl(urlId: string) {
   if (!current?.id || !current?.archivedUrls) {
     throw new Error("List not ready");
   }
+  const snapshot = current;
 
   isLoading.set(true);
   error.set(null);
@@ -1605,17 +1614,24 @@ export async function restoreArchivedUrl(urlId: string) {
           }
         : undefined;
 
-    return commitUrlMutation(
-      currentList.get() as UrlList,
-      list,
-      (currentList.get().urls as UrlItem[]) || updatedUrls,
-      "archive",
-      {
+    const serverArchived = Array.isArray((list as UrlList).archivedUrls)
+      ? ((list as UrlList).archivedUrls as UrlItem[])
+      : updatedArchivedUrls;
+    const serverActive = Array.isArray(list?.urls)
+      ? ((list.urls as unknown as UrlItem[]) || updatedUrls)
+      : updatedUrls;
+    const committedList = {
+      ...(list as UrlList),
+      urls: serverActive,
+      archivedUrls: serverArchived,
+    } as UrlList;
+
+    return commitUrlMutation(snapshot, committedList, serverActive, "archive", {
       skipUnified: true,
       activity: activityForCache,
     });
   } catch (err) {
-    currentList.set(current);
+    currentList.set(snapshot);
     error.set(
       err instanceof Error ? err.message : "Failed to restore archived URL"
     );

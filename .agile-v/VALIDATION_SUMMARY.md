@@ -837,3 +837,13 @@ Gate 2: BLOCKED — RISK-0016 is accepted; `EVAL_RESULTS.md` PASS/WAIVED evidenc
 | Verifier / Security | PASS WITH WARNINGS / PASS | keep-warm badge UX only |
 | tsc / eslint (touched TSX) | exit 0 | PASS |
 
+## 2026-09-09 — Keep-warm badge + archive/restore snapshot
+
+| Scope | Command / evidence | Result | Notes |
+|---|---|---|---|
+| ApiDocs authMode | keep-warm `internal` → Internal Secret badge | PASS | session Auth Required unchanged |
+| Store snapshot | archive/restore commit uses op-start snapshot | PASS | no late `currentList.get()` |
+| tsc / eslint (touched) | exit 0 | PASS | |
+| Jest | urlListStore.mutations + keep-warm route | PASS | |
+| Verifier / Security | PASS WITH WARNINGS / PASS | optional race UI tests not blocking |
+

@@ -1,5 +1,13 @@
 # CHANGELOG.md
 
+## CR-0034 — Keep-warm Internal Secret badge + archive snapshot commit
+
+- **Cycle:** C7.27 follow-up
+- **Change:** ApiDocs `authMode: "internal"` for keep-warm; archive/restore commit from operation-start snapshot + densify-safe arrays.
+- **Rationale:** Docs badge implied session cookie for internal-job auth; mid-flight `currentList.get()` risked stale archive/restore merges.
+- **Impact:** `ApiDocsPage.tsx`, `urlListStore.ts`, Agile V STATE/VALIDATION.
+- **Requested by / approval:** fix_badge_+_snapshot plan; verify-deep PASS WITH WARNINGS; `/commit-ready`.
+
 ## CR-0033 — C7.20 visibility densify + UrlCard fav/pin/duplicate
 
 - **Cycle:** C7.20

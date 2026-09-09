@@ -20,6 +20,7 @@ interface ApiEndpoint {
   path: string;
   description: string;
   auth: boolean;
+  authMode?: "session" | "internal";
   params?: Record<string, string>;
   body?: Record<string, string> | string;
   response: Record<string, unknown> | string;
@@ -302,6 +303,7 @@ const utilityEndpoints: ApiEndpoint[] = [
     description:
       "Free-tier keep-warm ping (Prisma + Redis). Not for browsers — requires header x-internal-job-secret (INTERNAL_JOB_SECRET) or QStash (not a session cookie). Does not guarantee absolute cold _rsc SLAs.",
     auth: true,
+    authMode: "internal",
     response: {
       ok: "boolean",
       db: "boolean",
@@ -316,6 +318,7 @@ const utilityEndpoints: ApiEndpoint[] = [
     description:
       "Same as GET keep-warm (internal job / cron callers; header x-internal-job-secret, not session cookie)",
     auth: true,
+    authMode: "internal",
     response: {
       ok: "boolean",
       db: "boolean",
@@ -539,7 +542,7 @@ export default function ApiDocsPage() {
                         <code className="text-white font-mono text-xs sm:text-sm break-all">
                           {endpoint.path}
                         </code>
-                        {endpoint.auth && (
+                        {endpoint.auth && endpoint.authMode !== "internal" && (
                           <Badge
                             variant="secondary"
                             className={cn(
@@ -552,6 +555,21 @@ export default function ApiDocsPage() {
                               Auth Required
                             </span>
                             <span className="sm:hidden">Auth</span>
+                          </Badge>
+                        )}
+                        {endpoint.auth && endpoint.authMode === "internal" && (
+                          <Badge
+                            variant="outline"
+                            className={cn(
+                              "inline-flex items-center text-xs border-blue-400/40 text-blue-200",
+                              UI_CONTROL_ICON_GAP,
+                            )}
+                          >
+                            <Code className={UI_ICON_INLINE_XS} aria-hidden />
+                            <span className="hidden sm:inline">
+                              Internal Secret
+                            </span>
+                            <span className="sm:hidden">Internal</span>
                           </Badge>
                         )}
                         {!endpoint.auth && (
