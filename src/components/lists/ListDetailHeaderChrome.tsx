@@ -251,6 +251,7 @@ export type ListDetailBodyList = {
   slug: string;
   title?: string | null;
   urls?: unknown[] | null;
+  isPublic?: boolean;
 };
 
 /** Live Collaborators / Smart Collections / Activity sections (ListPage + warm soft-nav). */
@@ -314,7 +315,7 @@ export function ListDetailBodySkeletons({
               icon={Shield}
               hue="blue"
               title="Collaborators"
-              subtitle="No collaborators yet · Invite others to collaborate on this list"
+              subtitle="No named collaborators"
             />
           </div>
         ) : (
@@ -364,7 +365,7 @@ export function ListDetailBodySkeletons({
             subtitle={
               activityKnownEmpty
                 ? "No activity yet · Start adding URLs to see activity here"
-                : `Latest ${ACTIVITY_FEED_LIMIT}`
+                : `Latest ${ACTIVITY_FEED_LIMIT} events · you & collaborators`
             }
           />
         </div>

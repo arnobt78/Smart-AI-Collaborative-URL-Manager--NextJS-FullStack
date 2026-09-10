@@ -2,6 +2,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { getListById } from "@/lib/db";
 import {
   resolveCollaboratorRole,
+  isRevokedCollaborator,
   type CollaboratorRolesJson,
 } from "@/lib/collaborator-roles";
 
@@ -38,10 +39,14 @@ export function getRoleForListUser(
 
   if (list.userId === user.id) return "owner";
 
-  const collabRole = resolveCollaboratorRole(
-    list.collaboratorRoles as CollaboratorRolesJson | null | undefined,
-    user.email,
-  );
+  const roles = list.collaboratorRoles as CollaboratorRolesJson | null | undefined;
+
+  // C7.33: revoked former collaborators never fall through to public viewer
+  if (isRevokedCollaborator(roles, user.email)) {
+    return "none";
+  }
+
+  const collabRole = resolveCollaboratorRole(roles, user.email);
   if (collabRole) return collabRole;
 
   if (

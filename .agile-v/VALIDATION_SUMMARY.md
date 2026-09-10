@@ -897,3 +897,30 @@ Gate 2: BLOCKED — RISK-0016 is accepted; `EVAL_RESULTS.md` PASS/WAIVED evidenc
 | Playwright e2e | 19 pass / 7 fail | WARN | shared-DB fixture pollution (E2E URL A archived); not C7.31 |
 | Security review | PASS | no medium+ |
 
+## 2026-09-10 — C7.32 honest collab chrome + smoke polish
+
+| Scope | Command / evidence | Result | Notes |
+|---|---|---|---|
+| Option 1 public view+comment | permissions unchanged | PASS | |
+| PermissionManager chrome/copy | canInvite-only Add; isPublic subtitle/dialog | PASS | wired via ListDetailBodyList |
+| Thin collab/Activity subtitles | ListDetailHeaderChrome | PASS | |
+| Lists empty flash | soft-nav skeleton; ListsPage placeholder | PASS | |
+| Insights Overview pair-load | overview+activity together | PASS | |
+| eslint / tsc / build | exit 0 | PASS | |
+| Jest soft-nav/permissions | 16 passed | PASS | |
+| Verifier | PASS | HA public/private remove re-smoke |
+
+## 2026-09-10 — C7.33 collaborator revoke until re-invite
+
+| Scope | Command / evidence | Result | Notes |
+|---|---|---|---|
+| Revoke denylist | collaboratorRoles `role:revoked`; skip in UI list | PASS | no Prisma migration |
+| Authz | revoked before public→viewer (server+client) | PASS | |
+| Unified kick | 401+403 → unauthorized event; ListPage toast+home | PASS | |
+| Soft-nav / SSR | accessDenied cold; loadUnifiedList dehydrate | PASS | |
+| Offline revoke cache | unified `refetchOnMount: "always"` | PASS | security Low residual closed |
+| Remove copy | lose access immediately | PASS | |
+| eslint / tsc / build | exit 0 | PASS | commit-ready re-run |
+| Jest roles+revoke+soft-nav | focused suites PASS | PASS | include permissions-revoke |
+| Verifier / security | PASS WITH WARNINGS → Low fixed | HA smoke still human |
+

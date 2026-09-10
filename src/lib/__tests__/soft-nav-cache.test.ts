@@ -151,6 +151,22 @@ describe("C6.9 soft-nav-cache", () => {
     expect(peekWarmSoftNav()).toBe(false);
   });
 
+  it("accessDenied unified cache stays cold for list soft-nav", () => {
+    const client = new QueryClient();
+    client.setQueryData(listQueryKeys.allLists(), {
+      lists: [{ id: "1", slug: "revoked-list", title: "Gone" }],
+    });
+    client.setQueryData(listQueryKeys.unified("revoked-list"), {
+      list: null,
+      activities: [],
+      collaborators: [],
+      accessDenied: true,
+    });
+    expect(isDestinationCacheWarm(client, "/list/revoked-list")).toBe(false);
+    expect(prepareWarmSoftNav(client, "/list/revoked-list")).toBe(false);
+    expect(seedUnifiedFromAllLists(client, "revoked-list")).toBe(false);
+  });
+
   it("isUnifiedListHydrated is false for thin seed and true after full fetch shape", () => {
     const thin = {
       list: { id: "1", slug: "my-list" },

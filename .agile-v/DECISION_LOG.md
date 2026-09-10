@@ -1047,3 +1047,29 @@ Append-only. Newest entries at bottom.
 | Rationale | Owner wants one final polish pass before project freeze. |
 | Linked REQs | REQ-0056; TASK-0063 |
 | Status | Implemented — C7.31 verify PASS WITH WARNINGS; security PASS; commit-ready. |
+
+---
+
+## DEC-0076 — Keep public view+comment; honest collab chrome (Option 1)
+
+| Field | Value |
+|---|---|
+| Timestamp | 2026-09-10 |
+| Agent | Cursor |
+| Decision | Keep Option 1: public + signed-in ⇒ viewer ⇒ view/comment. Removal drops named collaborator role only. Fix PermissionManager chrome/copy, thin subtitles, Lists empty flash, Insights overview+activity pair-load. Defer Option 2 (comment lock). |
+| Rationale | HA smoke confusion was UX/copy, not authz bug; Option 2 would surprise public commenters. |
+| Linked REQs | REQ-0057; TASK-0064 |
+| Status | Implemented — C7.32 verify PASS; HA smoke pending. Partially superseded by DEC-0077. |
+
+---
+
+## DEC-0077 — Collaborator revoke until re-invite (visibility-agnostic)
+
+| Field | Value |
+|---|---|
+| Timestamp | 2026-09-10 |
+| Agent | Cursor |
+| Decision | Mark removed collaborators as `revoked` in collaboratorRoles. Authz checks revoked before public→viewer so remove blocks list-detail on public and private until re-invite. Browse/public toggle unchanged for never-invited users. Revert C7.32 remove copy that promised continued view/comment. |
+| Rationale | Owner expectation: invite/remove is independent of public toggle; old invite link must not reopen the list. |
+| Linked REQs | REQ-0058; TASK-0065 |
+| Status | Implemented — C7.33 commit-ready; HA smoke pending. |

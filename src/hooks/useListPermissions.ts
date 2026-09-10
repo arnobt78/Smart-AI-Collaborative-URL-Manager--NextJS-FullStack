@@ -6,6 +6,7 @@ import { useStore } from "@nanostores/react";
 import { currentList, type UrlList } from "@/stores/urlListStore";
 import {
   resolveCollaboratorRole,
+  isRevokedCollaborator,
   type CollaboratorRolesJson,
 } from "@/lib/collaborator-roles";
 
@@ -61,10 +62,23 @@ export function useListPermissions(listOverride?: ListLike | null): PermissionCh
       };
     }
 
-    const collabRole = resolveCollaboratorRole(
-      list.collaboratorRoles as CollaboratorRolesJson | null | undefined,
-      user.email,
-    );
+    const roles = list.collaboratorRoles as
+      | CollaboratorRolesJson
+      | null
+      | undefined;
+
+    // C7.33: revoked former collaborators never fall through to public viewer
+    if (isRevokedCollaborator(roles, user.email)) {
+      return {
+        canEdit: false,
+        canDelete: false,
+        canInvite: false,
+        canComment: false,
+        role: "none" as UserRole,
+      };
+    }
+
+    const collabRole = resolveCollaboratorRole(roles, user.email);
 
     if (collabRole === "editor") {
       return {

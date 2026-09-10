@@ -40,10 +40,16 @@ export default function ListsPageClient() {
     return setupSSECacheSync();
   }, []);
 
-  const { data: listsData, isLoading } = useAllListsQuery();
+  const {
+    data: listsData,
+    isLoading,
+    isFetching,
+    isPlaceholderData,
+  } = useAllListsQuery();
   const lists = listsData?.lists || [];
-  // C6.9: never blank — cold without data shows slot immediately
-  const isColdLoading = isLoading && !listsData;
+  // C6.9 / C7.32: never blank — cold or placeholder refetch shows slot (no empty flash)
+  const isColdLoading =
+    (isLoading && !listsData) || (isFetching && isPlaceholderData);
 
   const deleteListMutation = useDeleteList();
 

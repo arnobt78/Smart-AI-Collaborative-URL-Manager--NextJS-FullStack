@@ -45,6 +45,8 @@ type UnifiedCacheShape = {
   activities?: unknown[];
   collaborators?: unknown[];
   commentCounts?: Record<string, number>;
+  /** C7.33: deny paint of optimistic list chrome after revoke */
+  accessDenied?: boolean;
   [SOFT_NAV_THIN_SEED]?: boolean;
 };
 
@@ -244,7 +246,7 @@ export function seedUnifiedFromAllLists(
     return true;
   }
 
-  // Explicit null list (404 / deleted) — do not resurrect from allLists
+  // Explicit null list (404 / deleted / C7.33 accessDenied) — do not resurrect from allLists
   if (existing && existing.list == null) return false;
 
   const all = queryClient.getQueryData<{ lists?: SeedableListRow[] }>(
@@ -372,6 +374,8 @@ export function isDestinationCacheWarm(
       const data = queryClient.getQueryData<UnifiedCacheShape>(
         listQueryKeys.unified(slug),
       );
+      // C7.33: accessDenied must stay cold (skeleton) — never OptimisticSoftNavSurface
+      if (data?.accessDenied) return false;
       return Boolean(data?.list?.slug === slug);
     }
 

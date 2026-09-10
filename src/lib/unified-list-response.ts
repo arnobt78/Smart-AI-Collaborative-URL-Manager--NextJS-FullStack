@@ -15,6 +15,8 @@ export type UnifiedListResponse = {
   activities: UnifiedActivity[];
   collaborators?: UnifiedCollaborator[];
   commentCounts?: Record<string, number>;
+  /** C7.33: set by client unified fetch on 401/403 — ListPage kicks without “not found” flash */
+  accessDenied?: boolean;
 };
 
 /**

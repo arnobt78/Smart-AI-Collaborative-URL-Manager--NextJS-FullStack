@@ -70,6 +70,8 @@ export default function BusinessInsightsPage() {
     !overviewData || (overviewFetching && overviewPlaceholder);
   const showActivityLoading =
     !activityData || (activityFetching && activityPlaceholder);
+  // C7.32: Overview tab paints KPIs + chart together (no late catch-up feel)
+  const showOverviewTabLoading = showOverviewLoading || showActivityLoading;
   const showPopularLoading =
     !popularData || (popularFetching && popularPlaceholder);
   const showPerformanceLoading =
@@ -96,15 +98,16 @@ export default function BusinessInsightsPage() {
         <InsightsTabsList />
 
         <TabsContent value="overview" className="space-y-6">
-          {showOverviewLoading ? (
-            <OverviewCards isLoading />
+          {showOverviewTabLoading ? (
+            <>
+              <OverviewCards isLoading />
+              {dataSlot("activity")}
+            </>
           ) : (
-            <OverviewCards data={overviewData} />
-          )}
-          {showActivityLoading ? (
-            dataSlot("activity")
-          ) : (
-            <ActivityChart initialData={activityData} />
+            <>
+              <OverviewCards data={overviewData} />
+              <ActivityChart initialData={activityData} />
+            </>
           )}
         </TabsContent>
 

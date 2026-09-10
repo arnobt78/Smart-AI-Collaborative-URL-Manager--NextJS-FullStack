@@ -24,10 +24,13 @@ Done: C7.8–C7.25 · **LLM** `c085f69` REQ-AI-0001 · **Icons** CONTROL/DECORAT
 **C7.29** Deps audit + Node 24: next/eslint-config-next **16.3.4**; sharp override **0.35.4**; nodemailer **9.1.1**; csv-parse **7.0.2**; overrides; `npm audit` **0**.
 **C7.30** Collab smoke: densify My Lists `updatedAt` on add/role/remove; Viewer jobs `canRunJobs`; clear `authRedirect` on logout (invite `?next=` only).
 **C7.31** Deferred polish closed: edit `scrollToUrlCard`; single navbar-offset `scrollTo`; opaque glass toasts; Insights loading while `isFetching && isPlaceholderData`; dup-scroll twin **Skip**.
+**C7.32** Honest collab chrome: Add Collaborator only when `canInvite`; thin Activity/collab subtitles; Lists empty soft-nav skeleton; Insights overview+activity pair-load.
+**C7.33** Collaborator revoke denylist (`role: revoked`) before public→viewer; SSR/client `accessDenied`; skeleton kick + toast + home; soft-nav cold; unified `refetchOnMount: "always"`; re-invite overwrites.
 Stack: Next **16.3.4** · React **19.2.8** · Node **24.x** · **`src/proxy.ts`** · Prisma **6.19.3**.
 Defer: `(auth)` route-group; absolute cold PATCH/`_rsc` SLAs; Redis SUBSCRIBE rewrite; virtualization; Cloudinary destroy; Prisma urlCount column.
-Human: HA-0001 DONE; Vercel Node **24.x**; next: push + final polish smoke.
+Human: HA-0001 DONE; Vercel Node **24.x**; next: HA revoke smoke (remove → old invite) + push.
 Validate: Jest · lint 0 · tsc · build · audit 0. · Resume: `.agile-v/STATE.md`.
+
 
 
 ## Stack

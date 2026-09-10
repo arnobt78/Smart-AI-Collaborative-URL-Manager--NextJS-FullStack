@@ -49,18 +49,26 @@ export function useUnifiedListQuery(slug: string, enabled: boolean = true) {
         `/api/lists/${slug}/updates?activityLimit=${ACTIVITY_FEED_LIMIT}`
       );
       if (!response.ok) {
-        if (response.status === 401) {
-          // CRITICAL: Get list ID from current list store if available
-          // This ensures the event has the correct listId for matching in ListPage
+        if (response.status === 401 || response.status === 403) {
+          // 401 guest / 403 revoked or forbidden — ListPage kicks with toast
           const current = currentList.get();
-          const listId = current?.id || slug; // Fallback to slug if ID not available
+          const listId = current?.id || slug;
+          // Drop stale soft-nav/store paint so revoke never flashes list chrome
+          if (current?.slug === slug || current?.id === slug) {
+            currentList.set({});
+          }
 
           window.dispatchEvent(
             new CustomEvent("unified-update-unauthorized", {
-              detail: { listId, slug },
+              detail: { listId, slug, status: response.status },
             })
           );
-          return { list: null, activities: [], collaborators: [] };
+          return {
+            list: null,
+            activities: [],
+            collaborators: [],
+            accessDenied: true,
+          };
         }
         // CRITICAL: Handle 404 (list not found/deleted) by returning null list
         // This ensures ListPage shows "List not found" instead of error
@@ -120,10 +128,8 @@ export function useUnifiedListQuery(slug: string, enabled: boolean = true) {
     staleTime: Infinity, // Cache forever until invalidated
     gcTime: 1000 * 60 * 60 * 24 * 7, // 7 days - keep in cache after component unmounts (matches default)
     refetchOnWindowFocus: false, // Don't refetch on window focus
-    // CRITICAL: Refetch only when stale (invalidated)
-    // With staleTime: Infinity, this only triggers after invalidation
-    // Normal navigation uses cache instantly (no API calls)
-    refetchOnMount: true, // Refetch only when stale (after invalidation)
+    // C7.33: always revalidate on mount so offline revoke cannot paint warm pre-403 cache
+    refetchOnMount: "always",
     refetchOnReconnect: false, // Don't refetch on reconnect
     // Same-list refetch only — never reuse another slug's list as placeholder (wrong-list bug)
     placeholderData: (previousData) =>

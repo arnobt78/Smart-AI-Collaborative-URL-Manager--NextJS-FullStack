@@ -1125,3 +1125,46 @@ These describe the current product as verified in code. They are **Accepted as b
 **Affected:** `UrlList.tsx`, `Toast.tsx`, `BusinessInsightsPage.tsx`, Agile V.  
 **Trace:** TASK-0063, DEC-0075.  
 **Status:** Implemented — verify PASS WITH WARNINGS [C7.31]; commit-ready.
+
+---
+
+### REQ-0057 — C7.32 honest collab chrome + smoke polish (approved 2026-09-10)
+
+**Priority:** P2  
+**Type:** UX / access clarity  
+
+**Statement:** Keep public signed-in view+comment (Option 1). Collaborators chrome MUST NOT look owner-like for non-owners; remove dialog MUST distinguish public vs private access loss; thin Activity/collab soft-nav subtitles MUST match live copy; My Lists MUST NOT flash empty on soft-nav; Insights Overview MUST wait for both overview and activity before painting either.
+
+**Acceptance criteria:**
+
+- [x] Add Collaborator only when `canInvite`; empty subtitle role/public-aware.
+- [x] Remove dialog: public keeps view/comment honesty; private keeps lose-access wording.
+- [x] Thin skeletons: neutral collab subtitle; Activity `Latest N events · you & collaborators`.
+- [x] Soft-nav empty lists → skeleton; ListsPage no empty while placeholder refetch.
+- [x] Overview tab: pair-load overview + activity.
+
+**Affected:** `PermissionManager`, `ListDetailHeaderChrome`, `OptimisticSoftNavSurface`, `ListsPage`, `BusinessInsightsPage`, Agile V.  
+**Trace:** TASK-0064, DEC-0076.  
+**Status:** Implemented — verify PASS [C7.32]; HA smoke pending. Superseded in part by REQ-0058 (remove no longer allows view/comment).
+
+---
+
+### REQ-0058 — C7.33 collaborator revoke until re-invite (approved 2026-09-10)
+
+**Priority:** P1  
+**Type:** Access control  
+
+**Statement:** Removing a collaborator MUST revoke list-detail access for that email on **any** list (public or private) until re-invited. Old invite links MUST redirect with toast. Never-invited signed-in users on public lists remain viewers. Browse discoverability unchanged. Collaborator invite/remove is orthogonal to the public toggle.
+
+**Acceptance criteria:**
+
+- [x] `removeCollaborator` stores `role: "revoked"` in collaboratorRoles (not delete key).
+- [x] `getRoleForListUser` / client permissions: revoked → `none` before public→viewer.
+- [x] Revoked users omitted from collaborator UI lists.
+- [x] Unified 403 (and 401) → toast + redirect home on ListPage.
+- [x] Remove dialog: lose access immediately (no “still view/comment because public”).
+- [x] Re-invite clears revoke and restores role.
+
+**Affected:** `collaborator-roles`, `db.removeCollaborator`, `permissions`, `useListPermissions`, `useListQueries`, `ListPage`, `PermissionManager`.  
+**Trace:** TASK-0065, DEC-0077.  
+**Status:** Implemented — commit-ready [C7.33]; HA smoke pending.

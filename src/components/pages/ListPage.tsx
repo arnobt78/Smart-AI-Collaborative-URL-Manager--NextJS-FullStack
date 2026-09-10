@@ -48,7 +48,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useWarmSoftNav } from "@/hooks/useWarmSoftNav";
 import { loginHrefWithNext } from "@/lib/auth-redirect";
-import { setAuthRedirect } from "@/lib/logout-client";
+import { clearAuthRedirect, setAuthRedirect } from "@/lib/logout-client";
 
 export default function ListPageClient() {
   const { toast, updateToast } = useToast();
@@ -82,9 +82,6 @@ export default function ListPageClient() {
     isError: isUnifiedError,
   } = useUnifiedListQuery(listSlug, !!listSlug);
 
-  // CRITICAL: Start with loading=false to show cached data immediately
-  // Only show loading if we truly have no data
-  const [isLoading, setIsLoading] = useState(false);
   const [mounted, setMounted] = useState(false); // Track if component is mounted (prevents hydration errors)
   const [isCopied, setIsCopied] = useState(false);
   const [visibilityDialogOpen, setVisibilityDialogOpen] = useState(false);
@@ -105,6 +102,7 @@ export default function ListPageClient() {
         activities?: unknown[];
         collaborators?: unknown[];
         commentCounts?: Record<string, number>;
+        accessDenied?: boolean;
         [SOFT_NAV_THIN_SEED]?: boolean;
       }>(listQueryKeys.unified(listSlug))
     : undefined;
@@ -119,12 +117,18 @@ export default function ListPageClient() {
         : undefined;
   // C7.26.1: RQ dehydrate wins over stale store urls.length until hydrated (RISK-0035).
   // Ignore nanostore until mounted so SSR + first client paint share RQ-only source.
-  const list = resolveListDetailPaintList({
-    slug: listSlug,
-    rqList,
-    storeList: mounted ? storeList : undefined,
-    unifiedPayload: unifiedForPaint,
-  });
+  // C7.33: never paint store when unified reports accessDenied (revoked soft-nav).
+  const accessDeniedPaint =
+    Boolean(unifiedData?.accessDenied) ||
+    Boolean(cachedUnified?.accessDenied && !rqList);
+  const list = accessDeniedPaint
+    ? undefined
+    : resolveListDetailPaintList({
+        slug: listSlug,
+        rqList,
+        storeList: mounted ? storeList : undefined,
+        unifiedPayload: unifiedForPaint,
+      });
 
   // C7.26.1: UrlList reads nanostore; sync during render so SSR + first client paint
   // share RQ urls including commentCount/clickCount (Comments badge hydration).
@@ -157,7 +161,15 @@ export default function ListPageClient() {
   }, [listSlug]);
 
   // Sync RQ → currentList before paint (C7.10 thin-seed UrlList needs urls on first frame).
+  // C7.33: clear store on accessDenied so soft-nav cannot keep painting revoked list.
   useLayoutEffect(() => {
+    if (unifiedData?.accessDenied) {
+      const store = currentList.get();
+      if (!listSlug || store?.slug === listSlug || store?.id === listSlug) {
+        currentList.set({});
+      }
+      return;
+    }
     if (
       unifiedData?.list &&
       unifiedData.list.slug === listSlug &&
@@ -191,6 +203,13 @@ export default function ListPageClient() {
     // Wait for query completion before the client fallback redirect. Server page
     // guards normally redirect first; this covers a revoked session in-flight.
     if (isLoadingQuery) {
+      return;
+    }
+
+    // C7.33: authenticated accessDenied is owned by the kick effect (home + toast),
+    // not the guest login redirect — avoids login flash after revoke.
+    if (isAuthenticated && unifiedData?.accessDenied) {
+      hasCheckedAuthRef.current = true;
       return;
     }
 
@@ -237,53 +256,22 @@ export default function ListPageClient() {
     mounted,
   ]);
 
-  // Update loading state - only show loading if we truly have NO data at all
-  useEffect(() => {
-    // If we have data (from React Query or store), we're not loading
-    if (
-      unifiedData?.list?.slug === listSlug ||
-      (list && list.slug === listSlug && list.id)
-    ) {
-      setIsLoading(false);
-      return;
-    }
-
-    // Only show loading if we have a slug but absolutely no data yet
-    // And React Query is actively fetching (not just checking cache)
-    // Also show loading if session is loading (waiting for authentication check)
-    if (
-      listSlug &&
-      ((isLoadingQuery && !unifiedData && !list?.id) || sessionLoading)
-    ) {
-      setIsLoading(true);
-    } else {
-      setIsLoading(false);
-    }
-  }, [unifiedData, isLoadingQuery, listSlug, list, slug, sessionLoading]);
-
   // Track current permissions with a ref to check in callbacks
   const permissionsRef = useRef(permissions);
   useEffect(() => {
     permissionsRef.current = permissions;
   }, [permissions]);
 
-  // Track recent collaborator_removed events to handle 401 errors
+  // Track recent collaborator_removed events to handle live kick toasts
   const recentCollaboratorRemovedRef = useRef<{
     email: string;
     ownerEmail: string;
     timestamp: number;
   } | null>(null);
 
-  // Listen for collaborator removal and redirect if current user is removed
-  // CRITICAL: Always set up 401 handler to catch access removal, even if user doesn't have access initially
-  // This handles the case where user was removed and then navigates to the page
+  // Live SSE: track collaborator_removed while we still have list id
   useEffect(() => {
-    if (
-      !sessionUser?.email ||
-      !list?.id ||
-      hasRedirectedRef.current ||
-      isLoading
-    ) {
+    if (!sessionUser?.email || !list?.id || hasRedirectedRef.current) {
       return;
     }
 
@@ -303,172 +291,159 @@ export default function ListPageClient() {
         };
       }>;
 
-      // CRITICAL: Handle collaborator_removed actions for this list
-      // Track removal events if it's for the current user (even if they don't have access now)
       const isCollaboratorRemoved =
         customEvent.detail?.listId === list.id &&
         (customEvent.detail?.action === "collaborator_removed" ||
           customEvent.detail?.activity?.action === "collaborator_removed");
 
-      if (isCollaboratorRemoved) {
-        // Get collaborator email from activity details (from activity_created SSE event)
-        // If not available, we'll still track the removal event and check permissions after 401
-        const activity = customEvent.detail?.activity;
-        const removedEmail = activity?.details?.collaboratorEmail as
-          | string
-          | undefined;
-        const ownerEmail = activity?.user?.email as string | undefined;
+      if (!isCollaboratorRemoved) return;
 
-        // CRITICAL: If we have the email and it matches current user, track it
-        // If we don't have email, still track the event (we'll check permissions after 401)
-        const isCurrentUser =
-          removedEmail &&
-          removedEmail.toLowerCase() === sessionUser.email.toLowerCase();
+      const activity = customEvent.detail?.activity;
+      const removedEmail = activity?.details?.collaboratorEmail as
+        | string
+        | undefined;
+      const ownerEmail = activity?.user?.email as string | undefined;
+      const isCurrentUser =
+        removedEmail &&
+        removedEmail.toLowerCase() === sessionUser.email.toLowerCase();
 
-        // Track removal event if:
-        // 1. Email matches current user, OR
-        // 2. No email provided but user currently has access (will verify after 401)
-        if (isCurrentUser || (!removedEmail && permissions.role !== "none")) {
-          // Only track if user currently has access (about to lose it) or if we don't have recent removal tracked
-          // This prevents overwriting recent removal tracking with stale historical events
-          const hasRecentRemoval =
-            recentCollaboratorRemovedRef.current &&
-            Date.now() - recentCollaboratorRemovedRef.current.timestamp < 10000; // Within last 10 seconds
+      if (isCurrentUser || (!removedEmail && permissions.role !== "none")) {
+        const hasRecentRemoval =
+          recentCollaboratorRemovedRef.current &&
+          Date.now() - recentCollaboratorRemovedRef.current.timestamp < 10000;
 
-          if (permissions.role !== "none" || !hasRecentRemoval) {
-            // Store this event info for 401 handling
-            // Use current user email if not provided in event (will be verified after 401)
-            recentCollaboratorRemovedRef.current = {
-              email: removedEmail || sessionUser.email,
-              ownerEmail: ownerEmail || "the owner",
-              timestamp: Date.now(),
-            };
+        if (permissions.role !== "none" || !hasRecentRemoval) {
+          recentCollaboratorRemovedRef.current = {
+            email: removedEmail || sessionUser.email,
+            ownerEmail: ownerEmail || "the owner",
+            timestamp: Date.now(),
+          };
 
-            // If user currently has access, invalidate query to trigger refetch (will get 401 if removed)
-            if (permissions.role !== "none" && !hasRedirectedRef.current) {
-              const slugToInvalidate = customEvent.detail?.slug || list.slug;
-              if (slugToInvalidate) {
-                queryClient.invalidateQueries({
-                  queryKey: listQueryKeys.unified(slugToInvalidate),
-                });
-              }
+          if (permissions.role !== "none" && !hasRedirectedRef.current) {
+            const slugToInvalidate = customEvent.detail?.slug || list.slug;
+            if (slugToInvalidate) {
+              queryClient.invalidateQueries({
+                queryKey: listQueryKeys.unified(slugToInvalidate),
+              });
             }
           }
         }
       }
     };
 
-    // Handle 401 Unauthorized from unified endpoint (indicates access was removed)
-    // CRITICAL: This handles 401 errors even if user doesn't have initial access
-    // This ensures redirect works when user navigates to page after being removed
+    window.addEventListener("unified-update", handleUnifiedUpdate);
+    return () => {
+      window.removeEventListener("unified-update", handleUnifiedUpdate);
+    };
+  }, [
+    list?.id,
+    list?.slug,
+    sessionUser?.email,
+    permissions.role,
+    queryClient,
+  ]);
+
+  // C7.33: kick on 401/403 even when list never loaded (cold invite after revoke).
+  // Do not require list.id — that blocked the listener and flashed “List not found”.
+  useEffect(() => {
+    if (!sessionUser?.email || hasRedirectedRef.current || !listSlug) {
+      return;
+    }
+
+    const kickAccessDenied = (ownerEmail?: string) => {
+      if (hasRedirectedRef.current) return;
+      hasRedirectedRef.current = true;
+      hasCheckedAuthRef.current = true;
+
+      const listName = list?.title || "this list";
+      // Avoid re-login bounce to the same revoked invite path
+      clearAuthRedirect();
+      currentList.set({});
+      if (listSlug) {
+        queryClient.setQueryData(listQueryKeys.unified(listSlug), {
+          list: null,
+          activities: [],
+          collaborators: [],
+          accessDenied: true,
+        });
+      }
+
+      const recent = recentCollaboratorRemovedRef.current;
+      const removedMatch =
+        recent &&
+        Date.now() - recent.timestamp < 30000 &&
+        recent.email.toLowerCase() === sessionUser.email.toLowerCase();
+
+      if (removedMatch || ownerEmail) {
+        toast({
+          title: "Access Removed",
+          description: `You have been removed from "${listName}" by ${
+            ownerEmail || recent?.ownerEmail || "the owner"
+          }.`,
+          variant: "error",
+          duration: 5000,
+        });
+      } else {
+        toast({
+          title: "Access Denied",
+          description:
+            "This list is no longer available to you. You may have been removed as a collaborator.",
+          variant: "error",
+          duration: 5000,
+        });
+      }
+
+      // Soft-nav home — stay on skeleton until unmount (no list/login flash)
+      router.replace("/");
+    };
+
     const handleUnauthorized = (event: Event) => {
       const customEvent = event as CustomEvent<{
         listId?: string;
         slug?: string;
       }>;
-
-      // CRITICAL: Check if this is for our list by comparing both listId and slug
-      // The event might have slug as listId if listId wasn't available
       const eventListId = customEvent.detail?.listId;
       const eventSlug = customEvent.detail?.slug;
       const isOurList =
-        (eventListId && eventListId === list.id) ||
-        (eventSlug && eventSlug === list.slug) ||
-        eventListId === list.slug; // Handle case where slug is used as listId
+        (eventSlug && eventSlug === listSlug) ||
+        (eventListId && eventListId === listSlug) ||
+        (list?.id && eventListId === list.id) ||
+        (list?.slug && eventListId === list.slug);
 
-      if (!isOurList || hasRedirectedRef.current) {
-        return;
-      }
-
-      // Check if we have a recent collaborator_removed event (within last 30 seconds)
-      // Extended window to handle cases where user navigates after removal
-      if (
-        recentCollaboratorRemovedRef.current &&
-        Date.now() - recentCollaboratorRemovedRef.current.timestamp < 30000 // Within last 30 seconds
-      ) {
-        const removedInfo = recentCollaboratorRemovedRef.current;
-
-        // Verify this is for the current user
-        if (
-          removedInfo.email.toLowerCase() === sessionUser.email.toLowerCase()
-        ) {
-          // 401 + recent collaborator_removed event = user was definitely removed
-          handleRedirect(removedInfo.ownerEmail);
-          return;
-        }
-      }
-
-      // If no recent removal event but we get 401, check if user lost access
-      // Check unified data directly (more reliable than permissions which might not have updated yet)
-      const hasNoAccess = !unifiedData?.list || permissions.role === "none";
-
-      if (hasNoAccess) {
-        // Check if we have a recent collaborator_removed event (even without email match)
-        // This handles the case where removal was tracked but email wasn't provided
-        if (
-          recentCollaboratorRemovedRef.current &&
-          Date.now() - recentCollaboratorRemovedRef.current.timestamp < 30000 // Within last 30 seconds
-        ) {
-          // Use the tracked removal info (might not have email, but we know user was removed)
-          handleRedirect(recentCollaboratorRemovedRef.current.ownerEmail);
-        } else {
-          // No removal event tracked - generic access denied
-          // But still redirect since we got 401
-          hasRedirectedRef.current = true;
-          toast({
-            title: "Access Denied",
-            description: "You don't have access to this list.",
-            variant: "error",
-            duration: 5000,
-          });
-          setTimeout(() => {
-            router.push("/");
-          }, 500);
-        }
-      }
+      if (!isOurList || hasRedirectedRef.current) return;
+      kickAccessDenied();
     };
 
-    const handleRedirect = (ownerEmail: string) => {
-      hasRedirectedRef.current = true;
-
-      // Get list name
-      const listName = list.title || "this list";
-
-      // Show toast with list name and owner email
-      toast({
-        title: "Access Removed",
-        description: `You have been removed from "${listName}" by ${ownerEmail}.`,
-        variant: "error",
-        duration: 5000,
-      });
-
-      // Redirect to home page after a short delay to show the toast
-      setTimeout(() => {
-        router.push("/");
-      }, 500);
-    };
-
-    window.addEventListener("unified-update", handleUnifiedUpdate);
     window.addEventListener("unified-update-unauthorized", handleUnauthorized);
 
+    // Race: query may have already settled with accessDenied before listener attached
+    if (
+      !isLoadingQuery &&
+      (unifiedData?.accessDenied ||
+        (cachedUnified?.accessDenied && !unifiedData?.list))
+    ) {
+      kickAccessDenied();
+    }
+
     return () => {
-      window.removeEventListener("unified-update", handleUnifiedUpdate);
       window.removeEventListener(
         "unified-update-unauthorized",
         handleUnauthorized,
       );
     };
   }, [
+    sessionUser?.email,
+    listSlug,
     list?.id,
     list?.slug,
     list?.title,
+    isLoadingQuery,
+    unifiedData?.accessDenied,
+    unifiedData?.list,
+    cachedUnified?.accessDenied,
     queryClient,
-    sessionUser?.email,
     router,
     toast,
-    isLoading,
-    permissions.role,
-    unifiedData?.list,
   ]);
 
   // Auto-sync vectors deferred to Similar / smart-search first use
@@ -495,8 +470,11 @@ export default function ListPageClient() {
 
   // C6.9: paint immediately when RQ has this slug; skeleton only when cold.
   // C7.26.1: do not wait on sessionLoading — dehydrate/RQ list is enough for chrome.
+  // C7.33: accessDenied / kick-in-flight stay on skeleton (never List not found / login).
   const shouldShowLoading =
-    Boolean(listSlug) && !hasAnyData && isLoadingQuery;
+    Boolean(listSlug) &&
+    !hasAnyData &&
+    (isLoadingQuery || accessDeniedPaint || hasRedirectedRef.current);
 
   if (shouldShowLoading) {
     return <ListDetailRouteSkeleton />;
@@ -955,6 +933,7 @@ export default function ListPageClient() {
             slug: list.slug!,
             title: list.title,
             urls: list.urls,
+            isPublic: list.isPublic ?? false,
           }}
         />
       )}

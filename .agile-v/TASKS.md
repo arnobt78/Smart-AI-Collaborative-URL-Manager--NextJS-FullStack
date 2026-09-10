@@ -543,4 +543,25 @@ RSC shells · densify/Zod/SHA/Next16
 
 **Dependencies:** REQ-0056; deferred_polish_c7.31 plan approved 2026-09-10.
 
+### TASK-0064 — C7.32 honest collab chrome + smoke polish — **DONE (code)** — HA smoke pending
+
+1. ~~Reconcile STATE; REQ-0057 + DEC-0076.~~
+2. ~~PermissionManager: hide Add unless canInvite; role/public empty subtitle; remove dialog public vs private.~~
+3. ~~Thin collab + Activity subtitle parity.~~
+4. ~~Soft-nav Lists skeleton on empty; ListsPage placeholder loading.~~
+5. ~~Insights Overview pair-load overview+activity.~~
+6. ~~eslint / tsc / jest / build + verifier.~~ (human public/private remove re-smoke)
+
+**Dependencies:** REQ-0057; c7.32_collab_ux_polish plan approved 2026-09-10.
+
+### TASK-0065 — C7.33 collaborator revoke until re-invite — **DONE (committed)** — HA smoke pending
+
+1. ~~Reconcile STATE; REQ-0058 + DEC-0077.~~
+2. ~~collaborator-roles revoked + removeCollaborator write + list skip.~~
+3. ~~getRoleForListUser + useListPermissions: revoked before public viewer.~~
+4. ~~Unified 403 → toast + redirect; revert C7.32 remove copy.~~
+5. ~~Tests + eslint/tsc/jest/build + verifier + security + commit-ready.~~ (HA: public+private remove, old link, re-invite)
+
+**Dependencies:** REQ-0058; c7.33_revoke_denylist plan approved 2026-09-10.
+
 

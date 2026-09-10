@@ -25,7 +25,6 @@ import { BrowsePublicListCard } from "@/components/lists/BrowsePublicListCard";
 import { BrowseSearchField } from "@/components/lists/BrowseSearchField";
 import {
   BrowseEmptyState,
-  MyListsEmptyState,
 } from "@/components/lists/ListEmptyStates";
 import {
   ListDetailBodySections,
@@ -110,7 +109,8 @@ function ListsOptimisticSurface() {
   const data = queryClient.getQueryData<ListsCache>(listQueryKeys.allLists());
   const lists = data?.lists;
 
-  if (!data || !lists) {
+  if (!data || !lists || lists.length === 0) {
+    // C7.32: empty warm cache → skeleton (empty settles on real ListsPage)
     return <ListsRouteSkeleton />;
   }
 
@@ -126,18 +126,14 @@ function ListsOptimisticSurface() {
         }
       />
       <div className={LIST_STACK}>
-        {lists.length === 0 ? (
-          <MyListsEmptyState createDisabled />
-        ) : (
-          lists.map((list) => (
-            <MyListsCard
-              key={list.id}
-              list={list}
-              onView={() => warmRouterPush(`/list/${list.slug}`)}
-              actionsDisabled
-            />
-          ))
-        )}
+        {lists.map((list) => (
+          <MyListsCard
+            key={list.id}
+            list={list}
+            onView={() => warmRouterPush(`/list/${list.slug}`)}
+            actionsDisabled
+          />
+        ))}
       </div>
     </div>
   );
@@ -342,6 +338,7 @@ function ListDetailOptimisticSurface() {
             slug: listSlug,
             title: list.title,
             urls: list.urls,
+            isPublic: list.isPublic ?? false,
           }}
         />
       ) : (

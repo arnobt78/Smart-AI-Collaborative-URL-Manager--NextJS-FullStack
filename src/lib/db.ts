@@ -2,8 +2,10 @@ import { prisma } from "./prisma";
 import type { Prisma } from "@prisma/client";
 import {
   buildCollaboratorRoleEntry,
+  buildRevokedCollaboratorEntry,
   listCollaboratorsFromRoles,
   parseCollaboratorRoleEntry,
+  parseStoredCollaboratorEntry,
   type CollaboratorRolesJson,
 } from "@/lib/collaborator-roles";
 
@@ -353,7 +355,9 @@ export async function addCollaborator(
   );
 
   if (existingEmailKey) {
-    const previous = parseCollaboratorRoleEntry(collaboratorRoles[existingEmailKey]);
+    const previous = parseStoredCollaboratorEntry(
+      collaboratorRoles[existingEmailKey],
+    );
     collaboratorRoles[existingEmailKey] = buildCollaboratorRoleEntry(role, {
       invitedByEmail: invitedByEmail ?? previous?.invitedByEmail,
       previous,
@@ -421,8 +425,9 @@ export async function updateCollaboratorRole(
 }
 
 /**
- * Remove collaborator from a list
- * Removes from both collaboratorRoles and legacy collaborators array
+ * Remove collaborator from a list.
+ * C7.33: mark revoked in collaboratorRoles (denylist) instead of deleting the key;
+ * strip legacy collaborators array. Re-invite overwrites via addCollaborator.
  */
 export async function removeCollaborator(listId: string, email: string) {
   const list = await prisma.list.findUnique({
@@ -433,17 +438,20 @@ export async function removeCollaborator(listId: string, email: string) {
     throw new Error("List not found");
   }
 
-  // Remove from collaboratorRoles (case-insensitive key match)
   const collaboratorRoles =
-    (list.collaboratorRoles as Record<string, unknown>) || {};
+    ((list.collaboratorRoles as CollaboratorRolesJson) ||
+      {}) as CollaboratorRolesJson;
   const emailLower = email.toLowerCase();
-  for (const key of Object.keys(collaboratorRoles)) {
-    if (key.toLowerCase() === emailLower) {
-      delete collaboratorRoles[key];
-    }
-  }
+  const trimmedEmail = email.trim();
+  const matchingKey =
+    Object.keys(collaboratorRoles).find(
+      (key) => key.toLowerCase() === emailLower,
+    ) || trimmedEmail;
+  const previous = parseStoredCollaboratorEntry(
+    collaboratorRoles[matchingKey],
+  );
+  collaboratorRoles[matchingKey] = buildRevokedCollaboratorEntry({ previous });
 
-  // Remove from legacy collaborators array
   const collaborators = (list.collaborators || []).filter(
     (e) => e.toLowerCase() !== emailLower,
   );

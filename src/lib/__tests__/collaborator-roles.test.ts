@@ -1,5 +1,7 @@
 import {
   buildCollaboratorRoleEntry,
+  buildRevokedCollaboratorEntry,
+  isRevokedCollaborator,
   listCollaboratorsFromRoles,
   parseCollaboratorRoleEntry,
   resolveCollaboratorRole,
@@ -71,5 +73,20 @@ describe("collaborator-roles", () => {
     expect(updated.invitedByEmail).toBe("owner@x.com");
     expect(updated.invitedAt).toBe("2026-01-01T00:00:00.000Z");
     expect(updated.updatedAt).toBeTruthy();
+  });
+
+  it("marks and detects revoked collaborators; skips them in UI lists", () => {
+    const revoked = buildRevokedCollaboratorEntry({
+      previous: buildCollaboratorRoleEntry("editor", {
+        invitedByEmail: "owner@x.com",
+      }),
+    });
+    expect(revoked.role).toBe("revoked");
+    const roles = { "a@x.com": revoked, "b@x.com": "viewer" as const };
+    expect(isRevokedCollaborator(roles, "A@x.com")).toBe(true);
+    expect(isRevokedCollaborator(roles, "b@x.com")).toBe(false);
+    expect(resolveCollaboratorRole(roles, "a@x.com")).toBeNull();
+    expect(listCollaboratorsFromRoles(roles)).toHaveLength(1);
+    expect(listCollaboratorsFromRoles(roles)[0]?.email).toBe("b@x.com");
   });
 });

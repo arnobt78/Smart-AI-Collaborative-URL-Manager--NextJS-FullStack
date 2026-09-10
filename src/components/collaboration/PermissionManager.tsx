@@ -66,6 +66,7 @@ export function PermissionManager({
   const queryClient = useQueryClient();
   const permissions = useListPermissions(); // Get permissions for current list and user
   const canInvite = permissions.canInvite; // Only owners can invite
+  const isOwner = permissions.role === "owner";
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
   const [roleChangeDialog, setRoleChangeDialog] = useState<{
     open: boolean;
@@ -248,20 +249,23 @@ export function PermissionManager({
       : "bg-blue-500/30 text-blue-200 border-blue-400/50";
   };
 
-  const addCollaboratorButton = (
+  const addCollaboratorButton = canInvite ? (
     <Button
       variant="glassEmerald"
       size="sm"
       onClick={() => setInviteDialogOpen(true)}
-      disabled={!canInvite}
       className="w-full sm:w-auto shrink-0"
     >
       <UserPlus className={UI_ICON_CONTROL} aria-hidden />
       <span>Add Collaborator</span>
     </Button>
-  );
+  ) : null;
 
   const isEmpty = collaborators.length === 0;
+
+  const emptySubtitle = isOwner
+    ? "No collaborators yet · Invite others to collaborate on this list"
+    : "No named collaborators";
 
   const headerLeft = (
     <ListDetailSectionHeader
@@ -274,9 +278,7 @@ export function PermissionManager({
         ) : undefined
       }
       subtitle={
-        isEmpty
-          ? "No collaborators yet · Invite others to collaborate on this list"
-          : "People with access to this list"
+        isEmpty ? emptySubtitle : "People with access to this list"
       }
       className="min-w-0 flex-1"
     />

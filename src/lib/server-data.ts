@@ -23,14 +23,24 @@ export async function loadAllLists() {
   return readResponse<unknown>(await GET());
 }
 
-export async function loadUnifiedList(slug: string) {
+export async function loadUnifiedList(slug: string): Promise<UnifiedListResponse> {
   const { GET } = await import("@/app/api/lists/[id]/updates/route");
   const request = new NextRequest(
     `${INTERNAL_ORIGIN}/api/lists/${encodeURIComponent(slug)}/updates?activityLimit=${ACTIVITY_FEED_LIMIT}`,
   );
-  return normalizeUnifiedListResponse(await readResponse<UnifiedListResponse>(
-    await GET(request, { params: Promise.resolve({ id: slug }) }),
-  ));
+  const response = await GET(request, { params: Promise.resolve({ id: slug }) });
+  // C7.33: dehydrate accessDenied so ListPage paints skeleton (not “not found”) on revoke
+  if (response.status === 401 || response.status === 403) {
+    return normalizeUnifiedListResponse({
+      list: null,
+      activities: [],
+      collaborators: [],
+      accessDenied: true,
+    });
+  }
+  return normalizeUnifiedListResponse(
+    await readResponse<UnifiedListResponse>(response),
+  );
 }
 
 export async function loadPublicLists(page: number, search: string) {
