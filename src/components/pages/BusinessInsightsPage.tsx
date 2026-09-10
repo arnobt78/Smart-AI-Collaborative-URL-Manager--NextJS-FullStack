@@ -27,13 +27,31 @@ import { DataSurfaceSlot } from "@/components/ui/DataSurfaceSlot";
 export default function BusinessInsightsPage() {
   const [activeTab, setActiveTab] = useState("overview");
 
-  const { data: overviewResult } = useBusinessOverviewQuery();
-  const { data: activityResult } = useBusinessActivityQuery(30);
-  const { data: popularResult } = useBusinessPopularQuery(activeTab === "popular");
-  const { data: performanceResult } = useBusinessPerformanceQuery(
-    activeTab === "performance",
-  );
-  const { data: globalResult } = useBusinessGlobalQuery(activeTab === "global");
+  const {
+    data: overviewResult,
+    isFetching: overviewFetching,
+    isPlaceholderData: overviewPlaceholder,
+  } = useBusinessOverviewQuery();
+  const {
+    data: activityResult,
+    isFetching: activityFetching,
+    isPlaceholderData: activityPlaceholder,
+  } = useBusinessActivityQuery(30);
+  const {
+    data: popularResult,
+    isFetching: popularFetching,
+    isPlaceholderData: popularPlaceholder,
+  } = useBusinessPopularQuery(activeTab === "popular");
+  const {
+    data: performanceResult,
+    isFetching: performanceFetching,
+    isPlaceholderData: performancePlaceholder,
+  } = useBusinessPerformanceQuery(activeTab === "performance");
+  const {
+    data: globalResult,
+    isFetching: globalFetching,
+    isPlaceholderData: globalPlaceholder,
+  } = useBusinessGlobalQuery(activeTab === "global");
 
   const overviewData = overviewResult?.overview || null;
   const activityData = activityResult?.activity;
@@ -46,6 +64,18 @@ export default function BusinessInsightsPage() {
       : null;
   const performanceData = performanceResult?.performance || null;
   const globalData = globalResult?.global || null;
+
+  // Soft-nav keeps previous KPIs via placeholderData — hide stale flash while refetching
+  const showOverviewLoading =
+    !overviewData || (overviewFetching && overviewPlaceholder);
+  const showActivityLoading =
+    !activityData || (activityFetching && activityPlaceholder);
+  const showPopularLoading =
+    !popularData || (popularFetching && popularPlaceholder);
+  const showPerformanceLoading =
+    !performanceData || (performanceFetching && performancePlaceholder);
+  const showGlobalLoading =
+    !globalData || (globalFetching && globalPlaceholder);
 
   const dataSlot = (label: string) => (
     <DataSurfaceSlot
@@ -66,42 +96,42 @@ export default function BusinessInsightsPage() {
         <InsightsTabsList />
 
         <TabsContent value="overview" className="space-y-6">
-          {overviewData ? (
+          {showOverviewLoading ? (
+            <OverviewCards isLoading />
+          ) : (
             <OverviewCards data={overviewData} />
-          ) : (
-            dataSlot("overview")
           )}
-          {activityData ? (
-            <ActivityChart initialData={activityData} />
-          ) : (
+          {showActivityLoading ? (
             dataSlot("activity")
+          ) : (
+            <ActivityChart initialData={activityData} />
           )}
         </TabsContent>
 
         <TabsContent value="popular" className="space-y-6">
-          {popularData ? (
+          {showPopularLoading || !popularData ? (
+            dataSlot("popular URLs")
+          ) : (
             <PopularContent
               popularUrls={popularData.popularUrls}
               activeLists={popularData.activeLists}
             />
-          ) : (
-            dataSlot("popular URLs")
           )}
         </TabsContent>
 
         <TabsContent value="performance" className="space-y-6">
-          {performanceData ? (
-            <PerformanceMetrics data={performanceData} />
-          ) : (
+          {showPerformanceLoading || !performanceData ? (
             dataSlot("performance metrics")
+          ) : (
+            <PerformanceMetrics data={performanceData} />
           )}
         </TabsContent>
 
         <TabsContent value="global" className="space-y-6">
-          {globalData ? (
-            <GlobalStats data={globalData} />
-          ) : (
+          {showGlobalLoading || !globalData ? (
             dataSlot("global insights")
+          ) : (
+            <GlobalStats data={globalData} />
           )}
         </TabsContent>
       </Tabs>

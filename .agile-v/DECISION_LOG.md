@@ -1034,3 +1034,16 @@ Append-only. Newest entries at bottom.
 | Rationale | HA collab smoke: consistency bugs only — not latency polish. |
 | Linked REQs | REQ-0055; TASK-0061 |
 | Status | Implemented — C7.30 verify PASS WITH WARNINGS. |
+
+---
+
+## DEC-0075 — Close deferred polish; skip dup-scroll twin
+
+| Field | Value |
+|---|---|
+| Timestamp | 2026-09-10 |
+| Agent | Cursor |
+| Decision | Implement DEFERRED_POLISH: edit scroll + single navbar-offset scrollTo, opaque glass toasts, Insights loading while placeholder refetch. **Skip** dup scroll → top twin. Freeze further polish after C7.31 unless a real bug. |
+| Rationale | Owner wants one final polish pass before project freeze. |
+| Linked REQs | REQ-0056; TASK-0063 |
+| Status | Implemented — C7.31 verify PASS WITH WARNINGS; security PASS; commit-ready. |

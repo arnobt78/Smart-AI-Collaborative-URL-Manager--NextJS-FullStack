@@ -72,11 +72,16 @@ export function ToastComponent({ toast, onClose }: ToastProps) {
   }, [toast.id, duration, isPersistent, onClose]);
 
   const variantStyles = {
-    default: "bg-white/10 border-white/20 text-white",
-    success: "bg-green-500/20 border-green-500/30 text-green-100",
-    error: "bg-red-500/20 border-red-500/30 text-red-100",
-    warning: "bg-yellow-500/20 border-yellow-500/30 text-yellow-100",
-    info: "bg-blue-500/20 border-blue-500/30 text-blue-100",
+    default:
+      "border-white/25 bg-gradient-to-br from-zinc-900/95 to-zinc-800/95 text-white backdrop-blur-md",
+    success:
+      "border-green-500/40 bg-gradient-to-br from-zinc-900/95 to-zinc-800/95 text-green-50 backdrop-blur-md",
+    error:
+      "border-red-500/40 bg-gradient-to-br from-zinc-900/95 to-zinc-800/95 text-red-50 backdrop-blur-md",
+    warning:
+      "border-yellow-500/40 bg-gradient-to-br from-zinc-900/95 to-zinc-800/95 text-yellow-50 backdrop-blur-md",
+    info:
+      "border-blue-500/40 bg-gradient-to-br from-zinc-900/95 to-zinc-800/95 text-blue-50 backdrop-blur-md",
   };
 
   const iconStyles = {
@@ -94,8 +99,8 @@ export function ToastComponent({ toast, onClose }: ToastProps) {
       role="status"
       aria-busy={toast.loading || undefined}
       className={cn(
-        "toast-slide-in group relative w-full max-w-md rounded-lg border p-4 shadow-lg",
-        // Solid tint only — avoid bg-white/5 + backdrop-blur stack (logout flash)
+        "toast-slide-in group relative w-full max-w-md rounded-xl border p-4 shadow-2xl",
+        // Opaque glass like menus — /20 tints were unreadable over cards
         variantStyles[variant],
       )}
     >

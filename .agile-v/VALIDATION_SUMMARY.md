@@ -882,3 +882,18 @@ Gate 2: BLOCKED — RISK-0016 is accepted; `EVAL_RESULTS.md` PASS/WAIVED evidenc
 | tsc / eslint (touched) | exit 0 | PASS | |
 | Verifier | PASS WITH WARNINGS | human re-smoke after deploy |
 
+## 2026-09-10 — C7.31 deferred polish
+
+| Scope | Command / evidence | Result | Notes |
+|---|---|---|---|
+| Navbar-offset scroll + edit | `scrollToUrlCard` single `scrollTo`; edit success call | PASS | skip dup-scroll twin |
+| Opaque glass toasts | zinc-900/95 + backdrop-blur-md | PASS | menu-aligned |
+| Insights KPI flash | `isFetching && isPlaceholderData` → loading | PASS | OverviewCards / DataSurfaceSlot |
+| eslint (touched) | exit 0 | PASS | |
+| tsc --noEmit | exit 0 | PASS | |
+| Jest UrlList\|urlListStore | 3 suites / 14 passed | PASS | |
+| `npm run build` | exit 0 | PASS | |
+| Verifier | PASS WITH WARNINGS | HA final smoke after deploy |
+| Playwright e2e | 19 pass / 7 fail | WARN | shared-DB fixture pollution (E2E URL A archived); not C7.31 |
+| Security review | PASS | no medium+ |
+

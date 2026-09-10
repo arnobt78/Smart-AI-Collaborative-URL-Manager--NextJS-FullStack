@@ -1105,3 +1105,23 @@ These describe the current product as verified in code. They are **Accepted as b
 **Affected:** `useListQueries`, `ListDetailJobsMenu`, `ListPage`, `logout-client`, `urlListStore`, Agile V.  
 **Trace:** TASK-0061, DEC-0074.  
 **Status:** Implemented — verify PASS WITH WARNINGS [C7.30].
+
+---
+
+### REQ-0056 — C7.31 deferred UI polish (approved 2026-09-10)
+
+**Priority:** P2  
+**Type:** UX polish  
+
+**Statement:** Close DEFERRED_POLISH: edit URL MUST scroll into view under sticky navbar via a reliable single `scrollTo` offset; toast surfaces MUST use opaque glass (`backdrop-blur-md`) readable over content; Insights overview/tab KPIs MUST NOT flash stale placeholder numbers during refetch—show loading instead. Dup-scroll twin quirk remains skipped.
+
+**Acceptance criteria:**
+
+- [x] `scrollToUrlCard` uses one `window.scrollTo` with navbar offset; called after successful edit.
+- [x] Toast variants use zinc-900/95 glass + blur + tinted borders.
+- [x] Insights overview (and placeholderData tabs) show loading while `isFetching && isPlaceholderData`.
+- [x] DEFERRED_POLISH.md marked Done/Skip accordingly.
+
+**Affected:** `UrlList.tsx`, `Toast.tsx`, `BusinessInsightsPage.tsx`, Agile V.  
+**Trace:** TASK-0063, DEC-0075.  
+**Status:** Implemented — verify PASS WITH WARNINGS [C7.31]; commit-ready.

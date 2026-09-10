@@ -533,4 +533,14 @@ RSC shells · densify/Zod/SHA/Next16
 
 **Dependencies:** REQ-0055; collab_smoke_fixes plan approved 2026-09-10.
 
+### TASK-0063 — C7.31 deferred polish — **DONE**
+
+1. ~~Reconcile STATE; REQ-0056 + DEC-0075; update DEFERRED_POLISH.~~
+2. ~~Reliable navbar-offset scrollTo + edit success call.~~
+3. ~~Opaque glass toast styles.~~
+4. ~~Insights KPI placeholder loading.~~
+5. ~~eslint / tsc / jest / build + verifier.~~ (HA smoke after deploy)
+
+**Dependencies:** REQ-0056; deferred_polish_c7.31 plan approved 2026-09-10.
+
 

@@ -99,14 +99,12 @@ function scrollToUrlCard(urlId: string) {
       `[data-url-id="${urlId.replace(/"/g, "")}"]`,
     );
     if (!el) return;
-    el.scrollIntoView({ behavior: "smooth", block: "start" });
-    // scrollIntoView ignores sticky nav — pull down by measured navbar height
-    requestAnimationFrame(() => {
-      const offset = getStickyNavbarOffsetPx();
-      if (offset > 0) {
-        window.scrollBy({ top: -offset, behavior: "smooth" });
-      }
-    });
+    // One scroll — scrollIntoView + scrollBy raced and left cards under sticky nav
+    const top =
+      window.scrollY +
+      el.getBoundingClientRect().top -
+      getStickyNavbarOffsetPx();
+    window.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
   });
 }
 
@@ -1249,12 +1247,13 @@ export function UrlList() {
         variant: "success",
       });
 
-      // Keep the editor mounted until the updated card can paint.
+      // Keep the editor mounted until the updated card can paint; then scroll under navbar
       requestAnimationFrame(() => {
         setEditingUrl(null);
         setEditingTags("");
         setEditingNotes("");
         setEditingReminder("");
+        scrollToUrlCard(id);
       });
     } catch (err) {
       const isUrlParse =
