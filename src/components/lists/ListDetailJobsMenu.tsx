@@ -15,6 +15,11 @@ import { cn } from "@/lib/utils";
 export type ListDetailJobsMenuProps = {
   /** Soft-nav / busy: show trigger only; all actions disabled. */
   busy?: boolean;
+  /**
+   * Owner/editor can run jobs. Viewers see the same menu chrome with
+   * Setup/Refresh/Health disabled (Cancel stays active) — avoids 401 toasts.
+   */
+  canRunJobs?: boolean;
   hasUrls: boolean;
   isSettingUpSchedule?: boolean;
   isRefreshingMetadata?: boolean;
@@ -31,6 +36,7 @@ export type ListDetailJobsMenuProps = {
  */
 export function ListDetailJobsMenu({
   busy = false,
+  canRunJobs = true,
   hasUrls,
   isSettingUpSchedule = false,
   isRefreshingMetadata = false,
@@ -41,9 +47,10 @@ export function ListDetailJobsMenu({
 }: ListDetailJobsMenuProps) {
   const anyBusy =
     busy || isSettingUpSchedule || isRefreshingMetadata || isCheckingHealth;
-  const refreshDisabled = busy || !hasUrls || isRefreshingMetadata;
-  const healthDisabled = busy || !hasUrls || isCheckingHealth;
-  const scheduleDisabled = busy || isSettingUpSchedule;
+  const refreshDisabled =
+    busy || !canRunJobs || !hasUrls || isRefreshingMetadata;
+  const healthDisabled = busy || !canRunJobs || !hasUrls || isCheckingHealth;
+  const scheduleDisabled = busy || !canRunJobs || isSettingUpSchedule;
 
   return (
     <div className="relative shrink-0">
@@ -68,6 +75,7 @@ export function ListDetailJobsMenu({
           <DropdownMenuItem
             disabled={scheduleDisabled}
             onSelect={() => {
+              if (!canRunJobs) return;
               void onSetupSchedule?.();
             }}
             className="cursor-pointer"
@@ -84,6 +92,7 @@ export function ListDetailJobsMenu({
           <DropdownMenuItem
             disabled={refreshDisabled}
             onSelect={() => {
+              if (!canRunJobs) return;
               void onRefreshMetadata?.();
             }}
             className="cursor-pointer"
@@ -100,6 +109,7 @@ export function ListDetailJobsMenu({
           <DropdownMenuItem
             disabled={healthDisabled}
             onSelect={() => {
+              if (!canRunJobs) return;
               void onHealthCheck?.();
             }}
             className="cursor-pointer"

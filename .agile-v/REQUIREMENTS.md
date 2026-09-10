@@ -1085,3 +1085,23 @@ These describe the current product as verified in code. They are **Accepted as b
 **Affected:** `package.json`, `package-lock.json`, `prisma/seed.ts` (csv-parse), Agile V docs.  
 **Trace:** TASK-0060, DEC-0073.  
 **Status:** Implemented — verify PASS WITH WARNINGS [C7.29].
+
+---
+
+### REQ-0055 — C7.30 collaborator smoke consistency (approved 2026-09-10)
+
+**Priority:** P1  
+**Type:** UX consistency / auth redirect / permissions  
+
+**Statement:** After collaborator add/role/remove, My Lists card `updatedAt` MUST densify immediately (no late “Updated …” flash on Back). Viewer (non-editor) MUST NOT trigger list jobs that 401 — jobs menu items disabled like Collaborators Change/Remove. Plain logout→login MUST land on `/` unless `?next=` invite deep-link; `sessionStorage.authRedirect` MUST clear on logout and MUST NOT be written while force-guest.
+
+**Acceptance criteria:**
+
+- [x] Collaborator mutations densify `allLists` `updatedAt` (+ emails as today).
+- [x] `ListDetailJobsMenu` disables Setup/Refresh/Health when `!canEdit`; Cancel remains active.
+- [x] Logout clears `authRedirect`; ListPage/urlListStore skip writing it when `isForceGuest()`.
+- [x] Invite `?next=` deep-link unchanged.
+
+**Affected:** `useListQueries`, `ListDetailJobsMenu`, `ListPage`, `logout-client`, `urlListStore`, Agile V.  
+**Trace:** TASK-0061, DEC-0074.  
+**Status:** Implemented — verify PASS WITH WARNINGS [C7.30].

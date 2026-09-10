@@ -1021,3 +1021,16 @@ Append-only. Newest entries at bottom.
 | Rationale | Vercel Node 20 EOL already satisfied in repo; CVEs are patchable without architectural churn. |
 | Linked REQs | REQ-0054; TASK-0060 |
 | Status | Implemented — C7.29 verify PASS WITH WARNINGS. |
+
+---
+
+## DEC-0074 — Collab smoke: densify updatedAt + gate jobs + clear authRedirect
+
+| Field | Value |
+|---|---|
+| Timestamp | 2026-09-10 |
+| Agent | Cursor |
+| Decision | Fix My Lists `updatedAt` densify on collaborator mutations; disable Viewer list jobs (Cancel only); clear `authRedirect` on logout and skip writes during force-guest. Keep invite `?next=` only. Leave logout home flash, free-tier cold, deferred polish, comment DB forensics. |
+| Rationale | HA collab smoke: consistency bugs only — not latency polish. |
+| Linked REQs | REQ-0055; TASK-0061 |
+| Status | Implemented — C7.30 verify PASS WITH WARNINGS. |

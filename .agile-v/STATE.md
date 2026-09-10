@@ -1,40 +1,32 @@
 # STATE.md
 
-**C7.29 — Dependency audit + Node 24 guardrails** | 2026-09-09
+**C7.30 — Collaborator smoke consistency** | 2026-09-10
 
-## Reconciled (repo = docs)
+## Done
 
-- Prior C7.28 empty-state: `5951aa4`.
-- **Node:** `engines.node` = `24.x`; `.nvmrc` = `24` (unchanged).
-- **Audit:** `npm audit` = **0** — next **16.3.4**, sharp **0.35.4**, nodemailer **9.1.1**, csv-parse **7.0.2**, overrides `@humanfs/node` / `fast-uri` / `js-yaml` / `postcss-selector-parser`.
-- **Same-major:** sentry, playwright, upstash redis, posthog, resend, nanostores, jest 30.5.x — no Prisma 7/8, Tailwind 4, Zod 4, ESLint 10.
-- **Stack:** Next 16.3.4 · React 19.2.x · Node 24.x · Prisma 6.19.3.
+- Densify My Lists `updatedAt` on collab add/role/remove (+ unified rollback on error).
+- Viewer jobs: `canRunJobs={canEdit}`; Cancel active.
+- Logout clears `authRedirect`; skip write while force-guest; invite `?next=` unchanged.
+- Deferred polish backlog: [DEFERRED_POLISH.md](./DEFERRED_POLISH.md).
 
-## Current checkpoint
-
-- **Stage:** Human Gate — prod smoke (HA)
-- **Cycle:** C7
-- **Status:** C7.29 code complete at `691758b`; waiting human prod UX findings before next code cycle
-- **Trace:** REQ-0054 DONE, TASK-0060 DONE, DEC-0073 DONE
-
-## Validation (2026-09-09)
+## Validation
 
 | Check | Result |
 |-------|--------|
-| `npm audit` | 0 |
-| eslint / tsc / Jest / build | PASS |
-| implementation-verifier | PASS WITH WARNINGS |
-| security-review | PASS WITH WARNINGS |
+| Jest full | 43 suites / 204 passed / 2 skipped |
+| logout-client + mutations | PASS |
+| eslint / tsc / build | PASS |
+| Verifier / Security | PASS WITH WARNINGS / PASS |
+| Playwright e2e | Not run (needs `E2E_DATABASE_URL`; do not use prod DB without allow) |
 
-## Human
+## Checkpoint
 
-- Prod smoke in progress (daily-urlist.vercel.app).
-- Report UX/bugs first; attach Network only when something feels wrong/slow/broken.
-- Confirm Vercel Node = 24.x if dashboard override exists.
+- **Stage:** commit-ready
+- **Trace:** REQ-0055, TASK-0061, DEC-0074
 
 ## Next
 
 ```text
-1. Human shares smoke findings (UX ± Network for anomalies).
-2. Triage → scoped fix plan → approve before coding.
+1. Push when directed.
+2. Human collab re-smoke on prod (Updated Back; Viewer jobs; logout→home).
 ```

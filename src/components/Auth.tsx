@@ -33,7 +33,7 @@ import { TEST_ACCOUNTS } from "@/constants/auth";
 import { displayNameFromEmail, robohashUrl } from "@/lib/robohash";
 import { queueAuthToast } from "@/lib/auth-toast";
 import { setWasAuthedHintClient } from "@/lib/was-authed";
-import { clearForceGuest } from "@/lib/logout-client";
+import { AUTH_REDIRECT_KEY, clearForceGuest } from "@/lib/logout-client";
 import { safeInternalNextPath } from "@/lib/auth-redirect";
 import { cn } from "@/lib/utils";
 import {
@@ -103,16 +103,16 @@ export default function Auth() {
     );
     if (fromQuery) {
       try {
-        sessionStorage.removeItem("authRedirect");
+        sessionStorage.removeItem(AUTH_REDIRECT_KEY);
       } catch {
         // ignore
       }
       return fromQuery;
     }
     try {
-      const redirect = sessionStorage.getItem("authRedirect");
+      const redirect = sessionStorage.getItem(AUTH_REDIRECT_KEY);
       if (redirect) {
-        sessionStorage.removeItem("authRedirect");
+        sessionStorage.removeItem(AUTH_REDIRECT_KEY);
         return safeInternalNextPath(redirect);
       }
     } catch {

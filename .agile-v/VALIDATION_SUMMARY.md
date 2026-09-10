@@ -871,3 +871,14 @@ Gate 2: BLOCKED — RISK-0016 is accepted; `EVAL_RESULTS.md` PASS/WAIVED evidenc
 | `npm run build` | exit 0 | PASS | |
 | Verifier / Security | PASS WITH WARNINGS / PASS | js-yaml major override over babel-jest range (dev-only) |
 
+## 2026-09-10 — C7.30 collab smoke consistency
+
+| Scope | Command / evidence | Result | Notes |
+|---|---|---|---|
+| Densify allLists updatedAt | add/role/remove collab mutations | PASS | patchAllListsCollaboratorEmails + nowIso |
+| Viewer jobs menu | canRunJobs=`canEdit`; Cancel active | PASS | no 401 path when viewer |
+| authRedirect | clear on logout; skip force-guest write | PASS | invite `?next=` unchanged |
+| Jest logout-client | 6/6 | PASS | |
+| tsc / eslint (touched) | exit 0 | PASS | |
+| Verifier | PASS WITH WARNINGS | human re-smoke after deploy |
+

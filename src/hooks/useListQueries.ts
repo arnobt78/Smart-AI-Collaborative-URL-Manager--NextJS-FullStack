@@ -181,6 +181,11 @@ export function useAddCollaborator(listId: string, listSlug?: string) {
       const previousCurrent = currentList.get();
       const nowIso = new Date().toISOString();
       const invitedByEmail = sessionUser?.email ?? null;
+      const previousUnified = listSlug
+        ? queryClient.getQueryData<UnifiedListResponse>(
+            listQueryKeys.unified(listSlug),
+          )
+        : undefined;
 
       queryClient.setQueryData<{
         collaborators: Array<{
@@ -222,12 +227,17 @@ export function useAddCollaborator(listId: string, listSlug?: string) {
       });
 
       const trimmed = email.trim();
-      patchAllListsCollaboratorEmails(queryClient, listId, (emails) => {
-        const exists = emails.some(
-          (e) => e.toLowerCase() === trimmed.toLowerCase(),
-        );
-        return exists ? emails : [...emails, trimmed];
-      });
+      patchAllListsCollaboratorEmails(
+        queryClient,
+        listId,
+        (emails) => {
+          const exists = emails.some(
+            (e) => e.toLowerCase() === trimmed.toLowerCase(),
+          );
+          return exists ? emails : [...emails, trimmed];
+        },
+        nowIso,
+      );
 
       // Densify list header "Updated Just now" with invite success paint
       if (previousCurrent.id === listId) {
@@ -246,7 +256,7 @@ export function useAddCollaborator(listId: string, listSlug?: string) {
         );
       }
 
-      return { previous, previousAllLists, previousCurrent };
+      return { previous, previousAllLists, previousCurrent, previousUnified };
     },
     onSuccess: (data, variables) => {
       toast({
@@ -292,6 +302,12 @@ export function useAddCollaborator(listId: string, listSlug?: string) {
       ) {
         currentList.set(context.previousCurrent);
       }
+      if (listSlug && context?.previousUnified !== undefined) {
+        queryClient.setQueryData(
+          listQueryKeys.unified(listSlug),
+          context.previousUnified,
+        );
+      }
 
       toast({
         title: "Error",
@@ -331,10 +347,21 @@ export function useUpdateCollaboratorRole(listId: string, listSlug?: string) {
     onMutate: async ({ email, role }) => {
       const queryKey = listQueryKeys.collaborators(listId);
       await queryClient.cancelQueries({ queryKey });
+      await queryClient.cancelQueries({ queryKey: listQueryKeys.allLists() });
 
       const previous = queryClient.getQueryData<{
         collaborators: Array<{ email: string; role: string }>;
       }>(queryKey);
+      const previousAllLists = queryClient.getQueryData<{ lists: UserList[] }>(
+        listQueryKeys.allLists(),
+      );
+      const previousCurrent = currentList.get();
+      const nowIso = new Date().toISOString();
+      const previousUnified = listSlug
+        ? queryClient.getQueryData<UnifiedListResponse>(
+            listQueryKeys.unified(listSlug),
+          )
+        : undefined;
 
       queryClient.setQueryData<{
         collaborators: Array<{ email: string; role: string }>;
@@ -348,7 +375,30 @@ export function useUpdateCollaboratorRole(listId: string, listSlug?: string) {
         };
       });
 
-      return { previous };
+      // Role change still bumps list updatedAt — densify My Lists for Back
+      patchAllListsCollaboratorEmails(
+        queryClient,
+        listId,
+        (emails) => emails,
+        nowIso,
+      );
+      if (previousCurrent.id === listId) {
+        currentList.set({ ...previousCurrent, updatedAt: nowIso });
+      }
+      if (listSlug) {
+        queryClient.setQueryData<UnifiedListResponse>(
+          listQueryKeys.unified(listSlug),
+          (cached) => {
+            if (!cached?.list) return cached;
+            return {
+              ...cached,
+              list: { ...cached.list, updatedAt: nowIso },
+            };
+          },
+        );
+      }
+
+      return { previous, previousAllLists, previousCurrent, previousUnified };
     },
     onSuccess: (data, variables) => {
       toast({
@@ -377,6 +427,21 @@ export function useUpdateCollaboratorRole(listId: string, listSlug?: string) {
         queryClient.setQueryData(
           listQueryKeys.collaborators(listId),
           context.previous
+        );
+      }
+      if (context?.previousAllLists) {
+        queryClient.setQueryData(
+          listQueryKeys.allLists(),
+          context.previousAllLists,
+        );
+      }
+      if (context?.previousCurrent) {
+        currentList.set(context.previousCurrent);
+      }
+      if (listSlug && context?.previousUnified !== undefined) {
+        queryClient.setQueryData(
+          listQueryKeys.unified(listSlug),
+          context.previousUnified,
         );
       }
 
@@ -421,6 +486,13 @@ export function useRemoveCollaborator(listId: string, listSlug?: string) {
       const previousAllLists = queryClient.getQueryData<{ lists: UserList[] }>(
         listQueryKeys.allLists(),
       );
+      const previousCurrent = currentList.get();
+      const nowIso = new Date().toISOString();
+      const previousUnified = listSlug
+        ? queryClient.getQueryData<UnifiedListResponse>(
+            listQueryKeys.unified(listSlug),
+          )
+        : undefined;
 
       queryClient.setQueryData<{
         collaborators: Array<{ email: string; role: string }>;
@@ -435,11 +507,29 @@ export function useRemoveCollaborator(listId: string, listSlug?: string) {
       });
 
       const emailLower = email.toLowerCase();
-      patchAllListsCollaboratorEmails(queryClient, listId, (emails) =>
-        emails.filter((e) => e.toLowerCase() !== emailLower),
+      patchAllListsCollaboratorEmails(
+        queryClient,
+        listId,
+        (emails) => emails.filter((e) => e.toLowerCase() !== emailLower),
+        nowIso,
       );
+      if (previousCurrent.id === listId) {
+        currentList.set({ ...previousCurrent, updatedAt: nowIso });
+      }
+      if (listSlug) {
+        queryClient.setQueryData<UnifiedListResponse>(
+          listQueryKeys.unified(listSlug),
+          (cached) => {
+            if (!cached?.list) return cached;
+            return {
+              ...cached,
+              list: { ...cached.list, updatedAt: nowIso },
+            };
+          },
+        );
+      }
 
-      return { previous, previousAllLists };
+      return { previous, previousAllLists, previousCurrent, previousUnified };
     },
     onSuccess: (data, email) => {
       toast({
@@ -474,6 +564,15 @@ export function useRemoveCollaborator(listId: string, listSlug?: string) {
         queryClient.setQueryData(
           listQueryKeys.allLists(),
           context.previousAllLists,
+        );
+      }
+      if (context?.previousCurrent) {
+        currentList.set(context.previousCurrent);
+      }
+      if (listSlug && context?.previousUnified !== undefined) {
+        queryClient.setQueryData(
+          listQueryKeys.unified(listSlug),
+          context.previousUnified,
         );
       }
 
@@ -545,11 +644,15 @@ function patchAllListsCache(
   densifyAllLists(queryClient, list, temporaryId ? { temporaryId } : undefined);
 }
 
-/** Optimistic My Lists collaborator emails so soft-nav badges update instantly. */
+/**
+ * Optimistic My Lists collaborator emails + updatedAt so soft-nav badges and
+ * “Updated …” stay consistent on Back (no late allLists refetch flash).
+ */
 function patchAllListsCollaboratorEmails(
   queryClient: ReturnType<typeof useQueryClient>,
   listId: string,
   updater: (emails: string[]) => string[],
+  updatedAt?: string,
 ): void {
   const current = queryClient.getQueryData<{ lists: UserList[] }>(
     listQueryKeys.allLists(),
@@ -559,6 +662,7 @@ function patchAllListsCollaboratorEmails(
   densifyAllLists(queryClient, {
     ...row,
     collaborators: updater(row.collaborators ?? []),
+    ...(updatedAt ? { updatedAt } : {}),
   });
 }
 

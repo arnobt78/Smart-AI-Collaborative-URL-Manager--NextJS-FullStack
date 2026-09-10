@@ -523,4 +523,14 @@ RSC shells · densify/Zod/SHA/Next16
 
 **Dependencies:** REQ-0054; deps_audit_node24 plan approved 2026-09-09.
 
+### TASK-0061 — C7.30 collab smoke consistency — **DONE**
+
+1. ~~Reconcile STATE; REQ-0055 + DEC-0074.~~
+2. ~~Densify allLists `updatedAt` on add/role/remove collaborator.~~
+3. ~~Gate `ListDetailJobsMenu` with `canEdit`; Cancel stays active.~~
+4. ~~Clear `authRedirect` on logout; skip write while force-guest.~~
+5. ~~Tests + tsc/eslint; human collab re-smoke.~~ (human re-smoke pending post-deploy)
+
+**Dependencies:** REQ-0055; collab_smoke_fixes plan approved 2026-09-10.
+
 

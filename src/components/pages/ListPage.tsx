@@ -48,6 +48,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useWarmSoftNav } from "@/hooks/useWarmSoftNav";
 import { loginHrefWithNext } from "@/lib/auth-redirect";
+import { setAuthRedirect } from "@/lib/logout-client";
 
 export default function ListPageClient() {
   const { toast, updateToast } = useToast();
@@ -205,8 +206,9 @@ export default function ListPageClient() {
       hasRedirectedRef.current = true;
 
       // Store current URL for redirect after login (?next= primary; sessionStorage fallback)
+      // Skip while force-guest logout so plain login lands on home
       const currentPath = window.location.pathname + window.location.search;
-      sessionStorage.setItem("authRedirect", currentPath);
+      setAuthRedirect(currentPath);
 
       // Show toast notification
       toast({
@@ -542,11 +544,13 @@ export default function ListPageClient() {
         }}
         actions={
           <ListDetailJobsMenu
+            canRunJobs={permissions.canEdit}
             hasUrls={resolveListUrlCount(list) > 0}
             isSettingUpSchedule={isSettingUpSchedule}
             isRefreshingMetadata={isRefreshingMetadata}
             isCheckingHealth={isCheckingHealth}
             onSetupSchedule={async () => {
+              if (!permissions.canEdit) return;
               setIsSettingUpSchedule(true);
               try {
                 const response = await fetch("/api/jobs/setup-schedule", {
@@ -588,7 +592,7 @@ export default function ListPageClient() {
               }
             }}
             onRefreshMetadata={async () => {
-              if (!list.id) return;
+              if (!permissions.canEdit || !list.id) return;
               setIsRefreshingMetadata(true);
               const urlCount = list.urls?.length ?? 0;
               const toastId = toast({
@@ -719,7 +723,7 @@ export default function ListPageClient() {
               }
             }}
             onHealthCheck={async () => {
-              if (!list.id) return;
+              if (!permissions.canEdit || !list.id) return;
               setIsCheckingHealth(true);
               const urlCount = list.urls?.length ?? 0;
               const toastId = toast({

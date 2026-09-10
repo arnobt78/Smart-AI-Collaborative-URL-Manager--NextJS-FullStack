@@ -18,6 +18,7 @@ import {
   clearDragOrderCache,
 } from "./dragOrderCache";
 import { loginHrefWithNext } from "@/lib/auth-redirect";
+import { setAuthRedirect } from "@/lib/logout-client";
 
 export interface UrlItem {
   id: string;
@@ -333,11 +334,11 @@ export async function getList(
 
     // Handle 401 Unauthorized - user needs to login first
     if (response.status === 401) {
-      // Store the current URL for redirect after login
+      // Store the current URL for redirect after login (skipped during force-guest logout)
       if (typeof window !== "undefined") {
         const currentPath =
           window.location.pathname + window.location.search;
-        sessionStorage.setItem("authRedirect", currentPath);
+        setAuthRedirect(currentPath);
 
         // Mirror server requirePageUser: /login?next=…
         window.location.replace(loginHrefWithNext(currentPath));

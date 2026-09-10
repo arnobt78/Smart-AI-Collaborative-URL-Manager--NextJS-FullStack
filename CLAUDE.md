@@ -21,10 +21,11 @@ Done: C7.8–C7.25 · **LLM** `c085f69` REQ-AI-0001 · **Icons** CONTROL/DECORAT
 **C7.27 / Free-tier A–D** Playwright Sentry-off e2e + SSE cancel/once; Track B network smoke e2e; `/api/cron/keep-warm` + GH Actions (optional); `REALTIME_TRANSPORT=list-poll` (SUBSCRIBE deferred).
 **C7.27 follow-up** ApiDocs keep-warm `authMode: "internal"` badge; archive/restore commit uses operation-start snapshot (no late `currentList.get()`).
 **C7.28** Known-zero empty paint: shared MyLists/Browse empties on soft-nav+pages; UrlList `urlCount` empty gate + thin pending; Activity thin non-pulse (`knownActivityCount` left undefined on thin seed).
-**C7.29** Deps audit + Node 24: next/eslint-config-next **16.3.4**; sharp override **0.35.4**; nodemailer **9.1.1**; csv-parse **7.0.2**; overrides `@humanfs/node` / `fast-uri` / `js-yaml` / `postcss-selector-parser`; same-major sentry/playwright/upstash/posthog/resend/jest; `npm audit` **0**.
+**C7.29** Deps audit + Node 24: next/eslint-config-next **16.3.4**; sharp override **0.35.4**; nodemailer **9.1.1**; csv-parse **7.0.2**; overrides; `npm audit` **0**.
+**C7.30** Collab smoke: densify My Lists `updatedAt` on add/role/remove; Viewer jobs `canRunJobs`; clear `authRedirect` on logout (invite `?next=` only). Deferred polish: `.agile-v/DEFERRED_POLISH.md`.
 Stack: Next **16.3.4** · React **19.2.8** · Node **24.x** · **`src/proxy.ts`** · Prisma **6.19.3**.
-Defer: `(auth)` route-group; absolute cold PATCH/`_rsc` SLAs; Redis SUBSCRIBE rewrite; virtualization; Cloudinary destroy; Prisma urlCount column.
-Human: HA-0001 DONE; Vercel Node **24.x** + `INTERNAL_JOB_SECRET` set; GH keep-warm secret optional; next: push + light prod smoke.
+Defer: `(auth)` route-group; absolute cold PATCH/`_rsc` SLAs; Redis SUBSCRIBE rewrite; virtualization; Cloudinary destroy; Prisma urlCount column; DEFERRED_POLISH items.
+Human: HA-0001 DONE; Vercel Node **24.x**; next: push + collab re-smoke.
 Validate: Jest · lint 0 · tsc · build · audit 0. · Resume: `.agile-v/STATE.md`.
 
 

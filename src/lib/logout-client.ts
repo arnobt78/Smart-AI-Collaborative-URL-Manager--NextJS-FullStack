@@ -5,6 +5,9 @@
  */
 import { FORCE_GUEST_COOKIE, FORCE_GUEST_KEY } from "@/constants/auth";
 
+/** Post-login deep-link fallback (invite uses ?next=; this is ListPage/401 fallback). */
+export const AUTH_REDIRECT_KEY = "authRedirect";
+
 function writeForceGuestCookie(set: boolean): void {
   if (typeof document === "undefined") return;
   // Keep cookie attrs minimal — invalid attrs cause silent ignore in browsers.
@@ -35,11 +38,36 @@ export function isForceGuestCookieValue(
   return value === "1";
 }
 
+export function clearAuthRedirect(): void {
+  if (typeof window === "undefined") return;
+  try {
+    sessionStorage.removeItem(AUTH_REDIRECT_KEY);
+  } catch {
+    // ignore
+  }
+}
+
+/**
+ * Persist return path for post-login only when not logging out.
+ * Invite deep-links should use ?next=; this is the 401 / guest-list fallback.
+ */
+export function setAuthRedirect(path: string): void {
+  if (typeof window === "undefined") return;
+  if (isForceGuest()) return;
+  try {
+    sessionStorage.setItem(AUTH_REDIRECT_KEY, path);
+  } catch {
+    // ignore
+  }
+}
+
 export function markForceGuest(): void {
   if (typeof window === "undefined") return;
   try {
     sessionStorage.setItem(FORCE_GUEST_KEY, "1");
     writeForceGuestCookie(true);
+    // Plain logout must not revive last list slug via sticky authRedirect
+    sessionStorage.removeItem(AUTH_REDIRECT_KEY);
   } catch {
     // private mode — ignore
   }
@@ -58,5 +86,6 @@ export function clearForceGuest(): void {
 /** Hard nav to chrome-free Auth — isolated for tests (jsdom Location is non-writable). */
 export function hardNavigateToLogin(): void {
   if (typeof window === "undefined") return;
+  clearAuthRedirect();
   window.location.replace("/login");
 }
