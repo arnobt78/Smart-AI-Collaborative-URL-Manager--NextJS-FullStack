@@ -5,7 +5,7 @@ describe("getRoleForListUser revoke denylist", () => {
   const owner = { id: "owner-1", email: "owner@example.com" };
   const member = { id: "user-2", email: "collab@example.com" };
 
-  it("revoked email is none even when list is public", () => {
+  it("revoked email is public viewer when list is public (C7.34 Browse)", () => {
     const role = getRoleForListUser(
       {
         userId: owner.id,
@@ -16,7 +16,7 @@ describe("getRoleForListUser revoke denylist", () => {
       },
       member,
     );
-    expect(role).toBe("none");
+    expect(role).toBe("viewer");
   });
 
   it("never-invited signed-in user is viewer on public list", () => {

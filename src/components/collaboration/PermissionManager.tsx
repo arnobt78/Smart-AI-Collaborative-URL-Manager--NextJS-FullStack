@@ -249,17 +249,26 @@ export function PermissionManager({
       : "bg-blue-500/30 text-blue-200 border-blue-400/50";
   };
 
-  const addCollaboratorButton = canInvite ? (
+  const addCollaboratorButton = (
     <Button
       variant="glassEmerald"
       size="sm"
       onClick={() => setInviteDialogOpen(true)}
+      disabled={!canInvite}
+      title={
+        canInvite ? undefined : "Only the list owner can invite collaborators"
+      }
+      aria-label={
+        canInvite
+          ? "Add Collaborator"
+          : "Add Collaborator (only the list owner can invite)"
+      }
       className="w-full sm:w-auto shrink-0"
     >
       <UserPlus className={UI_ICON_CONTROL} aria-hidden />
       <span>Add Collaborator</span>
     </Button>
-  ) : null;
+  );
 
   const isEmpty = collaborators.length === 0;
 

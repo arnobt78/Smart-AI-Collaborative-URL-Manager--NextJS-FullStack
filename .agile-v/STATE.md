@@ -1,24 +1,25 @@
 # STATE.md
 
-**C7.33 — Collaborator revoke until re-invite** | 2026-09-10
+**C7.34 — HA smoke polish (Browse public + chrome)** | 2026-09-10
 
 ## Reconciled
 
-- Collaborator remove marks `revoked` in collaboratorRoles; authz blocks before public→viewer.
-- Old invite / cold open: unified 403 → skeleton + toast + home (no List not found / login flash).
-- Soft-nav cold when `accessDenied`; unified remount always revalidates (offline revoke).
-- C7.32 polish included: honest Add Collaborator chrome, Lists/Insights empty polish.
+- Revoked collab on **public** → viewer (Browse works); **private** → none until re-invite.
+- Add Collaborator always visible; disabled for non-owners.
+- `removeCollaborator` no stranger/already-revoked invent; DELETE skips activity/SSE on no-op.
+- SessionListCacheGuard clears My Lists on account switch; allLists remount always revalidates.
+- List not found empty uses shared glass chrome (`text-white` / `text-white/60`).
 
 ## Current checkpoint
 
-- **Stage:** C7.33 commit-ready DONE — await HA smoke / deploy
+- **Stage:** C7.34 commit-ready
 - **Cycle:** C7
-- **Status:** committed; human re-smoke pending
-- **Trace:** REQ-0058, TASK-0065, DEC-0077
+- **Status:** ready to commit; HA re-smoke after deploy
+- **Trace:** REQ-0058, TASK-0065, DEC-0077 (policy refine C7.34)
 
 ## Next
 
 ```text
-1. Human: remove on public + private; old invite link kicks with toast; re-invite restores; Browse stranger OK.
+1. Human: remove on public → Browse open; private old invite kicks; disabled Add Collaborator as non-owner.
 2. Push + deploy when ready.
 ```

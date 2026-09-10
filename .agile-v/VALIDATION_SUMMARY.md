@@ -910,17 +910,16 @@ Gate 2: BLOCKED — RISK-0016 is accepted; `EVAL_RESULTS.md` PASS/WAIVED evidenc
 | Jest soft-nav/permissions | 16 passed | PASS | |
 | Verifier | PASS | HA public/private remove re-smoke |
 
-## 2026-09-10 — C7.33 collaborator revoke until re-invite
+## 2026-09-10 — C7.34 HA smoke polish
 
 | Scope | Command / evidence | Result | Notes |
 |---|---|---|---|
-| Revoke denylist | collaboratorRoles `role:revoked`; skip in UI list | PASS | no Prisma migration |
-| Authz | revoked before public→viewer (server+client) | PASS | |
-| Unified kick | 401+403 → unauthorized event; ListPage toast+home | PASS | |
-| Soft-nav / SSR | accessDenied cold; loadUnifiedList dehydrate | PASS | |
-| Offline revoke cache | unified `refetchOnMount: "always"` | PASS | security Low residual closed |
-| Remove copy | lose access immediately | PASS | |
-| eslint / tsc / build | exit 0 | PASS | commit-ready re-run |
-| Jest roles+revoke+soft-nav | focused suites PASS | PASS | include permissions-revoke |
-| Verifier / security | PASS WITH WARNINGS → Low fixed | HA smoke still human |
+| Authz | revoked+public→viewer; private→none | PASS | Browse open after remove |
+| Add Collaborator | always visible; disabled !canInvite | PASS | |
+| removeCollaborator | no stranger invent; already-revoked no-op | PASS | DELETE skips activity/SSE |
+| SessionListCacheGuard | clear allLists on user.id change | PASS | layout effect |
+| List not found UI | ListNotFoundEmptyState glass + white text | PASS | |
+| eslint / tsc / Jest / build | exit 0 | PASS | |
+| Security review | PASS | no medium+ findings |
+| Verifier | PASS WITH WARNINGS | HA after deploy |
 

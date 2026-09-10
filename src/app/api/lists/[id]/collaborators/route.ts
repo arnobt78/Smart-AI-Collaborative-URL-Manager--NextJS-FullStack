@@ -291,6 +291,17 @@ export async function DELETE(
 
     const updatedList = await removeCollaborator(listId, email);
 
+    // C7.34: skip activity/SSE when remove was a no-op (never a collaborator)
+    const rolesChanged =
+      JSON.stringify(updatedList.collaboratorRoles ?? null) !==
+      JSON.stringify(list.collaboratorRoles ?? null);
+    const legacyChanged =
+      JSON.stringify(updatedList.collaborators ?? []) !==
+      JSON.stringify(list.collaborators ?? []);
+    if (!rolesChanged && !legacyChanged) {
+      return NextResponse.json({ list: updatedList, removed: false });
+    }
+
     // Create activity log
     const activity = await createActivity(listId, user.id, "collaborator_removed", {
       collaboratorEmail: email,

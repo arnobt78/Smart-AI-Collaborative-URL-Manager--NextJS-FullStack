@@ -1072,4 +1072,4 @@ Append-only. Newest entries at bottom.
 | Decision | Mark removed collaborators as `revoked` in collaboratorRoles. Authz checks revoked before public→viewer so remove blocks list-detail on public and private until re-invite. Browse/public toggle unchanged for never-invited users. Revert C7.32 remove copy that promised continued view/comment. |
 | Rationale | Owner expectation: invite/remove is independent of public toggle; old invite link must not reopen the list. |
 | Linked REQs | REQ-0058; TASK-0065 |
-| Status | Implemented — C7.33 commit-ready; HA smoke pending. |
+| Status | Implemented — C7.34 refine: public revoked → viewer (Browse); private still blocked. |

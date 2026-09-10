@@ -25,10 +25,11 @@ Done: C7.8–C7.25 · **LLM** `c085f69` REQ-AI-0001 · **Icons** CONTROL/DECORAT
 **C7.30** Collab smoke: densify My Lists `updatedAt` on add/role/remove; Viewer jobs `canRunJobs`; clear `authRedirect` on logout (invite `?next=` only).
 **C7.31** Deferred polish closed: edit `scrollToUrlCard`; single navbar-offset `scrollTo`; opaque glass toasts; Insights loading while `isFetching && isPlaceholderData`; dup-scroll twin **Skip**.
 **C7.32** Honest collab chrome: Add Collaborator only when `canInvite`; thin Activity/collab subtitles; Lists empty soft-nav skeleton; Insights overview+activity pair-load.
-**C7.33** Collaborator revoke denylist (`role: revoked`) before public→viewer; SSR/client `accessDenied`; skeleton kick + toast + home; soft-nav cold; unified `refetchOnMount: "always"`; re-invite overwrites.
+**C7.33** Collaborator revoke denylist (`role: revoked`); SSR/client `accessDenied`; skeleton kick + toast + home; soft-nav cold; unified `refetchOnMount: "always"`; re-invite overwrites.
+**C7.34** HA polish: revoked+public → viewer (Browse); private still blocked; Add Collaborator always shown disabled; remove no-op strangers; SessionListCacheGuard; ListNotFoundEmptyState contrast.
 Stack: Next **16.3.4** · React **19.2.8** · Node **24.x** · **`src/proxy.ts`** · Prisma **6.19.3**.
-Defer: `(auth)` route-group; absolute cold PATCH/`_rsc` SLAs; Redis SUBSCRIBE rewrite; virtualization; Cloudinary destroy; Prisma urlCount column.
-Human: HA-0001 DONE; Vercel Node **24.x**; next: HA revoke smoke (remove → old invite) + push.
+Defer: `(auth)` route-group; absolute cold PATCH/`_rsc` SLAs; Redis SUBSCRIBE rewrite; virtualization; Cloudinary destroy; Prisma urlCount column; invite logout home flash.
+Human: HA-0001 DONE; Vercel Node **24.x**; next: HA revoke Browse re-smoke + push.
 Validate: Jest · lint 0 · tsc · build · audit 0. · Resume: `.agile-v/STATE.md`.
 
 

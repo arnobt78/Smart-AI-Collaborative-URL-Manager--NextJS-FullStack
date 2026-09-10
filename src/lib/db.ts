@@ -428,6 +428,7 @@ export async function updateCollaboratorRole(
  * Remove collaborator from a list.
  * C7.33: mark revoked in collaboratorRoles (denylist) instead of deleting the key;
  * strip legacy collaborators array. Re-invite overwrites via addCollaborator.
+ * C7.34: do not invent a revoked row for emails that were never collaborators.
  */
 export async function removeCollaborator(listId: string, email: string) {
   const list = await prisma.list.findUnique({
@@ -442,15 +443,39 @@ export async function removeCollaborator(listId: string, email: string) {
     ((list.collaboratorRoles as CollaboratorRolesJson) ||
       {}) as CollaboratorRolesJson;
   const emailLower = email.toLowerCase();
-  const trimmedEmail = email.trim();
-  const matchingKey =
-    Object.keys(collaboratorRoles).find(
-      (key) => key.toLowerCase() === emailLower,
-    ) || trimmedEmail;
-  const previous = parseStoredCollaboratorEntry(
-    collaboratorRoles[matchingKey],
+  const matchingKey = Object.keys(collaboratorRoles).find(
+    (key) => key.toLowerCase() === emailLower,
   );
-  collaboratorRoles[matchingKey] = buildRevokedCollaboratorEntry({ previous });
+  const inLegacy = (list.collaborators || []).some(
+    (e) => e.toLowerCase() === emailLower,
+  );
+
+  // Never invited / already absent — no-op (do not create a stranger denylist entry)
+  if (!matchingKey && !inLegacy) {
+    return list;
+  }
+
+  // Already revoked and not in legacy array — no-op (avoid activity/SSE churn)
+  if (
+    matchingKey &&
+    !inLegacy &&
+    parseStoredCollaboratorEntry(collaboratorRoles[matchingKey])?.role ===
+      "revoked"
+  ) {
+    return list;
+  }
+
+  if (matchingKey) {
+    const previous = parseStoredCollaboratorEntry(
+      collaboratorRoles[matchingKey],
+    );
+    collaboratorRoles[matchingKey] = buildRevokedCollaboratorEntry({
+      previous,
+    });
+  } else {
+    // Legacy array only — write denylist under the trimmed email
+    collaboratorRoles[email.trim()] = buildRevokedCollaboratorEntry();
+  }
 
   const collaborators = (list.collaborators || []).filter(
     (e) => e.toLowerCase() !== emailLower,

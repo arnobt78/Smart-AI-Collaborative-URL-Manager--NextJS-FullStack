@@ -907,14 +907,12 @@ export function useAllListsQuery() {
     staleTime: Infinity, // Cache forever until invalidated
     gcTime: 1000 * 60 * 60 * 24 * 7, // 7 days - keep in cache after component unmounts (matches default)
     refetchOnWindowFocus: false, // Don't refetch on tab switch
-    // CRITICAL: Refetch only when stale (invalidated)
-    // With staleTime: Infinity, this only triggers after invalidation
-    // Normal navigation uses cache instantly (no API calls)
-    refetchOnMount: true, // Refetch only when stale (after invalidation)
+    // C7.34: remount always revalidates so soft-nav Back cannot keep a wrong card count
+    refetchOnMount: "always",
     refetchInterval: false, // Disable automatic refetching - SSE events handle updates
     retry: 1,
-    // CRITICAL: Use stale data immediately if available, fetch fresh in background
-    placeholderData: (previousData) => previousData, // Keep previous data visible while refetching
+    // Keep prior paint while refetching — SessionListCacheGuard clears on user switch
+    placeholderData: (previousData) => previousData,
   });
 }
 

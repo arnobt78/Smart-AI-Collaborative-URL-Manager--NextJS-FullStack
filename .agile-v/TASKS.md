@@ -554,14 +554,14 @@ RSC shells · densify/Zod/SHA/Next16
 
 **Dependencies:** REQ-0057; c7.32_collab_ux_polish plan approved 2026-09-10.
 
-### TASK-0065 — C7.33 collaborator revoke until re-invite — **DONE (committed)** — HA smoke pending
+### TASK-0065 — C7.33 collaborator revoke until re-invite — **DONE** (C7.34 refine)
 
 1. ~~Reconcile STATE; REQ-0058 + DEC-0077.~~
 2. ~~collaborator-roles revoked + removeCollaborator write + list skip.~~
 3. ~~getRoleForListUser + useListPermissions: revoked before public viewer.~~
 4. ~~Unified 403 → toast + redirect; revert C7.32 remove copy.~~
-5. ~~Tests + eslint/tsc/jest/build + verifier + security + commit-ready.~~ (HA: public+private remove, old link, re-invite)
+5. ~~C7.34: public revoked → viewer (Browse); private blocked; Add disabled CTA; SessionListCacheGuard; ListNotFoundEmptyState.~~
 
-**Dependencies:** REQ-0058; c7.33_revoke_denylist plan approved 2026-09-10.
+**Dependencies:** REQ-0058; c7.33_revoke_denylist + c7.34_ha_polish plans.
 
 

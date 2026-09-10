@@ -67,8 +67,18 @@ export function useListPermissions(listOverride?: ListLike | null): PermissionCh
       | null
       | undefined;
 
-    // C7.33: revoked former collaborators never fall through to public viewer
+    // C7.34: revoked loses collab privileges; public still viewer (Browse).
+    // Private lists stay blocked until re-invite.
     if (isRevokedCollaborator(roles, user.email)) {
+      if (list.isPublic) {
+        return {
+          canEdit: false,
+          canDelete: false,
+          canInvite: false,
+          canComment: true,
+          role: "viewer" as UserRole,
+        };
+      }
       return {
         canEdit: false,
         canDelete: false,

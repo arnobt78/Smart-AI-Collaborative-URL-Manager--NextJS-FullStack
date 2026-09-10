@@ -25,6 +25,7 @@ import { BrowsePublicListCard } from "@/components/lists/BrowsePublicListCard";
 import { BrowseSearchField } from "@/components/lists/BrowseSearchField";
 import {
   BrowseEmptyState,
+  ListNotFoundEmptyState,
 } from "@/components/lists/ListEmptyStates";
 import {
   ListDetailBodySections,
@@ -36,11 +37,10 @@ import { browseQueryKeys } from "@/lib/browse-query-keys";
 import { listQueryKeys } from "@/lib/query-keys";
 import type { UserList } from "@/hooks/useListQueries";
 import { useWarmSoftNav } from "@/hooks/useWarmSoftNav";
-import { LIST_STACK, PAGE_STACK, HEADING_STACK } from "@/lib/ui-spacing";
+import { LIST_STACK, PAGE_STACK } from "@/lib/ui-spacing";
 import { cn } from "@/lib/utils";
 import { syncCurrentListFromSeedRow, isUnifiedListHydrated, syncUnifiedSubCachesFromUnified } from "@/lib/soft-nav-cache";
 import { resolveListUrlCount } from "@/lib/list-card-dto";
-import { Button } from "@/components/ui/Button";
 
 /**
  * C7.0: Warm soft-nav paints full chrome + cards from RQ (parity with real pages).
@@ -274,18 +274,7 @@ function ListDetailOptimisticSurface() {
   if (data && data.list == null) {
     return (
       <div className={cn("w-full", PAGE_STACK)}>
-        <div className="text-center">
-          <div className={HEADING_STACK}>
-            <h1 className="text-lg sm:text-xl font-medium">List not found</h1>
-            <p className="text-gray-600">
-              The list you&apos;re looking for doesn&apos;t exist or has been
-              deleted.
-            </p>
-          </div>
-          <Button href="/" className="mt-8">
-            Go Home
-          </Button>
-        </div>
+        <ListNotFoundEmptyState />
       </div>
     );
   }

@@ -41,9 +41,10 @@ export function getRoleForListUser(
 
   const roles = list.collaboratorRoles as CollaboratorRolesJson | null | undefined;
 
-  // C7.33: revoked former collaborators never fall through to public viewer
+  // C7.34: revoked loses collab privileges; public lists still allow viewer (Browse).
+  // Private lists stay blocked until re-invite.
   if (isRevokedCollaborator(roles, user.email)) {
-    return "none";
+    return list.isPublic ? "viewer" : "none";
   }
 
   const collabRole = resolveCollaboratorRole(roles, user.email);

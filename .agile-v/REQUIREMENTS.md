@@ -1167,4 +1167,4 @@ These describe the current product as verified in code. They are **Accepted as b
 
 **Affected:** `collaborator-roles`, `db.removeCollaborator`, `permissions`, `useListPermissions`, `useListQueries`, `ListPage`, `PermissionManager`.  
 **Trace:** TASK-0065, DEC-0077.  
-**Status:** Implemented — commit-ready [C7.33]; HA smoke pending.
+**Status:** Implemented — C7.34 refine (public Browse OK after remove; private blocked); commit-ready.

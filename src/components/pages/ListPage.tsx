@@ -6,7 +6,6 @@ import { useParams, useRouter } from "next/navigation";
 import { useStore } from "@nanostores/react";
 import { currentList } from "@/stores/urlListStore";
 import { UrlList } from "@/components/lists/UrlList";
-import { Button } from "@/components/ui/Button";
 import { AlertDialog } from "@/components/ui/AlertDialog";
 import { ListDetailJobsMenu } from "@/components/lists/ListDetailJobsMenu";
 import {
@@ -33,7 +32,7 @@ import {
   ListDetailBodySkeletons,
   ListDetailHeaderChrome,
 } from "@/components/lists/ListDetailHeaderChrome";
-import { HEADING_STACK, PAGE_STACK } from "@/lib/ui-spacing";
+import { PAGE_STACK } from "@/lib/ui-spacing";
 import { resolveListUrlCount } from "@/lib/list-card-dto";
 import { invalidateMutationImpact } from "@/utils/queryInvalidation";
 import type { UnifiedActivity } from "@/lib/unified-list-response";
@@ -49,6 +48,7 @@ import { cn } from "@/lib/utils";
 import { useWarmSoftNav } from "@/hooks/useWarmSoftNav";
 import { loginHrefWithNext } from "@/lib/auth-redirect";
 import { clearAuthRedirect, setAuthRedirect } from "@/lib/logout-client";
+import { ListNotFoundEmptyState } from "@/components/lists/ListEmptyStates";
 
 export default function ListPageClient() {
   const { toast, updateToast } = useToast();
@@ -483,18 +483,7 @@ export default function ListPageClient() {
   if (!list?.id) {
     return (
       <div className={cn("w-full", PAGE_STACK)}>
-        <div className="text-center">
-          <div className={HEADING_STACK}>
-            <h1 className="text-lg sm:text-xl font-medium">List not found</h1>
-            <p className="text-gray-600">
-              The list you&apos;re looking for doesn&apos;t exist or has been
-              deleted.
-            </p>
-          </div>
-          <Button href="/" className="mt-8">
-            Go Home
-          </Button>
-        </div>
+        <ListNotFoundEmptyState />
       </div>
     );
   }

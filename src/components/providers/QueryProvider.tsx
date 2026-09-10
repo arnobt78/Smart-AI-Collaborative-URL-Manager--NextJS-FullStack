@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "@/lib/react-query";
+import { SessionListCacheGuard } from "@/components/providers/SessionListCacheGuard";
 
 /**
  * QueryProvider - Wraps the app with React Query
@@ -15,7 +16,7 @@ export function QueryProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <QueryClientProvider client={client}>
-      {children}
+      <SessionListCacheGuard>{children}</SessionListCacheGuard>
     </QueryClientProvider>
   );
 }
