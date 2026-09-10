@@ -537,7 +537,38 @@ export function useRemoveCollaborator(listId: string, listSlug?: string) {
 
       return { previous, previousAllLists, previousCurrent, previousUnified };
     },
-    onSuccess: (data, email) => {
+    onSuccess: (
+      data: { list?: unknown; removed?: boolean },
+      email,
+      context,
+    ) => {
+      // C7.34: DELETE may return removed:false for never/already-revoked — don't claim success
+      if (data?.removed === false) {
+        toast({
+          title: "Already removed",
+          description: `${email} is not a collaborator on this list.`,
+          variant: "info",
+        });
+        // Heal optimistic updatedAt / My Lists bump (no SSE on no-op). Keep
+        // collaborators query filtered — matches server (never/already revoked).
+        if (context?.previousAllLists) {
+          queryClient.setQueryData(
+            listQueryKeys.allLists(),
+            context.previousAllLists,
+          );
+        }
+        if (context?.previousCurrent) {
+          currentList.set(context.previousCurrent);
+        }
+        if (listSlug && context?.previousUnified !== undefined) {
+          queryClient.setQueryData(
+            listQueryKeys.unified(listSlug),
+            context.previousUnified,
+          );
+        }
+        return;
+      }
+
       toast({
         title: "Collaborator Removed",
         description: `${email} has been removed from this list.`,
