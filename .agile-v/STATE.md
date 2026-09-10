@@ -2,22 +2,19 @@
 
 **C7.34.1 — Remove-collaborator no-op toast** | 2026-09-10
 
-## Reconciled
+## Done
 
-- `useRemoveCollaborator`: `removed: false` → info toast (“Already removed”), no success claim.
-- Heal optimistic `updatedAt` / My Lists / unified bump; keep collaborators query filtered.
-- Happy path (`{ list }` only) unchanged — success toast + `invalidateMutationImpact`.
+- Toast honesty + optimistic `updatedAt` heal shipped (`f55267e`).
+- Human HA on prod: OK; leave further UI polish for later.
 
 ## Current checkpoint
 
-- **Stage:** C7.34.1 commit-ready
-- **Cycle:** C7
-- **Status:** verified; ready to commit
-- **Trace:** C7.34 follow-up (Agent Review toast)
+- **Stage:** idle / backlog
+- **Cycle:** C7 closed for collab revoke + toast polish
+- **Status:** working in prod; no agent follow-up required
 
 ## Next
 
 ```text
-1. Push + deploy when ready.
-2. Human HA (optional): no false “Collaborator Removed” on no-op DELETE.
+(none) — pick next backlog item when ready
 ```
