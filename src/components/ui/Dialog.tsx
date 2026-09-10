@@ -172,7 +172,7 @@ function DialogHeader({
       {description ? (
         <p
           id={descriptionId}
-          className="mt-1 text-xs leading-snug text-white/60 sm:mt-2 sm:text-sm"
+          className="text-xs leading-snug text-white/60 sm:text-sm"
         >
           {description}
         </p>

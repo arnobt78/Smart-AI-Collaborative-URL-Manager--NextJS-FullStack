@@ -12,9 +12,9 @@
 
 ## Current checkpoint
 
-- **Stage:** C7.29 commit-ready
+- **Stage:** Human Gate — prod smoke (HA)
 - **Cycle:** C7
-- **Status:** verify PASS WITH WARNINGS; security PASS WITH WARNINGS; docs synced
+- **Status:** C7.29 code complete at `691758b`; waiting human prod UX findings before next code cycle
 - **Trace:** REQ-0054 DONE, TASK-0060 DONE, DEC-0073 DONE
 
 ## Validation (2026-09-09)
@@ -28,13 +28,13 @@
 
 ## Human
 
-- Local: `nvm use` 24 (agent shell may be 22).
-- Vercel dashboard Node = 24.x if override exists.
-- Optional install-scripts approve — not CVE-related.
+- Prod smoke in progress (daily-urlist.vercel.app).
+- Report UX/bugs first; attach Network only when something feels wrong/slow/broken.
+- Confirm Vercel Node = 24.x if dashboard override exists.
 
 ## Next
 
 ```text
-1. Push when directed + light prod smoke.
-2. Next product cycle from backlog.
+1. Human shares smoke findings (UX ± Network for anomalies).
+2. Triage → scoped fix plan → approve before coding.
 ```
